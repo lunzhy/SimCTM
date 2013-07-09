@@ -87,7 +87,7 @@ void DomainTest::BuildDomain()
 			if ( ix-1 >= 0 )
 			{
 				currVertex->WestVertex = getVertex(vertexHelper.IdAt(ix-1, iy)); 
-				currVertex->WestLength = GeneralMath::distance(currVertex, currVertex->WestVertex);
+				currVertex->WestLength = FDVertex::Distance(currVertex, currVertex->WestVertex);
 			}
 			else
 			{
@@ -97,7 +97,7 @@ void DomainTest::BuildDomain()
 			if ( ix+1 <= vertexHelper.GetMaxX() )
 			{
 				currVertex->EastVertex = getVertex(vertexHelper.IdAt(ix+1, iy));
-				currVertex->EastLength = GeneralMath::distance(currVertex, currVertex->EastVertex);
+				currVertex->EastLength = FDVertex::Distance(currVertex, currVertex->EastVertex);
 			}
 			else									
 			{
@@ -107,7 +107,7 @@ void DomainTest::BuildDomain()
 			if ( iy-1 >= 0 )
 			{
 				currVertex->SouthVertex = getVertex(vertexHelper.IdAt(ix, iy-1));
-				currVertex->SouthLength = GeneralMath::distance(currVertex, currVertex->SouthVertex);
+				currVertex->SouthLength = FDVertex::Distance(currVertex, currVertex->SouthVertex);
 			}
 			else
 			{
@@ -117,7 +117,7 @@ void DomainTest::BuildDomain()
 			if ( iy+1 <= vertexHelper.GetMaxY() )
 			{
 				currVertex->NorthVertex = getVertex(vertexHelper.IdAt(ix, iy+1));
-				currVertex->NorthLength = GeneralMath::distance(currVertex, currVertex->NorthVertex);
+				currVertex->NorthLength = FDVertex::Distance(currVertex, currVertex->NorthVertex);
 			}
 			else
 			{
