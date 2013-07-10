@@ -11,7 +11,9 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _DOMAINDETAIL_H_
+#define _DOMAINDETAIL_H_
+
 #include "GeneralMath.h"
 #include <vector>
 #include "Normalization.h"
@@ -38,6 +40,7 @@ public:
 	FDElement *SouthwestElem;
 
 	int GetInternalID() { return id; }
+	static double Distance(FDVertex *vertex1, FDVertex *vertex2);
 protected:
 	unsigned int id;
 };
@@ -67,10 +70,10 @@ public:
 	FDElement( unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex )
 		:id(_id), SouthwestVertex(_swVertex), SoutheastVertex(_seVertex), NortheastVertex(_neVertex), NorthwestVertex(_nwVertex)
 	{
-		WestLength = GeneralMath::distance(NorthwestVertex, SouthwestVertex);
-		SouthLength = GeneralMath::distance(SouthwestVertex, SoutheastVertex);
-		EastLength = GeneralMath::distance(NortheastVertex, SoutheastVertex);
-		NorthLength = GeneralMath::distance(NorthwestVertex, NortheastVertex);
+		WestLength =FDVertex::Distance(NorthwestVertex, SouthwestVertex);
+		SouthLength = FDVertex::Distance(SouthwestVertex, SoutheastVertex);
+		EastLength = FDVertex::Distance(NortheastVertex, SoutheastVertex);
+		NorthLength =FDVertex::Distance(NorthwestVertex, NortheastVertex);
 		//TODO: judge if the corresponding length equal to each other
 	}
 	
@@ -108,3 +111,5 @@ protected:
 	std::vector<FDElement *> elements;
 	unsigned int id;
 };
+
+#endif // !_DOMAINDETAIL_H_

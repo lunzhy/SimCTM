@@ -10,9 +10,10 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _GENERALMATH_H_
+#define _GENERALMATH_H_
+
 #include <cmath>
-#include "DomainDetails.h"
 
 namespace GeneralMath
 {
@@ -23,7 +24,6 @@ namespace GeneralMath
 	inline double abs(double val);
 	inline double square(double val);
 	inline double sqrt(double val);
-	inline double distance(FDVertex *vertex1, FDVertex *vertex2);
 
 	// =====================================================================================
 	// IMPLEMENTATIONS
@@ -31,8 +31,6 @@ namespace GeneralMath
 	inline double abs(double val) {return val > 0 ? val : -val;}
 	inline double square(double val) {return val * val;}
 	inline double sqrt(double val)  { return std::sqrt(val); }
-	inline double distance(FDVertex *vertex1, FDVertex *vertex2)
-	{
-		return sqrt(square(vertex1->X - vertex2->X) + square(vertex1->Y - vertex2->Y));
-	}
 }
+
+#endif // !_GENERALMATH_H_
