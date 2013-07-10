@@ -1,6 +1,6 @@
-#include "DomainTest.h"
+#include "FDDomainTest.h"
 int main()
 {
-	DomainTest aTest = DomainTest();
+	FDDomainTest aTest = FDDomainTest();
 	aTest.BuildDomain();
 }

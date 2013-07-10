@@ -99,7 +99,7 @@ public:
 	enum RegionType
 	{
 		TunnelingOxide,
-		TrappingOxide,
+		TrappingLayer,
 		BlockingOxide
 	};
 	FDRegion(unsigned int _id, RegionType _type)

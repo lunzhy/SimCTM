@@ -1,5 +1,5 @@
 /**
-* @file DomainTest.h
+* @file FDDomainTest.h
 * @brief
 *
 *
@@ -12,7 +12,8 @@
 */
 
 #include "FDDomain.h"
-class DomainTest : FDDomain
+class FDRegion;
+class FDDomainTest : FDDomain
 {
 public:
 	void BuildDomain();
@@ -41,4 +42,5 @@ private:
 	
 	double yNextGridLength( int iy );
 	double xNextGridLength( int ix );
+	FDRegion * thisRegion( int elemY);
 };

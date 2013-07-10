@@ -11,20 +11,100 @@
 * @todo
 */
 
-#include "DomainTest.h"
+#include "FDDomainTest.h"
 #include "Material.h"
 #include "Normalization.h"
 #include <iostream>
 
-void DomainTest::BuildDomain()
+void FDDomainTest::BuildDomain()
 {
-	prepareStructures(); //
-	//Initialize the vectors and counters
+	//Initialize the vectors
 	vertices.clear();
-	int cntVertex = 0;
 	elements.clear();
-	int cntElement = 0;
 	regions.clear();
+
+	prepareStructures(); //mainly set the structure and mesh parameters
+	setDomainDetails(); //fill in the regions, vertices and elements
+	setAdjacency(); //set the adjacency of vertices and elements
+
+	printStructure();
+}
+
+void FDDomainTest::prepareStructures()
+{
+	setParameters();
+}
+
+void FDDomainTest::setParameters()
+{
+	double nm_in_cm = GeneralMath::nm_in_cm;
+
+	////////////////////////////////////////////////////////////////////////////
+	//modify here to change the structures
+	double xLength_in_nm = 10;
+	double yLengthTunnel_in_nm = 10;
+	double yLengthTrap_in_nm = 10;
+	double yLengthBlock_in_nm = 10;
+	int xGridNumber = 5;
+	int yGridNumberTunnel = 5;
+	int yGridNumberTrap = 5;
+	int yGridNumberBlock = 5;
+	////////////////////////////////////////////////////////////////////////////
+
+	xLength = xLength_in_nm * nm_in_cm;
+	xCntVertex = xGridNumber + 1;
+	yLengthTunnel = yLengthTunnel_in_nm * nm_in_cm;
+	yCntVertexTunnel = yGridNumberTunnel + 1;
+	yLengthTrap = yLengthTrap_in_nm * nm_in_cm;
+	yCntVertexTrap = yGridNumberTrap + 1;
+	yLengthBlock = yLengthBlock_in_nm * nm_in_cm;
+	yCntVertexBlock = yGridNumberBlock + 1;
+
+	xGrid = xLength / ( xCntVertex - 1 );
+	yGridTunnel = yLengthTunnel / ( yCntVertexTunnel - 1 );
+	yGridTrap = yLengthTrap / ( yCntVertexTrap - 1 );
+	yGridBlock = yLengthBlock / ( yCntVertexBlock - 1 );
+}
+
+void FDDomainTest::printStructure()
+{
+	for (std::vector<FDVertex *>::size_type ix = 0; ix != this->vertices.size(); ++ix)
+	{
+		std::cout << "id=" << vertices.at(ix)->GetInternalID() 
+			<< '\t' << (vertices.at(ix)->WestVertex == NULL ? -1 : vertices.at(ix)->WestVertex->GetInternalID())
+			<< '\t' << (vertices.at(ix)->SouthVertex == NULL ? -1 : vertices.at(ix)->SouthVertex->GetInternalID())
+			<< '\t' << (vertices.at(ix)->EastVertex == NULL ? -1 : vertices.at(ix)->EastVertex->GetInternalID())
+			<< '\t' << (vertices.at(ix)->NorthVertex == NULL ? -1 : vertices.at(ix)->NorthVertex->GetInternalID())
+			<< '\t' << (vertices.at(ix)->SouthwestElem == NULL ? -1 : vertices.at(ix)->SouthwestElem->GetInternalID())
+			<< '\t' << (vertices.at(ix)->SoutheastElem == NULL ? -1 : vertices.at(ix)->SoutheastElem->GetInternalID())
+			<< '\t' << (vertices.at(ix)->NortheastElem == NULL ? -1 : vertices.at(ix)->NortheastElem->GetInternalID())
+			<< '\t' << (vertices.at(ix)->NorthwestElem == NULL ? -1 : vertices.at(ix)->NorthwestElem->GetInternalID())
+			<< '\t' << vertices.at(ix)->WestLength
+			<< '\t' << vertices.at(ix)->SouthLength
+			<< '\t' << vertices.at(ix)->EastLength
+			<< '\t' << vertices.at(ix)->NorthLength
+			<< std::endl;
+	}
+
+	for (std::vector<FDElement *>::size_type ix = 0; ix != this->elements.size(); ++ix)
+	{
+		std::cout << "id=" << elements.at(ix)->GetInternalID()
+			<< '\t' << elements.at(ix)->SouthwestVertex->GetInternalID()
+			<< '\t' << elements.at(ix)->SoutheastVertex->GetInternalID()
+			<< '\t' << elements.at(ix)->NortheastVertex->GetInternalID()
+			<< '\t' << elements.at(ix)->NorthwestVertex->GetInternalID()
+			<< '\t' << elements.at(ix)->WestLength
+			<< '\t' << elements.at(ix)->SouthLength
+			<< '\t' << elements.at(ix)->EastLength
+			<< '\t' << elements.at(ix)->NorthLength
+			<< std::endl;
+	}
+}
+
+void FDDomainTest::setDomainDetails()
+{
+	int cntVertex = 0;
+	int cntElement = 0;
 	int cntRegion = 0;
 
 	double currCoordX = 0.0;
@@ -35,23 +115,35 @@ void DomainTest::BuildDomain()
 	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntVertexTunnel-1);
 
 	//set vertices
-	for (int iy = 0; iy != yCntVertexTunnel; ++iy)
+	int yCntTotalVertex = yCntVertexTunnel + yCntVertexTrap + yCntVertexBlock - 1 - 1;
+	double normCoordX = 0.0;
+	double normCoordY = 0.0;
+	for (int iy = 0; iy != yCntTotalVertex; ++iy)
 	{
-		currCoordY = iy * yGridTunnel;
-		currCoordY = theNorm.PushLength(currCoordY);
+		//currCoordY = iy * yGridTunnel;
+		//currCoordY = theNorm.PushLength(currCoordY);
 		for (int ix = 0; ix != xCntVertex; ++ix)
 		{
-			currCoordX = ix * xGrid;
-			currCoordX = theNorm.PushLength(currCoordX);
-			vertices.push_back(new FDVertex(cntVertex, currCoordX, currCoordY));
+			//currCoordX = ix * xGrid;
+			normCoordX = theNorm.PushLength(currCoordX);
+			normCoordY = theNorm.PushLength(currCoordY);
+			vertices.push_back(new FDVertex(cntVertex, normCoordX, normCoordY));
 			cntVertex++;
+			currCoordX += xNextGridLength(ix);
 		}
+		currCoordX = 0;
+		currCoordY += yNextGridLength(iy);
 	}
 
-	//set elements with specified region
+	//set regions
 	regions.push_back(new FDRegion(cntRegion, FDRegion::TunnelingOxide));
-	FDRegion *currRegion = getRegion(cntRegion);
 	cntRegion++;
+	regions.push_back(new FDRegion(cntRegion, FDRegion::TrappingLayer));
+	cntRegion++;
+	regions.push_back(new FDRegion(cntRegion, FDRegion::BlockingOxide));
+	cntRegion++;
+	//set elements with specified region
+	FDRegion *currRegion = NULL;
 	FDVertex *swVertex = NULL;
 	FDVertex *seVertex = NULL;
 	FDVertex *nwVertex = NULL;
@@ -67,12 +159,18 @@ void DomainTest::BuildDomain()
 			nwVertex = getVertex(vertexHelper.IdAt(ix, iy+1));
 			elements.push_back(new FDElement(cntElement, swVertex, seVertex, neVertex, nwVertex));
 			//set inner member of element and region
+			currRegion = thisRegion(iy);
 			getElement(cntElement)->SetRegion(currRegion);
 			currRegion->AddElement(getElement(cntElement));
 			cntElement++;
 		}
 	}
+}
 
+void FDDomainTest::setAdjacency()
+{
+	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntVertexTunnel);
+	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntVertexTunnel-1);
 	//set vertex properties
 	int id = 0;
 	FDVertex *currVertex = NULL;
@@ -83,7 +181,7 @@ void DomainTest::BuildDomain()
 			id = vertexHelper.IdAt(ix, iy);
 			currVertex = getVertex(id);
 			/////////////////////
-			//set adjacent vertex
+			//set adjacent vertex and length
 			if ( ix-1 >= 0 )
 			{
 				currVertex->WestVertex = getVertex(vertexHelper.IdAt(ix-1, iy)); 
@@ -138,7 +236,7 @@ void DomainTest::BuildDomain()
 		}
 	}
 
-	//set element properties
+	//set element adjacent properties
 	FDElement *currElem = NULL;
 	for (int iy = 0; iy != yCntVertexTunnel-1; ++iy)
 	{
@@ -153,77 +251,45 @@ void DomainTest::BuildDomain()
 			currElem->NorthwestVertex = getVertex(vertexHelper.IdAt(ix, iy+1));
 		}
 	}
-
-	PrintStructure();
 }
 
-void DomainTest::prepareStructures()
+double FDDomainTest::yNextGridLength(int iy)
 {
-	setStructures();
+	if ( iy < yCntVertexTunnel - 1)
+		return yGridTunnel;
+	else
+		iy -= yCntVertexTunnel - 1;
+
+	if ( iy < yCntVertexTrap - 1)
+		return yGridTrap;
+	else
+		iy -= yCntVertexTrap - 1;
+
+	if ( iy < yCntVertexBlock - 1)
+		return yGridBlock;
+	else
+		return 0;//0 means that current vertex is the last vertex in this direction
 }
 
-void DomainTest::setStructures()
+double FDDomainTest::xNextGridLength(int ix)
 {
-	double nm_in_cm = GeneralMath::nm_in_cm;
-
-	//////////////////////////////////////
-	//modify here to change the structures
-	double xLength_in_nm = 100;
-	double yLengthTunnel_in_nm = 5;
-	double yLengthTrap_in_nm = 15;
-	double yLengthBlock_in_nm = 20;
-	int xGridNumber = 5;
-	int yGridNumberTunnel = 5;
-	int yGridNumberTrap = 5;
-	int yGridNumberBlock = 5;
-	//////////////////////////////////////
-
-	xLength = xLength_in_nm * nm_in_cm;
-	xCntVertex = xGridNumber + 1;
-	yLengthTunnel = yLengthTunnel_in_nm * nm_in_cm;
-	yCntVertexTunnel = yGridNumberTunnel + 1;
-	yLengthTrap = yLengthTrap_in_nm * nm_in_cm;
-	yCntVertexTrap = yGridNumberTrap + 1;
-	yLengthBlock = yLengthBlock_in_nm * nm_in_cm;
-	yCntVertexBlock = yGridNumberBlock + 1;
-
-	xGrid = xLength / ( xCntVertex - 1 );
-	yGridTunnel = yLengthTunnel / ( yCntVertexTunnel - 1 );
-	yGridTrap = yLengthTrap / ( yCntVertexTrap - 1 );
-	yGridBlock = yLengthBlock / ( yCntVertexBlock - 1 );
+	return xGrid;
 }
 
-void DomainTest::PrintStructure()
+FDRegion * FDDomainTest::thisRegion(int elemY)
 {
-	for (std::vector<FDVertex *>::size_type ix = 0; ix != this->vertices.size(); ++ix)
-	{
-		std::cout << "id=" << vertices.at(ix)->GetInternalID() 
-			<< '\t' << (vertices.at(ix)->WestVertex == NULL ? -1 : vertices.at(ix)->WestVertex->GetInternalID())
-			<< '\t' << (vertices.at(ix)->SouthVertex == NULL ? -1 : vertices.at(ix)->SouthVertex->GetInternalID())
-			<< '\t' << (vertices.at(ix)->EastVertex == NULL ? -1 : vertices.at(ix)->EastVertex->GetInternalID())
-			<< '\t' << (vertices.at(ix)->NorthVertex == NULL ? -1 : vertices.at(ix)->NorthVertex->GetInternalID())
-			<< '\t' << (vertices.at(ix)->SouthwestElem == NULL ? -1 : vertices.at(ix)->SouthwestElem->GetInternalID())
-			<< '\t' << (vertices.at(ix)->SoutheastElem == NULL ? -1 : vertices.at(ix)->SoutheastElem->GetInternalID())
-			<< '\t' << (vertices.at(ix)->NortheastElem == NULL ? -1 : vertices.at(ix)->NortheastElem->GetInternalID())
-			<< '\t' << (vertices.at(ix)->NorthwestElem == NULL ? -1 : vertices.at(ix)->NorthwestElem->GetInternalID())
-			<< '\t' << vertices.at(ix)->WestLength
-			<< '\t' << vertices.at(ix)->SouthLength
-			<< '\t' << vertices.at(ix)->EastLength
-			<< '\t' << vertices.at(ix)->NorthLength
-			<< std::endl;
-	}
+	if ( elemY < yCntVertexTunnel - 1 )
+		return getRegion(0);
+	else
+		elemY -= yCntVertexTunnel - 1;
 
-	for (std::vector<FDElement *>::size_type ix = 0; ix != this->elements.size(); ++ix)
-	{
-		std::cout << "id=" << elements.at(ix)->GetInternalID()
-			<< '\t' << elements.at(ix)->SouthwestVertex->GetInternalID()
-			<< '\t' << elements.at(ix)->SoutheastVertex->GetInternalID()
-			<< '\t' << elements.at(ix)->NortheastVertex->GetInternalID()
-			<< '\t' << elements.at(ix)->NorthwestVertex->GetInternalID()
-			<< '\t' << elements.at(ix)->WestLength
-			<< '\t' << elements.at(ix)->SouthLength
-			<< '\t' << elements.at(ix)->EastLength
-			<< '\t' << elements.at(ix)->NorthLength
-			<< std::endl;
-	}
+	if ( elemY < yCntVertexTrap - 1 )
+		return getRegion(1);
+	else
+		elemY -= yCntVertexTrap - 1;
+
+	if ( elemY < yCntVertexBlock - 1)
+		return getRegion(2);
+	else
+		return NULL;
 }
