@@ -33,7 +33,12 @@ protected:
 	double yGridBlock;
 
 private:
-	void setStructures();
+	void setParameters();
+	void setDomainDetails();
+	void setAdjacency();
 	void prepareStructures();
-	void PrintStructure();
+	void printStructure();
+	
+	double yNextGridLength( int iy );
+	double xNextGridLength( int ix );
 };
