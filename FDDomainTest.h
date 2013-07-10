@@ -27,6 +27,7 @@ protected:
 	int yCntVertexTunnel;
 	int yCntVertexTrap;
 	int yCntVertexBlock;
+	int yCntTotalVertex;
 
 	double xGrid;
 	double yGridTunnel;

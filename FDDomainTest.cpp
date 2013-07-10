@@ -64,6 +64,8 @@ void FDDomainTest::setParameters()
 	yGridTunnel = yLengthTunnel / ( yCntVertexTunnel - 1 );
 	yGridTrap = yLengthTrap / ( yCntVertexTrap - 1 );
 	yGridBlock = yLengthBlock / ( yCntVertexBlock - 1 );
+
+	yCntTotalVertex = yCntVertexTunnel + yCntVertexTrap + yCntVertexBlock - 1 - 1;
 }
 
 void FDDomainTest::printStructure()
@@ -111,11 +113,9 @@ void FDDomainTest::setDomainDetails()
 	double currCoordY = 0.0;
 
 	Utility::Normalization theNorm = Utility::Normalization();
-	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntVertexTunnel);
-	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntVertexTunnel-1);
-
 	//set vertices
-	int yCntTotalVertex = yCntVertexTunnel + yCntVertexTrap + yCntVertexBlock - 1 - 1;
+	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
+	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1); // element number = vertex number - 1
 	double normCoordX = 0.0;
 	double normCoordY = 0.0;
 	for (int iy = 0; iy != yCntTotalVertex; ++iy)
@@ -149,7 +149,7 @@ void FDDomainTest::setDomainDetails()
 	FDVertex *nwVertex = NULL;
 	FDVertex *neVertex = NULL;
 
-	for (int iy = 0; iy != yCntVertexTunnel-1; ++iy)
+	for (int iy = 0; iy != yCntTotalVertex-1; ++iy)
 	{
 		for (int ix = 0; ix != xCntVertex-1; ++ix)
 		{
@@ -169,12 +169,12 @@ void FDDomainTest::setDomainDetails()
 
 void FDDomainTest::setAdjacency()
 {
-	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntVertexTunnel);
-	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntVertexTunnel-1);
+	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
+	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1);
 	//set vertex properties
 	int id = 0;
 	FDVertex *currVertex = NULL;
-	for (int iy = 0; iy != yCntVertexTunnel; ++iy)
+	for (int iy = 0; iy != yCntTotalVertex; ++iy)
 	{
 		for (int ix = 0; ix != xCntVertex; ++ix)
 		{
@@ -278,7 +278,7 @@ double FDDomainTest::xNextGridLength(int ix)
 
 FDRegion * FDDomainTest::thisRegion(int elemY)
 {
-	if ( elemY < yCntVertexTunnel - 1 )
+	if ( elemY < yCntVertexTunnel - 1 ) //transfer the vertex count into element count
 		return getRegion(0);
 	else
 		elemY -= yCntVertexTunnel - 1;
