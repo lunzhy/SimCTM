@@ -90,7 +90,7 @@ void FDDomainTest::printStructure()
 
 	for (std::vector<FDElement *>::size_type ix = 0; ix != this->elements.size(); ++ix)
 	{
-		std::cout << "id=" << elements.at(ix)->GetInternalID()
+		std::cout << "id=" << elements.at(ix)->GetInternalID() << '\t' << elements.at(ix)->region->Type
 			<< '\t' << elements.at(ix)->SouthwestVertex->GetInternalID()
 			<< '\t' << elements.at(ix)->SoutheastVertex->GetInternalID()
 			<< '\t' << elements.at(ix)->NortheastVertex->GetInternalID()

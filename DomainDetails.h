@@ -20,30 +20,166 @@
 using namespace Utility;
 
 class FDElement;
+
+/// @brief FDVertex is the class describing the vertex in finite differential method
+///
+/// This class contains the information that will be used around specified vertex
 class FDVertex
 {
 public:
+	/// @brief FDVertex is the construction method for this class
+	/// 
+	/// The vertex is initialized with internal id, x and y coordinates of the vertex.
+	/// The id of the vertex is given explicitly when it is called.
+	///
+	/// @param unsigned _id
+	/// @param double _x
+	/// @param double _y
+	/// @pre
+	/// @return 
+	/// @note
 	FDVertex(unsigned _id, double _x, double _y): X(_x), Y(_y), id(_id) {}
-	double X;
-	double Y;
-	double EastLength;
-	double WestLength;
-	double NorthLength;
-	double SouthLength;
-	FDVertex *EastVertex;
-	FDVertex *WestVertex;
-	FDVertex *NorthVertex;
-	FDVertex *SouthVertex;
-	FDElement *NortheastElem;
-	FDElement *NorthwestElem;
-	FDElement *SoutheastElem;
-	FDElement *SouthwestElem;
-
+	double X; ///< coordinate of x direction
+	double Y; ///< coordinate of y direction
+	double EastLength; ///< the edge length to the east of the current vertex
+	double WestLength; ///< the edge length to the west of the current vertex
+	double NorthLength; ///< the edge length to the north of the current vertex
+	double SouthLength; ///< the edge length to the south of the current vertex
+	FDVertex *EastVertex; ///< the pointer to east vertex
+	FDVertex *WestVertex; ///< the pointer to west vertex
+	FDVertex *NorthVertex; ///< the pointer to north vertex
+	FDVertex *SouthVertex; ///< the pointer to south vertex
+	FDElement *NortheastElem; ///< the pointer to northeast element
+	FDElement *NorthwestElem; ///< the pointer to northwest element
+	FDElement *SoutheastElem; ///< the pointer to southeast element
+	FDElement *SouthwestElem; ///< the pointer to southwest element
+	
+	/// @brief GetInternalID returns the internal id of specified vertex
+	/// 
+	///
+	/// 
+	/// @pre
+	/// @return int
+	/// @note
 	int GetInternalID() { return id; }
+	/// @brief Distance can get the distance between two given vertices
+	/// 
+	/// 
+	/// 
+	/// @param FDVertex * vertex1
+	/// @param FDVertex * vertex2
+	/// @pre
+	/// @return double
+	/// @note This is a static method.
 	static double Distance(FDVertex *vertex1, FDVertex *vertex2);
 protected:
-	unsigned int id;
+	unsigned int id; ///< internal id of the vertex
 };
+
+
+class FDRegion;
+/// @brief FDElement is the class describing the element used in finite differential method
+///
+/// FDElement involves the information near current element.
+class FDElement
+{
+public:
+	//temporary construction method
+	/// @brief FDElement is the construction method of this class.
+	/// 
+	/// The element in finite differential method is initialized with internal id 
+	/// and four vertices of the rectangle element.
+	/// 
+	/// @param unsigned int _id
+	/// @param FDVertex * _swVertex
+	/// @param FDVertex * _seVertex
+	/// @param FDVertex * _neVertex
+	/// @param FDVertex * _nwVertex
+	/// @pre
+	/// @return 
+	/// @note
+	FDElement( unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex )
+		:id(_id), SouthwestVertex(_swVertex), SoutheastVertex(_seVertex), NortheastVertex(_neVertex), NorthwestVertex(_nwVertex)
+	{
+		WestLength =FDVertex::Distance(NorthwestVertex, SouthwestVertex);
+		SouthLength = FDVertex::Distance(SouthwestVertex, SoutheastVertex);
+		EastLength = FDVertex::Distance(NortheastVertex, SoutheastVertex);
+		NorthLength =FDVertex::Distance(NorthwestVertex, NortheastVertex);
+		///TODO: judge if the corresponding length equal to each other
+	}
+	
+	double WestLength; ///< the length of west edge of this element
+	double EastLength; ///< the length of east edge of this element
+	double NorthLength; ///< the length of north edge of this element
+	double SouthLength; ///< the length of south edge of this element
+	FDVertex *NorthwestVertex; ///< the northwest vertex of this element
+	FDVertex *NortheastVertex; ///< the northeast vertex of this element
+	FDVertex *SouthwestVertex; ///< the southwest vertex of this element
+	FDVertex *SoutheastVertex; ///< the southeast vertex of this element
+	FDRegion *region; ///< the related region of this element
+
+	/// @brief GetInternalID returns the internal id of the specified element.
+	/// 
+	///
+	/// 
+	/// @pre
+	/// @return int
+	/// @note
+	int GetInternalID() { return id; }
+
+	/// @brief SetRegion sets the region of this element.
+	/// 
+	///
+	/// 
+	/// @param FDRegion * region
+	/// @pre
+	/// @return void
+	/// @note
+	void SetRegion( FDRegion *region ) {this->region = region;}
+protected:
+	unsigned int id; ///< the internal id of the element
+};
+
+/// @brief describes the region used in finite differential method
+///
+/// This class contains the information of the region.
+class FDRegion
+{
+public:
+	/// @brief The type of the region 
+	enum RegionType
+	{
+		TunnelingOxide, ///< tunneling oxide
+		TrappingLayer, ///< trapping layer
+		BlockingOxide ///< blocking oxide
+	};
+	/// @brief FDRegion is the construction method of the class
+	/// 
+	/// FDRegion is constructed with the internal id and type of the region.
+	/// 
+	/// @param unsigned int _id
+	/// @param RegionType _type
+	/// @pre
+	/// @return 
+	/// @note
+	FDRegion(unsigned int _id, RegionType _type)
+		:id(_id), Type(_type) {}
+	RegionType Type; ///< type of the region, in enum RegionType
+
+	/// @brief AddElement adds element in current region
+	/// 
+	///
+	/// 
+	/// @param FDElement * elem
+	/// @pre
+	/// @return void
+	/// @note
+	void AddElement( FDElement *elem ) {elements.push_back(elem);}
+protected:
+	std::vector<FDElement *> elements; ///< the elements that are involved in current region
+	unsigned int id; ///< internal id
+};
+
 
 /*
 class FDEdge
@@ -61,55 +197,4 @@ protected:
 	unsigned int id;
 };
 */
-
-class FDRegion;
-class FDElement
-{
-public:
-	//temporary construction method
-	FDElement( unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex )
-		:id(_id), SouthwestVertex(_swVertex), SoutheastVertex(_seVertex), NortheastVertex(_neVertex), NorthwestVertex(_nwVertex)
-	{
-		WestLength =FDVertex::Distance(NorthwestVertex, SouthwestVertex);
-		SouthLength = FDVertex::Distance(SouthwestVertex, SoutheastVertex);
-		EastLength = FDVertex::Distance(NortheastVertex, SoutheastVertex);
-		NorthLength =FDVertex::Distance(NorthwestVertex, NortheastVertex);
-		//TODO: judge if the corresponding length equal to each other
-	}
-	
-	double WestLength;
-	double EastLength;
-	double NorthLength;
-	double SouthLength;
-	FDVertex *NorthwestVertex;
-	FDVertex *NortheastVertex;
-	FDVertex *SouthwestVertex;
-	FDVertex *SoutheastVertex;
-	FDRegion *region;
-
-	int GetInternalID() { return id; }
-	void SetRegion( FDRegion *region ) {this->region = region;}
-protected:
-	unsigned int id;
-};
-
-class FDRegion
-{
-public:
-	enum RegionType
-	{
-		TunnelingOxide,
-		TrappingLayer,
-		BlockingOxide
-	};
-	FDRegion(unsigned int _id, RegionType _type)
-		:id(_id), Type(_type) {}
-	RegionType Type;
-
-	void AddElement( FDElement *elem ) {elements.push_back(elem);}
-protected:
-	std::vector<FDElement *> elements;
-	unsigned int id;
-};
-
 #endif // !_DOMAINDETAIL_H_

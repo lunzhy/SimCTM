@@ -1,8 +1,8 @@
 /**
 * @file FDDomain.cpp
-* @brief
+* @brief This file contains the definition/implementation of the member methods.
 *
-*
+* 
 *
 * @author
 * @version 

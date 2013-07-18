@@ -1,6 +1,6 @@
 /**
 * @file DomainDetails.cpp
-* @brief
+* @brief This file contains the detailed implementation of the methods declared in the header file.
 *
 *
 *
