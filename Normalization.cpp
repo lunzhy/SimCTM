@@ -12,7 +12,7 @@
 */
 
 #include "Normalization.h"
-#include "GeneralMath.h"
+#include "SctmMath.h"
 using namespace Utility;
 
 Normalization::Normalization(double temperature)
@@ -33,7 +33,7 @@ Normalization::~Normalization(void)
 
 void Normalization::initFactors()
 {
-	this->lengthFactor = GeneralMath::sqrt(EPSILON * BOLTZMAN * this->temperature / CHARGE / CHARGE / INTRINSIC_CONC_SI);
+	this->lengthFactor = SctmMath::sqrt(EPSILON * BOLTZMAN * this->temperature / CHARGE / CHARGE / INTRINSIC_CONC_SI);
 	this->potentialFactor = BOLTZMAN * this->temperature / CHARGE;
 	this->elecFieldFactor = potentialFactor / lengthFactor;
 	this->concFactor = INTRINSIC_CONC_SI;

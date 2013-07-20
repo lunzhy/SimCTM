@@ -11,8 +11,33 @@
 * @todo
 */
 
-
+#include <vector>
+#include "DomainDetails.h"
+using namespace std;
 class TunnelSolver
 {
+public:
+	virtual void PrepareProblem(FDVertex *startVertex) = 0;
 
+protected:
+	virtual double getSupplyFunction(double energy);
+	double getTransmissionCoefficient(double energy);
+	void initializeSolver();
+	void calc_DT_FN_Tunneling();
+
+	vector<double> cbegde;
+	vector<double> emass;
+	vector<double> deltaX;
+	double cbedgeTunnelFrom; ///< left electrode conduction band edge
+	double cbedgeTunnelTo;
+	double fermiEnergyTunnelFrom;
+	double fermiEnergyTunnelTo;
+	double effTunnelMass; ///< effective mass
+	double temperature;
+	double areaFactor; ///< the area factor(cross-section) of the tunneling problem
+};
+
+class SubsToGateEletronTunnel : TunnelSolver
+{
+	void PrepareProblem(FDVertex *startVertex);
 };

@@ -12,6 +12,11 @@
 */
 
 #include <cmath>
+
+/// @brief This namespace contains all the physics used in the simulation 
+///
+/// The common physical parameters are defined here. And other classes and structs related to
+/// the physics problems are defined here.
 namespace SctmPhys
 {
 	const double ElementaryCharge			= 1.602176487e-19;
@@ -24,4 +29,16 @@ namespace SctmPhys
 	const double &h = PlanckConstant;
 	const double hbar = h / 2 / M_PI;
 	const double &epsilon = VacuumDielectricConstant;
+
+	/// @brief This struct is a data structure to store the physical parameters of the specified vertex
+	///
+	///
+	struct PhysProperty
+	{
+		double ElectrostaticPotential;
+		double ConductionBandEnergy; ///< i.e. conduction band edge
+		double ValenceBandEnergy; ///< i.e. valence band edge
+		double ElectronMass;
+		double HoleMass;
+	};
 };

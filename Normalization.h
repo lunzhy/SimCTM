@@ -14,6 +14,10 @@
 #include <vector>
 #include <string>
 
+
+/// @brief This namespace contains the common utilities used in the simulation
+/// 
+/// 
 namespace Utility
 {
 	const double EPSILON = 8.854188e-14;// in [F*cm-1]
@@ -23,6 +27,11 @@ namespace Utility
 	const double ROOM_TEMP = 300;// in [K]
 	const double RELATIVE_EPSILON_SI = 11.6;
 	
+	
+	
+	/// @brief This class defines the normalization methods for the values used in the simulation
+	///
+	///
 	class Normalization
 	{
 	public:
@@ -34,8 +43,24 @@ namespace Utility
 			Push,///< normalize the read-in parameter
 			Pull///< transfer the normalized parameter to real value
 		};
+		/// @brief Normalization a construction method for this class
+		/// 
+		/// This is used to initialize the normalization class with given temperature.
+		/// 
+		/// @param double temperature
+		/// @pre
+		/// @return 
+		/// @note
 		Normalization(double temperature);
-		Normalization(void);//initialize the class without temperature will considerate the room temperature
+		/// @brief Normalization is a construction method for this class
+		/// 
+		/// This method is used to initialize the class without temperature will considerate the room temperature.
+		/// 
+		/// @param void
+		/// @pre
+		/// @return 
+		/// @note
+		Normalization(void);
 		~Normalization(void);
 	private:
 		/// the factor of normalization and conversion
@@ -46,13 +71,15 @@ namespace Utility
 		double temperature;///< factor of the system temperature
 	public:
 
-		/// @brief 归一化物理参数
+		/// @brief The method for normalization of the parameters.
 		/// 
-		/// Push/Pull 用于归一化物理参数。Push为将读入的真值归一化为计算使用值， Pull将计算使用值转换为真值
-		/// 以下对于其他物理参数的处理相同。在从initial文件读入的时候，对于读入的值，逐一归一化写入计算数组
+		/// Push/Pull methods are used for parameters normalization. Push is used to transform the real value into the 
+		/// value that is normalized for simplifying the following calculation. Push is used to convert the values used
+		/// in the simulation to real values.
+		/// The following methods are designed for different parameters.
 		/// 
-		/// @param double length
-		/// @pre 要考虑温度
+		/// @param double length/...
+		/// @pre temperature is predefined when the class is constructed.
 		/// @return double
 		/// @note
 		//in [K]
@@ -64,13 +91,15 @@ namespace Utility
 		{
 			return length * lengthFactor;
 		}
-		/// @brief 真值向量以及归一值向量的相互转换 
+		/// @brief This method is used to convert the parameter vector. 
 		/// 
-		/// 在输出结果的时候，往往需要将归一值向量转换真值。在输出的时候，直接把计算归一向量转换为真值向量
+		/// By using this method, the normalized values and real values are converted according to the given
+		/// conversion direction.
+		/// The same is with the following similar method.
 		/// 
-		/// @param std::vector<double> & real 实际值，真值
-		/// @param std::vector<double> & norm 归一值，计算用
-		/// @param ConverseDirection direction 转换方向
+		/// @param std::vector<double> & real real values
+		/// @param std::vector<double> & norm normalized values used for the calculation
+		/// @param ConverseDirection direction
 		/// @pre
 		/// @return void
 		/// @note
@@ -107,6 +136,13 @@ namespace Utility
 		}
 		void ConveseConcVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
 	private:
+		/// @brief initFactors is used to initialize the normalization factors.
+		/// 
+		///
+		/// 
+		/// @pre
+		/// @return void
+		/// @note
 		void initFactors();
 	};
 }

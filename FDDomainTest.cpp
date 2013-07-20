@@ -15,6 +15,7 @@
 #include "Material.h"
 #include "Normalization.h"
 #include <iostream>
+#include "SctmPhys.h"
 
 void FDDomainTest::BuildDomain()
 {
@@ -23,21 +24,21 @@ void FDDomainTest::BuildDomain()
 	elements.clear();
 	regions.clear();
 
-	prepareStructures(); //mainly set the structure and mesh parameters
+	prepareStructure(); //mainly set the structure and mesh parameters
 	setDomainDetails(); //fill in the regions, vertices and elements
 	setAdjacency(); //set the adjacency of vertices and elements
 
 	printStructure();
 }
 
-void FDDomainTest::prepareStructures()
+void FDDomainTest::prepareStructure()
 {
 	setParameters();
 }
 
 void FDDomainTest::setParameters()
 {
-	double nm_in_cm = GeneralMath::nm_in_cm;
+	double nm_in_cm = SctmPhys::nm_in_cm;
 
 	////////////////////////////////////////////////////////////////////////////
 	//modify here to change the structures
@@ -149,6 +150,7 @@ void FDDomainTest::setDomainDetails()
 	FDVertex *nwVertex = NULL;
 	FDVertex *neVertex = NULL;
 
+	//the number of element always one less than the corresponding vertex number.
 	for (int iy = 0; iy != yCntTotalVertex-1; ++iy)
 	{
 		for (int ix = 0; ix != xCntVertex-1; ++ix)
@@ -182,6 +184,7 @@ void FDDomainTest::setAdjacency()
 			currVertex = getVertex(id);
 			/////////////////////
 			//set adjacent vertex and length
+			//if current vertex doesn't have a west/east/south/north edge, the length is set 0.
 			if ( ix-1 >= 0 )
 			{
 				currVertex->WestVertex = getVertex(vertexHelper.IdAt(ix-1, iy)); 
@@ -253,25 +256,25 @@ void FDDomainTest::setAdjacency()
 	}
 }
 
-double FDDomainTest::yNextGridLength(int iy)
+double FDDomainTest::yNextGridLength(int vertexY)
 {
-	if ( iy < yCntVertexTunnel - 1)
+	if ( vertexY < yCntVertexTunnel - 1)
 		return yGridTunnel;
 	else
-		iy -= yCntVertexTunnel - 1;
+		vertexY -= yCntVertexTunnel - 1;
 
-	if ( iy < yCntVertexTrap - 1)
+	if ( vertexY < yCntVertexTrap - 1)
 		return yGridTrap;
 	else
-		iy -= yCntVertexTrap - 1;
+		vertexY -= yCntVertexTrap - 1;
 
-	if ( iy < yCntVertexBlock - 1)
+	if ( vertexY < yCntVertexBlock - 1)
 		return yGridBlock;
 	else
 		return 0;//0 means that current vertex is the last vertex in this direction
 }
 
-double FDDomainTest::xNextGridLength(int ix)
+double FDDomainTest::xNextGridLength(int vertexX)
 {
 	return xGrid;
 }
