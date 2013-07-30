@@ -12,7 +12,7 @@
 * @note
 * @todo
 */
-
+#pragma once
 #include <vector>
 #include "DomainDetails.h"
 #include <iostream>

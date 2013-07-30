@@ -13,7 +13,7 @@
 
 #include "Normalization.h"
 #include "SctmMath.h"
-using namespace Utility;
+using namespace SctmUtils;
 
 Normalization::Normalization(double temperature)
 {

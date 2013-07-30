@@ -14,13 +14,13 @@
 #ifndef _DOMAINDETAIL_H_
 #define _DOMAINDETAIL_H_
 
-#include "SctmMath.h"
 #include <vector>
 #include "Normalization.h"
-using namespace Utility;
+#include "SctmPhys.h"
+
+using SctmPhys::PhysProperty;
 
 class FDElement;
-struct PhysProperty;
 /// @brief FDVertex is the class describing the vertex in finite differential method
 ///
 /// This class contains the information that will be used around specified vertex
@@ -53,7 +53,7 @@ public:
 	FDElement *NorthwestElem; ///< the pointer to northwest element
 	FDElement *SoutheastElem; ///< the pointer to southeast element
 	FDElement *SouthwestElem; ///< the pointer to southwest element
-	SctmPhys::PhysProperty Phys; ///< the physical values attached to current vertex
+	PhysProperty Phys; ///< the physical values attached to current vertex
 	
 	/// @brief GetInternalID returns the internal id of specified vertex
 	/// 

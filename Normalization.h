@@ -18,7 +18,7 @@
 /// @brief This namespace contains the common utilities used in the simulation
 /// 
 /// 
-namespace Utility
+namespace SctmUtils
 {
 	const double EPSILON = 8.854188e-14;// in [F*cm-1]
 	const double CHARGE = 1.602177e-19;// in [C]

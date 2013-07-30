@@ -10,9 +10,12 @@
 * @note
 * @todo
 */
-#ifndef _GENERALMATH_H_
-#define _GENERALMATH_H_
+#pragma once
+#define _USE_MATH_DEFINES
+//#ifndef _GENERALMATH_H_
+//#define _GENERALMATH_H_
 
+#include <math.h>
 #include <cmath>
 
 
@@ -23,7 +26,7 @@
 /// Currently, some of the implementations are simply calling the method from cmath library.
 namespace SctmMath
 {
-	double PI = M_PI;
+	const double PI = M_PI;
 	// =====================================================================================
 	// DECLARATIONS
 	// =====================================================================================
@@ -43,4 +46,4 @@ namespace SctmMath
 	inline double exp(double val) { return std::exp(val); }
 }
 
-#endif // !_GENERALMATH_H_
+//#endif // !_GENERALMATH_H_

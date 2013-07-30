@@ -13,9 +13,10 @@
 
 #include "FDDomainTest.h"
 #include "Material.h"
-#include "Normalization.h"
+#include "SctmUtils.h"
 #include <iostream>
 #include "SctmPhys.h"
+using namespace SctmUtils;
 
 void FDDomainTest::BuildDomain()
 {
@@ -42,14 +43,15 @@ void FDDomainTest::setParameters()
 
 	////////////////////////////////////////////////////////////////////////////
 	//modify here to change the structures
-	double xLength_in_nm = 10;
-	double yLengthTunnel_in_nm = 10;
-	double yLengthTrap_in_nm = 10;
-	double yLengthBlock_in_nm = 10;
-	int xGridNumber = 5;
-	int yGridNumberTunnel = 5;
-	int yGridNumberTrap = 5;
-	int yGridNumberBlock = 5;
+	//current parameters is set according to the structure prepared in Sentaurus
+	double xLength_in_nm = 90;
+	double yLengthTunnel_in_nm = 4;
+	double yLengthTrap_in_nm = 7;
+	double yLengthBlock_in_nm = 9;
+	int xGridNumber = 10;
+	int yGridNumberTunnel = 15;
+	int yGridNumberTrap = 15;
+	int yGridNumberBlock = 15;
 	////////////////////////////////////////////////////////////////////////////
 
 	xLength = xLength_in_nm * nm_in_cm;
@@ -113,7 +115,7 @@ void FDDomainTest::setDomainDetails()
 	double currCoordX = 0.0;
 	double currCoordY = 0.0;
 
-	Utility::Normalization theNorm = Utility::Normalization();
+	Normalization theNorm = Normalization();
 	//set vertices
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
 	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1); // element number = vertex number - 1
@@ -295,4 +297,51 @@ FDRegion * FDDomainTest::thisRegion(int elemY)
 		return getRegion(2);
 	else
 		return NULL;
+}
+
+void FDDomainTest::stuffPotential()
+{
+	//this value is obtained from Sentaurus result for the current condition
+	double channelPotential = 0.6345;
+	double elecFieldTunnel = 9.54e6; // in [V/cm]
+	double elecFieldTrap = 4.96e6; // in [V/cm]
+	double elecFieldBlock = 9.55e6; // in [V/cm]
+	
+	Normalization elecFieldNorm = Normalization();
+	elecFieldTunnel = elecFieldNorm.PushElecField(elecFieldTunnel);
+	elecFieldTrap = elecFieldNorm.PushElecField(elecFieldTrap);
+	elecFieldBlock = elecFieldNorm.PushElecField(elecFieldBlock);
+
+	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
+	int id = 0;
+	FDVertex * currVertex = NULL;
+	double potential = channelPotential;
+	double nextElecField = 0;
+	for (int iy = 0; iy != yCntTotalVertex; ++iy)
+	{
+		for (int ix = 0; ix != xCntVertex; ++ix)
+		{
+			id = vertexHelper.IdAt(ix, iy);
+			currVertex = getVertex(id);
+		}
+		
+		//for next electric field
+		if ( iy < yCntVertexTunnel - 1 )
+			nextElecField = elecFieldTunnel;
+		else
+		{
+			iy -= yCntVertexTunnel - 1;
+			if ( iy < yCntVertexTrap - 1 )
+				nextElecField = elecFieldTrap;
+			else
+			{
+				iy -= yCntVertexTrap - 1;
+				if ( iy < yCntVertexBlock - 1 )
+					nextElecField = elecFieldBlock;
+				else
+					nextElecField = 0;
+			}
+		}
+		potential += yNextGridLength(iy) * nextElecField;
+	}
 }

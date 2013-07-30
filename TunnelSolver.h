@@ -10,7 +10,7 @@
 * @note
 * @todo
 */
-
+#pragma once
 #include <vector>
 #include "DomainDetails.h"
 using namespace std;
@@ -23,7 +23,8 @@ protected:
 	virtual double getSupplyFunction(double energy);
 	double getTransmissionCoefficient(double energy);
 	void initializeSolver();
-	void calc_DT_FN_Tunneling();
+	void calcDTFNtunneling();
+	void calcThermalEmission();
 
 	vector<double> cbegde;
 	vector<double> emass;
