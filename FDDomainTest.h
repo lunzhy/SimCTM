@@ -31,6 +31,16 @@ public:
 	/// @return void
 	/// @note
 	void BuildDomain();
+	/// @brief stuffPotential is used to stuff potential obtained from calculation results
+	/// 
+	/// This is a temporary method for initializing the potential. The potential is calculated with
+	/// channel potential and the electric field along the gate stack. These values are obtained from
+	/// Sentaurus results. Here, we use same reference potential as in Sentaurus.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
+	void StuffPotential();
 protected:
 	double xLength; ///< the length in x direction of the rectangle structure.
 	double yLengthTunnel; ///< the length in y direction of tunneling oxide
@@ -97,7 +107,7 @@ private:
 	/// @brief yNextGridLength is used to determine the next grid length in y direction
 	/// 
 	/// This is used in setting the coordinates when initializing the vertices at given vertex
-	/// For the last vertex, this method returns 0.
+	/// For the last vertex, this method returns 0.  The unit is [cm].
 	/// 
 	/// @param int vertexY, the current vertex index in y direction
 	/// @pre
@@ -107,7 +117,7 @@ private:
 	/// @brief xNextGridLength is used to determine the next grid length in y direction
 	/// 
 	/// This is used in setting the coordinates when initializing the vertices at given vertex
-	/// For the last vertex, this method returns 0.
+	/// For the last vertex, this method returns 0. The unit is [cm].
 	/// 
 	/// @param int vertexX, the current vertex index in x direction
 	/// @pre
@@ -125,14 +135,4 @@ private:
 	/// @note the initial region sequence is tunneling oxide (region[0]), 
 	/// trapping layer (region[1]) and blocking oxide (region[2]).
 	FDRegion * thisRegion( int elemY);
-	/// @brief stuffPotential is used to stuff potential obtained from calculation results
-	/// 
-	/// This is a temporary method for initializing the potential. The potential is calculated with
-	/// channel potential and the electric field along the gate stack. These values are obtained from
-	/// Sentaurus results. Here, we use same reference potential as in Sentaurus.
-	/// 
-	/// @pre
-	/// @return void
-	/// @note
-	void stuffPotential();
 };

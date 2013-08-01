@@ -11,13 +11,13 @@
 * @todo
 */
 
+#include <iostream>
 #include "Material.h"
 namespace MaterialDB
 {
 	Material Silicon = Material("Silicon");
 	Material SiO2 = Material("SiO2");
 	Material Si3N4 = Material("Si3N4");
-
 	void SetMaterials()
 	{
 		//Silicon = Material("Silicon");
@@ -34,5 +34,7 @@ namespace MaterialDB
 		Si3N4.Bandgap(5.0);
 		Si3N4.DielectricConstant(7.5);
 		Si3N4.ElectronAffinity(1.9);
+
+		std::cout << Si3N4.Bandgap() << std::endl;
 	}
 }

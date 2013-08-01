@@ -51,5 +51,9 @@ namespace MaterialDB
 		void		HoleDOS(double val)					{ holeDOS = val;				}
 	};
 
+	//TODO: conceive the method that accounts for material specification
+	extern Material Silicon;
+	extern Material SiO2;
+	extern Material Si3N4;
 	void SetMaterials();
 }

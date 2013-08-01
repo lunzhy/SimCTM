@@ -13,19 +13,20 @@
 #pragma once
 #include <vector>
 #include <string>
-
+#include "SctmPhys.h"
+#include "Material.h"
 
 /// @brief This namespace contains the common utilities used in the simulation
 /// 
 /// 
 namespace SctmUtils
-{
-	const double EPSILON = 8.854188e-14;// in [F*cm-1]
-	const double CHARGE = 1.602177e-19;// in [C]
-	const double BOLTZMAN = 1.380662e-23;// in [J*K-1]
+{	
+	const double EPSILON = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm]
+	const double CHARGE = SctmPhys::ElementaryCharge; // in [C]
+	const double BOLTZMAN = SctmPhys::BoltzmanConstant; // in [J/K]
 	const double INTRINSIC_CONC_SI = 1.0e10;// in [cm-3]
 	const double ROOM_TEMP = 300;// in [K]
-	const double RELATIVE_EPSILON_SI = 11.6;
+	const double RELATIVE_EPSILON_SI = MaterialDB::Silicon.DielectricConstant(); // need to be revised
 	
 	
 	

@@ -29,7 +29,7 @@ void FDDomainTest::BuildDomain()
 	setDomainDetails(); //fill in the regions, vertices and elements
 	setAdjacency(); //set the adjacency of vertices and elements
 
-	printStructure();
+	//printStructure();
 }
 
 void FDDomainTest::prepareStructure()
@@ -53,7 +53,7 @@ void FDDomainTest::setParameters()
 	int yGridNumberTrap = 15;
 	int yGridNumberBlock = 15;
 	////////////////////////////////////////////////////////////////////////////
-
+	//here, the length of the parameter is conversed to [cm]
 	xLength = xLength_in_nm * nm_in_cm;
 	xCntVertex = xGridNumber + 1;
 	yLengthTunnel = yLengthTunnel_in_nm * nm_in_cm;
@@ -115,6 +115,8 @@ void FDDomainTest::setDomainDetails()
 	double currCoordX = 0.0;
 	double currCoordY = 0.0;
 
+	double nm_in_cm = SctmPhys::nm_in_cm;
+
 	Normalization theNorm = Normalization();
 	//set vertices
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
@@ -128,14 +130,15 @@ void FDDomainTest::setDomainDetails()
 		for (int ix = 0; ix != xCntVertex; ++ix)
 		{
 			//currCoordX = ix * xGrid;
-			normCoordX = theNorm.PushLength(currCoordX);
-			normCoordY = theNorm.PushLength(currCoordY);
+			//the coordinates are normalized before pushing into vertex
+			normCoordX = theNorm.PushLength(currCoordX * nm_in_cm);
+			normCoordY = theNorm.PushLength(currCoordY * nm_in_cm);
 			vertices.push_back(new FDVertex(cntVertex, normCoordX, normCoordY));
 			cntVertex++;
-			currCoordX += xNextGridLength(ix);
+			currCoordX += xNextGridLength(ix);//non-normalized value, in nm
 		}
 		currCoordX = 0;
-		currCoordY += yNextGridLength(iy);
+		currCoordY += yNextGridLength(iy);//non-normalized value, in nm
 	}
 
 	//set regions
@@ -299,49 +302,58 @@ FDRegion * FDDomainTest::thisRegion(int elemY)
 		return NULL;
 }
 
-void FDDomainTest::stuffPotential()
+void FDDomainTest::StuffPotential()
 {
 	//this value is obtained from Sentaurus result for the current condition
 	double channelPotential = 0.6345;
 	double elecFieldTunnel = 9.54e6; // in [V/cm]
 	double elecFieldTrap = 4.96e6; // in [V/cm]
 	double elecFieldBlock = 9.55e6; // in [V/cm]
-	
-	Normalization elecFieldNorm = Normalization();
-	elecFieldTunnel = elecFieldNorm.PushElecField(elecFieldTunnel);
-	elecFieldTrap = elecFieldNorm.PushElecField(elecFieldTrap);
-	elecFieldBlock = elecFieldNorm.PushElecField(elecFieldBlock);
+
+	double nm_in_cm = SctmPhys::nm_in_cm;
+	Normalization theNorm = Normalization();
+	//elecFieldTunnel = theNorm.PushElecField(elecFieldTunnel);
+	//elecFieldTrap = theNorm.PushElecField(elecFieldTrap);
+	//elecFieldBlock = theNorm.PushElecField(elecFieldBlock);
+	//channelPotential = theNorm.PushPotential(channelPotential);
 
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
 	int id = 0;
 	FDVertex * currVertex = NULL;
 	double potential = channelPotential;
 	double nextElecField = 0;
+	double iyForElecField = 0;
+
 	for (int iy = 0; iy != yCntTotalVertex; ++iy)
 	{
 		for (int ix = 0; ix != xCntVertex; ++ix)
 		{
 			id = vertexHelper.IdAt(ix, iy);
 			currVertex = getVertex(id);
+			currVertex->Phys.ElectrostaticPotential = theNorm.PushPotential(potential);
 		}
 		
 		//for next electric field
-		if ( iy < yCntVertexTunnel - 1 )
+		iyForElecField = iy;
+		if ( iyForElecField < yCntVertexTunnel - 1 )
 			nextElecField = elecFieldTunnel;
 		else
 		{
-			iy -= yCntVertexTunnel - 1;
-			if ( iy < yCntVertexTrap - 1 )
+			iyForElecField -= yCntVertexTunnel - 1;
+			if ( iyForElecField < yCntVertexTrap - 1 )
 				nextElecField = elecFieldTrap;
 			else
 			{
-				iy -= yCntVertexTrap - 1;
-				if ( iy < yCntVertexBlock - 1 )
+				iyForElecField -= yCntVertexTrap - 1;
+				if ( iyForElecField < yCntVertexBlock - 1 )
 					nextElecField = elecFieldBlock;
 				else
 					nextElecField = 0;
 			}
 		}
+		//the potential is calculated with the normalized value
+		//up-to-here, the electric field and length are the normalized value, so the potential is also normalized.
+		double i = yNextGridLength(iy);
 		potential += yNextGridLength(iy) * nextElecField;
 	}
 }
