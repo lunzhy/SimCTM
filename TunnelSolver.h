@@ -40,5 +40,6 @@ protected:
 
 class SubsToGateEletronTunnel : TunnelSolver
 {
+public:
 	void PrepareProblem(FDVertex *startVertex);
 };

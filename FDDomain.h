@@ -48,6 +48,7 @@ protected:
 	/// @pre
 	/// @return FDVertex *
 	/// @note
+public:
 	FDVertex * getVertex(unsigned int id);
 	/// @brief getElement can get the element object with given id
 	/// 

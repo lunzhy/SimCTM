@@ -108,7 +108,7 @@ void SubsToGateEletronTunnel::PrepareProblem(FDVertex *startVertex)
 	// the tunneling direction is north
 	this->areaFactor = startVertex->EastLength / 2 + startVertex->WestLength / 2;
 	FDVertex *currentVertex = startVertex;
-	while (currentVertex->NorthVertex != NULL)
+	while (currentVertex != NULL)
 	{
 		this->deltaX.push_back((currentVertex->NorthLength + currentVertex->SouthLength) / 2);
 		this->cbegde.push_back(currentVertex->Phys.ConductionBandEnergy);
