@@ -17,8 +17,10 @@
 #include <vector>
 #include "Normalization.h"
 #include "SctmPhys.h"
+#include "Material.h"
 
 using SctmPhys::PhysProperty;
+using MaterialDB::Material;
 
 class FDElement;
 /// @brief FDVertex is the class describing the vertex in finite differential method
@@ -65,7 +67,7 @@ public:
 	int GetInternalID() { return id; }
 	/// @brief Distance can get the distance between two given vertices
 	/// 
-	/// 
+	/// This is a static method and can be called directly with the class name.
 	/// 
 	/// @param FDVertex * vertex1
 	/// @param FDVertex * vertex2
@@ -98,7 +100,12 @@ public:
 	/// @param FDVertex * _nwVertex
 	/// @pre
 	/// @return 
-	/// @note
+	/// @note the sequence of vertex in the construction of element is sw -> se -> ne -> nw, as is shown below
+	///       4----------------3
+	///       |                |
+	///       |                |
+	///       |                |
+	///       1----------------2
 	FDElement( unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex )
 		:id(_id), SouthwestVertex(_swVertex), SoutheastVertex(_seVertex), NortheastVertex(_neVertex), NorthwestVertex(_nwVertex)
 	{
@@ -150,9 +157,9 @@ public:
 	/// @brief The type of the region 
 	enum RegionType
 	{
-		TunnelingOxide, ///< tunneling oxide
-		TrappingLayer, ///< trapping layer
-		BlockingOxide ///< blocking oxide
+		Tunneling, ///< tunneling oxide
+		Trapping, ///< trapping layer
+		Blocking ///< blocking oxide
 	};
 	/// @brief FDRegion is the construction method of the class
 	/// 
@@ -165,7 +172,9 @@ public:
 	/// @note
 	FDRegion(unsigned int _id, RegionType _type)
 		:id(_id), Type(_type) {}
+
 	RegionType Type; ///< type of the region, in enum RegionType
+	const Material * RegionMaterial; ///< the material of current region, a pointer to const material
 
 	/// @brief AddElement adds element in current region
 	/// 

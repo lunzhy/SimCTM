@@ -117,8 +117,9 @@ void FDDomainTest::setDomainDetails()
 
 	double nm_in_cm = SctmPhys::nm_in_cm;
 
-	Normalization theNorm = Normalization();
+	////////////////////////////////////////////////////////////////////
 	//set vertices
+	Normalization theNorm = Normalization();
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
 	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1); // element number = vertex number - 1
 	double normCoordX = 0.0;
@@ -135,19 +136,25 @@ void FDDomainTest::setDomainDetails()
 			normCoordY = theNorm.PushLength(currCoordY * nm_in_cm);
 			vertices.push_back(new FDVertex(cntVertex, normCoordX, normCoordY));
 			cntVertex++;
-			currCoordX += xNextGridLength(ix);//non-normalized value, in nm
+			currCoordX += xNextGridLength(ix);//non-normalized value, in cm
 		}
 		currCoordX = 0;
-		currCoordY += yNextGridLength(iy);//non-normalized value, in nm
+		currCoordY += yNextGridLength(iy);//non-normalized value, in cm
 	}
 
+	/////////////////////////////////////////////////////////////////////
 	//set regions
-	regions.push_back(new FDRegion(cntRegion, FDRegion::TunnelingOxide));
+	regions.push_back(new FDRegion(cntRegion, FDRegion::Tunneling));
+	regions.back()->RegionMaterial = &MaterialDB::SiO2;
 	cntRegion++;
-	regions.push_back(new FDRegion(cntRegion, FDRegion::TrappingLayer));
+	regions.push_back(new FDRegion(cntRegion, FDRegion::Trapping));
+	regions.back()->RegionMaterial = &MaterialDB::Si3N4;
 	cntRegion++;
-	regions.push_back(new FDRegion(cntRegion, FDRegion::BlockingOxide));
+	regions.push_back(new FDRegion(cntRegion, FDRegion::Blocking));
+	regions.back()->RegionMaterial = &MaterialDB::SiO2;
 	cntRegion++;
+
+	/////////////////////////////////////////////////////////////////////
 	//set elements with specified region
 	FDRegion *currRegion = NULL;
 	FDVertex *swVertex = NULL;
@@ -176,9 +183,9 @@ void FDDomainTest::setDomainDetails()
 
 void FDDomainTest::setAdjacency()
 {
+	//set vertex properties
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
 	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1);
-	//set vertex properties
 	int id = 0;
 	FDVertex *currVertex = NULL;
 	for (int iy = 0; iy != yCntTotalVertex; ++iy)
@@ -187,7 +194,7 @@ void FDDomainTest::setAdjacency()
 		{
 			id = vertexHelper.IdAt(ix, iy);
 			currVertex = getVertex(id);
-			/////////////////////
+			////////////////////////////////
 			//set adjacent vertex and length
 			//if current vertex doesn't have a west/east/south/north edge, the length is set 0.
 			if ( ix-1 >= 0 )
@@ -230,7 +237,7 @@ void FDDomainTest::setAdjacency()
 				currVertex->NorthVertex = NULL;
 				currVertex->NorthLength = 0;
 			}									
-			/////////////////////
+			//////////////////////
 			//set adjacent element
 			if ( (ix-1 >= 0) && (iy-1 >=0) )						{ currVertex->SouthwestElem = getElement(elementHelper.IdAt(ix-1, iy-1)); }
 			else													{ currVertex->SouthwestElem = NULL; }
@@ -244,6 +251,7 @@ void FDDomainTest::setAdjacency()
 		}
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//set element adjacent properties
 	FDElement *currElem = NULL;
 	for (int iy = 0; iy != yCntVertexTunnel-1; ++iy)
@@ -330,6 +338,7 @@ void FDDomainTest::StuffPotential()
 		{
 			id = vertexHelper.IdAt(ix, iy);
 			currVertex = getVertex(id);
+			// the calculated potential is in [V], so normalization is needed here when stuffing.
 			currVertex->Phys.ElectrostaticPotential = theNorm.PushPotential(potential);
 		}
 		
@@ -351,9 +360,8 @@ void FDDomainTest::StuffPotential()
 					nextElecField = 0;
 			}
 		}
-		//the potential is calculated with the normalized value
-		//up-to-here, the electric field and length are the normalized value, so the potential is also normalized.
-		double i = yNextGridLength(iy);
-		potential += yNextGridLength(iy) * nextElecField;
+
+		double i = yNextGridLength(iy); // the return value of this method is in [cm]
+		potential += yNextGridLength(iy) * nextElecField; // [V] = [cm] * [V/cm]
 	}
 }
