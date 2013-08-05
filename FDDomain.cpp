@@ -31,3 +31,10 @@ FDRegion * FDDomain::getRegion(unsigned int id)
 	return regions.at(id);
 	//return regions[id];
 }
+
+void FDDomain::setVertexPhysics()
+{
+	for ()
+	{
+	}
+}

@@ -18,7 +18,7 @@
 #include "SctmPhys.h"
 using namespace SctmUtils;
 
-void FDDomainTest::BuildDomain()
+void SimpleONO::BuildDomain()
 {
 	//Initialize the vectors
 	vertices.clear();
@@ -32,12 +32,12 @@ void FDDomainTest::BuildDomain()
 	//printStructure();
 }
 
-void FDDomainTest::prepareStructure()
+void SimpleONO::prepareStructure()
 {
 	setParameters();
 }
 
-void FDDomainTest::setParameters()
+void SimpleONO::setParameters()
 {
 	double nm_in_cm = SctmPhys::nm_in_cm;
 
@@ -71,7 +71,7 @@ void FDDomainTest::setParameters()
 	yCntTotalVertex = yCntVertexTunnel + yCntVertexTrap + yCntVertexBlock - 1 - 1;
 }
 
-void FDDomainTest::printStructure()
+void SimpleONO::printStructure()
 {
 	for (std::vector<FDVertex *>::size_type ix = 0; ix != this->vertices.size(); ++ix)
 	{
@@ -106,7 +106,7 @@ void FDDomainTest::printStructure()
 	}
 }
 
-void FDDomainTest::setDomainDetails()
+void SimpleONO::setDomainDetails()
 {
 	int cntVertex = 0;
 	int cntElement = 0;
@@ -181,7 +181,7 @@ void FDDomainTest::setDomainDetails()
 	}
 }
 
-void FDDomainTest::setAdjacency()
+void SimpleONO::setAdjacency()
 {
 	//set vertex properties
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
@@ -269,7 +269,7 @@ void FDDomainTest::setAdjacency()
 	}
 }
 
-double FDDomainTest::yNextGridLength(int vertexY)
+double SimpleONO::yNextGridLength(int vertexY)
 {
 	if ( vertexY < yCntVertexTunnel - 1)
 		return yGridTunnel;
@@ -287,12 +287,12 @@ double FDDomainTest::yNextGridLength(int vertexY)
 		return 0;//0 means that current vertex is the last vertex in this direction
 }
 
-double FDDomainTest::xNextGridLength(int vertexX)
+double SimpleONO::xNextGridLength(int vertexX)
 {
 	return xGrid;
 }
 
-FDRegion * FDDomainTest::thisRegion(int elemY)
+FDRegion * SimpleONO::thisRegion(int elemY)
 {
 	if ( elemY < yCntVertexTunnel - 1 ) //transfer the vertex count into element count
 		return getRegion(0);
@@ -310,7 +310,7 @@ FDRegion * FDDomainTest::thisRegion(int elemY)
 		return NULL;
 }
 
-void FDDomainTest::StuffPotential()
+void SimpleONO::StuffPotential()
 {
 	//this value is obtained from Sentaurus result for the current condition
 	double channelPotential = 0.6345;

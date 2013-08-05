@@ -17,7 +17,7 @@ class FDRegion;
 /// @brief FDDomianTest is used for set the domain for finite differential method
 ///
 /// This class is derived from FDDomain. It can build a rectangle domain by using FDDomainHelper.
-class FDDomainTest : public FDDomain
+class SimpleONO : public FDDomain
 {
 public:
 	/// @brief BuildDomain is used to build the mesh of rectangle domain defined in this class

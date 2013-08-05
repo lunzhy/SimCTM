@@ -39,6 +39,9 @@ protected:
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
 	std::vector<FDRegion *> regions; ///< the regions contained in the domain
 
+	void setVertexPhysics();
+
+public:
 	/// @brief getVertex can get the vertex object with given id
 	/// 
 	/// This method returns the pointer of specified vertex object. In practice, a pointer with same type is
@@ -48,7 +51,6 @@ protected:
 	/// @pre
 	/// @return FDVertex *
 	/// @note
-public:
 	FDVertex * getVertex(unsigned int id);
 	/// @brief getElement can get the element object with given id
 	/// 

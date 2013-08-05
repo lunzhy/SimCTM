@@ -4,7 +4,7 @@ int main()
 {
 	MaterialDB::SetMaterials();
 
-	FDDomainTest aTest = FDDomainTest();
+	SimpleONO aTest = SimpleONO();
 	aTest.BuildDomain();
 	aTest.StuffPotential();
 
