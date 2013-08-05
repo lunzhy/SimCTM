@@ -11,7 +11,7 @@
 * @todo
 */
 
-#include "FDDomainTest.h"
+#include "SimpleONO.h"
 #include "Material.h"
 #include "SctmUtils.h"
 #include <iostream>
@@ -25,10 +25,15 @@ void SimpleONO::BuildDomain()
 	elements.clear();
 	regions.clear();
 
+	//set the data structure of simulated region
 	prepareStructure(); //mainly set the structure and mesh parameters
 	setDomainDetails(); //fill in the regions, vertices and elements
 	setAdjacency(); //set the adjacency of vertices and elements
 
+	//fill in the physical parameters and values
+	setVertexPhysics();
+	stuffPotential();
+	refreshBandEnergy();
 	//printStructure();
 }
 
@@ -93,7 +98,7 @@ void SimpleONO::printStructure()
 
 	for (std::vector<FDElement *>::size_type ix = 0; ix != this->elements.size(); ++ix)
 	{
-		std::cout << "id=" << elements.at(ix)->GetInternalID() << '\t' << elements.at(ix)->region->Type
+		std::cout << "id=" << elements.at(ix)->GetInternalID() << '\t' << elements.at(ix)->Region->Type
 			<< '\t' << elements.at(ix)->SouthwestVertex->GetInternalID()
 			<< '\t' << elements.at(ix)->SoutheastVertex->GetInternalID()
 			<< '\t' << elements.at(ix)->NortheastVertex->GetInternalID()
@@ -310,7 +315,7 @@ FDRegion * SimpleONO::thisRegion(int elemY)
 		return NULL;
 }
 
-void SimpleONO::StuffPotential()
+void SimpleONO::stuffPotential()
 {
 	//this value is obtained from Sentaurus result for the current condition
 	double channelPotential = 0.6345;
@@ -318,7 +323,6 @@ void SimpleONO::StuffPotential()
 	double elecFieldTrap = 4.96e6; // in [V/cm]
 	double elecFieldBlock = 9.55e6; // in [V/cm]
 
-	double nm_in_cm = SctmPhys::nm_in_cm;
 	Normalization theNorm = Normalization();
 	//elecFieldTunnel = theNorm.PushElecField(elecFieldTunnel);
 	//elecFieldTrap = theNorm.PushElecField(elecFieldTrap);
@@ -331,6 +335,7 @@ void SimpleONO::StuffPotential()
 	double potential = channelPotential;
 	double nextElecField = 0;
 	double iyForElecField = 0;
+	double normPotential = 0;
 
 	for (int iy = 0; iy != yCntTotalVertex; ++iy)
 	{
@@ -339,7 +344,8 @@ void SimpleONO::StuffPotential()
 			id = vertexHelper.IdAt(ix, iy);
 			currVertex = getVertex(id);
 			// the calculated potential is in [V], so normalization is needed here when stuffing.
-			currVertex->Phys.ElectrostaticPotential = theNorm.PushPotential(potential);
+			normPotential = theNorm.PushPotential(potential);
+			currVertex->Phys.SetPhyPrpty(PhysProperty::ElectrostaticPotential, normPotential);
 		}
 		
 		//for next electric field
@@ -364,4 +370,56 @@ void SimpleONO::StuffPotential()
 		double i = yNextGridLength(iy); // the return value of this method is in [cm]
 		potential += yNextGridLength(iy) * nextElecField; // [V] = [cm] * [V/cm]
 	}
+}
+
+void SimpleONO::setVertexPhysics()
+{
+	FDVertex * currVertex = NULL;
+	FDElement * currElem = NULL;
+	double tot = 0; // total area
+	double sum = 0; // sum corresponds to integral value
+	double physValue = 0;
+
+	using namespace MaterialDB;
+	using namespace SctmPhys;
+	using std::vector;
+
+	vector<MatProperty::Name> matPrptys;
+	vector<PhysProperty::Name> vertexPhyPrpty;
+	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); vertexPhyPrpty.push_back(PhysProperty::ElectronAffinity);
+	matPrptys.push_back(MatProperty::Mat_ElectronMass); vertexPhyPrpty.push_back(PhysProperty::ElectronMass);
+
+	//iteration over the vertices
+	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)
+	{
+		currVertex = getVertex(iVer);
+		//iteration over the physical properties to be set from material property
+		for (std::size_t iPrpty = 0; iPrpty != matPrptys.size(); ++iPrpty)
+		{
+			tot = 0; sum = 0;
+			currElem = currVertex->SouthwestElem;
+			tot += ( currElem != NULL ) ? currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+			
+			currElem = currVertex->SoutheastElem;
+			tot += ( currElem != NULL ) ? currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+			
+			currElem = currVertex->NortheastElem;
+			tot += ( currElem != NULL ) ? currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+			
+			currElem = currVertex->NorthwestElem;
+			tot += ( currElem != NULL ) ? currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+
+			physValue = sum / tot;
+			currVertex->Phys.SetPhyPrpty(vertexPhyPrpty.at(iPrpty), physValue);
+		}
+	}
+}
+
+void SimpleONO::refreshBandEnergy()
+{
+	double RefPotential = SctmPhys::ReferencePotential;
 }

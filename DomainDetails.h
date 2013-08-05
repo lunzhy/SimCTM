@@ -113,18 +113,21 @@ public:
 		SouthLength = FDVertex::Distance(SouthwestVertex, SoutheastVertex);
 		EastLength = FDVertex::Distance(NortheastVertex, SoutheastVertex);
 		NorthLength =FDVertex::Distance(NorthwestVertex, NortheastVertex);
-		///TODO: judge if the corresponding length equal to each other
+		Area = WestLength * SouthLength;
+		///TODO: judge if the corresponding lengths equal to each other
+
 	}
 	
 	double WestLength; ///< the length of west edge of this element
 	double EastLength; ///< the length of east edge of this element
 	double NorthLength; ///< the length of north edge of this element
 	double SouthLength; ///< the length of south edge of this element
+	double Area; ///< the area of this element, the unit is in accordance with length
 	FDVertex *NorthwestVertex; ///< the northwest vertex of this element
 	FDVertex *NortheastVertex; ///< the northeast vertex of this element
 	FDVertex *SouthwestVertex; ///< the southwest vertex of this element
 	FDVertex *SoutheastVertex; ///< the southeast vertex of this element
-	FDRegion *region; ///< the related region of this element
+	FDRegion *Region; ///< the related region of this element
 
 	/// @brief GetInternalID returns the internal id of the specified element.
 	/// 
@@ -143,7 +146,7 @@ public:
 	/// @pre
 	/// @return void
 	/// @note
-	void SetRegion( FDRegion *region ) {this->region = region;}
+	void SetRegion( FDRegion *region ) {this->Region = region;}
 protected:
 	unsigned int id; ///< the internal id of the element
 };
@@ -174,7 +177,7 @@ public:
 		:id(_id), Type(_type) {}
 
 	RegionType Type; ///< type of the region, in enum RegionType
-	const Material * RegionMaterial; ///< the material of current region, a pointer to const material
+	Material * RegionMaterial; ///< the material of current region, a pointer to const material
 
 	/// @brief AddElement adds element in current region
 	/// 

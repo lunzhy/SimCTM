@@ -111,8 +111,9 @@ void SubsToGateEletronTunnel::PrepareProblem(FDVertex *startVertex)
 	while (currentVertex != NULL)
 	{
 		this->deltaX.push_back((currentVertex->NorthLength + currentVertex->SouthLength) / 2);
-		this->cbegde.push_back(currentVertex->Phys.ConductionBandEnergy);
-		this->emass.push_back(currentVertex->Phys.ElectronMass);
+		//the method to get physical property is changed
+		//this->cbegde.push_back(currentVertex->Phys.conductionBandEnergy);
+		//this->emass.push_back(currentVertex->Phys.electronMass);
 		currentVertex = currentVertex->NorthVertex; // move the vertex north
 	}
 }

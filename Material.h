@@ -51,6 +51,29 @@ namespace MaterialDB
 		void		HoleDOS(double val)					{ holeDOS = val;				}
 	};
 
+
+	/// @brief
+	///
+	///
+	
+	class MatProperty
+	{
+	public:
+		enum Name
+		{
+			Mat_DielectricConstant, ///<
+			Mat_Bandgap, ///<
+			Mat_ElectronAffinity, ///<
+			Mat_ElectronMass, ///<
+			Mat_HoleMass, ///<
+			Mat_ElectronDOS, ///<
+			Mat_HoleDOS ///<
+		};
+	};
+
+	double GetMatPrpty(Material *theMaterial, MatProperty::Name prptyName);
+	void SetMatPrpty(Material *theMaterial, MatProperty::Name prptyName);
+
 	//TODO: conceive the method that accounts for material specification
 	extern Material Silicon;
 	extern Material SiO2;

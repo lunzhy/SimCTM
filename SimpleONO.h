@@ -31,16 +31,6 @@ public:
 	/// @return void
 	/// @note
 	void BuildDomain();
-	/// @brief stuffPotential is used to stuff potential obtained from calculation results
-	/// 
-	/// This is a temporary method for initializing the potential. The potential is calculated with
-	/// channel potential and the electric field along the gate stack. These values are obtained from
-	/// Sentaurus results. Here, we use same reference potential as in Sentaurus.
-	/// 
-	/// @pre
-	/// @return void
-	/// @note
-	void StuffPotential();
 protected:
 	double xLength; ///< the length in x direction of the rectangle structure.
 	double yLengthTunnel; ///< the length in y direction of tunneling oxide
@@ -135,4 +125,18 @@ private:
 	/// @note the initial region sequence is tunneling oxide (region[0]), 
 	/// trapping layer (region[1]) and blocking oxide (region[2]).
 	FDRegion * thisRegion( int elemY);
+	/// @brief stuffPotential is used to stuff potential obtained from calculation results
+	/// 
+	/// This is a temporary method for initializing the potential. The potential is calculated with
+	/// channel potential and the electric field along the gate stack. These values are obtained from
+	/// Sentaurus results. Here, we use same reference potential as in Sentaurus.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
+	void stuffPotential();
+
+	void setVertexPhysics();
+
+	void refreshBandEnergy();
 };

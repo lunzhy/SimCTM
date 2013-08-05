@@ -1,12 +1,16 @@
-#include "FDDomainTest.h"
+#include "SimpleONO.h"
 #include "TunnelSolver.h"
-int main()
+void initialize()
 {
 	MaterialDB::SetMaterials();
+	SctmPhys::SetPhysConstant();
+}
+int main()
+{
+	initialize();
 
 	SimpleONO aTest = SimpleONO();
 	aTest.BuildDomain();
-	aTest.StuffPotential();
 
 	SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
 	tunnelDemo.PrepareProblem(aTest.getVertex(0));

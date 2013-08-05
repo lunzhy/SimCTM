@@ -25,8 +25,8 @@ namespace SctmUtils
 	const double CHARGE = SctmPhys::ElementaryCharge; // in [C]
 	const double BOLTZMAN = SctmPhys::BoltzmanConstant; // in [J/K]
 	const double INTRINSIC_CONC_SI = 1.0e10;// in [cm-3]
-	const double ROOM_TEMP = 300;// in [K]
-	const double RELATIVE_EPSILON_SI = MaterialDB::Silicon.DielectricConstant(); // need to be revised
+	const double ROOM_TEMP = SctmPhys::RoomTemperature;// in [K]
+	const double RELATIVE_EPSILON_SI = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_DielectricConstant);
 	
 	
 	

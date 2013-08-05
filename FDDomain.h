@@ -39,8 +39,6 @@ protected:
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
 	std::vector<FDRegion *> regions; ///< the regions contained in the domain
 
-	void setVertexPhysics();
-
 public:
 	/// @brief getVertex can get the vertex object with given id
 	/// 
