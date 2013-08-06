@@ -41,8 +41,15 @@ namespace SctmPhys
 	const double hbar = h / 2 / SctmMath::PI;
 
 	
-	extern double ReferencePotential;
+	extern double ReferencePotential; // the reference potential used in calculating the conduction/valence band energy
 
+	/// @brief SetPhysConstant is used to set the constant parameters which are initialized with the material parameters
+	/// 
+	/// These physical constant cannot be set to const, because their definitions needs to call the other methods.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
 	void SetPhysConstant();
 
 	/// @brief This class is a data structure to store the physical parameters of the specified vertex

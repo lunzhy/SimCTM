@@ -87,7 +87,7 @@ namespace SctmPhys
 		//the value of reference potential is
 		//electron affinity + Eg/2 + 3/4*kT/q*ln(mp/mn)
 		ReferencePotential = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronAffinity)
-			+ bandgap / 2- 3/4 * k0 * T0 / q * SctmMath::ln( mp / mn);
+			+ bandgap / 2 - 3/4 * k0 * T0 / q * SctmMath::ln( mp / mn);
 	}
 
 }
