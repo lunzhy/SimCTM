@@ -47,10 +47,13 @@ namespace SctmPhys
 		case ElectronAffinity:
 			electronAffinity = prptyValue;
 			break;
+		case Bandgap:
+			bandgap = prptyValue;
+			break;
 		}
 	}
 
-	double PhysProperty::GetPhyPrpty(Name prptyName)
+	double PhysProperty::GetPhyPrpty(Name prptyName) const
 	{
 		double ret;
 
@@ -74,6 +77,11 @@ namespace SctmPhys
 		case ElectronAffinity:
 			ret = electronAffinity;
 			break;
+		case Bandgap:
+			ret = bandgap;
+			break;
+		default:;
+			// use SCTM_CHECK for non-existed property
 		}
 
 		return ret;

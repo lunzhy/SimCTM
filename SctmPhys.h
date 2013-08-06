@@ -59,14 +59,17 @@ namespace SctmPhys
 			ElectrostaticPotential, ///<
 			ConductionBandEnergy, ///<
 			ValenceBandEnergy, ///<
-			ElectronAffinity,
+			ElectronAffinity, ///<
 			ElectronMass, ///<
-			HoleMass ///<
+			HoleMass, ///<
+			Bandgap ///<
 		};
 
 		void SetPhyPrpty(Name prptyName, double prptyValue);
-		double GetPhyPrpty(Name prptyName);
+		double GetPhyPrpty(Name prptyName) const;
 	private:
+		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used
+		double bandgap;
 		double electrostaticPotential;
 		double conductionBandEnergy; ///< i.e. conduction band edge
 		double valenceBandEnergy; ///< i.e. valence band edge

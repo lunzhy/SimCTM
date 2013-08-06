@@ -104,16 +104,23 @@ void TunnelSolver::calcThermalEmission()
 
 void SubsToGateEletronTunnel::PrepareProblem(FDVertex *startVertex)
 {
-	//IMPORTANT! the parameters are in normalization values. They must be converted !
+	// IMPORTANT! the parameters are in normalization values. They must be converted !
 	// the tunneling direction is north
+	double val = 0;
 	this->areaFactor = startVertex->EastLength / 2 + startVertex->WestLength / 2;
 	FDVertex *currentVertex = startVertex;
 	while (currentVertex != NULL)
 	{
 		this->deltaX.push_back((currentVertex->NorthLength + currentVertex->SouthLength) / 2);
+		
 		//the method to get physical property is changed
 		//this->cbegde.push_back(currentVertex->Phys.conductionBandEnergy);
+		val = currentVertex->Phys.GetPhyPrpty(PhysProperty::ConductionBandEnergy);
+		this->cbegde.push_back(val);
 		//this->emass.push_back(currentVertex->Phys.electronMass);
+		val = currentVertex->Phys.GetPhyPrpty(PhysProperty::ElectronMass);
+		this->emass.push_back(val);
+		
 		currentVertex = currentVertex->NorthVertex; // move the vertex north
 	}
 }

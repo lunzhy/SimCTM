@@ -64,6 +64,8 @@ namespace MaterialDB
 		case MatProperty::Mat_HoleMass:
 			ret = theMaterial->HoleMass();
 			break;
+		default:;
+			// use SCTM_CHECK for non-existed property
 		}
 
 		return ret;

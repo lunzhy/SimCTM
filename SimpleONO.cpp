@@ -388,6 +388,7 @@ void SimpleONO::setVertexPhysics()
 	vector<PhysProperty::Name> vertexPhyPrpty;
 	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); vertexPhyPrpty.push_back(PhysProperty::ElectronAffinity);
 	matPrptys.push_back(MatProperty::Mat_ElectronMass); vertexPhyPrpty.push_back(PhysProperty::ElectronMass);
+	matPrptys.push_back(MatProperty::Mat_Bandgap); vertexPhyPrpty.push_back(PhysProperty::Bandgap);
 
 	//iteration over the vertices
 	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)
@@ -422,4 +423,28 @@ void SimpleONO::setVertexPhysics()
 void SimpleONO::refreshBandEnergy()
 {
 	double RefPotential = SctmPhys::ReferencePotential;
+	double q = SctmPhys::q;
+
+	double energy = 0;
+	double affinity = 0;
+	double bandgap = 0;
+	double potential = 0;
+
+	FDVertex *currVertex = NULL;
+	for (size_t iver = 0; iver != vertices.size(); ++iver)
+	{
+		currVertex = getVertex(iver);
+
+		potential = currVertex->Phys.GetPhyPrpty(PhysProperty::ElectrostaticPotential);
+		affinity = currVertex->Phys.GetPhyPrpty(PhysProperty::ElectronAffinity);
+		bandgap = currVertex->Phys.GetPhyPrpty(PhysProperty::Bandgap);
+
+		//Ec = -X-q(phi-phiRef)
+		energy = -affinity - q*(potential-RefPotential);
+		currVertex->Phys.SetPhyPrpty(PhysProperty::ConductionBandEnergy, energy);
+		
+		//Ev = -X-q(phi-phiRef)-Eg
+		energy = energy - bandgap;
+		currVertex->Phys.SetPhyPrpty(PhysProperty::ValenceBandEnergy, energy);
+	}
 }
