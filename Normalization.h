@@ -1,6 +1,6 @@
 /**
 * @file Normalization.h
-* @brief
+* @brief This file deals with the normalization problems in the simulation.
 *
 *
 *
@@ -26,7 +26,8 @@ namespace SctmUtils
 	const double BOLTZMAN = SctmPhys::BoltzmanConstant; // in [J/K]
 	const double INTRINSIC_CONC_SI = 1.0e10;// in [cm-3]
 	const double ROOM_TEMP = SctmPhys::RoomTemperature;// in [K]
-	const double RELATIVE_EPSILON_SI = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_DielectricConstant);
+	//the const double cannot be initialized here with other method.
+	//const double RELATIVE_EPSILON_SI = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_DielectricConstant);
 	
 	
 	

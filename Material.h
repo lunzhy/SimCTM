@@ -1,6 +1,6 @@
 /**
 * @file Material.h
-* @brief
+* @brief this file is used to define the structure of class related to materials used in the simulation
 *
 *
 *
@@ -28,13 +28,22 @@ namespace MaterialDB
 		double		dielectricConstant; ///< dielectric constant
 		double		bandgap; ///< bandgap, in [eV]
 		double		electronAffinity; ///< electron affinity energy, in [eV]
-		double		electronMass;
-		double		holeMass;
+		double		electronMass; ///< electron effective mass, in [m0]
+		double		holeMass; ///< hole effective mass, in [m0]
 		double		electronDOS;
 		double		holeDOS;
 	public:
+		/// @brief Material is the construction method of this class
+		///  
+		/// The object of this class is constructed with given material name.
+		/// 
+		/// @param string _name
+		/// @pre
+		/// @return 
+		/// @note
 		Material(string _name):name(_name) {};
 
+		//The methods below are used to encapsulate the private members of this class.
 		double		DielectricConstant() const			{ return dielectricConstant;	}
 		void		DielectricConstant(double val)		{ dielectricConstant = val;		}
 		double		Bandgap() const						{ return bandgap;				}
@@ -52,31 +61,55 @@ namespace MaterialDB
 	};
 
 
-	/// @brief
-	///
-	///
-	
+	/// @brief This class just provides a container to restrict the enum of material property name.
 	class MatProperty
 	{
 	public:
 		enum Name
 		{
-			Mat_DielectricConstant, ///<
-			Mat_Bandgap, ///<
-			Mat_ElectronAffinity, ///<
-			Mat_ElectronMass, ///<
-			Mat_HoleMass, ///<
-			Mat_ElectronDOS, ///<
-			Mat_HoleDOS ///<
+			Mat_DielectricConstant, ///< dielectric constant of the material
+			Mat_Bandgap, ///< bandgap of the material
+			Mat_ElectronAffinity, ///< electron affinity of the material
+			Mat_ElectronMass, ///< electron effective mass of the material
+			Mat_HoleMass, ///< hole effective mass of the material
+			Mat_ElectronDOS, ///< electron density of states of the material
+			Mat_HoleDOS ///< hoe density of states of the material
 		};
 	};
 
+	/// @brief GetMatPrpty is called to get the value of material property with given material
+	/// 
+	/// This method is used with the pointer to the material that is examined. And the property name is given
+	/// in the name within the enum of material property name
+	/// 
+	/// @param Material * theMaterial
+	/// @param MatProperty::Name prptyName
+	/// @pre
+	/// @return double
+	/// @note
 	double GetMatPrpty(Material *theMaterial, MatProperty::Name prptyName);
+	/// @brief SetMatPrpty is called to set the value of material property with given material
+	/// 
+	/// This method is barely used. Because the material properties are set within this namespace using other methods.
+	/// The initialization of material is not used after the preparation of the simulation.
+	/// 
+	/// @param Material * theMaterial
+	/// @param MatProperty::Name prptyName
+	/// @pre
+	/// @return void
+	/// @note
 	void SetMatPrpty(Material *theMaterial, MatProperty::Name prptyName);
+	/// @brief SetMaterials is used to set the values of material properties.
+	/// 
+	///
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
+	void SetMaterials();
 
 	//TODO: conceive the method that accounts for material specification
 	extern Material Silicon;
 	extern Material SiO2;
 	extern Material Si3N4;
-	void SetMaterials();
 }

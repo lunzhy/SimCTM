@@ -1,6 +1,6 @@
 /**
-* @file SctmMath.h
-* @brief
+* @file SctmMath.h 
+* @brief This file contains the general math problems used in the simulation.
 *
 *
 *

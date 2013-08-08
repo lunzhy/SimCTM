@@ -1,6 +1,6 @@
 /**
-* @file SctmPhys.h
-* @brief
+* @file SctmPhys.h 
+* @brief This file contains the common physical problems occurred in the simulation
 *
 *
 *
@@ -58,30 +58,65 @@ namespace SctmPhys
 	class PhysProperty
 	{
 	public:
-		/// @brief
+		/// @brief this enum is use to store the name of physical properties linked to each vertex
 		///
-		///
+		/// The name of the physical property is used to get and set related value of the vertex
 		enum Name
 		{
-			ElectrostaticPotential, ///<
-			ConductionBandEnergy, ///<
-			ValenceBandEnergy, ///<
-			ElectronAffinity, ///<
-			ElectronMass, ///<
-			HoleMass, ///<
-			Bandgap ///<
+			ElectrostaticPotential, ///< potential
+			ConductionBandEnergy, ///< conduction band energy
+			ValenceBandEnergy, ///< valence band energy
+			ElectronAffinity, ///< electron affinity
+			ElectronMass, ///< electron effective mass
+			HoleMass, ///< hole effective mass
+			Bandgap ///< bandgap
 		};
 
+		/// @brief PhysProperty is the construction method for this class
+		/// 
+		/// All the physical values are initialized to zero in the construction method.
+		/// 
+		/// @pre
+		/// @return 
+		/// @note
+		PhysProperty()
+		{
+			bandgap = 0;
+			electrostaticPotential = 0;
+			conductionBandEnergy = 0;
+			valenceBandEnergy = 0;
+			electronAffinity = 0;
+			electronMass = 0;
+			holeMass = 0;
+		}
+		/// @brief SetPhyPrpty is used to set the value of physical property related to each vertex
+		/// 
+		/// The name of the specified property is given in enum name. 
+		/// 
+		/// @param Name prptyName
+		/// @param double prptyValue
+		/// @pre
+		/// @return void
+		/// @note
 		void SetPhyPrpty(Name prptyName, double prptyValue);
+		/// @brief GetPhyPrpty is used to get the value of physical property related to the vertex
+		/// 
+		/// This is const method and no value should be changed in this method.
+		/// 
+		/// @param Name prptyName
+		/// @pre
+		/// @return double
+		/// @note
 		double GetPhyPrpty(Name prptyName) const;
 	private:
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used
-		double bandgap;
-		double electrostaticPotential;
+		//the value of these physical properties is normalized value.
+		double bandgap; ///< bandgap of the material
+		double electrostaticPotential; ///< potential, normalized
 		double conductionBandEnergy; ///< i.e. conduction band edge
 		double valenceBandEnergy; ///< i.e. valence band edge
-		double electronAffinity;
-		double electronMass;
-		double holeMass;
+		double electronAffinity; ///< electron affinity
+		double electronMass; ///< effective electron mass
+		double holeMass; ///< effective hole mass
 	};
 }

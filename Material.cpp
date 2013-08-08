@@ -13,6 +13,8 @@
 
 #include <iostream>
 #include "Material.h"
+#include "SctmUtils.h"
+
 namespace MaterialDB
 {
 	Material Silicon = Material("Silicon");
@@ -64,8 +66,9 @@ namespace MaterialDB
 		case MatProperty::Mat_HoleMass:
 			ret = theMaterial->HoleMass();
 			break;
-		default:;
+		default:
 			// use SCTM_CHECK for non-existed property
+			SCTM_ASSERT(1==1, 1);
 		}
 
 		return ret;

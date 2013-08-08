@@ -1,6 +1,6 @@
 /**
-* @file FDDomainTest.h
-* @brief
+* @file SimpleONO.h
+* @brief This file deals with a simple finite differential domain problem, which is consisted of three layers.
 *
 *
 *
@@ -14,9 +14,9 @@
 #include "FDDomain.h"
 class FDRegion;
 
-/// @brief FDDomianTest is used for set the domain for finite differential method
+/// @brief SimpleONO is used for set the domain for finite differential method
 ///
-/// This class is derived from FDDomain. It can build a rectangle domain by using FDDomainHelper.
+/// This class is derived from SimpleONO. It can build a rectangle domain by using FDDomainHelper.
 class SimpleONO : public FDDomain
 {
 public:

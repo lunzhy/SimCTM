@@ -1,6 +1,6 @@
 /**
 * @file SctmPhys.cpp
-* @brief
+* @brief This file contains the detailed implementation of the physics problems in the simulation
 *
 *
 *
@@ -14,6 +14,7 @@
 #pragma once
 #include "SctmPhys.h"
 #include "Material.h"
+#include "SctmUtils.h"
 
 namespace SctmPhys
 {
@@ -80,8 +81,9 @@ namespace SctmPhys
 		case Bandgap:
 			ret = bandgap;
 			break;
-		default:;
-			// use SCTM_CHECK for non-existed property
+		default:
+			SCTM_ASSERT(1==1, 0);
+			// use SCTM_ASSERT for non-existed property
 		}
 
 		return ret;
