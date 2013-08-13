@@ -345,7 +345,7 @@ void SimpleONO::stuffPotential()
 			currVertex = getVertex(id);
 			// the calculated potential is in [V], so normalization is needed here when stuffing.
 			normPotential = theNorm.PushPotential(potential);
-			currVertex->Phys.SetPhyPrpty(PhysProperty::ElectrostaticPotential, normPotential);
+			currVertex->Phys.SetPhysPrpty(PhysProperty::ElectrostaticPotential, normPotential);
 		}
 		
 		//for next electric field
@@ -415,7 +415,7 @@ void SimpleONO::setVertexPhysics()
 			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
 
 			physValue = sum / tot;
-			currVertex->Phys.SetPhyPrpty(vertexPhyPrpty.at(iPrpty), physValue);
+			currVertex->Phys.SetPhysPrpty(vertexPhyPrpty.at(iPrpty), physValue);
 		}
 	}
 }
@@ -435,16 +435,16 @@ void SimpleONO::refreshBandEnergy()
 	{
 		currVertex = getVertex(iver);
 
-		potential = currVertex->Phys.GetPhyPrpty(PhysProperty::ElectrostaticPotential);
-		affinity = currVertex->Phys.GetPhyPrpty(PhysProperty::ElectronAffinity);
-		bandgap = currVertex->Phys.GetPhyPrpty(PhysProperty::Bandgap);
+		potential = currVertex->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		affinity = currVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity);
+		bandgap = currVertex->Phys.GetPhysPrpty(PhysProperty::Bandgap);
 
 		//Ec = -X-q(phi-phiRef)
 		energy = -affinity - q*(potential-RefPotential);
-		currVertex->Phys.SetPhyPrpty(PhysProperty::ConductionBandEnergy, energy);
+		currVertex->Phys.SetPhysPrpty(PhysProperty::ConductionBandEnergy, energy);
 		
 		//Ev = -X-q(phi-phiRef)-Eg
 		energy = energy - bandgap;
-		currVertex->Phys.SetPhyPrpty(PhysProperty::ValenceBandEnergy, energy);
+		currVertex->Phys.SetPhysPrpty(PhysProperty::ValenceBandEnergy, energy);
 	}
 }

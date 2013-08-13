@@ -13,6 +13,8 @@
 #pragma once
 #include <cmath>
 #include "SctmMath.h"
+#include "Material.h"
+#include "DomainDetails.h"
 /// @brief This namespace contains all the physics used in the simulation 
 ///
 /// The common physical parameters are defined here. And other classes and structs related to
@@ -98,7 +100,7 @@ namespace SctmPhys
 		/// @pre
 		/// @return void
 		/// @note
-		void SetPhyPrpty(Name prptyName, double prptyValue);
+		void SetPhysPrpty(Name prptyName, double prptyValue);
 		/// @brief GetPhyPrpty is used to get the value of physical property related to the vertex
 		/// 
 		/// This is const method and no value should be changed in this method.
@@ -107,7 +109,10 @@ namespace SctmPhys
 		/// @pre
 		/// @return double
 		/// @note
-		double GetPhyPrpty(Name prptyName) const;
+		double GetPhysPrpty(Name prptyName) const;
+
+
+		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys, MaterialDB::MatProperty::Name matPrpty);
 	private:
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used
 		//the value of these physical properties is normalized value.

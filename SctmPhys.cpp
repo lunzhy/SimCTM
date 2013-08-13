@@ -26,7 +26,7 @@ namespace SctmPhys
 	
 	double ReferencePotential;
 
-	void PhysProperty::SetPhyPrpty(Name prptyName, double prptyValue)
+	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
 	{
 		switch (prptyName)
 		{
@@ -54,7 +54,7 @@ namespace SctmPhys
 		}
 	}
 
-	double PhysProperty::GetPhyPrpty(Name prptyName) const
+	double PhysProperty::GetPhysPrpty(Name prptyName) const
 	{
 		double ret;
 
@@ -82,11 +82,16 @@ namespace SctmPhys
 			ret = bandgap;
 			break;
 		default:
-			SCTM_ASSERT(1==1, 0);
+			SCTM_ASSERT(true, 1);
 			// use SCTM_ASSERT for non-existed property
 		}
 
 		return ret;
+	}
+
+	void PhysProperty::FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys, MaterialDB::MatProperty::Name matPrpty)
+	{
+		//TODO : need to solve the problem of mutual including.
 	}
 
 	void SetPhysConstant()

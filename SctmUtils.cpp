@@ -45,23 +45,25 @@ namespace SctmUtils
 		return duration;
 	}
 
-	void Message(string msg)
+	void SctmDebug::Message(string msg)
 	{
 		cout << msg << endl;
 		exit(0);
 	}
 
-	void ErrorCodeParser(int err_code)
+	void SctmDebug::ErrorCodeParser(int err_code)
 	{
 		string msg;
 		switch (err_code)
 		{
-		case 0:
-			msg = "non-existed physical property";
 		case 1:
-			msg = "non-existed material property";
+			msg = "Non-existed physical property";
+		case 2:
+			msg = "Non-existed material property";
+		case 3:
+			msg = "Not rectangular element in constructing elements";
 		default:
-			msg = "untracked error";
+			msg = "Untracked error";
 		}
 		Message(msg);
 	}

@@ -18,6 +18,7 @@
 #include "Normalization.h"
 #include "SctmPhys.h"
 #include "Material.h"
+#include "SctmUtils.h"
 
 using SctmPhys::PhysProperty;
 using MaterialDB::Material;
@@ -115,7 +116,10 @@ public:
 		NorthLength =FDVertex::Distance(NorthwestVertex, NortheastVertex);
 		Area = WestLength * SouthLength;
 		///TODO: judge if the corresponding lengths equal to each other
-
+		double relError = (WestLength - EastLength) / WestLength;
+		SCTM_ASSERT(relError > 0.01, 3);
+		relError = (SouthLength - NorthLength) / SouthLength;
+		SCTM_ASSERT(relError > 0.01, 3);
 	}
 	
 	double WestLength; ///< the length of west edge of this element

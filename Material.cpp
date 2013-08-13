@@ -68,7 +68,7 @@ namespace MaterialDB
 			break;
 		default:
 			// use SCTM_CHECK for non-existed property
-			SCTM_ASSERT(1==1, 1);
+			SCTM_ASSERT(true, 2);
 		}
 
 		return ret;
