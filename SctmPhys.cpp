@@ -15,6 +15,7 @@
 #include "SctmPhys.h"
 #include "Material.h"
 #include "SctmUtils.h"
+#include "DomainDetails.h"
 
 namespace SctmPhys
 {
@@ -82,17 +83,44 @@ namespace SctmPhys
 			ret = bandgap;
 			break;
 		default:
-			SCTM_ASSERT(true, 1);
 			// use SCTM_ASSERT for non-existed property
+			SCTM_ASSERT(true, 1);
 		}
 
 		return ret;
 	}
 
-	void PhysProperty::FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys, MaterialDB::MatProperty::Name matPrpty)
+	void PhysProperty::FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys, MaterialDB::MatProperty::Name matPrpty)
 	{
 		//TODO : need to solve the problem of mutual including.
-	}
+		//the problem is solved but with some unknowns.
+		double tot = 0; //total area
+		double sum = 0; //sum corresponds to the integral
+		double physValue = 0; //the final physical value related to vertex
+
+		using MaterialDB::GetMatPrpty;
+		FDElement *currElem = NULL;
+		currElem = vertex->NortheastElem;
+		tot += ( currElem != NULL ) ? currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+
+		currElem = vertex->NorthwestElem;
+		tot += ( currElem != NULL ) ? currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+
+		currElem = vertex->SoutheastElem;
+		tot += ( currElem != NULL ) ? currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+
+		currElem = vertex->SouthwestElem;
+		tot += ( currElem != NULL ) ? currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+
+		SCTM_ASSERT(tot=0, 4);
+		physValue = sum / tot;
+
+		vertex->Phys.SetPhysPrpty(vertexPhys, physValue);
+	}		
 
 	void SetPhysConstant()
 	{

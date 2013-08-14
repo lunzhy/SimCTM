@@ -376,8 +376,8 @@ void SimpleONO::setVertexPhysics()
 {
 	FDVertex * currVertex = NULL;
 	FDElement * currElem = NULL;
-	double tot = 0; // total area
-	double sum = 0; // sum corresponds to integral value
+	double tot = 0; //total area
+	double sum = 0; //sum corresponds to integral value
 	double physValue = 0;
 
 	using namespace MaterialDB;
@@ -397,6 +397,7 @@ void SimpleONO::setVertexPhysics()
 		//iteration over the physical properties to be set from material property
 		for (std::size_t iPrpty = 0; iPrpty != matPrptys.size(); ++iPrpty)
 		{
+			//TODO: The method for filling vertex-based physical value using material-based value is ready
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;
 			tot += ( currElem != NULL ) ? currElem->Area : 0;

@@ -57,11 +57,23 @@ namespace SctmUtils
 		switch (err_code)
 		{
 		case 1:
-			msg = "Non-existed physical property";
+			msg = "Non-existed physical property.";
+			break;
 		case 2:
-			msg = "Non-existed material property";
+			msg = "Non-existed material property.";
+			break;
 		case 3:
-			msg = "Not rectangular element in constructing elements";
+			msg = "Not rectangular element in constructing elements.";
+			break;
+		case 4:
+			msg = "Error in calculating vertex-related physical value using material-base property.";
+			break;
+		case 5:
+			msg = "[MatrixSolver.cpp] The size of right-hand side vector and solution vector are not equal in matrix solver.";
+			break;
+		case 6:
+			msg = "[MatrixSolver.cpp] The solver of SparseLU fails to solver matrix equation.";
+			break;
 		default:
 			msg = "Untracked error";
 		}

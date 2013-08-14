@@ -14,7 +14,10 @@
 #include <cmath>
 #include "SctmMath.h"
 #include "Material.h"
-#include "DomainDetails.h"
+
+//in order to use the pointer of FDVertex in this head file
+class FDVertex;
+
 /// @brief This namespace contains all the physics used in the simulation 
 ///
 /// The common physical parameters are defined here. And other classes and structs related to
@@ -110,9 +113,18 @@ namespace SctmPhys
 		/// @return double
 		/// @note
 		double GetPhysPrpty(Name prptyName) const;
-
-
-		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys, MaterialDB::MatProperty::Name matPrpty);
+		/// @brief FillVertexPhysUsingMatPropty is used to set vertex-based physical value using material-based property
+		/// 
+		/// Vertex-based physical value is set in consideration of four(or less) adjacent elements of the specific vertex.
+		/// value = (weighted sum of the material property with respect of element area) / total area
+		/// 
+		/// @param FDVertex * vertex the vertex to set
+		/// @param PhysProperty::Name vertexPhys
+		/// @param MaterialDB::MatProperty::Name matPrpty
+		/// @pre
+		/// @return void
+		/// @note This method is not checked until now
+		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys, MaterialDB::MatProperty::Name matPrpty);
 	private:
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used
 		//the value of these physical properties is normalized value.
