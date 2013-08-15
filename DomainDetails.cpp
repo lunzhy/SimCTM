@@ -18,3 +18,15 @@ double FDVertex::Distance( FDVertex *vertex1, FDVertex *vertex2 )
 {
 	return SctmMath::sqrt(SctmMath::square(vertex1->X - vertex2->X) + SctmMath::square(vertex1->Y - vertex2->Y));
 }
+
+bool FDVertex::IsAtBoundary()
+{
+	return this->BoundaryCond.Valid;
+}
+
+void FDBoundary::SetBndCond(BndCond bndType, double bndValue)
+{
+	this->Valid = true;
+	this->Type = bndType;
+	this->Value = bndValue;
+}
