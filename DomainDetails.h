@@ -60,7 +60,7 @@ public:
 	
 	/// @brief GetInternalID returns the internal id of specified vertex
 	/// 
-	///
+	/// This is used in solving two dimensional Poisson equation.
 	/// 
 	/// @pre
 	/// @return int

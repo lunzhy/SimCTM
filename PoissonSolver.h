@@ -10,8 +10,26 @@
 * @note
 * @todo
 */
+#pragma once
+#include "MatrixSolver.h"
+#include <vector>
 
-class TwoDimPoisson
+
+using std::vector;
+class FDVertex;
+class TwoDimPoisson : public SctmMath::SparseMatrixSolver
 {
+public:
+	TwoDimPoisson(vector<FDVertex *> &_vertices):vertices(_vertices)
+	{}
+private:
+	vector<FDVertex *> &vertices;
+	vector<double> potential;
 protected:
+	void buildCoefficientMatrix();
+	void buildRHS();
+	void parseBoundaryCondition();
+	void refreshCoefficientMatrix();
+	void refreshRHS();
+	void solvePotential();
 };

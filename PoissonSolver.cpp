@@ -10,3 +10,9 @@
 * @note
 * @todo
 */
+#include "PoissonSolver.h"
+
+void TwoDimPoisson::buildCoefficientMatrix()
+{
+
+}
