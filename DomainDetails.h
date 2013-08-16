@@ -22,26 +22,33 @@
 
 using SctmPhys::PhysProperty;
 using MaterialDB::Material;
+using std::string;
 
 class FDBoundary
 {
 public:
 	enum BndCond
 	{
-		BC_Dirichlet,
-		BC_Neumann,
-		BC_Artificial,
+		BC_Dirichlet, ///< the first type of boundary condition
+		BC_Neumann, ///< the second type of boundary condition
+		BC_Artificial, ///< the special Neumann boundary condition
 	};
-	FDBoundary():Valid(false){}
-	void SetBndCond(BndCond bndType, double bndValue);
-	BndCond Type;
-	double Value;
-	bool Valid;
+	FDBoundary():valid(false){}
+	void SetBndCond(BndCond bndtype, double bndvalue);
+	bool Valid() const { return valid; }
+	BndCond BndType() const { return bndType; }
+	double BndValue() const { return bndValue; }
+protected:
+	BndCond bndType;
+	double bndValue;
+	bool valid;
+	
 };
 
 
 
 class FDElement;
+class FDContact;
 /// @brief FDVertex is the class describing the vertex in finite differential method
 ///
 /// This class contains the information that will be used around specified vertex
@@ -59,7 +66,20 @@ public:
 	/// @pre
 	/// @return 
 	/// @note
-	FDVertex(unsigned _id, double _x, double _y): X(_x), Y(_y), id(_id) {}
+	FDVertex(unsigned _id, double _x, double _y): X(_x), Y(_y), id(_id)
+	{
+		//These pointers will be set to NULL outside when the setting of adjacency of a vertex 
+		//and initializing the contact.
+		EastVertex = NULL;
+		WestVertex = NULL;
+		NorthVertex = NULL;
+		SouthVertex = NULL;
+		NortheastElem = NULL;
+		NorthwestElem = NULL;
+		SoutheastElem = NULL;
+		SouthwestElem = NULL;
+		Contact = NULL;
+	}
 	double X; ///< coordinate of x direction
 	double Y; ///< coordinate of y direction
 	double EastLength; ///< the edge length to the east of the current vertex
@@ -74,9 +94,13 @@ public:
 	FDElement *NorthwestElem; ///< the pointer to northwest element
 	FDElement *SoutheastElem; ///< the pointer to southeast element
 	FDElement *SouthwestElem; ///< the pointer to southwest element
+	FDContact *Contact;
+
 	PhysProperty Phys; ///< the physical values attached to current vertex
 	FDBoundary BoundaryCond; ///< the boundary condition of current vertex
 	
+
+	bool IsAtContact() const { return (Contact!=NULL); }
 	/// @brief GetInternalID returns the internal id of specified vertex
 	/// 
 	/// This is used in solving two dimensional Poisson equation.
@@ -84,7 +108,7 @@ public:
 	/// @pre
 	/// @return int
 	/// @note
-	int GetInternalID() { return id; }
+	int GetInternalID() const { return id; }
 	/// @brief Distance can get the distance between two given vertices
 	/// 
 	/// This is a static method and can be called directly with the class name.
@@ -95,8 +119,17 @@ public:
 	/// @return double
 	/// @note This is a static method.
 	static double Distance(FDVertex *vertex1, FDVertex *vertex2);
-
+	/// @brief SetContact is used to set the belonging contact of this vertex
+	/// 
+	///
+	/// 
+	/// @param FDContact * contact
+	/// @pre
+	/// @return void
+	/// @note
+	void SetContact(FDContact *contact) { this->Contact = contact; }
 	bool IsAtBoundary();
+
 protected:
 	unsigned int id; ///< internal id of the vertex
 };
@@ -212,9 +245,22 @@ public:
 	/// @pre
 	/// @return void
 	/// @note
-	void AddElement( FDElement *elem ) {elements.push_back(elem);}
+	void AddElement( FDElement *elem ) { elements.push_back(elem); }
 protected:
 	std::vector<FDElement *> elements; ///< the elements that are involved in current region
+	unsigned int id; ///< internal id
+};
+
+
+class FDContact
+{
+public:
+	string ContactName; ///< contact name
+	double Voltage; /// the contact voltage
+	FDContact(unsigned int _id, string _name, double _voltage):id(_id), ContactName(_name), Voltage(_voltage){}
+	void AddVertex(FDVertex *vert) { vertices.push_back(vert); }
+protected:
+	std::vector<FDVertex *> vertices; ///< the vertices belong to this contact
 	unsigned int id; ///< internal id
 };
 

@@ -57,7 +57,9 @@ void SimpleONO::setParameters()
 	int yGridNumberTunnel = 15;
 	int yGridNumberTrap = 15;
 	int yGridNumberBlock = 15;
+	int gateVoltage = 16;
 	////////////////////////////////////////////////////////////////////////////
+	//set geometric class members
 	//here, the length of the parameter is conversed to [cm]
 	xLength = xLength_in_nm * nm_in_cm;
 	xCntVertex = xGridNumber + 1;
@@ -67,13 +69,12 @@ void SimpleONO::setParameters()
 	yCntVertexTrap = yGridNumberTrap + 1;
 	yLengthBlock = yLengthBlock_in_nm * nm_in_cm;
 	yCntVertexBlock = yGridNumberBlock + 1;
+	yCntTotalVertex = yCntVertexTunnel + yCntVertexTrap + yCntVertexBlock - 1 - 1;
 
 	xGrid = xLength / ( xCntVertex - 1 );
 	yGridTunnel = yLengthTunnel / ( yCntVertexTunnel - 1 );
 	yGridTrap = yLengthTrap / ( yCntVertexTrap - 1 );
 	yGridBlock = yLengthBlock / ( yCntVertexBlock - 1 );
-
-	yCntTotalVertex = yCntVertexTunnel + yCntVertexTrap + yCntVertexBlock - 1 - 1;
 }
 
 void SimpleONO::printStructure()
@@ -116,6 +117,7 @@ void SimpleONO::setDomainDetails()
 	int cntVertex = 0;
 	int cntElement = 0;
 	int cntRegion = 0;
+	int cntContact = 0;
 
 	double currCoordX = 0.0;
 	double currCoordY = 0.0;
@@ -124,11 +126,13 @@ void SimpleONO::setDomainDetails()
 
 	////////////////////////////////////////////////////////////////////
 	//set vertices
+	////////////////////////////////////////////////////////////////////
 	Normalization theNorm = Normalization();
-	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
-	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1); // element number = vertex number - 1
+
 	double normCoordX = 0.0;
 	double normCoordY = 0.0;
+	//firstly, scan the x direction and secondly increment the y coordinate
+	//this consequence is in accordance with the FDDomainHelper
 	for (int iy = 0; iy != yCntTotalVertex; ++iy)
 	{
 		//currCoordY = iy * yGridTunnel;
@@ -147,8 +151,38 @@ void SimpleONO::setDomainDetails()
 		currCoordY += yNextGridLength(iy);//non-normalized value, in cm
 	}
 
+	////////////////////////////////////////////////////////////////////
+	//set contacts
+	////////////////////////////////////////////////////////////////////
+	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
+	//the third parameter of FDContact construction is of no use, because the voltage is set in the following process.
+	contacts.push_back(new FDContact(cntContact, "Gate", 0));
+	contacts.push_back(new FDContact(cntContact, "Channel", 0));//here channel is an imagined contact
+	FDContact *currContact = NULL;
+	FDVertex *currVertex = NULL;
+	int id = 0;
+
+	for (int iy = 0; iy != yCntTotalVertex; ++iy)
+	{
+		for (int ix = 0; ix != xCntVertex; ++ix)
+		{
+			if ( iy == yCntTotalVertex-1 ) { currContact = contacts[0]; }//gate contact
+			else if ( iy == 0 ) { currContact = contacts[1]; }//imagined channel contact
+
+			id = vertexHelper.IdAt(ix, iy);
+			currVertex = getVertex(id);
+
+			if ( currContact != NULL )
+			{
+				currVertex->SetContact(currContact);
+				currContact->AddVertex(currVertex);
+			}
+		}
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	//set regions
+	////////////////////////////////////////////////////////////////////
 	regions.push_back(new FDRegion(cntRegion, FDRegion::Tunneling));
 	regions.back()->RegionMaterial = &MaterialDB::SiO2;
 	cntRegion++;
@@ -161,6 +195,7 @@ void SimpleONO::setDomainDetails()
 
 	/////////////////////////////////////////////////////////////////////
 	//set elements with specified region
+	////////////////////////////////////////////////////////////////////
 	FDRegion *currRegion = NULL;
 	FDVertex *swVertex = NULL;
 	FDVertex *seVertex = NULL;
@@ -177,8 +212,9 @@ void SimpleONO::setDomainDetails()
 			neVertex = getVertex(vertexHelper.IdAt(ix+1, iy+1));
 			nwVertex = getVertex(vertexHelper.IdAt(ix, iy+1));
 			elements.push_back(new FDElement(cntElement, swVertex, seVertex, neVertex, nwVertex));
+
 			//set inner member of element and region
-			currRegion = thisRegion(iy);
+			currRegion = thisRegion(iy);//get current region through the use of a helper class
 			getElement(cntElement)->SetRegion(currRegion);
 			currRegion->AddElement(getElement(cntElement));
 			cntElement++;
@@ -190,7 +226,7 @@ void SimpleONO::setAdjacency()
 {
 	//set vertex properties
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
-	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1);
+	FDDomainHelper elementHelper = FDDomainHelper(xCntVertex-1, yCntTotalVertex-1); //element number = vertex number - 1
 	int id = 0;
 	FDVertex *currVertex = NULL;
 	for (int iy = 0; iy != yCntTotalVertex; ++iy)
@@ -317,6 +353,7 @@ FDRegion * SimpleONO::thisRegion(int elemY)
 
 void SimpleONO::stuffPotential()
 {
+	//TODO: the voltage of contact should be regarded differently                
 	//this value is obtained from Sentaurus result for the current condition
 	double channelPotential = 0.6345;
 	double elecFieldTunnel = 9.54e6; // in [V/cm]
@@ -447,5 +484,45 @@ void SimpleONO::refreshBandEnergy()
 		//Ev = -X-q(phi-phiRef)-Eg
 		energy = energy - bandgap;
 		currVertex->Phys.SetPhysPrpty(PhysProperty::ValenceBandEnergy, energy);
+	}
+}
+
+void SimpleONO::setBoundaryCondition()
+{
+	/////////////////////////////////////////////////////////////////////////////
+	//set physical class members
+	//in [V]
+	//TODO: the gate potential should be obtained with gate voltage and work function.
+	this->gatePotential = 16.526;
+	this->channelPotential = 0.634;
+
+	FDVertex *currVertex;
+	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
+	{
+		currVertex = getVertex(iVer);
+		
+		//firstly, to decide if the vertex is at contact.
+		if (currVertex->IsAtContact())
+		{
+			//the gate name is in accordance with the name specified in setting domain details
+			if (currVertex->Contact->ContactName == "Gate")
+			{
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, this->gatePotential);
+			}
+			else if (currVertex->Contact->ContactName == "Channel")
+			{
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, this->channelPotential);
+			}
+		}
+		else //the vertex is not related to a contact
+		{
+			//check if the vertex is at boundary apart from contact
+			if ( (currVertex->NorthVertex == NULL) || (currVertex->SouthVertex == NULL) ||
+				 (currVertex->EastVertex == NULL)  || (currVertex->WestLength == NULL) )
+			{
+				//the third parameter is of no use to artificial boundary conditions
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Artificial, 0); 
+			}
+		}
 	}
 }

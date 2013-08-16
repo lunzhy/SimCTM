@@ -38,6 +38,7 @@ protected:
 	std::vector<FDVertex *> vertices; ///< the vertices contained in the domain
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
 	std::vector<FDRegion *> regions; ///< the regions contained in the domain
+	std::vector<FDContact *> contacts; ///< the contacts contained in the domain
 
 public:
 	/// @brief getVertex can get the vertex object with given id
@@ -68,6 +69,16 @@ public:
 	/// @return FDRegion *
 	/// @note
 	FDRegion * getRegion(unsigned int id);
+	/// @brief getContact can get the contact object with given id
+	/// 
+	/// This method returns the pointer of specified contact object. In practice, a pointer with same type is
+	/// always ready to get the returned pointer and do the following process.
+	/// 
+	/// @param unsigned int id
+	/// @pre
+	/// @return FDContact *
+	/// @note
+	FDContact * getContact(unsigned int id);
 };
 
 

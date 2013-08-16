@@ -32,3 +32,8 @@ FDRegion * FDDomain::getRegion(unsigned int id)
 	return regions.at(id);
 	//return regions[id];
 }
+
+FDContact * FDDomain::getContact(unsigned int id)
+{
+	return contacts.at(id);
+}

@@ -48,6 +48,9 @@ protected:
 	double yGridTrap; ///< the grid length in y direction of trapping layer
 	double yGridBlock; ///< the grid length in y direction of blocking layer
 
+	double gatePotential; ///< the gate potential, related to FDContact Gate
+	double channelPotential; ///< the channel potential 
+
 private:
 	/// @brief setParameters is used to set the structure parameters of the rectangle domain
 	/// 
@@ -139,4 +142,15 @@ private:
 	void setVertexPhysics();
 
 	void refreshBandEnergy();
+
+	/// @brief setBoundaryCondition is used to set the boundary condition for each vertex.
+	/// 
+	/// For each vertex, a first judgment on whether it is a vertex related to contact is made.
+	/// And thus the boundary condition is set within this vertex. Secondly, if the contact is at
+	/// the boundary, another type of boundary condition will be applied to this vertex.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
+	void setBoundaryCondition();
 };

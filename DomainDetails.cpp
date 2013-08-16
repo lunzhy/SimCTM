@@ -21,12 +21,12 @@ double FDVertex::Distance( FDVertex *vertex1, FDVertex *vertex2 )
 
 bool FDVertex::IsAtBoundary()
 {
-	return this->BoundaryCond.Valid;
+	return this->BoundaryCond.Valid();
 }
 
-void FDBoundary::SetBndCond(BndCond bndType, double bndValue)
+void FDBoundary::SetBndCond(BndCond bndtype, double bndvalue)
 {
-	this->Valid = true;
-	this->Type = bndType;
-	this->Value = bndValue;
+	this->valid = true;
+	this->bndType = bndtype;
+	this->bndValue = bndvalue;
 }
