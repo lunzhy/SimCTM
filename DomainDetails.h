@@ -23,6 +23,24 @@
 using SctmPhys::PhysProperty;
 using MaterialDB::Material;
 
+class FDBoundary
+{
+public:
+	enum BndCond
+	{
+		BC_Dirichlet,
+		BC_Neumann,
+		BC_Artificial,
+	};
+	FDBoundary():Valid(false){}
+	void SetBndCond(BndCond bndType, double bndValue);
+	BndCond Type;
+	double Value;
+	bool Valid;
+};
+
+
+
 class FDElement;
 /// @brief FDVertex is the class describing the vertex in finite differential method
 ///
@@ -57,6 +75,7 @@ public:
 	FDElement *SoutheastElem; ///< the pointer to southeast element
 	FDElement *SouthwestElem; ///< the pointer to southwest element
 	PhysProperty Phys; ///< the physical values attached to current vertex
+	FDBoundary BoundaryCond; ///< the boundary condition of current vertex
 	
 	/// @brief GetInternalID returns the internal id of specified vertex
 	/// 
@@ -76,6 +95,8 @@ public:
 	/// @return double
 	/// @note This is a static method.
 	static double Distance(FDVertex *vertex1, FDVertex *vertex2);
+
+	bool IsAtBoundary();
 protected:
 	unsigned int id; ///< internal id of the vertex
 };
