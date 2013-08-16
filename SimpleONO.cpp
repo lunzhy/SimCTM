@@ -57,7 +57,6 @@ void SimpleONO::setParameters()
 	int yGridNumberTunnel = 15;
 	int yGridNumberTrap = 15;
 	int yGridNumberBlock = 15;
-	int gateVoltage = 16;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
 	//here, the length of the parameter is conversed to [cm]
@@ -493,8 +492,14 @@ void SimpleONO::setBoundaryCondition()
 	//set physical class members
 	//in [V]
 	//TODO: the gate potential should be obtained with gate voltage and work function.
+	//Currently, the gate voltage is not considered in the structure.
+	/////////////////////////////////////////////////////////////////////////////
 	this->gatePotential = 16.526;
 	this->channelPotential = 0.634;
+	double potentialValue = 0;
+
+	//normalization is needed here because all the values related to the domain details (i.e. the stored value) are normalized
+	Normalization theNorm = Normalization();
 
 	FDVertex *currVertex;
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
@@ -507,11 +512,13 @@ void SimpleONO::setBoundaryCondition()
 			//the gate name is in accordance with the name specified in setting domain details
 			if (currVertex->Contact->ContactName == "Gate")
 			{
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, this->gatePotential);
+				potentialValue = theNorm.PushPotential(this->gatePotential);
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue);
 			}
 			else if (currVertex->Contact->ContactName == "Channel")
 			{
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, this->channelPotential);
+				potentialValue = theNorm.PushPotential(this->channelPotential);
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue);
 			}
 		}
 		else //the vertex is not related to a contact

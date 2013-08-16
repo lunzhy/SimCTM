@@ -47,6 +47,7 @@ namespace SctmUtils
 		std::clock_t end_time;
 	};
 
+	//TODO: a common message class is needed to output the process of the computation
 	
 	/// @brief The methods used in debugging are defined in this class.
 	///

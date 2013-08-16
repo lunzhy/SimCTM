@@ -24,24 +24,74 @@ using SctmPhys::PhysProperty;
 using MaterialDB::Material;
 using std::string;
 
+
+/// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
+///
+/// The object of FDBoundary is a member in FDVertex to store the boundary information(valid/invalid).
+/// FDBoundary is determined by the location of the vertex, either at the contact (governed by FDContanct) or 
+/// at the boundary of the domain (artificial boundary)
 class FDBoundary
 {
 public:
+	
+	/// @brief BndCond is the enum of different kind of boundary conditions
 	enum BndCond
 	{
 		BC_Dirichlet, ///< the first type of boundary condition
 		BC_Neumann, ///< the second type of boundary condition
-		BC_Artificial, ///< the special Neumann boundary condition
+		BC_Artificial, ///< a special Neumann boundary condition, used when the vertex is at the boundary of the domain
 	};
+	/// @brief FDBoundary is the construction method of this class
+	/// 
+	/// The object of BndCond is constructed with the construction of the specified vertex, because it is a member of the 
+	/// vertex object. So the validity of the boundary condition is set to false, meaning that by default, the vertex is not
+	/// at the boundary of the domain. 
+	/// 
+	/// @pre
+	/// @return 
+	/// @note
 	FDBoundary():valid(false){}
+	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
+	/// 
+	/// The boundary condition is set with boundary type and value. With respect to the BC_Artificial, the second parameter can
+	/// be neglected.
+	/// 
+	/// @param BndCond bndtype
+	/// @param double bndvalue
+	/// @pre
+	/// @return void
+	/// @note
 	void SetBndCond(BndCond bndtype, double bndvalue);
+	/// @brief Valid is used to return the validity of the boundary condition
+	/// 
+	/// If the validity of the boundary condition is true, it means that the vertex is indeed a boundary vertex.
+	/// 
+	/// @pre
+	/// @return bool
+	/// @note
 	bool Valid() const { return valid; }
+	/// @brief BndType returns the boundary type of the vertex
+	/// 
+	/// Because each of vertices has a property of the boundary condition, so this method is use to check if the
+	/// vertex is at the boundary.
+	/// 
+	/// @pre
+	/// @return FDBoundary::BndCond
+	/// @note if the vertex is not at boundary, this method also returns value 0.
 	BndCond BndType() const { return bndType; }
+	/// @brief BndValue is used to obtain the value of the boundary condition.
+	/// 
+	/// When the boundary condition of the vertex is BC_Dirichlet, the value is the potential of the vertex.
+	/// When the boundary condition of the vertex is BC_Neumnn, the value is the electric field.
+	/// 
+	/// @pre
+	/// @return double
+	/// @note The value is normalized.
 	double BndValue() const { return bndValue; }
 protected:
-	BndCond bndType;
-	double bndValue;
-	bool valid;
+	BndCond bndType; ///< the type of the boundary condition
+	double bndValue; ///< the value of the  boundary condition, in potential or electric field (normalized)
+	bool valid; ///< the validity of the boundary condition
 	
 };
 
@@ -94,12 +144,26 @@ public:
 	FDElement *NorthwestElem; ///< the pointer to northwest element
 	FDElement *SoutheastElem; ///< the pointer to southeast element
 	FDElement *SouthwestElem; ///< the pointer to southwest element
-	FDContact *Contact;
+	FDContact *Contact; ///< the pointer to the contact the vertex belongs
 
 	PhysProperty Phys; ///< the physical values attached to current vertex
 	FDBoundary BoundaryCond; ///< the boundary condition of current vertex
 	
-
+	/// @brief IsAtBoundary is used to check if the vertex is a boundary vertex
+	/// 
+	///
+	/// 
+	/// @pre
+	/// @return bool
+	/// @note
+	bool IsAtBoundary();
+	/// @brief IsAtContact is used to check if the vertex belongs to a contact.
+	/// 
+	///
+	/// 
+	/// @pre
+	/// @return bool
+	/// @note
 	bool IsAtContact() const { return (Contact!=NULL); }
 	/// @brief GetInternalID returns the internal id of specified vertex
 	/// 
@@ -128,8 +192,6 @@ public:
 	/// @return void
 	/// @note
 	void SetContact(FDContact *contact) { this->Contact = contact; }
-	bool IsAtBoundary();
-
 protected:
 	unsigned int id; ///< internal id of the vertex
 };
@@ -252,12 +314,31 @@ protected:
 };
 
 
+/// @brief FDContact is the class describing the contact in finite differential domain.
 class FDContact
 {
 public:
 	string ContactName; ///< contact name
-	double Voltage; /// the contact voltage
+	double Voltage; ///< the contact voltage
+	/// @brief FDContact is the construction method of the class.
+	/// 
+	/// A FDContact is initialized with given contact internal id, contact name and the applied voltage.
+	/// 
+	/// @param unsigned int _id
+	/// @param string _name
+	/// @param double _voltage
+	/// @pre
+	/// @return 
+	/// @note
 	FDContact(unsigned int _id, string _name, double _voltage):id(_id), ContactName(_name), Voltage(_voltage){}
+	/// @brief AddVertex is used to add the vertex that belongs to the specific contact.
+	/// 
+	///
+	/// 
+	/// @param FDVertex * vert
+	/// @pre
+	/// @return void
+	/// @note
 	void AddVertex(FDVertex *vert) { vertices.push_back(vert); }
 protected:
 	std::vector<FDVertex *> vertices; ///< the vertices belong to this contact

@@ -138,11 +138,23 @@ private:
 	/// @return void
 	/// @note
 	void stuffPotential();
-
+	/// @brief setVertexPhysics is used to set the physical value related to the specific vertex.
+	/// 
+	/// These physical values are calculated from the material-related properties using the area of the adjacent elements 
+	/// Electron affinity, bandgap, electron mass are calculated and filled into the physical value of the vertex.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
 	void setVertexPhysics();
-
+	/// @brief refreshBandEnergy is used to refresh band energy profile using the potential
+	/// 
+	/// The conduction/valence band energy is computed through the use of the obtained potential profile.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
 	void refreshBandEnergy();
-
 	/// @brief setBoundaryCondition is used to set the boundary condition for each vertex.
 	/// 
 	/// For each vertex, a first judgment on whether it is a vertex related to contact is made.
