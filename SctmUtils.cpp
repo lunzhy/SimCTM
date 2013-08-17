@@ -74,6 +74,9 @@ namespace SctmUtils
 		case 6:
 			msg = "[MatrixSolver.cpp] The solver of SparseLU fails to solver matrix equation.";
 			break;
+		case 7:
+			msg = "[PoissonSolver.cpp] Unsuccessful insertion of pair into vertex map occurred.";
+			break;
 		default:
 			msg = "Untracked error";
 		}

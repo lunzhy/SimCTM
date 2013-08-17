@@ -91,7 +91,7 @@ public:
 protected:
 	BndCond bndType; ///< the type of the boundary condition
 	double bndValue; ///< the value of the  boundary condition, in potential or electric field (normalized)
-	bool valid; ///< the validity of the boundary condition
+	bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex.
 	
 };
 

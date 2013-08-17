@@ -13,10 +13,14 @@
 #pragma once
 #include "MatrixSolver.h"
 #include <vector>
+#include <map>
 
 
 using std::vector;
 class FDVertex;
+typedef std::map<int, int, std::less<int>> MapForVertex;
+
+
 class TwoDimPoisson : public SctmMath::SparseMatrixSolver
 {
 public:
@@ -25,7 +29,9 @@ public:
 private:
 	vector<FDVertex *> &vertices;
 	vector<double> potential;
+	MapForVertex vertMap;
 protected:
+	void prepareVertexMap();
 	void buildCoefficientMatrix();
 	void buildRHS();
 	void parseBoundaryCondition();
