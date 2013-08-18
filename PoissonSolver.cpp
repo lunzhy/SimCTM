@@ -37,7 +37,8 @@ void TwoDimPoisson::buildCoefficientMatrix()
 	{
 		currVert = this->vertices.at(iVert);
 		indexEquation = iVert;
-		
+		SCTM_ASSERT(indexEquation==vertMap[currVert->GetInternalID()], 8);
+
 		//fill the coefficient related to west vertex
 		if ( currVert->WestVertex != NULL )
 		{
@@ -71,8 +72,75 @@ void TwoDimPoisson::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * currVert->SouthLength / currVert->EastLength;
 			}
+			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
 		}
-		////////////////////////here////////////////////
+
+		//fill the coefficient related to the current vertex
+		if ( currVert != NULL )
+		{
+			val = 0;
+			indexCoefficient = indexEquation; //indexCoefficent = indexEquation = vertMap[currVert->GetInternalID]
+			if ( currVert->NorthwestElem != NULL )
+			{
+				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val += -0.5 * epsilon * ( currVert->NorthLength / currVert->WestLength + currVert->WestLength / currVert->NorthLength );
+			}
+
+			if ( currVert->SouthwestElem != NULL )
+			{
+				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val += -0.5 * epsilon * ( currVert->SouthLength / currVert->WestLength + currVert->WestLength / currVert->SouthLength ); 
+			}
+
+			if ( currVert->SoutheastElem != NULL )
+			{
+				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val += -0.5 * epsilon * ( currVert->SouthLength / currVert->EastLength + currVert->EastLength / currVert->SouthLength );
+			}
+
+			if ( currVert->NortheastElem != NULL)
+			{
+				epsilon = GetMatPrpty(currVert->NortheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val += -0.5 * epsilon * ( currVert->NorthLength / currVert->EastLength + currVert->EastLength / currVert->NorthLength );
+			}
+			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+		}
+
+		//fill in the coefficient related to the south vertex
+		if ( currVert->SouthVertex != NULL )
+		{
+			val = 0;
+			indexCoefficient = vertMap[currVert->SouthVertex->GetInternalID()];
+			if ( currVert->SouthwestElem != NULL )
+			{
+				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val = 0.5 * epsilon * ( currVert->WestLength / currVert->SouthLength );
+			}
+			if ( currVert->SoutheastElem != NULL )
+			{
+				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val += 0.5 * epsilon * ( currVert->EastLength / currVert->SouthLength);
+			}
+			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+		}
+
+		//fill in the coefficient related to the north vertex
+		if ( currVert->NorthVertex != NULL )
+		{
+			val = 0;
+			indexCoefficient = vertMap[currVert->NorthVertex->GetInternalID()];
+			if ( currVert->NortheastElem != NULL )
+			{
+				epsilon = GetMatPrpty(currVert->NortheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val = 0.5 * epsilon * ( currVert->EastLength / currVert->NorthLength);
+			}
+			if ( currVert->NorthwestElem != NULL )
+			{
+				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				val += 0.5 * epsilon * ( currVert->WestLength / currVert->NorthLength);
+			}
+			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+		}
 	}
 }
 

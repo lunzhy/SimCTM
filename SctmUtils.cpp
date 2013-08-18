@@ -77,6 +77,9 @@ namespace SctmUtils
 		case 7:
 			msg = "[PoissonSolver.cpp] Unsuccessful insertion of pair into vertex map occurred.";
 			break;
+		case 8:
+			msg = "[PoissonSolver.cpp] Error found in vertex map";
+			break;
 		default:
 			msg = "Untracked error";
 		}
