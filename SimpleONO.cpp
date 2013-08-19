@@ -513,22 +513,26 @@ void SimpleONO::setBoundaryCondition()
 			if (currVertex->Contact->ContactName == "Gate")
 			{
 				potentialValue = theNorm.PushPotential(this->gatePotential);
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue);
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue, 0);
 			}
 			else if (currVertex->Contact->ContactName == "Channel")
 			{
 				potentialValue = theNorm.PushPotential(this->channelPotential);
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue);
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue, 0);
 			}
 		}
 		else //the vertex is not related to a contact
 		{
 			//check if the vertex is at boundary apart from contact
-			if ( (currVertex->NorthVertex == NULL) || (currVertex->SouthVertex == NULL) ||
-				 (currVertex->EastVertex == NULL)  || (currVertex->WestLength == NULL) )
+			//if ( (currVertex->NorthVertex == NULL) || (currVertex->SouthVertex == NULL) ||
+			//	 (currVertex->EastVertex == NULL)  || (currVertex->WestLength == NULL) )
+
+			//check the existence of adjacent element to check if the vertex is boundary vertex
+			if ( (currVertex->NorthwestElem == NULL) || (currVertex->NortheastElem == NULL) ||
+				 (currVertex->SouthwestElem == NULL) || (currVertex->SoutheastElem == NULL)) 
 			{
-				//the third parameter is of no use to artificial boundary conditions
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Artificial, 0); 
+				//both two value are of no use to artificial boundary conditions
+				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Artificial, 0, 0); 
 			}
 		}
 	}

@@ -16,7 +16,7 @@
 
 namespace SctmMath
 {
-	void SparseMatrixSolver::SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution)
+	void SctmSparseMatrixSolver::SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution)
 	{
 		//TODO: check the sparse matrix
 

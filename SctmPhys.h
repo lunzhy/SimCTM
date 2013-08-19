@@ -74,7 +74,8 @@ namespace SctmPhys
 			ElectronAffinity, ///< electron affinity
 			ElectronMass, ///< electron effective mass
 			HoleMass, ///< hole effective mass
-			Bandgap ///< bandgap
+			Bandgap, ///< bandgap
+			NetCharge, ///< the total net charge belongs to the vertex 
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -93,6 +94,7 @@ namespace SctmPhys
 			electronAffinity = 0;
 			electronMass = 0;
 			holeMass = 0;
+			netCharge = 0;
 		}
 		/// @brief SetPhyPrpty is used to set the value of physical property related to each vertex
 		/// 
@@ -135,5 +137,6 @@ namespace SctmPhys
 		double electronAffinity; ///< electron affinity
 		double electronMass; ///< effective electron mass
 		double holeMass; ///< effective hole mass
+		double netCharge; ///< total net charge belongs to the vertex
 	};
 }

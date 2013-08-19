@@ -53,22 +53,25 @@ public:
 	FDBoundary():valid(false){}
 	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
 	/// 
-	/// The boundary condition is set with boundary type and value. With respect to the BC_Artificial, the second parameter can
-	/// be neglected.
+	/// The boundary condition is set with boundary type and value. 
+	/// With regard to BC_Dirichlet, only the boundary value 1 is used.
+	/// With regard to BC_Neumann, both boundary value 1 and 2 are used.
+	/// With respect to the BC_Artificial, no boundary value need to be set.
 	/// 
 	/// @param BndCond bndtype
-	/// @param double bndvalue
+	/// @param double bndvalue1
+	/// @param double bndvalue2
 	/// @pre
 	/// @return void
 	/// @note
-	void SetBndCond(BndCond bndtype, double bndvalue);
+	void SetBndCond(BndCond bndtype, double bndvalue1, double bndvalue2);
 	/// @brief Valid is used to return the validity of the boundary condition
 	/// 
 	/// If the validity of the boundary condition is true, it means that the vertex is indeed a boundary vertex.
 	/// 
 	/// @pre
 	/// @return bool
-	/// @note
+	/// @note It is important to consider the direction when setting the boundary condition
 	bool Valid() const { return valid; }
 	/// @brief BndType returns the boundary type of the vertex
 	/// 
@@ -79,18 +82,53 @@ public:
 	/// @return FDBoundary::BndCond
 	/// @note if the vertex is not at boundary, this method also returns value 0.
 	BndCond BndType() const { return bndType; }
-	/// @brief BndValue is used to obtain the value of the boundary condition.
+	/// @brief BndValue2 is used to obtain the value of the boundary condition.
 	/// 
 	/// When the boundary condition of the vertex is BC_Dirichlet, the value is the potential of the vertex.
-	/// When the boundary condition of the vertex is BC_Neumnn, the value is the electric field.
+	/// When the boundary condition of the vertex is BC_Neumnn, the value is the electric field in x direction.
 	/// 
 	/// @pre
 	/// @return double
 	/// @note The value is normalized.
-	double BndValue() const { return bndValue; }
+	double BndValue1() const;
+	/// @brief BndValue2 is used to obtain the value of electric field in y direction
+	/// 
+	/// BndValue2 is valid only in the case of BC_Neumann. It represents the electric field.
+	/// 
+	/// @pre
+	/// @return double
+	/// @note
+	double BndValue2() const;
+	/// @brief BndValuePotential is used to obtain the potential value of the boundary condition.
+	/// 
+	/// This method can be called only in the condition of BC_Dirichlet.
+	/// 
+	/// @pre
+	/// @return double
+	/// @note
+	double BndValuePotential() const;
+	/// @brief BndValueElecFieldWestEast is used to obtain the electric field value of the boundary condition.
+	/// 
+	/// This method can be only called in the condition of BC_Neumann.
+	/// This method returns the value of electric field in X direction, i.e. the direction from west to east.
+	/// 
+	/// @pre
+	/// @return double
+	/// @note
+	double BndValueElecFieldWestEast() const;
+	/// @brief BndValueElecFieldSouthNorth is used to obtain the electric field value of the boundary condition.
+	/// 
+	/// This method can be only called in the condition of BC_Neumann.
+	/// This method returns the value of electric field in Y direction, i.e. the direction from south to north
+	/// 
+	/// @pre
+	/// @return double
+	/// @note
+	double BndValueElecFieldSouthNorth() const;
 protected:
 	BndCond bndType; ///< the type of the boundary condition
-	double bndValue; ///< the value of the  boundary condition, in potential or electric field (normalized)
+	double bndValue1; ///< the value of the  boundary condition, represents potential or electric field in direction from west to east (normalized)
+	double bndValue2; ///< the electric field in direction from south to north, needed with respect to the BC_Neumann
 	bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex.
 	
 };

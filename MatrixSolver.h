@@ -17,7 +17,7 @@
 
 namespace SctmMath
 {
-	class SparseMatrixSolver
+	class SctmSparseMatrixSolver
 	{
 	protected:
 		Eigen::SparseMatrix<double> sparseMatrix;

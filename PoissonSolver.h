@@ -15,13 +15,12 @@
 #include <vector>
 #include <map>
 
-
+using namespace SctmMath;
 using std::vector;
 class FDVertex;
 typedef std::map<int, int, std::less<int>> MapForVertex;
 
-
-class TwoDimPoisson : public SctmMath::SparseMatrixSolver
+class TwoDimPoisson : public SctmSparseMatrixSolver
 {
 public:
 	TwoDimPoisson(vector<FDVertex *> &_vertices):vertices(_vertices)
@@ -29,13 +28,15 @@ public:
 private:
 	vector<FDVertex *> &vertices;
 	vector<double> potential;
+	vector<double> rhsVector;
 	MapForVertex vertMap;
 protected:
-	void prepareVertexMap();
+	void prepareSolver();
+	void buildVertexMap();
 	void buildCoefficientMatrix();
-	void buildRHS();
-	void parseBoundaryCondition();
+	void buildRhsVector();
 	void refreshCoefficientMatrix();
 	void refreshRHS();
 	void solvePotential();
+	void fillBackPotential();
 };

@@ -80,6 +80,9 @@ namespace SctmUtils
 		case 8:
 			msg = "[PoissonSolver.cpp] Error found in vertex map";
 			break;
+		case 9:
+			msg = "[DomainDetails.cpp] Illegal inquiry of boundary condition value.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
