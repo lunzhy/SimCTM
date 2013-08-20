@@ -15,6 +15,7 @@
 #define DEBUG
 #include <string>
 #include <ctime>
+#include <iostream>
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
 #ifdef DEBUG
@@ -27,7 +28,8 @@
 
 
 using std::string;
-class SimpleONO;
+class FDDomain;
+class FDBoundary;
 
 namespace SctmUtils
 {
@@ -75,7 +77,13 @@ namespace SctmUtils
 		/// @return void
 		/// @note
 		static void ErrorCodeParser(int err_code);
-		void printDomain(SimpleONO &SimpONODomain);
+		static void PrintDomainDetails(FDDomain &domain);
+	protected:
+		static void printValue(int i) { std::cout << i << " ";}
+		static void printValue(double d) { std::cout << d << " "; }
+		static void printValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
+		static void printValue(std::string &s) { std::cout << s << " ";}
+		static void printBCType(FDBoundary &bc);
 	};
 
 

@@ -169,6 +169,7 @@ void SimpleONO::setDomainDetails()
 		{
 			if ( iy == yCntTotalVertex-1 ) { currContact = contacts[0]; }//gate contact
 			else if ( iy == 0 ) { currContact = contacts[1]; }//imagined channel contact
+			else { currContact = NULL; }
 
 			id = vertexHelper.IdAt(ix, iy);
 			currVertex = getVertex(id);

@@ -23,6 +23,7 @@
 /// This class is used as a base class for FD domain. It only contains the general properties in FD domain.
 class FDDomain
 {
+	friend class SctmUtils::SctmDebug;
 public:
 
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.

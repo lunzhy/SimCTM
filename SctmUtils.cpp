@@ -11,6 +11,9 @@
 * @todo
 */
 #include "SctmUtils.h"
+#include "FDDomain.h"
+#include "DomainDetails.h"
+
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -92,6 +95,48 @@ namespace SctmUtils
 			msg = "Untracked error";
 		}
 		PrintErrorInfo(msg);
+	}
+
+	void SctmDebug::PrintDomainDetails(FDDomain &domain)
+	{
+		FDVertex *currVert = NULL;
+		for (size_t iVert = 0; iVert != domain.vertices.size(); ++iVert)
+		{
+			currVert = domain.getVertex(iVert);
+			printValue(currVert->GetInternalID());
+			printValue(currVert->IsAtContact());
+			printValue(currVert->IsAtBoundary());
+			if (currVert->BndCond.Valid()) { printBCType(currVert->BndCond); }
+			printValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetInternalID());
+			printValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetInternalID());
+			printValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetInternalID());
+			printValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetInternalID());
+			printValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
+			printValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
+			printValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
+			printValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
+			cout << endl;
+		}
+	}
+
+	void SctmDebug::printBCType(FDBoundary &bctype)
+	{
+		string typestring;
+		switch (bctype.GetBCType(FDBoundary::Potential))
+		{
+		case FDBoundary::BC_Dirichlet:
+			typestring = "Dirichlet";
+			break;
+		case FDBoundary::BC_Neumann:
+			typestring = "Neumann";
+			break;
+		case FDBoundary::BC_Artificial:
+			typestring = "Artificial";
+			break;
+		default:
+			break;
+		}
+		printValue(typestring);
 	}
 
 	void SctmMessaging::printMessage(string msg)

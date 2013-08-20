@@ -1,5 +1,8 @@
 #include "SimpleONO.h"
+#include "FDDomain.h"
 #include "TunnelSolver.h"
+#include "SctmUtils.h"
+
 void initialize()
 {
 	MaterialDB::SetMaterials();
@@ -9,8 +12,10 @@ int main()
 {
 	initialize();
 
-	SimpleONO aTest = SimpleONO();
-	aTest.BuildDomain();
+	FDDomain *aTest = new SimpleONO();
+	aTest->BuildDomain();
+
+	SctmUtils::SctmDebug::PrintDomainDetails(*aTest);
 
 	//SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
 	//tunnelDemo.PrepareProblem(aTest.getVertex(0));

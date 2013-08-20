@@ -19,7 +19,6 @@ class FDRegion;
 /// This class is derived from SimpleONO. It can build a rectangle domain by using FDDomainHelper.
 class SimpleONO : public FDDomain
 {
-	friend class SctmUtils::SctmDebug;
 public:
 	/// @brief BuildDomain is used to build the mesh of rectangle domain defined in this class
 	/// 
