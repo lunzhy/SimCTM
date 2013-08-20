@@ -19,10 +19,12 @@
 #include "SctmPhys.h"
 #include "Material.h"
 #include "SctmUtils.h"
+#include <map>
 
 using SctmPhys::PhysProperty;
 using MaterialDB::Material;
 using std::string;
+using std::map;
 
 
 /// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
@@ -33,13 +35,18 @@ using std::string;
 class FDBoundary
 {
 public:
-	
+	/// @brief BCName is the enum of the name of the boundary conditions
+	enum BCName
+	{
+		Potential, ///< potential boundary condition, note that BC_Neumann and BC_Artificial for potential is electric field.
+	};
+
 	/// @brief BndCond is the enum of different kind of boundary conditions
-	enum BndCond
+	enum BCType
 	{
 		BC_Dirichlet, ///< the first type of boundary condition
 		BC_Neumann, ///< the second type of boundary condition
-		BC_Artificial, ///< a special Neumann boundary condition, used when the vertex is at the boundary of the domain
+		BC_Artificial, ///< a special Neumann boundary condition, used when the vertex is at the artificial boundary of the domain
 	};
 	/// @brief FDBoundary is the construction method of this class
 	/// 
@@ -53,84 +60,69 @@ public:
 	FDBoundary():valid(false){}
 	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
 	/// 
-	/// The boundary condition is set with boundary type and value. 
-	/// With regard to BC_Dirichlet, only the boundary value 1 is used.
-	/// With regard to BC_Neumann, both boundary value 1 and 2 are used.
-	/// With respect to the BC_Artificial, no boundary value need to be set.
+	/// For boundary condition type of BC_Dirichlet, only bcValue1 is used.
+	/// For boundary condition type of BC_Neumann and BC_Artificial, bcValue1 and bcValue2 represent the derivatives of
+	/// the boundary value in direction from west to east and south to north, respectively.
 	/// 
-	/// @param BndCond bndtype
-	/// @param double bndvalue1
-	/// @param double bndvalue2
+	/// @param BCName bcName
+	/// @param BCType bcType
+	/// @param double bcValue1
+	/// @param double bcValue2
 	/// @pre
 	/// @return void
 	/// @note
-	void SetBndCond(BndCond bndtype, double bndvalue1, double bndvalue2);
+	void SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2);
 	/// @brief Valid is used to return the validity of the boundary condition
 	/// 
-	/// If the validity of the boundary condition is true, it means that the vertex is indeed a boundary vertex.
+	///
 	/// 
 	/// @pre
 	/// @return bool
-	/// @note It is important to consider the direction when setting the boundary condition
+	/// @note
 	bool Valid() const { return valid; }
-	/// @brief BndType returns the boundary type of the vertex
+	/// @brief GetBCType is used to obtain the boundary condition type of given name of boundary condition.
 	/// 
-	/// Because each of vertices has a property of the boundary condition, so this method is use to check if the
-	/// vertex is at the boundary.
 	/// 
+	/// @param BCName bcName
 	/// @pre
-	/// @return FDBoundary::BndCond
-	/// @note if the vertex is not at boundary, this method also returns value 0.
-	BndCond BndType() const { return bndType; }
-	/// @brief BndValue2 is used to obtain the value of the boundary condition.
+	/// @return FDBoundary::BCType
+	/// @note
+	BCType GetBCType(BCName bcName);
+	/// @brief GetBCValue is used to obtain the boundary condition value of given name of boundary condition.
 	/// 
-	/// When the boundary condition of the vertex is BC_Dirichlet, the value is the potential of the vertex.
-	/// When the boundary condition of the vertex is BC_Neumnn, the value is the electric field in x direction.
+	/// This method is used to get the value of BC_Dirichlet boundary condition. This value is stored in
+	/// the map bc_values.
 	/// 
-	/// @pre
-	/// @return double
-	/// @note The value is normalized.
-	double BndValue1() const;
-	/// @brief BndValue2 is used to obtain the value of electric field in y direction
-	/// 
-	/// BndValue2 is valid only in the case of BC_Neumann. It represents the electric field.
-	/// 
+	/// @param BCName bcName
 	/// @pre
 	/// @return double
 	/// @note
-	double BndValue2() const;
-	/// @brief BndValuePotential is used to obtain the potential value of the boundary condition.
+	double GetBCValue(BCName bcName);
+	/// @brief GetBCValueWestEast is used to get the value of given name of boundary condition.
 	/// 
-	/// This method can be called only in the condition of BC_Dirichlet.
+	/// This method returns the value of BC_Neumann and BC_Artificial in the direction from west to east (X-direction).
+	/// This value is stored in the map bc_values.
 	/// 
+	/// @param BCName bcName
 	/// @pre
 	/// @return double
 	/// @note
-	double BndValuePotential() const;
-	/// @brief BndValueElecFieldWestEast is used to obtain the electric field value of the boundary condition.
+	double GetBCValueWestEast(BCName bcName);
+	/// @brief GetBCValueSouthNorth is used to get the value of given name of boundary condition.
 	/// 
-	/// This method can be only called in the condition of BC_Neumann.
-	/// This method returns the value of electric field in X direction, i.e. the direction from west to east.
+	/// This method returns the value of BC_Neumann and BC_Artificial in the direction from south to north (Y-direction).
+	/// This value is stored in the map bc_values_second.
 	/// 
+	/// @param BCName bcName
 	/// @pre
 	/// @return double
 	/// @note
-	double BndValueElecFieldWestEast() const;
-	/// @brief BndValueElecFieldSouthNorth is used to obtain the electric field value of the boundary condition.
-	/// 
-	/// This method can be only called in the condition of BC_Neumann.
-	/// This method returns the value of electric field in Y direction, i.e. the direction from south to north
-	/// 
-	/// @pre
-	/// @return double
-	/// @note
-	double BndValueElecFieldSouthNorth() const;
+	double GetBCValueSouthNorth(BCName bcName);
 protected:
-	BndCond bndType; ///< the type of the boundary condition
-	double bndValue1; ///< the value of the  boundary condition, represents potential or electric field in direction from west to east (normalized)
-	double bndValue2; ///< the electric field in direction from south to north, needed with respect to the BC_Neumann
-	bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex.
-	
+	bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex
+	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
+	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions
+	map<BCName, double> bc_values_second; ///< the second value to store boundary condition values, for example in the case of potential
 };
 
 
@@ -185,7 +177,7 @@ public:
 	FDContact *Contact; ///< the pointer to the contact the vertex belongs
 
 	PhysProperty Phys; ///< the physical values attached to current vertex
-	FDBoundary BoundaryCond; ///< the boundary condition of current vertex
+	FDBoundary BndCond; ///< the boundary condition of current vertex
 	
 	/// @brief IsAtBoundary is used to check if the vertex is a boundary vertex
 	/// 
@@ -271,9 +263,9 @@ public:
 		Area = WestLength * SouthLength;
 		///TODO: judge if the corresponding lengths equal to each other
 		double relError = (WestLength - EastLength) / WestLength;
-		SCTM_ASSERT(relError > 0.01, 3);
+		SCTM_ASSERT(relError < 0.01, 10003);
 		relError = (SouthLength - NorthLength) / SouthLength;
-		SCTM_ASSERT(relError > 0.01, 3);
+		SCTM_ASSERT(relError < 0.01, 10003);
 	}
 	
 	double WestLength; ///< the length of west edge of this element
@@ -335,7 +327,7 @@ public:
 		:id(_id), Type(_type) {}
 
 	RegionType Type; ///< type of the region, in enum RegionType
-	Material * RegionMaterial; ///< the material of current region, a pointer to const material
+	Material * Mat; ///< the material of current region, a pointer to const material
 
 	/// @brief AddElement adds element in current region
 	/// 

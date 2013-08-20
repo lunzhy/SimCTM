@@ -183,13 +183,13 @@ void SimpleONO::setDomainDetails()
 	//set regions
 	////////////////////////////////////////////////////////////////////
 	regions.push_back(new FDRegion(cntRegion, FDRegion::Tunneling));
-	regions.back()->RegionMaterial = &MaterialDB::SiO2;
+	regions.back()->Mat = &MaterialDB::SiO2;
 	cntRegion++;
 	regions.push_back(new FDRegion(cntRegion, FDRegion::Trapping));
-	regions.back()->RegionMaterial = &MaterialDB::Si3N4;
+	regions.back()->Mat = &MaterialDB::Si3N4;
 	cntRegion++;
 	regions.push_back(new FDRegion(cntRegion, FDRegion::Blocking));
-	regions.back()->RegionMaterial = &MaterialDB::SiO2;
+	regions.back()->Mat = &MaterialDB::SiO2;
 	cntRegion++;
 
 	/////////////////////////////////////////////////////////////////////
@@ -437,19 +437,19 @@ void SimpleONO::setVertexPhysics()
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;
 			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
 			
 			currElem = currVertex->SoutheastElem;
 			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
 			
 			currElem = currVertex->NortheastElem;
 			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
 			
 			currElem = currVertex->NorthwestElem;
 			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrptys.at(iPrpty)) * currElem->Area : 0;
+			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
 
 			physValue = sum / tot;
 			currVertex->Phys.SetPhysPrpty(vertexPhyPrpty.at(iPrpty), physValue);
@@ -513,12 +513,14 @@ void SimpleONO::setBoundaryCondition()
 			if (currVertex->Contact->ContactName == "Gate")
 			{
 				potentialValue = theNorm.PushPotential(this->gatePotential);
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue, 0);
+				//the second value is useless in setting BC_Dirichlet boundary condition.
+				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue, 0);
 			}
 			else if (currVertex->Contact->ContactName == "Channel")
 			{
 				potentialValue = theNorm.PushPotential(this->channelPotential);
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Dirichlet, potentialValue, 0);
+				//the second value is useless in setting BC_Dirichlet boundary condition.
+				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue, 0);
 			}
 		}
 		else //the vertex is not related to a contact
@@ -531,8 +533,8 @@ void SimpleONO::setBoundaryCondition()
 			if ( (currVertex->NorthwestElem == NULL) || (currVertex->NortheastElem == NULL) ||
 				 (currVertex->SouthwestElem == NULL) || (currVertex->SoutheastElem == NULL)) 
 			{
-				//both two value are of no use to artificial boundary conditions
-				currVertex->BoundaryCond.SetBndCond(FDBoundary::BC_Artificial, 0, 0); 
+				//both two values are of no use to artificial boundary conditions
+				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Artificial, 0, 0);
 			}
 		}
 	}

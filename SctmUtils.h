@@ -18,8 +18,10 @@
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
 #ifdef DEBUG
+	#define SCTM_ERROR false
 	#define SCTM_ASSERT(cond, err_code) if (!(cond)) { SctmUtils::SctmDebug::ErrorCodeParser(err_code); }
 #else
+	#define SCTM_ERROR
 	#define SCTM_ASSERT(cond, err_code)
 #endif // DEBUG
 

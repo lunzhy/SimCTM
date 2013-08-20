@@ -22,89 +22,55 @@ double FDVertex::Distance( FDVertex *vertex1, FDVertex *vertex2 )
 
 bool FDVertex::IsAtBoundary()
 {
-	return this->BoundaryCond.Valid();
+	return this->BndCond.Valid();
 }
 
-void FDBoundary::SetBndCond(BndCond bndtype, double bndvalue1, double bndvalue2)
+void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2)
 {
 	this->valid = true;
-	this->bndType = bndtype;
-	if (bndtype == BC_Artificial)
-	{
-		bndvalue1 = 0;
-		bndvalue2 = 0;
-	}
-	this->bndValue1 = bndvalue1;
-	this->bndValue2 = bndvalue2;
-}
+	this->bc_types[bcName] = bcType;
 
-double FDBoundary::BndValue2() const
-{
-	if (bndType == BC_Dirichlet || bndType == BC_Artificial)
-	{
-		return 0;
-	}
-	else
-	{
-		return bndValue2;
-	}
-}
-
-double FDBoundary::BndValue1() const
-{
-	if (bndType == BC_Artificial)
-	{
-		return 0;
-	}
-	else
-	{
-		return bndValue1;
-	}
-}
-
-double FDBoundary::BndValuePotential() const
-{
-	double ret = 0;
-	if (bndType == BC_Dirichlet)
-	{
-		ret = bndValue1;
-	}
-	else
-	{
-		SCTM_ASSERT(true, 9);
-	}
-	return ret;
-}
-
-double FDBoundary::BndValueElecFieldWestEast() const
-{
-	double ret = 0;
-	switch (bndType)
+	switch (bcType)
 	{
 	case BC_Dirichlet:
-		SCTM_ASSERT(true, 9);
+		this->bc_values[bcName] = bcValue1;
 		break;
 	case BC_Neumann:
-		ret = bndValue1;
+		this->bc_values[bcName] = bcValue1;
+		this->bc_values_second[bcName] = bcValue2;
 		break;
 	case BC_Artificial:
-		ret = 0;
+		this->bc_values[bcName] = 0;
+		this->bc_values_second[bcName] = 0;
+		break;
 	}
-	return ret;
 }
 
-double FDBoundary::BndValueElecFieldSouthNorth() const
+FDBoundary::BCType FDBoundary::GetBCType(BCName bcName)
 {
-	double ret = 0;
-	switch (bndType)
-	{
-	case BC_Dirichlet:
-		SCTM_ASSERT(true, 9);
-		break;
-	case BC_Neumann:
-		ret = bndValue2;
-	case BC_Artificial:
-		ret = 0;
-	}
-	return ret;
+	map<BCName, BCType>::iterator iter;
+	iter = this->bc_types.find(bcName);
+	SCTM_ASSERT(iter!=this->bc_types.end(), 10010);
+	return iter->second;
+}
+
+double FDBoundary::GetBCValue(BCName bcName)
+{
+	map<BCName, double>::iterator iter;
+	iter = this->bc_values.find(bcName);
+	SCTM_ASSERT(iter!=this->bc_values.end(), 10010);
+	return iter->second;
+}
+
+double FDBoundary::GetBCValueWestEast(BCName bcName)
+{
+	return GetBCValue(bcName);
+}
+
+double FDBoundary::GetBCValueSouthNorth(BCName bcName)
+{
+	map<BCName, double>::iterator iter;
+	iter = this->bc_values_second.find(bcName);
+	SCTM_ASSERT(iter!=this->bc_values_second.end(), 10010);
+	return iter->second;
 }

@@ -20,7 +20,7 @@ namespace SctmMath
 	{
 		//TODO: check the sparse matrix
 
-		SCTM_ASSERT(rhs.size() == solution.size(), 5);
+		SCTM_ASSERT(rhs.size() == solution.size(), 10005);
 		int vectorSize = rhs.size();
 		//Map is used because internal type of Eigen is required when solving the matrix problem.
 		Eigen::Map<Eigen::VectorXd> rhsOfEigen(rhs.data(), vectorSize, 1);
@@ -34,7 +34,7 @@ namespace SctmMath
 
 		if (sparseSolver.info() != Eigen::Success)
 		{
-			SCTM_ASSERT(true, 6);
+			SCTM_ASSERT(SCTM_ERROR, 10006);
 		}
 	}
 }

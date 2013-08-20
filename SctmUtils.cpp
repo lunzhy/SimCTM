@@ -56,32 +56,35 @@ namespace SctmUtils
 		string msg;
 		switch (err_code)
 		{
-		case 1:
+		case 10001:
 			msg = "Non-existed physical property.";
 			break;
-		case 2:
+		case 10002:
 			msg = "Non-existed material property.";
 			break;
-		case 3:
+		case 10003:
 			msg = "Not rectangular element in constructing elements.";
 			break;
-		case 4:
+		case 10004:
 			msg = "Error in calculating vertex-related physical value using material-base property.";
 			break;
-		case 5:
+		case 10005:
 			msg = "[MatrixSolver.cpp] The size of right-hand side vector and solution vector are not equal in matrix solver.";
 			break;
-		case 6:
+		case 10006:
 			msg = "[MatrixSolver.cpp] The solver of SparseLU fails to solver matrix equation.";
 			break;
-		case 7:
+		case 10007:
 			msg = "[PoissonSolver.cpp] Unsuccessful insertion of pair into vertex map occurred.";
 			break;
-		case 8:
+		case 10008:
 			msg = "[PoissonSolver.cpp] Error found in vertex map";
 			break;
-		case 9:
-			msg = "[DomainDetails.cpp] Illegal inquiry of boundary condition value.";
+		//case 10009:
+		//	msg = "[DomainDetails.cpp] Error occurred in setting boundary condition.";
+		//	break;
+		case 10010:
+			msg	= "[DomainDetails.cpp] Could not find the boundary condition name.";
 			break;
 		default:
 			msg = "Untracked error";

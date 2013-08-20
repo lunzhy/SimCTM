@@ -47,7 +47,7 @@ void TwoDimPoisson::buildCoefficientMatrix()
 	{
 		currVert = this->vertices.at(iVert);
 		indexEquation = iVert;
-		SCTM_ASSERT(indexEquation==vertMap[currVert->GetInternalID()], 8);
+		SCTM_ASSERT(indexEquation==vertMap[currVert->GetInternalID()], 10008);
 
 		//fill the coefficient related to west vertex
 		if ( currVert->WestVertex != NULL )
@@ -56,12 +56,12 @@ void TwoDimPoisson::buildCoefficientMatrix()
 			indexCoefficient = vertMap[currVert->WestVertex->GetInternalID()];
 			if ( currVert->NorthwestElem != NULL)
 			{
-				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val = 0.5 * epsilon * currVert->NorthLength / currVert->WestLength;
 			}
 			if ( currVert->SouthwestElem != NULL)
 			{
-				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * currVert->SouthLength / currVert->WestLength;
 			}
 			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
@@ -74,12 +74,12 @@ void TwoDimPoisson::buildCoefficientMatrix()
 			indexCoefficient = vertMap[currVert->EastVertex->GetInternalID()];
 			if ( currVert->NortheastElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->NortheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val = 0.5 * epsilon * currVert->NorthLength / currVert->EastLength;
 			}
 			if ( currVert->SoutheastElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * currVert->SouthLength / currVert->EastLength;
 			}
 			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
@@ -92,25 +92,25 @@ void TwoDimPoisson::buildCoefficientMatrix()
 			indexCoefficient = indexEquation; //indexCoefficent = indexEquation = vertMap[currVert->GetInternalID]
 			if ( currVert->NorthwestElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += -0.5 * epsilon * ( currVert->NorthLength / currVert->WestLength + currVert->WestLength / currVert->NorthLength );
 			}
 
 			if ( currVert->SouthwestElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += -0.5 * epsilon * ( currVert->SouthLength / currVert->WestLength + currVert->WestLength / currVert->SouthLength ); 
 			}
 
 			if ( currVert->SoutheastElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += -0.5 * epsilon * ( currVert->SouthLength / currVert->EastLength + currVert->EastLength / currVert->SouthLength );
 			}
 
 			if ( currVert->NortheastElem != NULL)
 			{
-				epsilon = GetMatPrpty(currVert->NortheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += -0.5 * epsilon * ( currVert->NorthLength / currVert->EastLength + currVert->EastLength / currVert->NorthLength );
 			}
 			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
@@ -123,12 +123,12 @@ void TwoDimPoisson::buildCoefficientMatrix()
 			indexCoefficient = vertMap[currVert->SouthVertex->GetInternalID()];
 			if ( currVert->SouthwestElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val = 0.5 * epsilon * ( currVert->WestLength / currVert->SouthLength );
 			}
 			if ( currVert->SoutheastElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * ( currVert->EastLength / currVert->SouthLength);
 			}
 			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
@@ -141,12 +141,12 @@ void TwoDimPoisson::buildCoefficientMatrix()
 			indexCoefficient = vertMap[currVert->NorthVertex->GetInternalID()];
 			if ( currVert->NortheastElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->NortheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val = 0.5 * epsilon * ( currVert->EastLength / currVert->NorthLength);
 			}
 			if ( currVert->NorthwestElem != NULL )
 			{
-				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * ( currVert->WestLength / currVert->NorthLength);
 			}
 			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
@@ -170,7 +170,7 @@ void TwoDimPoisson::buildVertexMap()
 		vertID = currVert->GetInternalID();
 		equationIndex = iVert;
 		insertPair = this->vertMap.insert(MapForVertex::value_type(vertID, equationIndex));
-		SCTM_ASSERT(insertPair.second==true, 7);//to check if the insertion is successful.
+		SCTM_ASSERT(insertPair.second==true, 10007);//to check if the insertion is successful.
 	}
 }
 
@@ -208,7 +208,7 @@ void TwoDimPoisson::refreshCoefficientMatrix()
 		currVert = this->vertices.at(iVert);
 		//This vertex is a boundary vertex and it is linked with Dirichlet boundary condition
 		//As to the vertex linked with Neumann boundary condition, the equation in the matrix stays unchanged.
-		if ( currVert->IsAtBoundary() && ( currVert->BoundaryCond.BndType() == FDBoundary::BC_Dirichlet ) ) 
+		if ( currVert->IsAtBoundary() && ( currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet ) ) 
 		{ 
 			equationIndexToSet = iVert;
 			coefficientIndexToSet = equationIndexToSet;
@@ -235,53 +235,51 @@ void TwoDimPoisson::refreshRHS()
 		currVert = vertices.at(iVert);
 		if (currVert->IsAtBoundary())
 		{
-			switch (currVert->BoundaryCond.BndType())
+			switch (currVert->BndCond.GetBCType(FDBoundary::Potential))
 			{
 			case FDBoundary::BC_Dirichlet:
-				rhsVector.at(iVert) = currVert->BoundaryCond.BndValuePotential();//for potential
+				rhsVector.at(iVert) = currVert->BndCond.GetBCValue(FDBoundary::Potential);//for potential           
 				break;
 			case FDBoundary::BC_Neumann:
+			case FDBoundary::BC_Artificial: //BC_Artificial is a special kind of BC_Neumann
 				if (currVert->NorthwestElem == NULL)
 				{
 					if (currVert->NortheastElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BoundaryCond.BndValueElecFieldWestEast() * currVert->EastLength *
-											GetMatPrpty(currVert->NortheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
+											GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->SouthwestElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BoundaryCond.BndValueElecFieldSouthNorth() * currVert->WestLength *
-											GetMatPrpty(currVert->SouthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);	
+						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
+											GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);	
 				}
 
 				if (currVert->NortheastElem == NULL)
 				{
 					if (currVert->NorthwestElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BoundaryCond.BndValueElecFieldWestEast() * currVert->NorthLength *
-											GetMatPrpty(currVert->NorthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
+											GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->SoutheastElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BoundaryCond.BndValueElecFieldSouthNorth() * currVert->EastLength *
-											GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
+											GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
 
 				if (currVert->SouthwestElem == NULL)
 				{
 					if (currVert->SoutheastElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BoundaryCond.BndValueElecFieldWestEast() * currVert->SouthLength *
-											GetMatPrpty(currVert->SoutheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
+											GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->NorthwestElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BoundaryCond.BndValueElecFieldSouthNorth() * currVert->WestLength *
-											GetMatPrpty(currVert->NorthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
+											GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
 				if (currVert->SoutheastElem == NULL)
 				{
 					if (currVert->SouthwestElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BoundaryCond.BndValueElecFieldWestEast() * currVert->SouthLength *
-											GetMatPrpty(currVert->SouthwestElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
+											GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->NortheastElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BoundaryCond.BndValueElecFieldSouthNorth() * currVert->EastLength *
-											GetMatPrpty(currVert->NortheastElem->Region->RegionMaterial, MatProperty::Mat_DielectricConstant);
+						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
+											GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
-				break;
-			case FDBoundary::BC_Artificial:
-				//the electric field is 0 in both directions, so rhsVector keep its previous value.
 				break;
 			}
 		}

@@ -84,7 +84,7 @@ namespace SctmPhys
 			break;
 		default:
 			// use SCTM_ASSERT for non-existed property
-			SCTM_ASSERT(true, 1);
+			SCTM_ASSERT(SCTM_ERROR, 10001);
 		}
 
 		return ret;
@@ -102,21 +102,21 @@ namespace SctmPhys
 		FDElement *currElem = NULL;
 		currElem = vertex->NortheastElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
 		currElem = vertex->NorthwestElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
 		currElem = vertex->SoutheastElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
 		currElem = vertex->SouthwestElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->RegionMaterial, matPrpty) * currElem->Area : 0;
+		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		SCTM_ASSERT(tot=0, 4);
+		SCTM_ASSERT(tot>0, 10004);
 		physValue = sum / tot;
 
 		vertex->Phys.SetPhysPrpty(vertexPhys, physValue);
