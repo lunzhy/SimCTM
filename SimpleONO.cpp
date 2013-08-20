@@ -32,8 +32,9 @@ void SimpleONO::BuildDomain()
 
 	//fill in the physical parameters and values
 	setVertexPhysics();
-	stuffPotential();
-	refreshBandEnergy();
+	setBoundaryCondition();
+	//stuffPotential();
+	//refreshBandEnergy();
 	//printStructure();
 }
 
@@ -53,10 +54,10 @@ void SimpleONO::setParameters()
 	double yLengthTunnel_in_nm = 4;
 	double yLengthTrap_in_nm = 7;
 	double yLengthBlock_in_nm = 9;
-	int xGridNumber = 10;
-	int yGridNumberTunnel = 15;
-	int yGridNumberTrap = 15;
-	int yGridNumberBlock = 15;
+	int xGridNumber = 5;
+	int yGridNumberTunnel = 5;
+	int yGridNumberTrap = 5;
+	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
 	//here, the length of the parameter is conversed to [cm]
@@ -156,6 +157,7 @@ void SimpleONO::setDomainDetails()
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
 	//the third parameter of FDContact construction is of no use, because the voltage is set in the following process.
 	contacts.push_back(new FDContact(cntContact, "Gate", 0));
+	cntContact++;
 	contacts.push_back(new FDContact(cntContact, "Channel", 0));//here channel is an imagined contact
 	FDContact *currContact = NULL;
 	FDVertex *currVertex = NULL;
@@ -293,6 +295,7 @@ void SimpleONO::setAdjacency()
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//set element adjacent properties
+	//this is actually already done in the construction of every element.
 	FDElement *currElem = NULL;
 	for (int iy = 0; iy != yCntVertexTunnel-1; ++iy)
 	{

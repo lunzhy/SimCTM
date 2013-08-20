@@ -12,6 +12,6 @@ int main()
 	SimpleONO aTest = SimpleONO();
 	aTest.BuildDomain();
 
-	SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
-	tunnelDemo.PrepareProblem(aTest.getVertex(0));
+	//SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
+	//tunnelDemo.PrepareProblem(aTest.getVertex(0));
 }

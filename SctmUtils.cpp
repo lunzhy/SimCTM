@@ -17,6 +17,8 @@ using std::endl;
 
 namespace SctmUtils
 {
+	SctmMessaging Msg = SctmMessaging();
+
 	void SctmTimer::Start()
 	{
 		start_time = clock();
@@ -45,7 +47,7 @@ namespace SctmUtils
 		return duration;
 	}
 
-	void SctmDebug::Message(string msg)
+	void SctmDebug::PrintErrorInfo(string msg)
 	{
 		cout << msg << endl;
 		exit(0);
@@ -89,7 +91,18 @@ namespace SctmUtils
 		default:
 			msg = "Untracked error";
 		}
-		Message(msg);
+		PrintErrorInfo(msg);
+	}
+
+	void SctmMessaging::printMessage(string msg)
+	{
+		std::cout << msg << std::endl;
+	}
+
+	void SctmMessaging::PrintHeader(string header)
+	{
+		string msg = "----------------------------" + header + "----------------------------";
+		printMessage(msg);
 	}
 }
 
