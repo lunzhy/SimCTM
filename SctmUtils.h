@@ -18,6 +18,7 @@
 #include <ctime>
 #include <iostream>
 #include "DomainDetails.h"
+#include <Eigen/Sparse>
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
 #ifdef DEBUG
@@ -30,6 +31,8 @@
 
 
 using std::string;
+using std::cout;
+using std::endl;
 class FDDomain;
 class FDBoundary;
 
@@ -80,6 +83,8 @@ namespace SctmUtils
 		/// @note
 		static void ErrorCodeParser(int err_code);
 		static void PrintDomainDetails(FDDomain &domain);
+		static void PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix);
+		static void PrintVector(const std::vector<double> &vec);
 	protected:
 		static void printValue(int i) { std::cout << i << " ";}
 		static void printValue(double d) { std::cout << d << " "; }

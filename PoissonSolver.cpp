@@ -18,6 +18,11 @@
 using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
 
+TwoDimPoisson::TwoDimPoisson(FDDomain *domain) :vertices(domain->GetVertices())
+{
+	prepareSolver();
+}
+
 void TwoDimPoisson::prepareSolver()
 {
 	int vertSize = this->vertices.size();
@@ -26,6 +31,8 @@ void TwoDimPoisson::prepareSolver()
 	buildVertexMap();
 	buildCoefficientMatrix();
 	buildRhsVector();
+	//the structure does not change, so the final coefficient matrix after refreshing does not change either
+	refreshCoefficientMatrix();
 }
 
 void TwoDimPoisson::buildCoefficientMatrix()
@@ -286,11 +293,13 @@ void TwoDimPoisson::refreshRHS()
 	}
 }
 
-void TwoDimPoisson::solvePotential()
+void TwoDimPoisson::SolvePotential()
 {
-	refreshCoefficientMatrix();
 	refreshRHS();
+	SctmUtils::SctmDebug::PrintSparseMatrix(this->sparseMatrix);
+	SctmUtils::SctmDebug::PrintVector(this->rhsVector);
 	SolveMatrix(rhsVector, potential);
+	SctmUtils::SctmDebug::PrintVector(this->potential);
 }
 
 void TwoDimPoisson::fillBackPotential()

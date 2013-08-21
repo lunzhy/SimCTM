@@ -15,6 +15,7 @@
 #define _MATRIXSOLVER_H_
 
 #include <Eigen/Sparse>
+#include <Eigen/OrderingMethods>
 #include <vector>
 
 namespace SctmMath

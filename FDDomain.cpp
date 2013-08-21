@@ -14,26 +14,31 @@
 #include "FDDomain.h"
 #include "Material.h"
 
-FDElement * FDDomain::getElement(unsigned int id)
+FDElement * FDDomain::GetElement(unsigned int id)
 {
 	//need to judge if the id is appropriate
 	return elements.at(id);
 	//return elements[id];
 }
 
-FDVertex * FDDomain::getVertex(unsigned int id)
+FDVertex * FDDomain::GetVertex(unsigned int id)
 {
 	return vertices.at(id);
 	//return vertices[id];
 }
 
-FDRegion * FDDomain::getRegion(unsigned int id)
+FDRegion * FDDomain::GetRegion(unsigned int id)
 {
 	return regions.at(id);
 	//return regions[id];
 }
 
-FDContact * FDDomain::getContact(unsigned int id)
+FDContact * FDDomain::GetContact(unsigned int id)
 {
 	return contacts.at(id);
+}
+
+std::vector<FDVertex *> & FDDomain::GetVertices()
+{
+	return this->vertices;
 }

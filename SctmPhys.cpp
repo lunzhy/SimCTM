@@ -27,6 +27,18 @@ namespace SctmPhys
 	
 	double ReferencePotential;
 
+	PhysProperty::PhysProperty()
+	{
+		bandgap = 0;
+		electrostaticPotential = 0;
+		conductionBandEnergy = 0;
+		valenceBandEnergy = 0;
+		electronAffinity = 0;
+		electronMass = 0;
+		holeMass = 0;
+		netCharge = 0;
+	}
+
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
 	{
 		switch (prptyName)
@@ -51,6 +63,9 @@ namespace SctmPhys
 			break;
 		case Bandgap:
 			bandgap = prptyValue;
+			break;
+		case NetCharge:
+			netCharge = prptyValue;
 			break;
 		}
 	}
@@ -81,6 +96,9 @@ namespace SctmPhys
 			break;
 		case Bandgap:
 			ret = bandgap;
+			break;
+		case NetCharge:
+			ret = netCharge;
 			break;
 		default:
 			// use SCTM_ASSERT for non-existed property

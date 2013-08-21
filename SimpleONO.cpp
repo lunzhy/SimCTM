@@ -172,7 +172,7 @@ void SimpleONO::setDomainDetails()
 			else { currContact = NULL; }
 
 			id = vertexHelper.IdAt(ix, iy);
-			currVertex = getVertex(id);
+			currVertex = GetVertex(id);
 
 			if ( currContact != NULL )
 			{
@@ -209,16 +209,16 @@ void SimpleONO::setDomainDetails()
 	{
 		for (int ix = 0; ix != xCntVertex-1; ++ix)
 		{
-			swVertex = getVertex(vertexHelper.IdAt(ix, iy));
-			seVertex = getVertex(vertexHelper.IdAt(ix+1, iy));
-			neVertex = getVertex(vertexHelper.IdAt(ix+1, iy+1));
-			nwVertex = getVertex(vertexHelper.IdAt(ix, iy+1));
+			swVertex = GetVertex(vertexHelper.IdAt(ix, iy));
+			seVertex = GetVertex(vertexHelper.IdAt(ix+1, iy));
+			neVertex = GetVertex(vertexHelper.IdAt(ix+1, iy+1));
+			nwVertex = GetVertex(vertexHelper.IdAt(ix, iy+1));
 			elements.push_back(new FDElement(cntElement, swVertex, seVertex, neVertex, nwVertex));
 
 			//set inner member of element and region
 			currRegion = thisRegion(iy);//get current region through the use of a helper class
-			getElement(cntElement)->SetRegion(currRegion);
-			currRegion->AddElement(getElement(cntElement));
+			GetElement(cntElement)->SetRegion(currRegion);
+			currRegion->AddElement(GetElement(cntElement));
 			cntElement++;
 		}
 	}
@@ -236,13 +236,13 @@ void SimpleONO::setAdjacency()
 		for (int ix = 0; ix != xCntVertex; ++ix)
 		{
 			id = vertexHelper.IdAt(ix, iy);
-			currVertex = getVertex(id);
+			currVertex = GetVertex(id);
 			////////////////////////////////
 			//set adjacent vertex and length
 			//if current vertex doesn't have a west/east/south/north edge, the length is set 0.
 			if ( ix-1 >= 0 )
 			{
-				currVertex->WestVertex = getVertex(vertexHelper.IdAt(ix-1, iy)); 
+				currVertex->WestVertex = GetVertex(vertexHelper.IdAt(ix-1, iy)); 
 				currVertex->WestLength = FDVertex::Distance(currVertex, currVertex->WestVertex);
 			}
 			else
@@ -252,7 +252,7 @@ void SimpleONO::setAdjacency()
 			}
 			if ( ix+1 <= vertexHelper.GetMaxX() )
 			{
-				currVertex->EastVertex = getVertex(vertexHelper.IdAt(ix+1, iy));
+				currVertex->EastVertex = GetVertex(vertexHelper.IdAt(ix+1, iy));
 				currVertex->EastLength = FDVertex::Distance(currVertex, currVertex->EastVertex);
 			}
 			else									
@@ -262,7 +262,7 @@ void SimpleONO::setAdjacency()
 			}
 			if ( iy-1 >= 0 )
 			{
-				currVertex->SouthVertex = getVertex(vertexHelper.IdAt(ix, iy-1));
+				currVertex->SouthVertex = GetVertex(vertexHelper.IdAt(ix, iy-1));
 				currVertex->SouthLength = FDVertex::Distance(currVertex, currVertex->SouthVertex);
 			}
 			else
@@ -272,7 +272,7 @@ void SimpleONO::setAdjacency()
 			}
 			if ( iy+1 <= vertexHelper.GetMaxY() )
 			{
-				currVertex->NorthVertex = getVertex(vertexHelper.IdAt(ix, iy+1));
+				currVertex->NorthVertex = GetVertex(vertexHelper.IdAt(ix, iy+1));
 				currVertex->NorthLength = FDVertex::Distance(currVertex, currVertex->NorthVertex);
 			}
 			else
@@ -282,14 +282,14 @@ void SimpleONO::setAdjacency()
 			}									
 			//////////////////////
 			//set adjacent element
-			if ( (ix-1 >= 0) && (iy-1 >=0) )						{ currVertex->SouthwestElem = getElement(elementHelper.IdAt(ix-1, iy-1)); }
+			if ( (ix-1 >= 0) && (iy-1 >=0) )						{ currVertex->SouthwestElem = GetElement(elementHelper.IdAt(ix-1, iy-1)); }
 			else													{ currVertex->SouthwestElem = NULL; }
-			if ( (ix < vertexHelper.GetMaxX()) && (iy-1 >= 0) )		{ currVertex->SoutheastElem = getElement(elementHelper.IdAt(ix, iy-1)); }
+			if ( (ix < vertexHelper.GetMaxX()) && (iy-1 >= 0) )		{ currVertex->SoutheastElem = GetElement(elementHelper.IdAt(ix, iy-1)); }
 			else													{ currVertex->SoutheastElem = NULL; }
 			if ( (ix < vertexHelper.GetMaxX()) 
-				&& (iy < vertexHelper.GetMaxY()) )					{ currVertex->NortheastElem = getElement(elementHelper.IdAt(ix, iy)); }
+				&& (iy < vertexHelper.GetMaxY()) )					{ currVertex->NortheastElem = GetElement(elementHelper.IdAt(ix, iy)); }
 			else													{ currVertex->NortheastElem = NULL;}
-			if ( (ix-1 >= 0) && (iy < vertexHelper.GetMaxY()) )		{ currVertex->NorthwestElem = getElement(elementHelper.IdAt(ix-1, iy)); }
+			if ( (ix-1 >= 0) && (iy < vertexHelper.GetMaxY()) )		{ currVertex->NorthwestElem = GetElement(elementHelper.IdAt(ix-1, iy)); }
 			else													{ currVertex->NorthwestElem = NULL; }
 		}
 	}
@@ -303,12 +303,12 @@ void SimpleONO::setAdjacency()
 		for (int ix = 0; ix != xCntVertex - 1; ++ix)
 		{
 			id = elementHelper.IdAt(ix, iy);
-			currElem = getElement(id);
+			currElem = GetElement(id);
 
-			currElem->SouthwestVertex = getVertex(vertexHelper.IdAt(ix ,iy));
-			currElem->SoutheastVertex = getVertex(vertexHelper.IdAt(ix+1, iy));
-			currElem->NortheastVertex = getVertex(vertexHelper.IdAt(ix+1, iy+1));
-			currElem->NorthwestVertex = getVertex(vertexHelper.IdAt(ix, iy+1));
+			currElem->SouthwestVertex = GetVertex(vertexHelper.IdAt(ix ,iy));
+			currElem->SoutheastVertex = GetVertex(vertexHelper.IdAt(ix+1, iy));
+			currElem->NortheastVertex = GetVertex(vertexHelper.IdAt(ix+1, iy+1));
+			currElem->NorthwestVertex = GetVertex(vertexHelper.IdAt(ix, iy+1));
 		}
 	}
 }
@@ -339,17 +339,17 @@ double SimpleONO::xNextGridLength(int vertexX)
 FDRegion * SimpleONO::thisRegion(int elemY)
 {
 	if ( elemY < yCntVertexTunnel - 1 ) //transfer the vertex count into element count
-		return getRegion(0);
+		return GetRegion(0);
 	else
 		elemY -= yCntVertexTunnel - 1;
 
 	if ( elemY < yCntVertexTrap - 1 )
-		return getRegion(1);
+		return GetRegion(1);
 	else
 		elemY -= yCntVertexTrap - 1;
 
 	if ( elemY < yCntVertexBlock - 1)
-		return getRegion(2);
+		return GetRegion(2);
 	else
 		return NULL;
 }
@@ -382,7 +382,7 @@ void SimpleONO::stuffPotential()
 		for (int ix = 0; ix != xCntVertex; ++ix)
 		{
 			id = vertexHelper.IdAt(ix, iy);
-			currVertex = getVertex(id);
+			currVertex = GetVertex(id);
 			// the calculated potential is in [V], so normalization is needed here when stuffing.
 			normPotential = theNorm.PushPotential(potential);
 			currVertex->Phys.SetPhysPrpty(PhysProperty::ElectrostaticPotential, normPotential);
@@ -433,7 +433,7 @@ void SimpleONO::setVertexPhysics()
 	//iteration over the vertices
 	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)
 	{
-		currVertex = getVertex(iVer);
+		currVertex = GetVertex(iVer);
 		//iteration over the physical properties to be set from material property
 		for (std::size_t iPrpty = 0; iPrpty != matPrptys.size(); ++iPrpty)
 		{
@@ -474,7 +474,7 @@ void SimpleONO::refreshBandEnergy()
 	FDVertex *currVertex = NULL;
 	for (size_t iver = 0; iver != vertices.size(); ++iver)
 	{
-		currVertex = getVertex(iver);
+		currVertex = GetVertex(iver);
 
 		potential = currVertex->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential);
 		affinity = currVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity);
@@ -508,7 +508,7 @@ void SimpleONO::setBoundaryCondition()
 	FDVertex *currVertex;
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
 	{
-		currVertex = getVertex(iVer);
+		currVertex = GetVertex(iVer);
 		
 		//firstly, to decide if the vertex is at contact.
 		if (currVertex->IsAtContact())

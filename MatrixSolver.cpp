@@ -18,8 +18,10 @@ namespace SctmMath
 {
 	void SctmSparseMatrixSolver::SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution)
 	{
+		//This is very IMPORTANT
+		this->sparseMatrix.makeCompressed();
+		
 		//TODO: check the sparse matrix
-
 		SCTM_ASSERT(rhs.size() == solution.size(), 10005);
 		int vectorSize = rhs.size();
 		//Map is used because internal type of Eigen is required when solving the matrix problem.

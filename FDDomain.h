@@ -25,9 +25,8 @@
 /// This class is used as a base class for FD domain. It only contains the general properties in FD domain.
 class FDDomain
 {
-	friend class SctmUtils::SctmDebug;
 public:
-
+	friend class SctmUtils::SctmDebug;
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 
 	/// This class in a virtual class. The detailed implementation of this class, i.e. detailed information
@@ -44,7 +43,15 @@ protected:
 	std::vector<FDContact *> contacts; ///< the contacts contained in the domain
 
 public:
-	/// @brief getVertex can get the vertex object with given id
+	/// @brief GetVertices returns the vertex vector of this domain, for the use of other solver.
+	/// 
+	///
+	/// 
+	/// @pre
+	/// @return std::vector<FDVertex *> &
+	/// @note
+	std::vector<FDVertex *> &GetVertices();
+	/// @brief GetVertex can get the vertex object with given id
 	/// 
 	/// This method returns the pointer of specified vertex object. In practice, a pointer with same type is
 	/// always ready to get the returned pointer and do the following process.
@@ -53,8 +60,8 @@ public:
 	/// @pre
 	/// @return FDVertex *
 	/// @note
-	FDVertex * getVertex(unsigned int id);
-	/// @brief getElement can get the element object with given id
+	FDVertex * GetVertex(unsigned int id);
+	/// @brief GetElement can get the element object with given id
 	/// 
 	/// This method returns the pointer of specified element object. In practice, a pointer with same type is
 	/// always ready to get the returned pointer and do the following process.
@@ -62,8 +69,8 @@ public:
 	/// @pre
 	/// @return FDElement *
 	/// @note
-	FDElement * getElement(unsigned int id);
-	/// @brief getRegion can get the region object with given id
+	FDElement * GetElement(unsigned int id);
+	/// @brief GetRegion can get the region object with given id
 	/// 
 	/// This method returns the pointer of specified region object. In practice, a pointer with same type is
 	/// always ready to get the returned pointer and do the following process.
@@ -71,8 +78,8 @@ public:
 	/// @pre
 	/// @return FDRegion *
 	/// @note
-	FDRegion * getRegion(unsigned int id);
-	/// @brief getContact can get the contact object with given id
+	FDRegion * GetRegion(unsigned int id);
+	/// @brief GetContact can get the contact object with given id
 	/// 
 	/// This method returns the pointer of specified contact object. In practice, a pointer with same type is
 	/// always ready to get the returned pointer and do the following process.
@@ -81,7 +88,7 @@ public:
 	/// @pre
 	/// @return FDContact *
 	/// @note
-	FDContact * getContact(unsigned int id);
+	FDContact * GetContact(unsigned int id);
 };
 
 

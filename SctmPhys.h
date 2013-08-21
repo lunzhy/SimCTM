@@ -87,17 +87,7 @@ namespace SctmPhys
 		/// @pre
 		/// @return 
 		/// @note
-		PhysProperty()
-		{
-			bandgap = 0;
-			electrostaticPotential = 0;
-			conductionBandEnergy = 0;
-			valenceBandEnergy = 0;
-			electronAffinity = 0;
-			electronMass = 0;
-			holeMass = 0;
-			netCharge = 0;
-		}
+		PhysProperty();
 		/// @brief SetPhyPrpty is used to set the value of physical property related to each vertex
 		/// 
 		/// The name of the specified property is given in enum name. 

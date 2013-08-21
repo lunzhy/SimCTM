@@ -12,20 +12,23 @@
 */
 #ifndef _POISSONSOLVER_H_
 #define _POISSONSOLVER_H_
+
 #include "MatrixSolver.h"
+#include "FDDomain.h"
 #include <vector>
 #include <map>
 
 using namespace SctmMath;
 using std::vector;
-class FDVertex;
 typedef std::map<int, int, std::less<int>> MapForVertex;
 
+class FDDomain;
 class TwoDimPoisson : public SctmSparseMatrixSolver
 {
 public:
-	TwoDimPoisson(vector<FDVertex *> &_vertices):vertices(_vertices)
-	{}
+	friend class SctmUtils::SctmDebug;
+	TwoDimPoisson(FDDomain *domain);
+	void SolvePotential();
 private:
 	vector<FDVertex *> &vertices;
 	vector<double> potential;
@@ -38,7 +41,6 @@ protected:
 	void buildRhsVector();
 	void refreshCoefficientMatrix();
 	void refreshRHS();
-	void solvePotential();
 	void fillBackPotential();
 };
 
