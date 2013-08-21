@@ -13,7 +13,7 @@
 */
 #ifndef _DOMAINDETAIL_H_
 #define _DOMAINDETAIL_H_
-
+//#pragma once
 #include <vector>
 #include "Normalization.h"
 #include "SctmPhys.h"
@@ -25,7 +25,6 @@ using SctmPhys::PhysProperty;
 using MaterialDB::Material;
 using std::string;
 using std::map;
-
 
 /// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
 ///
@@ -46,7 +45,7 @@ public:
 	{
 		BC_Dirichlet, ///< the first type of boundary condition
 		BC_Neumann, ///< the second type of boundary condition
-		BC_Artificial, ///< a special Neumann boundary condition, used when the vertex is at the artificial boundary of the domain
+		BC_Artificial ///< a special Neumann boundary condition, used when the vertex is at the artificial boundary of the domain
 	};
 	/// @brief FDBoundary is the construction method of this class
 	/// 
@@ -124,7 +123,6 @@ protected:
 	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions
 	map<BCName, double> bc_values_second; ///< the second value to store boundary condition values, for example in the case of potential
 };
-
 
 
 class FDElement;
@@ -253,20 +251,8 @@ public:
 	///       |                |
 	///       |                |
 	///       1----------------2
-	FDElement( unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex )
-		:id(_id), SouthwestVertex(_swVertex), SoutheastVertex(_seVertex), NortheastVertex(_neVertex), NorthwestVertex(_nwVertex)
-	{
-		WestLength =FDVertex::Distance(NorthwestVertex, SouthwestVertex);
-		SouthLength = FDVertex::Distance(SouthwestVertex, SoutheastVertex);
-		EastLength = FDVertex::Distance(NortheastVertex, SoutheastVertex);
-		NorthLength =FDVertex::Distance(NorthwestVertex, NortheastVertex);
-		Area = WestLength * SouthLength;
-		///TODO: judge if the corresponding lengths equal to each other
-		double relError = (WestLength - EastLength) / WestLength;
-		SCTM_ASSERT(relError < 0.01, 10003);
-		relError = (SouthLength - NorthLength) / SouthLength;
-		SCTM_ASSERT(relError < 0.01, 10003);
-	}
+	FDElement( unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex );
+		
 	
 	double WestLength; ///< the length of west edge of this element
 	double EastLength; ///< the length of east edge of this element

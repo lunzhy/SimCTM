@@ -13,7 +13,6 @@
 
 #include "DomainDetails.h"
 #include "SctmMath.h"
-#include "SctmUtils.h"
 
 double FDVertex::Distance( FDVertex *vertex1, FDVertex *vertex2 )
 {
@@ -73,4 +72,19 @@ double FDBoundary::GetBCValueSouthNorth(BCName bcName)
 	iter = this->bc_values_second.find(bcName);
 	SCTM_ASSERT(iter!=this->bc_values_second.end(), 10010);
 	return iter->second;
+}
+
+FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)
+	:id(_id), SouthwestVertex(_swVertex), SoutheastVertex(_seVertex), NortheastVertex(_neVertex), NorthwestVertex(_nwVertex)
+{
+	WestLength =FDVertex::Distance(NorthwestVertex, SouthwestVertex);
+	SouthLength = FDVertex::Distance(SouthwestVertex, SoutheastVertex);
+	EastLength = FDVertex::Distance(NortheastVertex, SoutheastVertex);
+	NorthLength =FDVertex::Distance(NorthwestVertex, NortheastVertex);
+	Area = WestLength * SouthLength;
+	///TODO: judge if the corresponding lengths equal to each other
+	double relError = (WestLength - EastLength) / WestLength;
+	SCTM_ASSERT(relError < 0.01, 10003);
+	relError = (SouthLength - NorthLength) / SouthLength;
+	SCTM_ASSERT(relError < 0.01, 10003);
 }
