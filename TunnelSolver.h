@@ -10,7 +10,9 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _TUNNELSOLVER_H_
+#define _TUNNELSOLVER_H_
+
 #include <vector>
 #include "DomainDetails.h"
 using namespace std;
@@ -43,3 +45,5 @@ class SubsToGateEletronTunnel : TunnelSolver
 public:
 	void PrepareProblem(FDVertex *startVertex);
 };
+
+#endif

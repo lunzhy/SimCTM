@@ -10,12 +10,14 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _SCTMUTILS_H_
+#define _SCTMUTILS_H_
 
 #define DEBUG
 #include <string>
 #include <ctime>
 #include <iostream>
+#include "DomainDetails.h"
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
 #ifdef DEBUG
@@ -100,3 +102,5 @@ namespace SctmUtils
 
 	extern SctmMessaging Msg;
 }
+
+#endif

@@ -12,7 +12,9 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _FDDOMAIN_H_
+#define _FDDOMAIN_H_
+
 #include <vector>
 #include "DomainDetails.h"
 #include <iostream>
@@ -158,3 +160,5 @@ protected:
 	int cntX; ///< the number/count of points in X direction
 	int cntY; ///< the number/count of points in Y direction
 };
+
+#endif

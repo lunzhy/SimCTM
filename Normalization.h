@@ -10,7 +10,8 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _NORMALIZATION_H_
+#define _NORMALIZATION_H_
 #include <vector>
 #include <string>
 #include "SctmPhys.h"
@@ -148,3 +149,5 @@ namespace SctmUtils
 		void initFactors();
 	};
 }
+
+#endif

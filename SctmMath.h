@@ -10,7 +10,9 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _SCTMMATH_H_
+#define _SCTMMATH_H_
+
 #define _USE_MATH_DEFINES
 //#ifndef _GENERALMATH_H_
 //#define _GENERALMATH_H_
@@ -46,4 +48,4 @@ namespace SctmMath
 	inline double exp(double val) { return std::exp(val); }
 }
 
-//#endif // !_GENERALMATH_H_
+#endif

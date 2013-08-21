@@ -10,7 +10,8 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _POISSONSOLVER_H_
+#define _POISSONSOLVER_H_
 #include "MatrixSolver.h"
 #include <vector>
 #include <map>
@@ -40,3 +41,5 @@ protected:
 	void solvePotential();
 	void fillBackPotential();
 };
+
+#endif

@@ -10,14 +10,15 @@
 * @note
 * @todo
 */
-#pragma once
-#include <string>
+#ifndef _MATERIAL_H_
+#define _MATERIAL_H_
 
+#include <string>
+using std::string;
 
 /// @brief This namespace contains the material parameters.
 ///
 /// This is used as a material database.
-using std::string;
 namespace MaterialDB
 {
 	/// @brief This class is a data structure to store the parameters for different materials used in the simulation.
@@ -113,3 +114,5 @@ namespace MaterialDB
 	extern Material SiO2;
 	extern Material Si3N4;
 }
+
+#endif

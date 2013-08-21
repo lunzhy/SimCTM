@@ -10,7 +10,8 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _SIMPLEONO_H_
+#define _SIMPLEONO_H_
 #include "FDDomain.h"
 class FDRegion;
 
@@ -166,3 +167,5 @@ private:
 	/// @note
 	void setBoundaryCondition();
 };
+
+#endif

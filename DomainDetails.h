@@ -13,7 +13,7 @@
 */
 #ifndef _DOMAINDETAIL_H_
 #define _DOMAINDETAIL_H_
-//#pragma once
+
 #include <vector>
 #include "Normalization.h"
 #include "SctmPhys.h"
@@ -377,4 +377,5 @@ protected:
 	unsigned int id;
 };
 */
+
 #endif // !_DOMAINDETAIL_H_

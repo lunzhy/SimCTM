@@ -10,7 +10,9 @@
 * @note
 * @todo
 */
-#pragma once
+#ifndef _SCTMPHYS_H_
+#define _SCTMPHYS_H_
+
 #include <cmath>
 #include "SctmMath.h"
 #include "Material.h"
@@ -140,3 +142,5 @@ namespace SctmPhys
 		double netCharge; ///< total net charge belongs to the vertex
 	};
 }
+
+#endif
