@@ -7,6 +7,11 @@
 using namespace SctmUtils;
 void initialize()
 {
+	UtilsMsg.PrintWelcomingInformation();
+	UtilsMsg.PrintHeader("Initializing the simulator.");
+	UtilsTimer.Start();
+	
+	//the initialization of the simulation goes here
 	MaterialDB::SetMaterials();
 	SctmPhys::SetPhysConstant();
 }
@@ -15,10 +20,13 @@ void SctmTest()
 {
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
-	SctmDebug::PrintDomainDetails(*aTest);
+	UtilsDebug.PrintDomainDetails(*aTest);
 
+	UtilsTimer.Set();
 	TwoDimPoisson poisson = TwoDimPoisson(aTest);
 	poisson.SolvePotential();
+
+	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 int main()
 {

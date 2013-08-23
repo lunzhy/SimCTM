@@ -14,6 +14,7 @@
 #define _SCTMUTILS_H_
 
 #define DEBUG
+#define SCTM_DEBUG_ENABLE false
 #include <string>
 #include <ctime>
 #include <iostream>
@@ -43,19 +44,16 @@ namespace SctmUtils
 	{
 		static const int clockPerSecond = CLOCKS_PER_SEC;
 	public:
-		SctmTimer():start_time(0), end_time(0), duration(0)
-		{
-			Start();
-		}
+		SctmTimer(): start_time(0), end_time(0), set_time(0) {}
 		void Start();
-		void Reset();
+		void Set();
 		void End();
-		double Duration();
-
+		double SinceLastSet();
+		double TotalTime();
 	protected:
-		double duration;
 		std::clock_t start_time;
 		std::clock_t end_time;
+		std::clock_t set_time;
 	};
 	
 	/// @brief The methods used in debugging are defined in this class.
@@ -64,6 +62,14 @@ namespace SctmUtils
 	class SctmDebug
 	{
 	public:
+		/// @brief SctmDebug is the construction method for this class
+		/// 
+		/// The member of enable is initialized in this method.
+		/// 
+		/// @pre
+		/// @return 
+		/// @note
+		SctmDebug(): enable(SCTM_DEBUG_ENABLE) {}
 		/// @brief PrintErrorInfo is used to output message to console with given message.
 		/// 
 		///
@@ -82,15 +88,18 @@ namespace SctmUtils
 		/// @return void
 		/// @note
 		static void ErrorCodeParser(int err_code);
-		static void PrintDomainDetails(FDDomain &domain);
-		static void PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix);
-		static void PrintVector(const std::vector<double> &vec);
+		void PrintDomainDetails(FDDomain &domain);
+		void PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix);
+		void PrintSparseMatrixRow(Eigen::SparseMatrix<double> &matrix, int rowIndex);
+		void PrintVector(const std::vector<double> &vec, const char *title = "");
 	protected:
-		static void printValue(int i) { std::cout << i << " ";}
-		static void printValue(double d) { std::cout << d << " "; }
-		static void printValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
-		static void printValue(std::string &s) { std::cout << s << " ";}
-		static void printBCType(FDBoundary &bc);
+		void printValue(int i) { std::cout << i << " ";}
+		void printValue(double d) { std::cout << d << " "; }
+		void printValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
+		void printValue(std::string &s) { std::cout << s << " ";}
+		void printBCType(FDBoundary &bc);
+	private:
+		bool enable;
 	};
 
 
@@ -98,14 +107,17 @@ namespace SctmUtils
 	class SctmMessaging
 	{
 	public:
-		void PrintHeader(string header);
-		void PrintCurrentTime();
-		void PrintDuration();
+		void PrintWelcomingInformation();
+		void PrintHeader(const char *header);
+		void PrintTimeElapsed(double time);
 	protected:
-		void printMessage(string msg);
+		void printLine(string &line);
+		void printLine(const char *line);
 	};
 
-	extern SctmMessaging Msg;
+	extern SctmMessaging UtilsMsg;
+	extern SctmTimer UtilsTimer;
+	extern SctmDebug UtilsDebug;
 }
 
 #endif

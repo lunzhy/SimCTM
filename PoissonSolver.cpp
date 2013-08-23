@@ -25,6 +25,8 @@ TwoDimPoisson::TwoDimPoisson(FDDomain *domain) :vertices(domain->GetVertices())
 
 void TwoDimPoisson::prepareSolver()
 {
+	SctmUtils::UtilsMsg.PrintHeader("Solving potential using initial value.");
+
 	int vertSize = this->vertices.size();
 	this->potential.resize(vertSize);
 	this->rhsVector.resize(vertSize);
@@ -296,10 +298,10 @@ void TwoDimPoisson::refreshRHS()
 void TwoDimPoisson::SolvePotential()
 {
 	refreshRHS();
-	SctmUtils::SctmDebug::PrintSparseMatrix(this->sparseMatrix);
-	SctmUtils::SctmDebug::PrintVector(this->rhsVector);
+	SctmUtils::UtilsDebug.PrintSparseMatrixRow(this->sparseMatrix, 56);
+	SctmUtils::UtilsDebug.PrintVector(this->rhsVector);
 	SolveMatrix(rhsVector, potential);
-	SctmUtils::SctmDebug::PrintVector(this->potential);
+	SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
 }
 
 void TwoDimPoisson::fillBackPotential()

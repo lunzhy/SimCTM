@@ -14,42 +14,54 @@
 #include "FDDomain.h"
 #include "DomainDetails.h"
 #include "Material.h"
+#include <iomanip>
+#include <cstring>
 
-#include <iostream>
 using std::cout;
 using std::endl;
 
 namespace SctmUtils
 {
-	SctmMessaging Msg = SctmMessaging();
+	SctmMessaging UtilsMsg = SctmMessaging();
+	SctmTimer UtilsTimer = SctmTimer();
+	SctmDebug UtilsDebug = SctmDebug();
 
 	void SctmTimer::Start()
 	{
 		start_time = clock();
+		set_time = 0;
+		end_time = 0;
 		return;
 	}
 
-	void SctmTimer::Reset()
+	void SctmTimer::Set()
 	{
-		start_time = 0;
-		end_time = 0;
-		duration = 0;
-		Start();
+		set_time = clock();
 		return;
 	}
 
 	void SctmTimer::End()
 	{
 		end_time = clock();
-		duration = (end_time - start_time) / clockPerSecond;
 		return;
 	}
 
-	double SctmTimer::Duration()
+	double SctmTimer::SinceLastSet()
 	{
-		End();
-		return duration;
+		double time = 0;
+		clock_t current_time = clock();
+		//TODO: is this conversion correct?
+		time = (double)((current_time - set_time) / (clock_t)clockPerSecond);
+		return time;
 	}
+
+	double SctmTimer::TotalTime()
+	{
+		double time = 0;
+		time = (double)((end_time - start_time ) / (clock_t)clockPerSecond);
+		return time;
+	}
+
 
 	void SctmDebug::PrintErrorInfo(string msg)
 	{
@@ -90,7 +102,7 @@ namespace SctmUtils
 		//	msg = "[DomainDetails.cpp] Error occurred in setting boundary condition.";
 		//	break;
 		case 10010:
-			msg	= "[DomainDetails.cpp] Could not find the boundary condition name.";
+			msg	= "[DomainDetails.cpp] Could not find the boundary condition name or the required boundary condition is not set.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -100,6 +112,8 @@ namespace SctmUtils
 
 	void SctmDebug::PrintDomainDetails(FDDomain &domain)
 	{
+		if (!this->enable)
+			return;
 		using namespace MaterialDB;
 		FDVertex *currVert = NULL;
 		for (size_t iVert = 0; iVert != domain.vertices.size(); ++iVert)
@@ -135,6 +149,8 @@ namespace SctmUtils
 
 	void SctmDebug::printBCType(FDBoundary &bctype)
 	{
+		if (!this->enable)
+			return;
 		string typestring;
 		switch (bctype.GetBCType(FDBoundary::Potential))
 		{
@@ -155,27 +171,92 @@ namespace SctmUtils
 
 	void SctmDebug::PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix)
 	{
+		if (!this->enable)
+			return;
 		cout << matrix << endl;
 	}
 
-	void SctmDebug::PrintVector(const std::vector<double> &vec)
+	void SctmDebug::PrintVector(const std::vector<double> &vec, const char *title)
 	{
+		if (!this->enable)
+			return;
+		if (title != "")
+		{
+			cout << "=================================== The vector of " << title 
+				<< " ==================================" << endl;
+		}
+		cout.setf(std::ios::fixed);
+		cout.precision(2);
 		for (size_t iVec = 0; iVec != vec.size(); ++iVec)
 		{
-			printValue(vec.at(iVec));
+			if (iVec != 0) { cout << "  "; }
+			cout <<  "(" << iVec << ")" << vec.at(iVec);
 		}
 		cout << endl;
+		cout.setf(std::ios::fixed);
 	}
 
-	void SctmMessaging::printMessage(string msg)
+	void SctmDebug::PrintSparseMatrixRow(Eigen::SparseMatrix<double> &matrix, int rowIndex)
 	{
-		std::cout << msg << std::endl;
+		if (!this->enable)
+			return;
+		cout << "======================== Row number = " << rowIndex << " of the sparse matrix"
+			<< " ========================" << endl;
+		std::vector<double> vec(matrix.cols());
+		for (int k = 0; k < matrix.outerSize(); ++k)
+			for (Eigen::SparseMatrix<double>::InnerIterator it(matrix,k); it; ++it)
+			{
+				if	(it.row() == rowIndex)
+				{
+					vec.at(it.col()) = it.valueRef();
+				}
+			}
+		PrintVector(vec);
+		cout << "========================================================================================" << endl << endl;
+		return;
 	}
 
-	void SctmMessaging::PrintHeader(string header)
+	void SctmMessaging::printLine(string &line)
 	{
-		string msg = "----------------------------" + header + "----------------------------";
-		printMessage(msg);
+		std::cout << line << std::endl;
+	}
+
+	void SctmMessaging::printLine(const char *line)
+	{
+		cout << line << endl;
+	}
+
+	void SctmMessaging::PrintWelcomingInformation()
+	{
+		printLine("==================================================================================");
+		printLine("                                                                                  ");
+		printLine("                _______. __  .___  ___.   ______ .___________..___  ___.          ");
+		printLine("               /       ||  | |   \\/   |  /      ||           ||   \\/   |          ");
+		printLine("              |   (----`|  | |  \\  /  | |  ,----'`---|  |----`|  \\  /  |          ");
+		printLine("               \\   \\    |  | |  |\\/|  | |  |         |  |     |  |\\/|  |          ");
+		printLine("           .----)   |   |  | |  |  |  | |  `----.    |  |     |  |  |  |          ");
+		printLine("           |_______/    |__| |__|  |__|  \\______|    |__|     |__|  |__|          ");
+		printLine("                                                                                  ");
+		printLine("                                                                                  ");
+		printLine("==================================================================================");
+		printLine("\n");
+		return;
+	}
+
+	void SctmMessaging::PrintTimeElapsed(double time)
+	{
+		string msg = "Time elapsed: ";
+		cout.setf(std::ios::fixed);
+		cout.precision(2);
+		cout << msg << time << "s" << endl;
+		cout.unsetf(std::ios::fixed);
+		return;
+	}
+
+	void SctmMessaging::PrintHeader(const char *header)
+	{
+		cout << "===> " << header << endl << endl;
+		return;
 	}
 }
 
