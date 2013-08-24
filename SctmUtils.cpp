@@ -247,9 +247,10 @@ namespace SctmUtils
 	{
 		string msg = "Time elapsed: ";
 		cout.setf(std::ios::fixed);
-		cout.precision(2);
+		cout.precision(3);
 		cout << msg << time << "s" << endl;
 		cout.unsetf(std::ios::fixed);
+		cout.precision(6);
 		return;
 	}
 

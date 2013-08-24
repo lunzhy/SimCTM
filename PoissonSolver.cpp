@@ -299,7 +299,7 @@ void TwoDimPoisson::SolvePotential()
 {
 	refreshRHS();
 	SctmUtils::UtilsDebug.PrintSparseMatrixRow(this->sparseMatrix, 56);
-	SctmUtils::UtilsDebug.PrintVector(this->rhsVector);
+	SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
 	SolveMatrix(rhsVector, potential);
 	SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
 }

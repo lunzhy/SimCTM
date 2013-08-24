@@ -54,10 +54,10 @@ void SimpleONO::setParameters()
 	double yLengthTunnel_in_nm = 4;
 	double yLengthTrap_in_nm = 7;
 	double yLengthBlock_in_nm = 9;
-	int xGridNumber = 10; //the grid number, not vertex number
-	int yGridNumberTunnel = 10;
-	int yGridNumberTrap = 10;
-	int yGridNumberBlock = 10;
+	int xGridNumber = 5; //the grid number, not vertex number
+	int yGridNumberTunnel = 5;
+	int yGridNumberTrap = 5;
+	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
 	//here, the length of the parameter is conversed to [cm]
