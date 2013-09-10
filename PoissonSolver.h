@@ -23,11 +23,11 @@ using std::vector;
 typedef std::map<int, int, std::less<int>> MapForVertex;
 
 class FDDomain;
-class TwoDimPoisson : public SctmSparseMatrixSolver
+class TwoDimPoissonSolver : public SctmSparseMatrixSolver
 {
 public:
 	friend class SctmUtils::SctmDebug;
-	TwoDimPoisson(FDDomain *domain);
+	TwoDimPoissonSolver(FDDomain *domain);
 	void SolvePotential();
 private:
 	vector<FDVertex *> &vertices;

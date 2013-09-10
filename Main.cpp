@@ -23,7 +23,7 @@ void SctmTest()
 	UtilsDebug.PrintDomainDetails(*aTest);
 
 	UtilsTimer.Set();
-	TwoDimPoisson poisson = TwoDimPoisson(aTest);
+	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aTest);
 	poisson.SolvePotential();
 
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());

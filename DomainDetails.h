@@ -38,6 +38,7 @@ public:
 	enum BCName
 	{
 		Potential, ///< potential boundary condition, note that BC_Neumann and BC_Artificial for potential is electric field.
+		eCurrentDensity, ///< electron current density. In this BC, only BC_Neumann is used.  
 	};
 
 	/// @brief BndCond is the enum of different kind of boundary conditions
@@ -52,11 +53,12 @@ public:
 	/// The object of BndCond is constructed with the construction of the specified vertex, because it is a member of the 
 	/// vertex object. So the validity of the boundary condition is set to false, meaning that by default, the vertex is not
 	/// at the boundary of the domain. 
+	/// By default, the calling of non-existed map index will get the return value of 0 (false).
 	/// 
 	/// @pre
 	/// @return 
 	/// @note
-	FDBoundary():valid(false){}
+	FDBoundary(){}
 	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
 	/// 
 	/// For boundary condition type of BC_Dirichlet, only bcValue1 is used.
@@ -70,15 +72,16 @@ public:
 	/// @pre
 	/// @return void
 	/// @note
-	void SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2);
-	/// @brief Valid is used to return the validity of the boundary condition
+	void SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2 = 0);
+	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
 	///
 	/// 
+	/// @param BCName bcName
 	/// @pre
 	/// @return bool
 	/// @note
-	bool Valid() const { return valid; }
+	bool Valid(BCName bcName);
 	/// @brief GetBCType is used to obtain the boundary condition type of given name of boundary condition.
 	/// 
 	/// 
@@ -118,10 +121,11 @@ public:
 	/// @note
 	double GetBCValueSouthNorth(BCName bcName);
 protected:
-	bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex
+	//bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex
+	map<BCName, bool> bc_valid; ///< the validity of the boundary condition with given boundary condition name
 	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
-	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions
-	map<BCName, double> bc_values_second; ///< the second value to store boundary condition values, for example in the case of potential
+	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions, the west-east value in case of two values
+	map<BCName, double> bc_values_second; ///< the second value to store boundary condition values, the south-north value in case of two values
 };
 
 
@@ -177,14 +181,15 @@ public:
 	PhysProperty Phys; ///< the physical values attached to current vertex
 	FDBoundary BndCond; ///< the boundary condition of current vertex
 	
-	/// @brief IsAtBoundary is used to check if the vertex is a boundary vertex
+	/// @brief IsAtBoundary is used to check if the vertex is a boundary vertex with specified boundary name
 	/// 
 	///
 	/// 
+	/// @param FDBoundary::BCName bcName
 	/// @pre
 	/// @return bool
 	/// @note
-	bool IsAtBoundary();
+	bool IsAtBoundary(FDBoundary::BCName bcName);
 	/// @brief IsAtContact is used to check if the vertex belongs to a contact.
 	/// 
 	///

@@ -104,6 +104,9 @@ namespace SctmUtils
 		case 10010:
 			msg	= "[DomainDetails.cpp] Could not find the boundary condition name or the required boundary condition is not set.";
 			break;
+		case 10011:
+			msg = "[DDSolver.cpp] Unsuccessful insertion of pair into vertex map occurred.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -121,8 +124,8 @@ namespace SctmUtils
 			currVert = domain.GetVertex(iVert);
 			printValue(currVert->GetInternalID()); cout << " -- ";
 			printValue(currVert->IsAtContact());
-			printValue(currVert->IsAtBoundary());
-			if (currVert->BndCond.Valid()) { printBCType(currVert->BndCond); }
+			printValue(currVert->IsAtBoundary(FDBoundary::Potential));
+			if (currVert->BndCond.Valid(FDBoundary::Potential)) { printBCType(currVert->BndCond); }
 			printValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetInternalID());
 			printValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetInternalID());
 			printValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetInternalID());
@@ -260,4 +263,3 @@ namespace SctmUtils
 		return;
 	}
 }
-

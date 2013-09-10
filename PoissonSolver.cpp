@@ -18,12 +18,12 @@
 using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
 
-TwoDimPoisson::TwoDimPoisson(FDDomain *domain) :vertices(domain->GetVertices())
+TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *domain) :vertices(domain->GetVertices())
 {
 	prepareSolver();
 }
 
-void TwoDimPoisson::prepareSolver()
+void TwoDimPoissonSolver::prepareSolver()
 {
 	SctmUtils::UtilsMsg.PrintHeader("Solving potential using initial value.");
 
@@ -37,7 +37,7 @@ void TwoDimPoisson::prepareSolver()
 	refreshCoefficientMatrix();
 }
 
-void TwoDimPoisson::buildCoefficientMatrix()
+void TwoDimPoissonSolver::buildCoefficientMatrix()
 {
 	int matrixSize = this->vertices.size();
 	sparseMatrix.resize(matrixSize, matrixSize);
@@ -163,7 +163,7 @@ void TwoDimPoisson::buildCoefficientMatrix()
 	}
 }
 
-void TwoDimPoisson::buildVertexMap()
+void TwoDimPoissonSolver::buildVertexMap()
 {
 	std::pair<MapForVertex::iterator, bool> insertPair;
 	//map the vertices in order to get the specific vertex
@@ -183,7 +183,7 @@ void TwoDimPoisson::buildVertexMap()
 	}
 }
 
-void TwoDimPoisson::buildRhsVector()
+void TwoDimPoissonSolver::buildRhsVector()
 {
 	FDVertex *currVert = NULL;
 	double charge = 0;
@@ -195,10 +195,10 @@ void TwoDimPoisson::buildRhsVector()
 	}
 }
 
-void TwoDimPoisson::refreshCoefficientMatrix()
+void TwoDimPoissonSolver::refreshCoefficientMatrix()
 {
-	//---------------------------------------------------------------------------
-	//the follow method is used to iterate the non-zero coefficient of the matrix
+	//-------------------------------------------------------------------------------
+	//the following method is used to iterate the non-zero coefficient of the matrix
 	//for (int k=0; k<sparseMatrix.outerSize(); ++k)
 	//	for (SparseMatrix<double>::InnerIterator it(sparseMatrix,k); it; ++it)
 	//	{
@@ -207,7 +207,7 @@ void TwoDimPoisson::refreshCoefficientMatrix()
 	//		it.col(); // get the column index (here it is equal to k)
 	//		it.index(); // inner index, here it is equal to it.row()
 	//	}
-	//----------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------
 
 	FDVertex *currVert = NULL;
 	int equationIndexToSet= 0;
@@ -217,8 +217,10 @@ void TwoDimPoisson::refreshCoefficientMatrix()
 		currVert = this->vertices.at(iVert);
 		//This vertex is a boundary vertex and it is linked with Dirichlet boundary condition
 		//As to the vertex linked with Neumann boundary condition, the equation in the matrix stays unchanged.
-		if ( currVert->IsAtBoundary() && ( currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet ) ) 
+		if ( currVert->IsAtBoundary(FDBoundary::Potential) && ( currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet ) ) 
 		{ 
+			//the equation index is the same with the position of the vertex in the vertices list
+			//so the the equation index to set equals to iVert here.
 			equationIndexToSet = iVert;
 			coefficientIndexToSet = equationIndexToSet;
 			for (int k = 0; k < this->sparseMatrix.outerSize(); ++k)
@@ -236,13 +238,13 @@ void TwoDimPoisson::refreshCoefficientMatrix()
 	}
 }
 
-void TwoDimPoisson::refreshRHS()
+void TwoDimPoissonSolver::refreshRHS()
 {
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
-		if (currVert->IsAtBoundary())
+		if (currVert->IsAtBoundary(FDBoundary::Potential))
 		{
 			switch (currVert->BndCond.GetBCType(FDBoundary::Potential))
 			{
@@ -295,7 +297,7 @@ void TwoDimPoisson::refreshRHS()
 	}
 }
 
-void TwoDimPoisson::SolvePotential()
+void TwoDimPoissonSolver::SolvePotential()
 {
 	refreshRHS();
 	SctmUtils::UtilsDebug.PrintSparseMatrixRow(this->sparseMatrix, 56);
@@ -304,7 +306,7 @@ void TwoDimPoisson::SolvePotential()
 	SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
 }
 
-void TwoDimPoisson::fillBackPotential()
+void TwoDimPoissonSolver::fillBackPotential()
 {
 	FDVertex *currVert = NULL;
 	double pot = 0;

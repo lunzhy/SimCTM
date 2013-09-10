@@ -19,20 +19,22 @@ double FDVertex::Distance( FDVertex *vertex1, FDVertex *vertex2 )
 	return SctmMath::sqrt(SctmMath::square(vertex1->X - vertex2->X) + SctmMath::square(vertex1->Y - vertex2->Y));
 }
 
-bool FDVertex::IsAtBoundary()
+bool FDVertex::IsAtBoundary(FDBoundary::BCName bcName)
 {
-	return this->BndCond.Valid();
+	return this->BndCond.Valid(bcName);
 }
 
 void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2)
 {
-	this->valid = true;
+	//this->valid = true;
+	bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
 	this->bc_types[bcName] = bcType;
 
 	switch (bcType)
 	{
 	case BC_Dirichlet:
 		this->bc_values[bcName] = bcValue1;
+		this->bc_values_second[bcName] = bcValue2; //BC_Dirichlet might have the second value (Current)
 		break;
 	case BC_Neumann:
 		this->bc_values[bcName] = bcValue1;
@@ -72,6 +74,15 @@ double FDBoundary::GetBCValueSouthNorth(BCName bcName)
 	iter = this->bc_values_second.find(bcName);
 	SCTM_ASSERT(iter!=this->bc_values_second.end(), 10010);
 	return iter->second;
+}
+
+bool FDBoundary::Valid(BCName bcName)
+{
+	return this->bc_valid[bcName];
+	//map<BCName, bool>::iterator iter;
+	//iter = this->bc_valid.find(bcName);
+	//SCTM_ASSERT(iter!=this->bc_valid.end(), 10010);
+	//return iter->second;
 }
 
 FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)
