@@ -34,8 +34,8 @@ namespace SctmPhys
 		conductionBandEnergy = 0;
 		valenceBandEnergy = 0;
 		electronAffinity = 0;
-		electronMass = 0;
-		holeMass = 0;
+		e_mass = 0;
+		h_mass = 0;
 		netCharge = 0;
 	}
 
@@ -52,11 +52,11 @@ namespace SctmPhys
 		case ValenceBandEnergy:
 			valenceBandEnergy = prptyValue;
 			break;
-		case ElectronMass:
-			electronMass = prptyValue;
+		case eMass:
+			e_mass = prptyValue;
 			break;
-		case HoleMass:
-			holeMass = prptyValue;
+		case hMass:
+			h_mass = prptyValue;
 			break;
 		case ElectronAffinity:
 			electronAffinity = prptyValue;
@@ -66,6 +66,12 @@ namespace SctmPhys
 			break;
 		case NetCharge:
 			netCharge = prptyValue;
+			break;
+		case eMobility:
+			e_mobility = prptyValue;
+			break;
+		case eDensity:
+			e_density = prptyValue;
 			break;
 		}
 	}
@@ -85,11 +91,11 @@ namespace SctmPhys
 		case ValenceBandEnergy:
 			ret = valenceBandEnergy;
 			break;
-		case ElectronMass:
-			ret = electronMass;
+		case eMass:
+			ret = e_mass;
 			break;
-		case HoleMass:
-			ret = holeMass;
+		case hMass:
+			ret = h_mass;
 			break;
 		case ElectronAffinity:
 			ret = electronAffinity;
@@ -99,6 +105,12 @@ namespace SctmPhys
 			break;
 		case NetCharge:
 			ret = netCharge;
+			break;
+		case eMobility:
+			ret = e_mobility;
+			break;
+		case eDensity:
+			ret = e_density;
 			break;
 		default:
 			// use SCTM_ASSERT for non-existed property

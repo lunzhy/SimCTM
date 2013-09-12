@@ -40,8 +40,8 @@ void TwoDimPoissonSolver::prepareSolver()
 void TwoDimPoissonSolver::buildCoefficientMatrix()
 {
 	int matrixSize = this->vertices.size();
-	sparseMatrix.resize(matrixSize, matrixSize);
-	sparseMatrix.reserve(Eigen::VectorXd::Constant(matrixSize, 5));//reserver room for 5 non-zeros per column
+	matrix.resize(matrixSize, matrixSize);
+	matrix.reserve(Eigen::VectorXd::Constant(matrixSize, 5));//reserver room for 5 non-zeros per column
 
 	//the sequence of the equation and the sequence of the coefficient in each equation are in accordance with the 
 	//sequence of the vertices container.
@@ -73,7 +73,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * currVert->SouthLength / currVert->WestLength;
 			}
-			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+			matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill the coefficient related to east vertex
@@ -91,7 +91,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * currVert->SouthLength / currVert->EastLength;
 			}
-			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+			matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill the coefficient related to the current vertex
@@ -122,7 +122,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += -0.5 * epsilon * ( currVert->NorthLength / currVert->EastLength + currVert->EastLength / currVert->NorthLength );
 			}
-			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+			matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill in the coefficient related to the south vertex
@@ -140,7 +140,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * ( currVert->EastLength / currVert->SouthLength);
 			}
-			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+			matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill in the coefficient related to the north vertex
@@ -158,7 +158,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * ( currVert->WestLength / currVert->NorthLength);
 			}
-			sparseMatrix.insert(indexEquation, indexCoefficient) = val;
+			matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 	}
 }
@@ -223,8 +223,8 @@ void TwoDimPoissonSolver::refreshCoefficientMatrix()
 			//so the the equation index to set equals to iVert here.
 			equationIndexToSet = iVert;
 			coefficientIndexToSet = equationIndexToSet;
-			for (int k = 0; k < this->sparseMatrix.outerSize(); ++k)
-				for (Eigen::SparseMatrix<double>::InnerIterator it(sparseMatrix, k); it; ++it)
+			for (int k = 0; k < this->matrix.outerSize(); ++k)
+				for (Eigen::SparseMatrix<double>::InnerIterator it(matrix, k); it; ++it)
 				{
 					if ( it.row() == equationIndexToSet )
 					{
@@ -300,7 +300,7 @@ void TwoDimPoissonSolver::refreshRHS()
 void TwoDimPoissonSolver::SolvePotential()
 {
 	refreshRHS();
-	SctmUtils::UtilsDebug.PrintSparseMatrixRow(this->sparseMatrix, 56);
+	SctmUtils::UtilsDebug.PrintSparseMatrixRow(this->matrix, 56);
 	SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
 	SolveMatrix(rhsVector, potential);
 	SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");

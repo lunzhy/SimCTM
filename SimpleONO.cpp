@@ -427,7 +427,7 @@ void SimpleONO::setVertexPhysics()
 	vector<MatProperty::Name> matPrptys;
 	vector<PhysProperty::Name> vertexPhyPrpty;
 	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); vertexPhyPrpty.push_back(PhysProperty::ElectronAffinity);
-	matPrptys.push_back(MatProperty::Mat_ElectronMass); vertexPhyPrpty.push_back(PhysProperty::ElectronMass);
+	matPrptys.push_back(MatProperty::Mat_ElectronMass); vertexPhyPrpty.push_back(PhysProperty::eMass);
 	matPrptys.push_back(MatProperty::Mat_Bandgap); vertexPhyPrpty.push_back(PhysProperty::Bandgap);
 
 	//iteration over the vertices
@@ -517,28 +517,48 @@ void SimpleONO::setBoundaryCondition()
 			if (currVertex->Contact->ContactName == "Gate")
 			{
 				potentialValue = theNorm.PushPotential(this->gatePotential);
-				//the second value is useless in setting BC_Dirichlet boundary condition.
-				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue, 0);
+				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
+				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
 			}
 			else if (currVertex->Contact->ContactName == "Channel")
 			{
 				potentialValue = theNorm.PushPotential(this->channelPotential);
-				//the second value is useless in setting BC_Dirichlet boundary condition.
-				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue, 0);
+				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
+				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
 			}
 		}
 		else //the vertex is not related to a contact
 		{
-			//check if the vertex is at boundary apart from contact
-			//if ( (currVertex->NorthVertex == NULL) || (currVertex->SouthVertex == NULL) ||
-			//	 (currVertex->EastVertex == NULL)  || (currVertex->WestLength == NULL) )
-
 			//check the existence of adjacent element to check if the vertex is boundary vertex
+			//the following is used to set the potential boundary conditions
 			if ( (currVertex->NorthwestElem == NULL) || (currVertex->NortheastElem == NULL) ||
 				 (currVertex->SouthwestElem == NULL) || (currVertex->SoutheastElem == NULL)) 
 			{
 				//both two values are of no use to artificial boundary conditions
-				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Artificial, 0, 0);
+				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Artificial);
+			}
+
+			//the following is used to set the current boundary conditions
+			if ( 
+				(( currVertex->NortheastElem == NULL ? false : currVertex->NortheastElem->Region->Type == FDRegion::Blocking )
+				|| ( currVertex->NorthwestElem == NULL ? false : currVertex->NorthwestElem->Region->Type == FDRegion::Blocking ))
+				&& 
+				(( currVertex->SoutheastElem == NULL ? false : currVertex->SoutheastElem->Region->Type == FDRegion::Trapping )
+				|| ( currVertex->SouthwestElem == NULL ? false : currVertex->SouthwestElem->Region->Type == FDRegion::Trapping) )
+			   )
+			{
+				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Dirichlet);
+			}
+
+			if ( 
+				(( currVertex->NortheastElem == NULL ? false : currVertex->NortheastElem->Region->Type == FDRegion::Trapping )
+				|| ( currVertex->NorthwestElem == NULL ? false : currVertex->NorthwestElem->Region->Type == FDRegion::Trapping ))
+				&& 
+				(( currVertex->SoutheastElem == NULL ? false : currVertex->SoutheastElem->Region->Type == FDRegion::Tunneling )
+				|| ( currVertex->SouthwestElem == NULL ? false : currVertex->SouthwestElem->Region->Type == FDRegion::Tunneling) )
+				)
+			{
+				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Dirichlet);
 			}
 		}
 	}

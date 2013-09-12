@@ -74,10 +74,12 @@ namespace SctmPhys
 			ConductionBandEnergy, ///< conduction band energy
 			ValenceBandEnergy, ///< valence band energy
 			ElectronAffinity, ///< electron affinity
-			ElectronMass, ///< electron effective mass
-			HoleMass, ///< hole effective mass
+			eMass, ///< electron effective mass
+			hMass, ///< hole effective mass
 			Bandgap, ///< bandgap
 			NetCharge, ///< the total net charge belongs to the vertex 
+			eMobility, ///< the electron mobility
+			eDensity, ///< the electron density
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -127,9 +129,11 @@ namespace SctmPhys
 		double conductionBandEnergy; ///< i.e. conduction band edge
 		double valenceBandEnergy; ///< i.e. valence band edge
 		double electronAffinity; ///< electron affinity
-		double electronMass; ///< effective electron mass
-		double holeMass; ///< effective hole mass
+		double e_mass; ///< effective electron mass
+		double h_mass; ///< effective hole mass
 		double netCharge; ///< total net charge belongs to the vertex
+		double e_mobility; ///< electron mobility
+		double e_density; ///< the electron density
 	};
 }
 

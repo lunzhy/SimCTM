@@ -72,7 +72,7 @@ public:
 	/// @pre
 	/// @return void
 	/// @note
-	void SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2 = 0);
+	void SetBndCond(BCName bcName, BCType bcType, double bcValue1 = 0, double bcValue2 = 0);
 	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
 	///

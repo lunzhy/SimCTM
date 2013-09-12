@@ -105,7 +105,10 @@ namespace SctmUtils
 			msg	= "[DomainDetails.cpp] Could not find the boundary condition name or the required boundary condition is not set.";
 			break;
 		case 10011:
-			msg = "[DDSolver.cpp] Unsuccessful insertion of pair into vertex map occurred.";
+			msg = "[DDSolver.cpp] Unsuccessful insertion of pair into vertex or physical parameter map occurred.";
+			break;
+		case 10012:
+			msg = "[DDSolver.cpp] Error found in vertex map when filling coefficient matrix.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -124,8 +127,8 @@ namespace SctmUtils
 			currVert = domain.GetVertex(iVert);
 			printValue(currVert->GetInternalID()); cout << " -- ";
 			printValue(currVert->IsAtContact());
-			printValue(currVert->IsAtBoundary(FDBoundary::Potential));
-			if (currVert->BndCond.Valid(FDBoundary::Potential)) { printBCType(currVert->BndCond); }
+			printValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
+			if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { printBCType(currVert->BndCond); }
 			printValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetInternalID());
 			printValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetInternalID());
 			printValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetInternalID());
@@ -150,12 +153,12 @@ namespace SctmUtils
 		}
 	}
 
-	void SctmDebug::printBCType(FDBoundary &bctype)
+	void SctmDebug::printBCType(FDBoundary &bc)
 	{
 		if (!this->enable)
 			return;
 		string typestring;
-		switch (bctype.GetBCType(FDBoundary::Potential))
+		switch (bc.GetBCType(FDBoundary::eCurrentDensity))
 		{
 		case FDBoundary::BC_Dirichlet:
 			typestring = "Dirichlet";

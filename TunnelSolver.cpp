@@ -118,7 +118,7 @@ void SubsToGateEletronTunnel::PrepareProblem(FDVertex *startVertex)
 		val = currentVertex->Phys.GetPhysPrpty(PhysProperty::ConductionBandEnergy);
 		this->cbegde.push_back(val);
 		//this->emass.push_back(currentVertex->Phys.electronMass);
-		val = currentVertex->Phys.GetPhysPrpty(PhysProperty::ElectronMass);
+		val = currentVertex->Phys.GetPhysPrpty(PhysProperty::eMass);
 		this->emass.push_back(val);
 		
 		currentVertex = currentVertex->NorthVertex; // move the vertex north

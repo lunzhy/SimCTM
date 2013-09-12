@@ -17,7 +17,10 @@
 #include <vector>
 #include <map>
 #include "SctmUtils.h"
+#include "MatrixSolver.h"
+
 using std::vector;
+using SctmMath::SctmSparseMatrixSolver;
 
 class FDVertex;
 class DriftDiffusionSolver
@@ -30,14 +33,17 @@ public:
 private:
 	vector<FDVertex *> &vertices;
 
+	double T;
 	//the material and physical properties
-	double q;
-	MapForPrpty mobility;
-	MapForPrpty diffusion; // diffusion coefficient D
+	MapForPrpty mobilityMap; // mobility is used, so diffusion coefficient is derived
+	MapForPrpty potentialMap;
+	MapForPrpty lastDensityMap; // the density of last time step
 	MapForVertex vertMap;
 
 	vector<double> rhsVector;
 	vector<double> eDensity;
+
+	SctmSparseMatrixSolver matrixSolver;
 protected:
 	void prepareSolver();
 	void buildVertexMap();

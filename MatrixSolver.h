@@ -22,8 +22,8 @@ namespace SctmMath
 {
 	class SctmSparseMatrixSolver
 	{
-	protected:
-		Eigen::SparseMatrix<double> sparseMatrix;
+	public:
+		Eigen::SparseMatrix<double> matrix;
 		void SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution);
 	};
 }

@@ -19,7 +19,7 @@ namespace SctmMath
 	void SctmSparseMatrixSolver::SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution)
 	{
 		//This is very IMPORTANT
-		this->sparseMatrix.makeCompressed();
+		this->matrix.makeCompressed();
 		
 		//TODO: check the sparse matrix
 		SCTM_ASSERT(rhs.size() == solution.size(), 10005);
@@ -30,8 +30,8 @@ namespace SctmMath
 
 		//use SparseLU to solve sparse matrix problem. SparseLU supports general square sparse systems
 		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> sparseSolver; //or int
-		sparseSolver.analyzePattern(this->sparseMatrix);
-		sparseSolver.factorize(this->sparseMatrix);
+		sparseSolver.analyzePattern(this->matrix);
+		sparseSolver.factorize(this->matrix);
 		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
 
 		if (sparseSolver.info() != Eigen::Success)
