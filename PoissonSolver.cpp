@@ -56,13 +56,13 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 	{
 		currVert = this->vertices.at(iVert);
 		indexEquation = iVert;
-		SCTM_ASSERT(indexEquation==vertMap[currVert->GetInternalID()], 10008);
+		SCTM_ASSERT(indexEquation==vertMap[currVert->GetID()], 10008);
 
 		//fill the coefficient related to west vertex
 		if ( currVert->WestVertex != NULL )
 		{
 			val = 0;
-			indexCoefficient = vertMap[currVert->WestVertex->GetInternalID()];
+			indexCoefficient = vertMap[currVert->WestVertex->GetID()];
 			if ( currVert->NorthwestElem != NULL)
 			{
 				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
@@ -80,7 +80,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 		if ( currVert->EastVertex != NULL )
 		{
 			val = 0;
-			indexCoefficient = vertMap[currVert->EastVertex->GetInternalID()];
+			indexCoefficient = vertMap[currVert->EastVertex->GetID()];
 			if ( currVert->NortheastElem != NULL )
 			{
 				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
@@ -98,7 +98,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 		if ( currVert != NULL )
 		{
 			val = 0;
-			indexCoefficient = indexEquation; //indexCoefficent = indexEquation = vertMap[currVert->GetInternalID]
+			indexCoefficient = indexEquation; //indexCoefficient = indexEquation = vertMap[currVert->GetInternalID]
 			if ( currVert->NorthwestElem != NULL )
 			{
 				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
@@ -129,7 +129,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 		if ( currVert->SouthVertex != NULL )
 		{
 			val = 0;
-			indexCoefficient = vertMap[currVert->SouthVertex->GetInternalID()];
+			indexCoefficient = vertMap[currVert->SouthVertex->GetID()];
 			if ( currVert->SouthwestElem != NULL )
 			{
 				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
@@ -147,7 +147,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 		if ( currVert->NorthVertex != NULL )
 		{
 			val = 0;
-			indexCoefficient = vertMap[currVert->NorthVertex->GetInternalID()];
+			indexCoefficient = vertMap[currVert->NorthVertex->GetID()];
 			if ( currVert->NortheastElem != NULL )
 			{
 				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
@@ -176,7 +176,7 @@ void TwoDimPoissonSolver::buildVertexMap()
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		vertID = currVert->GetInternalID();
+		vertID = currVert->GetID();
 		equationIndex = iVert;
 		insertPair = this->vertMap.insert(MapForVertex::value_type(vertID, equationIndex));
 		SCTM_ASSERT(insertPair.second==true, 10007);//to check if the insertion is successful.
@@ -238,7 +238,7 @@ void TwoDimPoissonSolver::refreshCoefficientMatrix()
 	}
 }
 
-void TwoDimPoissonSolver::refreshRHS()
+void TwoDimPoissonSolver::refreshRhs()
 {
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
@@ -299,7 +299,7 @@ void TwoDimPoissonSolver::refreshRHS()
 
 void TwoDimPoissonSolver::SolvePotential()
 {
-	refreshRHS();
+	refreshRhs();
 	SctmUtils::UtilsDebug.PrintSparseMatrixRow(this->matrix, 56);
 	SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
 	SolveMatrix(rhsVector, potential);

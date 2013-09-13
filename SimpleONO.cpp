@@ -81,11 +81,11 @@ void SimpleONO::printStructure()
 {
 	for (std::vector<FDVertex *>::size_type ix = 0; ix != this->vertices.size(); ++ix)
 	{
-		std::cout << "id=" << vertices.at(ix)->GetInternalID() 
-			<< '\t' << (vertices.at(ix)->WestVertex == NULL ? -1 : vertices.at(ix)->WestVertex->GetInternalID())
-			<< '\t' << (vertices.at(ix)->SouthVertex == NULL ? -1 : vertices.at(ix)->SouthVertex->GetInternalID())
-			<< '\t' << (vertices.at(ix)->EastVertex == NULL ? -1 : vertices.at(ix)->EastVertex->GetInternalID())
-			<< '\t' << (vertices.at(ix)->NorthVertex == NULL ? -1 : vertices.at(ix)->NorthVertex->GetInternalID())
+		std::cout << "id=" << vertices.at(ix)->GetID() 
+			<< '\t' << (vertices.at(ix)->WestVertex == NULL ? -1 : vertices.at(ix)->WestVertex->GetID())
+			<< '\t' << (vertices.at(ix)->SouthVertex == NULL ? -1 : vertices.at(ix)->SouthVertex->GetID())
+			<< '\t' << (vertices.at(ix)->EastVertex == NULL ? -1 : vertices.at(ix)->EastVertex->GetID())
+			<< '\t' << (vertices.at(ix)->NorthVertex == NULL ? -1 : vertices.at(ix)->NorthVertex->GetID())
 			<< '\t' << (vertices.at(ix)->SouthwestElem == NULL ? -1 : vertices.at(ix)->SouthwestElem->GetInternalID())
 			<< '\t' << (vertices.at(ix)->SoutheastElem == NULL ? -1 : vertices.at(ix)->SoutheastElem->GetInternalID())
 			<< '\t' << (vertices.at(ix)->NortheastElem == NULL ? -1 : vertices.at(ix)->NortheastElem->GetInternalID())
@@ -100,10 +100,10 @@ void SimpleONO::printStructure()
 	for (std::vector<FDElement *>::size_type ix = 0; ix != this->elements.size(); ++ix)
 	{
 		std::cout << "id=" << elements.at(ix)->GetInternalID() << '\t' << elements.at(ix)->Region->Type
-			<< '\t' << elements.at(ix)->SouthwestVertex->GetInternalID()
-			<< '\t' << elements.at(ix)->SoutheastVertex->GetInternalID()
-			<< '\t' << elements.at(ix)->NortheastVertex->GetInternalID()
-			<< '\t' << elements.at(ix)->NorthwestVertex->GetInternalID()
+			<< '\t' << elements.at(ix)->SouthwestVertex->GetID()
+			<< '\t' << elements.at(ix)->SoutheastVertex->GetID()
+			<< '\t' << elements.at(ix)->NortheastVertex->GetID()
+			<< '\t' << elements.at(ix)->NorthwestVertex->GetID()
 			<< '\t' << elements.at(ix)->WestLength
 			<< '\t' << elements.at(ix)->SouthLength
 			<< '\t' << elements.at(ix)->EastLength

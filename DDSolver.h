@@ -33,7 +33,8 @@ public:
 private:
 	vector<FDVertex *> &vertices;
 
-	double T;
+	double temperature;
+	double timeStep;
 	//the material and physical properties
 	MapForPrpty mobilityMap; // mobility is used, so diffusion coefficient is derived
 	MapForPrpty potentialMap;
@@ -51,7 +52,7 @@ protected:
 	void buildCoefficientMatrix();
 	void buildRhsVector();
 	void refreshCoefficientMatrix();
-	void refreshRHS();
+	void refreshRhs();
 };
 
 #endif

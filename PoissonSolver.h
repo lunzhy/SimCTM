@@ -40,7 +40,7 @@ protected:
 	void buildCoefficientMatrix();
 	void buildRhsVector();
 	void refreshCoefficientMatrix();
-	void refreshRHS();
+	void refreshRhs();
 	void fillBackPotential();
 };
 

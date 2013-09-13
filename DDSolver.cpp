@@ -31,7 +31,7 @@ void DriftDiffusionSolver::prepareSolver()
 	this->rhsVector.resize(vertSize);
 	this->eDensity.resize(vertSize);
 
-	this->T = 300; //temporarily used here
+	this->temperature = 300; //temporarily used here
 }
 
 void DriftDiffusionSolver::buildVertexMap()
@@ -48,7 +48,7 @@ void DriftDiffusionSolver::buildVertexMap()
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		vertID = currVert->GetInternalID();
+		vertID = currVert->GetID();
 
 		equationID = iVert; //equation index is also the vertex index in the vertices container
 		insertPairVertex = this->vertMap.insert(MapForVertex::value_type(vertID, equationID));
@@ -85,53 +85,103 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 	double coeff_adjacent = 0; // coefficient for adjacent vertex
 	double coeff_center = 0; // coefficient for center vertex
 
-	double KT_div_q = SctmPhys::k0 * this->T / SctmPhys::q;
+	double deltaX = 0; // dJ/dx
+	double deltaY = 0; // dJ/dy
+
+	double KT_div_q = SctmPhys::k0 * this->temperature / SctmPhys::q;
 
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		indexEquation = vertMap[currVert->GetInternalID()];
+		indexEquation = vertMap[currVert->GetID()];
 		SCTM_ASSERT(indexEquation==iVert, 100012);
 
 		coeff_center = 0;
+		// in the boundary cases, the length of one or two direction may be zero 
+		deltaX = (currVert->EastLength + currVert->WestLength) / 2;
+		deltaY = (currVert->NorthLength + currVert->SouthLength) / 2;
 
-		//the vertex is at current density boundary condition
-		if ( currVert->BndCond.Valid(FDBoundary::eCurrentDensity) )
+		//the initial filling method can be used for boundary vertices and non-boundary vertices
+		if ( currVert->EastVertex != NULL )
 		{
+			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			indexCoefficient = vertMap[currVert->EastVertex->GetID()];
+			coeff_adjacent = mobility / currVert->EastLength / deltaX *
+				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
+				+ KT_div_q );
+			coeff_center += mobility / currVert->EastLength / deltaX *
+				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
+				- KT_div_q );
 
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
-		else // the vertex is NOT at current boundary condition
+
+		if ( currVert->WestVertex != NULL )
 		{
-			//fill the coefficient related to current vertex
+			mobility = (mobilityMap[currVert->WestVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			indexCoefficient = vertMap[currVert->WestVertex->GetID()];
+			coeff_adjacent = mobility / currVert->WestLength / deltaX *
+				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) /2 
+				+ KT_div_q );
+			coeff_center += mobility / currVert->WestLength / deltaX *
+				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) /2 
+				- KT_div_q );
 
-
-			if ( currVert->EastVertex != NULL )
-			{
-				mobility = (mobilityMap[currVert->EastVertex->GetInternalID()] + mobilityMap[currVert->GetInternalID()]) / 2;
-				indexCoefficient = vertMap[currVert->EastVertex->GetInternalID()];
-				coeff_adjacent = mobility / currVert->EastLength *
-								( (potentialMap[currVert->EastVertex->GetInternalID()] - potentialMap[currVert->GetInternalID()]) / 2
-								+ KT_div_q );
-				coeff_center += mobility / currVert->EastLength *
-								( (potentialMap[currVert->EastVertex->GetInternalID()] - potentialMap[currVert->GetInternalID()]) / 2
-								- KT_div_q );
-
-			}
-
-			if ( currVert->WestVertex != NULL )
-			{
-				
-			}
-
-			if ( currVert->NorthVertex != NULL )
-			{
-
-			}
-
-			if ( currVert->SouthVertex != NULL )
-			{
-
-			}
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
+
+		if ( currVert->NorthVertex != NULL )
+		{
+			mobility = (mobilityMap[currVert->NorthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			indexCoefficient = vertMap[currVert->NorthVertex->GetID()];
+			coeff_adjacent = mobility / currVert->NorthLength / deltaY *
+				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
+				+ KT_div_q );
+			coeff_center += mobility / currVert->NorthLength / deltaY *
+				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
+				- KT_div_q );
+
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+		}
+
+		if ( currVert->SouthVertex != NULL )
+		{
+			mobility = (mobilityMap[currVert->SouthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			indexCoefficient = vertMap[currVert->SouthVertex->GetID()];
+			coeff_adjacent = mobility / currVert->SouthLength / deltaY *
+				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
+				+ KT_div_q );
+			coeff_center += mobility / currVert->SouthLength / deltaY *
+				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
+				- KT_div_q );
+
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+		}
+
+
+		coeff_center += -1 / timeStep; // from pn/pt, p=partial differential
+ 		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
+		//indexCoefficent = indexEquation = vertMap[currVert->GetInternalID]
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+	}
+}
+
+void DriftDiffusionSolver::buildRhsVector()
+{
+	FDVertex *currVert = NULL;
+	double rhsVal = 0;
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		rhsVal = -lastDensityMap[currVert->GetID()] / timeStep;
+		this->rhsVector.at(iVert) = rhsVal;
+	}
+}
+
+void DriftDiffusionSolver::refreshRhs()
+{
+	FDVertex *currVert = NULL;
+	for (size_t )
+	{
 	}
 }

@@ -125,14 +125,14 @@ namespace SctmUtils
 		for (size_t iVert = 0; iVert != domain.vertices.size(); ++iVert)
 		{
 			currVert = domain.GetVertex(iVert);
-			printValue(currVert->GetInternalID()); cout << " -- ";
+			printValue(currVert->GetID()); cout << " -- ";
 			printValue(currVert->IsAtContact());
 			printValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
 			if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { printBCType(currVert->BndCond); }
-			printValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetInternalID());
-			printValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetInternalID());
-			printValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetInternalID());
-			printValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetInternalID()); cout << " -- ";
+			printValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetID());
+			printValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
+			printValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
+			printValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID()); cout << " -- ";
 			printValue(currVert->EastLength);
 			printValue(currVert->WestLength);
 			printValue(currVert->SouthLength);

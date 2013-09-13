@@ -205,7 +205,7 @@ public:
 	/// @pre
 	/// @return int
 	/// @note
-	int GetInternalID() const { return id; }
+	int GetID() const { return id; }
 	/// @brief Distance can get the distance between two given vertices
 	/// 
 	/// This is a static method and can be called directly with the class name.
