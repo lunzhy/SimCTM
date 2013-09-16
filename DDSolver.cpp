@@ -32,6 +32,11 @@ void DriftDiffusionSolver::prepareSolver()
 	this->eDensity.resize(vertSize);
 
 	this->temperature = 300; //temporarily used here
+	buildVertexMap();
+	buildCoefficientMatrix();
+	buildRhsVector();
+	//the structure does not change, so the final coefficient matrix after refreshing does not change either
+	refreshCoefficientMatrix();
 }
 
 void DriftDiffusionSolver::buildVertexMap()
@@ -181,7 +186,57 @@ void DriftDiffusionSolver::buildRhsVector()
 void DriftDiffusionSolver::refreshRhs()
 {
 	FDVertex *currVert = NULL;
-	for (size_t )
+	int equationID = 0;
+	double q = SctmPhys::q;
+	double bcVal = 0;
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
+		currVert = this->vertices.at(iVert);
+		if (!currVert->BndCond.Valid(FDBoundary::eCurrentDensity))
+			continue;
+
+		//the vertex is at current density boundary condition
+		equationID = vertMap[currVert->GetID()]; //equationIndex = iVert
+		if (currVert->BndCond.GetBCType(FDBoundary::eCurrentDensity) != FDBoundary::BC_Dirichlet)
+			continue;
+
+		//the vertex is at BC_Dirichlet boundary condition
+		//only solve DD equation in trapping region
+		if ( currVert->WestVertex == NULL
+			|| (currVert->WestVertex->NorthwestElem == NULL ? false : currVert->WestVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
+			|| (currVert->WestVertex->SouthwestElem == NULL ? false : currVert->WestVertex->SouthwestElem->Region->Type != FDRegion::Trapping) )
+		{
+			bcVal = currVert->BndCond.GetBCValueWestEast(FDBoundary::eCurrentDensity);
+			rhsVector.at(equationID) += 1 / q * bcVal / (currVert->EastLength / 2);
+		}
+
+		if ( currVert->EastVertex == NULL
+			|| (currVert->EastVertex->NortheastElem == NULL ? false : currVert->EastVertex->NortheastElem->Region->Type != FDRegion::Trapping)
+			|| (currVert->EastVertex->SoutheastElem == NULL ? false : currVert->EastVertex->SoutheastElem->Region->Type != FDRegion::Trapping) )
+		{
+			bcVal = currVert->BndCond.GetBCValueWestEast(FDBoundary::eCurrentDensity);
+			rhsVector.at(equationID) += -1 / q * bcVal / (currVert->WestLength / 2);
+		}
+
+		if ( currVert->SouthVertex == NULL
+			|| (currVert->SouthVertex->SoutheastElem == NULL ? false : currVert->SouthVertex->SoutheastElem->Region->Type != FDRegion::Trapping)
+			|| (currVert->SouthVertex->SouthwestElem == NULL ? false : currVert->SouthVertex->SouthwestElem->Region->Type != FDRegion::Trapping) )
+		{
+			bcVal = currVert->BndCond.GetBCValueSouthNorth(FDBoundary::eCurrentDensity);
+			rhsVector.at(equationID) += 1 / q * bcVal / (currVert->NorthLength / 2);
+		}
+
+		if ( currVert->NorthVertex == NULL
+			|| (currVert->NorthVertex->NorthwestElem == NULL ? false : currVert->NorthVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
+			|| (currVert->NorthVertex->NortheastElem == NULL ? false : currVert->NorthVertex->NortheastElem->Region->Type != FDRegion::Trapping) )
+		{
+			bcVal = currVert->BndCond.GetBCValueSouthNorth(FDBoundary::eCurrentDensity);
+			rhsVector.at(equationID) += -1 / q * bcVal / (currVert->SouthLength / 2);
+		}
 	}
+}
+
+void DriftDiffusionSolver::refreshCoefficientMatrix()
+{
+	//The boundary conditions are always BC_Dirichlet, so there is no need refreshing the matrix.
 }

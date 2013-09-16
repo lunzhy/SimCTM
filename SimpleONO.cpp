@@ -536,6 +536,7 @@ void SimpleONO::setBoundaryCondition()
 			{
 				//both two values are of no use to artificial boundary conditions
 				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Artificial);
+				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Artificial);
 			}
 
 			//the following is used to set the current boundary conditions
