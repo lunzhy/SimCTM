@@ -56,6 +56,12 @@ namespace SctmUtils
 		std::clock_t set_time;
 	};
 	
+	class SctmTimeStep
+	{
+	public:
+		double NextTimeStep();
+	};
+
 	/// @brief The methods used in debugging are defined in this class.
 	///
 	/// This class is also used to observe the intermediate results during the simulation
