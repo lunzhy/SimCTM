@@ -28,10 +28,19 @@ void SctmTest()
 
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
+
+void TunnelSolverTest()
+{
+	TunnelSolver *tunnelDemo = new TunnelTest();
+	tunnelDemo->PrepareProblem(NULL);
+	tunnelDemo->SolveTunneling();
+}
+
 int main()
 {
 	initialize();
-	SctmTest();
+	TunnelSolverTest();
+	//SctmTest();
 	//SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
 	//tunnelDemo.PrepareProblem(aTest.getVertex(0));
 }

@@ -19,7 +19,10 @@ using namespace std;
 class TunnelSolver
 {
 public:
+	TunnelSolver();
 	virtual void PrepareProblem(FDVertex *startVertex) = 0;
+	void SolveTunneling();
+	double GetCurrentDensity();
 
 protected:
 	virtual double getSupplyFunction(double energy);
@@ -38,9 +41,17 @@ protected:
 	double effTunnelMass; ///< effective mass
 	double temperature;
 	double areaFactor; ///< the area factor(cross-section) of the tunneling problem
+
+	double currentDensity;
 };
 
-class SubsToGateEletronTunnel : TunnelSolver
+class SubsToGateEletronTunnel : public TunnelSolver
+{
+public:
+	void PrepareProblem(FDVertex *startVertex);
+};
+
+class TunnelTest : public TunnelSolver
 {
 public:
 	void PrepareProblem(FDVertex *startVertex);
