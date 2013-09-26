@@ -32,6 +32,7 @@
 
 
 using std::string;
+using std::vector;
 using std::cout;
 using std::endl;
 class FDDomain;
@@ -98,16 +99,14 @@ namespace SctmUtils
 		void PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix);
 		void PrintSparseMatrixRow(Eigen::SparseMatrix<double> &matrix, int rowIndex);
 		void PrintVector(const std::vector<double> &vec, const char *title = "");
-	protected:
-		void printValue(int i) { std::cout << i << " ";}
-		void printValue(double d) { std::cout << d << " "; }
-		void printValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
-		void printValue(std::string &s) { std::cout << s << " ";}
-		void printBCType(FDBoundary &bc);
+		void PrintValue(int i) { std::cout << i << " ";}
+		void PrintValue(double d) { std::cout << d << " "; }
+		void PrintValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
+		void PrintValue(std::string &s) { std::cout << s << " ";}
+		void PrintBCType(FDBoundary &bc);
 	private:
 		bool enable;
 	};
-
 
 	//TODO: a common message class is needed to output the process of the computation
 	class SctmMessaging
@@ -116,9 +115,25 @@ namespace SctmUtils
 		void PrintWelcomingInformation();
 		void PrintHeader(const char *header);
 		void PrintTimeElapsed(double time);
+		void PrintFileError(const char *filename);
 	protected:
 		void printLine(string &line);
 		void printLine(const char *line);
+	};
+
+	class SctmFileOperator
+	{
+	public:
+		enum Mode
+		{
+			Write,
+			Read
+		};
+		SctmFileOperator(string _filename, Mode _mode);
+		void WriteVector(vector<double> &vec, const char *title);
+		void Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title);
+	private:
+		string fileName;
 	};
 
 	extern SctmMessaging UtilsMsg;

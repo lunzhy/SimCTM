@@ -15,9 +15,10 @@
 
 #include <vector>
 #include "DomainDetails.h"
-using namespace std;
+using std::vector;
 class TunnelSolver
 {
+	//friend class SctmUtils::SctmDebug;
 public:
 	TunnelSolver();
 	virtual void PrepareProblem(FDVertex *startVertex) = 0;
@@ -42,7 +43,7 @@ protected:
 	double temperature;
 	double areaFactor; ///< the area factor(cross-section) of the tunneling problem
 
-	double currentDensity;
+	double currentDensity; ///< the tunneling current density, in [A/cm^2]
 };
 
 class SubsToGateEletronTunnel : public TunnelSolver
@@ -54,7 +55,12 @@ public:
 class TunnelTest : public TunnelSolver
 {
 public:
+	TunnelTest();
 	void PrepareProblem(FDVertex *startVertex);
+	void SolveParamterSet();
+private:
+	double oxideEmass;
+	double siliconBandEdge;
 };
 
 #endif

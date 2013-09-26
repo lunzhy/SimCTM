@@ -31,9 +31,9 @@ void SctmTest()
 
 void TunnelSolverTest()
 {
-	TunnelSolver *tunnelDemo = new TunnelTest();
-	tunnelDemo->PrepareProblem(NULL);
-	tunnelDemo->SolveTunneling();
+	UtilsMsg.PrintHeader("Testing the tunneling solver.");
+	TunnelTest *tunnelDemo = new TunnelTest();
+	tunnelDemo->SolveParamterSet();
 }
 
 int main()

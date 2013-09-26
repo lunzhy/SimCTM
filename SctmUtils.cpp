@@ -16,9 +16,11 @@
 #include "Material.h"
 #include <iomanip>
 #include <cstring>
+#include <fstream>
 
 using std::cout;
 using std::endl;
+using std::fstream;
 
 namespace SctmUtils
 {
@@ -125,35 +127,35 @@ namespace SctmUtils
 		for (size_t iVert = 0; iVert != domain.vertices.size(); ++iVert)
 		{
 			currVert = domain.GetVertex(iVert);
-			printValue(currVert->GetID()); cout << " -- ";
-			printValue(currVert->IsAtContact());
-			printValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
-			if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { printBCType(currVert->BndCond); }
-			printValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetID());
-			printValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
-			printValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
-			printValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID()); cout << " -- ";
-			printValue(currVert->EastLength);
-			printValue(currVert->WestLength);
-			printValue(currVert->SouthLength);
-			printValue(currVert->NorthLength); cout << " -- ";
-			printValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
-			printValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
-			printValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
-			printValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID()); cout << " -- ";
-			printValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			printValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			printValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			printValue(currVert->NorthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity)); cout << " -- ";
-			printValue(currVert->NorthwestElem==NULL ? -1 : GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
-			printValue(currVert->NortheastElem==NULL ? -1 : GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_Bandgap));;
-			printValue(currVert->SouthwestElem==NULL ? -1 : GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
-			printValue(currVert->SoutheastElem==NULL ? -1 : GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_Bandgap));
+			PrintValue(currVert->GetID()); cout << " -- ";
+			PrintValue(currVert->IsAtContact());
+			PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
+			if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
+			PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetID());
+			PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
+			PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
+			PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID()); cout << " -- ";
+			PrintValue(currVert->EastLength);
+			PrintValue(currVert->WestLength);
+			PrintValue(currVert->SouthLength);
+			PrintValue(currVert->NorthLength); cout << " -- ";
+			PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
+			PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
+			PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
+			PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID()); cout << " -- ";
+			PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity)); cout << " -- ";
+			PrintValue(currVert->NorthwestElem==NULL ? -1 : GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
+			PrintValue(currVert->NortheastElem==NULL ? -1 : GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_Bandgap));;
+			PrintValue(currVert->SouthwestElem==NULL ? -1 : GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
+			PrintValue(currVert->SoutheastElem==NULL ? -1 : GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_Bandgap));
 			cout << endl;
 		}
 	}
 
-	void SctmDebug::printBCType(FDBoundary &bc)
+	void SctmDebug::PrintBCType(FDBoundary &bc)
 	{
 		if (!this->enable)
 			return;
@@ -172,7 +174,7 @@ namespace SctmUtils
 		default:
 			break;
 		}
-		printValue(typestring);
+		PrintValue(typestring);
 	}
 
 	void SctmDebug::PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix)
@@ -264,5 +266,65 @@ namespace SctmUtils
 	{
 		cout << "===> " << header << endl << endl;
 		return;
+	}
+
+	void SctmMessaging::PrintFileError(const char *filename)
+	{
+		cout << "XXXXX=>" << "cannot open or create file" << ' ' << filename << endl;
+		exit(1);
+	}
+
+
+	SctmFileOperator::SctmFileOperator(string _filename, Mode _mode)
+	{
+		this->fileName = _filename;
+		//if the file doesn't exist, create it.
+		fstream tofile;
+		if (_mode == Write)
+		{
+			tofile.open(this->fileName.c_str(), std::ios::in);
+			if (!tofile)
+				tofile.open(this->fileName.c_str(), std::ios::out);
+			else
+			{
+				tofile.close();
+				tofile.open(this->fileName.c_str(), std::ios::out | std::ios::trunc);
+				tofile.close();
+			}
+		}
+	}
+
+	void SctmFileOperator::Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title)
+	{
+		fstream tofile;
+		tofile.open(this->fileName.c_str(), std::ios::app);
+		if (!tofile) 
+			UtilsMsg.PrintFileError(this->fileName.c_str());
+		
+		tofile << title << endl;
+		for (size_t ix = 0; ix != vecX.size(); ++ix)
+		{
+			for (size_t iy = 0; iy != vecY.size(); ++iy)
+			{
+				tofile << vecX.at(ix) << '\t' << vecY.at(iy) << '\t' << vector2D.at(ix).at(iy) << endl;
+			}
+		}
+		tofile.close();
+	}
+
+	void SctmFileOperator::WriteVector(vector<double> &vec, const char *title)
+	{
+		fstream tofile;
+		tofile.open(this->fileName.c_str(), std::ios::app);
+		if (!tofile) 
+			UtilsMsg.PrintFileError(this->fileName.c_str());
+
+		tofile << title << endl;
+		for (size_t ix = 0; ix != vec.size(); ++ix)
+		{
+			tofile << vec.at(ix) <<  '\t';
+		}
+		tofile << endl;
+		tofile.close();
 	}
 }
