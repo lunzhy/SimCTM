@@ -279,18 +279,24 @@ namespace SctmUtils
 	{
 		this->fileName = _filename;
 		//if the file doesn't exist, create it.
-		fstream tofile;
+		fstream file;
 		if (_mode == Write)
 		{
-			tofile.open(this->fileName.c_str(), std::ios::in);
-			if (!tofile)
-				tofile.open(this->fileName.c_str(), std::ios::out);
+			file.open(this->fileName.c_str(), std::ios::in);
+			if (!file)
+				file.open(this->fileName.c_str(), std::ios::out);
 			else
 			{
-				tofile.close();
-				tofile.open(this->fileName.c_str(), std::ios::out | std::ios::trunc);
-				tofile.close();
+				file.close();
+				file.open(this->fileName.c_str(), std::ios::out | std::ios::trunc);
+				file.close();
 			}
+		}
+		if (_mode = Read)
+		{
+			file.open(this->fileName.c_str(), std::ios::in);
+			if (!file.is_open())
+				UtilsMsg.PrintFileError(_filename.c_str());
 		}
 	}
 
@@ -327,4 +333,18 @@ namespace SctmUtils
 		tofile << endl;
 		tofile.close();
 	}
+
+	void SctmFileOperator::ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields)
+	{
+		cbedges.clear(); elecfields.clear();
+		std::ifstream file(this->fileName.c_str());
+
+		double val = 0;
+		while (!file.eof())
+		{
+			file >> val; elecfields.push_back(val);
+			file >> val; cbedges.push_back(val);
+		}
+	}
+
 }

@@ -132,6 +132,7 @@ namespace SctmUtils
 		SctmFileOperator(string _filename, Mode _mode);
 		void WriteVector(vector<double> &vec, const char *title);
 		void Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title);
+		void ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields);
 	private:
 		string fileName;
 	};

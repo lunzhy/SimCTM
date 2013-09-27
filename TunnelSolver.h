@@ -58,9 +58,13 @@ public:
 	TunnelTest();
 	void PrepareProblem(FDVertex *startVertex);
 	void SolveParamterSet();
+	void SolveCalibrate();
 private:
 	double oxideEmass;
 	double siliconBandEdge;
+	double oxideThickness;
+	double gateVoltage;
+	double elecField;
 };
 
 #endif

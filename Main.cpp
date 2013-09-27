@@ -34,6 +34,7 @@ void TunnelSolverTest()
 	UtilsMsg.PrintHeader("Testing the tunneling solver.");
 	TunnelTest *tunnelDemo = new TunnelTest();
 	tunnelDemo->SolveParamterSet();
+	tunnelDemo->SolveCalibrate();
 }
 
 int main()

@@ -187,25 +187,32 @@ void TunnelTest::PrepareProblem(FDVertex *startVertex)
 	this->emass.clear();
 	this->deltaX.clear();
 
-	double oxideThickness = 3; // in [nm]
+	//double oxideThickness = 3; // in [nm]
+	double oxide_thickness = this->oxideThickness;
+
 	int gridNumber = 100;
 	this->temperature = 300;
 	this->effTunnelMass = 0.5; // in m0
 
 	double bandedgeDifference = 3.15; // in [eV], Silicon and oxide band edge difference
+	
 	//double siliconBandegde = -0.112; // in [eV]
-	double elecField = 12.9e6; // in [V/cm]
-	double gateVoltage = 4; // in [V]
+	double silicon_bandedge = this->siliconBandEdge;
 
-	//this->cbedgeTunnelFrom = siliconBandegde;
-	this->cbedgeTunnelFrom = this->siliconBandEdge;
+	//double elecField = 12.9e6; // in [V/cm]
+	double elec_field = this->elecField;
+
+	//double gateVoltage = 4; // in [V]
+	double gate_voltage = this->gateVoltage;
+
+	this->cbedgeTunnelFrom = silicon_bandedge;
 	this->fermiEnergyTunnelFrom = 0;
-	this->fermiEnergyTunnelTo = -gateVoltage;
+	this->fermiEnergyTunnelTo = -gate_voltage;
 
 	double deltax = 0;
-	deltax = oxideThickness / gridNumber * SctmPhys::nm_in_cm;
-	double currentX = 0;
+	deltax = oxide_thickness / gridNumber * SctmPhys::nm_in_cm;
 
+	double currentX = 0;
 	double val = 0;
 	for (size_t iVert = 0; iVert != gridNumber + 1; ++iVert)
 	{
@@ -214,7 +221,7 @@ void TunnelTest::PrepareProblem(FDVertex *startVertex)
 		val = (iVert == 0 || iVert == gridNumber) ? deltax / 2 : deltax;
 		this->deltaX.push_back(val);
 
-		val = this->cbedgeTunnelFrom + bandedgeDifference - currentX * elecField;
+		val = this->cbedgeTunnelFrom + bandedgeDifference - currentX * elec_field;
 		this->cbegde.push_back(val);
 
 		this->emass.push_back(this->oxideEmass);
@@ -226,6 +233,10 @@ void TunnelTest::SolveParamterSet()
 	vector<vector<double>> currentMatrix;
 	vector<double> oxideEmassSet;
 	vector<double> siliconBandEdgeSet;
+
+	this->gateVoltage = 4; // [V]
+	this->elecField = 12.9e6; // [V/cm]
+	this->oxideThickness = 3; // [nm]
 
 	double val = 0;
 	for (int ix = 30; ix <= 210; ix += 10) // totally 19 values
@@ -255,4 +266,87 @@ void TunnelTest::SolveParamterSet()
 	}
 	SctmFileOperator writeFile = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelTest.txt", SctmFileOperator::Write);
 	writeFile.Write2DVectorForOrigin(oxideEmassSet, siliconBandEdgeSet, currentMatrix, "Tunneling current -- x: oxide emass -- y: silicon band edge");
+}
+
+void TunnelTest::SolveCalibrate()
+{
+	this->oxideEmass = 0.42; // [m0]
+
+	vector<double> tunnelCurrent;
+	vector<double> voltageSet;
+
+	vector<double> cbedges;
+	vector<double> elecFields;
+
+	for (int ix = 1; ix < 11; ++ix)
+	{
+		voltageSet.push_back(ix);
+	}
+
+	// read-in from the parameter file
+	SctmFileOperator writeFile = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\result.txt", SctmFileOperator::Write);
+	
+	//calculation of tunneling current for 2nm
+	this->oxideThickness = 2;
+	SctmFileOperator readFile_2nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\2nm.txt", SctmFileOperator::Read);
+	readFile_2nm.ReadTunnelParameter(cbedges, elecFields);
+	tunnelCurrent.clear();
+	for (int ix = 0; ix != 10; ++ix)
+	{
+		this->gateVoltage = ix + 1;
+		this->siliconBandEdge = cbedges.at(ix);
+		this->elecField = elecFields.at(ix) * 1e6;
+		this->PrepareProblem(NULL);
+		this->SolveTunneling();
+		tunnelCurrent.push_back(this->currentDensity);
+	}
+	writeFile.WriteVector(tunnelCurrent, "2nm current");
+
+	//calculation of tunneling current for 3nm
+	this->oxideThickness = 3;
+	SctmFileOperator readFile_3nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\3nm.txt", SctmFileOperator::Read);
+	readFile_3nm.ReadTunnelParameter(cbedges, elecFields);
+	tunnelCurrent.clear();
+	for (int ix = 0; ix != 10; ++ix)
+	{
+		this->gateVoltage = ix + 1;
+		this->siliconBandEdge = cbedges.at(ix);
+		this->elecField = elecFields.at(ix) * 1e6;
+		this->PrepareProblem(NULL);
+		this->SolveTunneling();
+		tunnelCurrent.push_back(this->currentDensity);
+	}
+	writeFile.WriteVector(tunnelCurrent, "3nm current");
+	
+	//calculation of tunneling current for 4nm
+	this->oxideThickness = 4;
+	SctmFileOperator readFile_4nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\4nm.txt", SctmFileOperator::Read);
+	readFile_4nm.ReadTunnelParameter(cbedges, elecFields);
+	tunnelCurrent.clear();
+	for (int ix = 0; ix != 10; ++ix)
+	{
+		this->gateVoltage = ix + 1;
+		this->siliconBandEdge = cbedges.at(ix);
+		this->elecField = elecFields.at(ix) * 1e6;
+		this->PrepareProblem(NULL);
+		this->SolveTunneling();
+		tunnelCurrent.push_back(this->currentDensity);
+	}
+	writeFile.WriteVector(tunnelCurrent, "4nm current");
+
+	//calculation of tunneling current for 5nm
+	this->oxideThickness = 5;
+	SctmFileOperator readFile_5nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\5nm.txt", SctmFileOperator::Read);
+	readFile_5nm.ReadTunnelParameter(cbedges, elecFields);
+	tunnelCurrent.clear();
+	for (int ix = 0; ix != 10; ++ix)
+	{
+		this->gateVoltage = ix + 1;
+		this->siliconBandEdge = cbedges.at(ix);
+		this->elecField = elecFields.at(ix) * 1e6;
+		this->PrepareProblem(NULL);
+		this->SolveTunneling();
+		tunnelCurrent.push_back(this->currentDensity);
+	}
+	writeFile.WriteVector(tunnelCurrent, "5nm current");
 }
