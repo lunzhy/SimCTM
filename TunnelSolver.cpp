@@ -284,7 +284,7 @@ void TunnelTest::SolveCalibrate()
 	}
 
 	// read-in from the parameter file
-	SctmFileOperator writeFile = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\result.txt", SctmFileOperator::Write);
+	SctmFileOperator writeFile = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\result.txt", SctmFileOperator::Write);
 	
 	//calculation of tunneling current for 2nm
 	this->oxideThickness = 2;
