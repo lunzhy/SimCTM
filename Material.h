@@ -22,6 +22,8 @@ using std::string;
 namespace MaterialDB
 {
 	/// @brief This class is a data structure to store the parameters for different materials used in the simulation.
+	///
+	/// The data is stored in normalized value
 	class Material
 	{
 	private:
@@ -33,6 +35,11 @@ namespace MaterialDB
 		double		holeMass; ///< hole effective mass, in [m0]
 		double		electronDOS;
 		double		holeDOS;
+		double		electronDiffusion; ///< electron diffusion coefficient, in [D0]
+		double		holeDiffusion; ///< hole diffusion coefficient, in [D0]
+		double		electronMobility; ///< electron mobility
+		double		holeMobility; ///< hole mobility
+		
 	public:
 		/// @brief Material is the construction method of this class
 		///  
@@ -59,6 +66,14 @@ namespace MaterialDB
 		void		ElectronDOS(double val)				{ electronDOS = val;			}
 		double		HoleDOS() const						{ return holeDOS;				}
 		void		HoleDOS(double val)					{ holeDOS = val;				}
+		double		ElectronDiffusion() const			{ return electronDiffusion;		}
+		void		ElectronDiffusion(double val)		{ electronDiffusion = val;		}
+		double		HoleDiffusion() const				{ return holeDiffusion;			}
+		void		HoleDiffusion(double val)			{ holeDiffusion = val;			}
+		double		ElectronMobility() const			{ return electronMobility;		}
+		void		ElectronMobility(double val)		{ electronMobility = val;		}
+		double		HoleMobility() const				{ return holeMobility;			}
+		void		HoleMobility(double val)			{ holeMobility = val;			}
 	};
 
 
@@ -74,7 +89,11 @@ namespace MaterialDB
 			Mat_ElectronMass, ///< electron effective mass of the material
 			Mat_HoleMass, ///< hole effective mass of the material
 			Mat_ElectronDOS, ///< electron density of states of the material
-			Mat_HoleDOS ///< hoe density of states of the material
+			Mat_HoleDOS, ///< hole density of states of the material
+			Mat_ElectronDiffusion, ///< electron drift diffusion of the material
+			Mat_HoleDiffusion, ///< hole drift diffusion of the material
+			Mat_ElectronMobility, ///< electron mobility of the material
+			Mat_HoleMobility, ///< hole mobility of the material
 		};
 	};
 

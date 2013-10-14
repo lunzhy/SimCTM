@@ -43,6 +43,7 @@ namespace MaterialDB
 		Si3N4.ElectronAffinity(1.9);
 		Si3N4.ElectronMass(1); // need to be revised
 		Si3N4.HoleMass(1);
+		Si3N4.ElectronMobility(0.1);
 	}
 
 	double GetMatPrpty(Material *theMaterial, MatProperty::Name prptyName)
@@ -65,6 +66,18 @@ namespace MaterialDB
 			break;
 		case MatProperty::Mat_HoleMass:
 			ret = theMaterial->HoleMass();
+			break;
+		case MatProperty::Mat_ElectronDiffusion:
+			ret = theMaterial->ElectronDiffusion();
+			break;
+		case MatProperty::Mat_HoleDiffusion:
+			ret = theMaterial->HoleDiffusion();
+			break;
+		case MatProperty::Mat_ElectronMobility:
+			ret = theMaterial->HoleMobility();
+			break;
+		case MatProperty::Mat_HoleMobility:
+			ret = theMaterial->HoleMobility();
 			break;
 		default:
 			// use SCTM_CHECK for non-existed property
