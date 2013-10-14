@@ -33,6 +33,7 @@ namespace SctmPhys
 	const double ElectronMass				= 9.10938215e-31;		// in [kg]
 	const double VacuumDielectricConstant	= 8.854187817e-12;		// in [F/m]
 	const double RoomTemperature			= 300;					// in [K]
+	const double IntrinsicConcentration		= 1e10;					// in [cm^-3]
 	
 	// unit conversion
 	const double cm_in_m					= 1e-2;
@@ -45,6 +46,7 @@ namespace SctmPhys
 	extern const double &eps;
 	extern const double &T0;
 	extern const double &q;
+	extern const double &ni;
 	const double hbar = h / 2 / SctmMath::PI;
 
 	

@@ -22,16 +22,17 @@
 using std::vector;
 using SctmMath::SctmSparseMatrixSolver;
 
-class FDVertex;
+class FDDomain;
 class DriftDiffusionSolver
 {
-	friend class SctmUtils::SctmDebug;
+	//friend class SctmUtils::SctmDebug;
 	typedef std::map<int, int> MapForVertex; // <equationID, vertID>
-	typedef std::map<int, double> MapForPrpty; // <vertID, value>
+	typedef std::map<int, double> MapForPrpty; // <vertID, property value>
 public:
-	DriftDiffusionSolver(vector<FDVertex *> _vertices);
+	DriftDiffusionSolver(FDDomain *domain);
 private:
-	vector<FDVertex *> &vertices;
+	vector<FDVertex *> vertices;
+	vector<FDVertex *> &totalVertices;
 
 	double temperature;
 	double timeStep;
@@ -47,12 +48,19 @@ private:
 	SctmSparseMatrixSolver matrixSolver;
 protected:
 	void prepareSolver();
+	void getDDVertices(FDDomain *domain);
 	void buildVertexMap();
 	void setBndCondCurrent(vector<double> &current);
 	void buildCoefficientMatrix();
 	void buildRhsVector();
 	void refreshCoefficientMatrix();
 	void refreshRhs();
+	void setTimeStep();
 };
 
+class DDTest : public DriftDiffusionSolver
+{
+public:
+	DDTest(FDDomain *_domain);
+};
 #endif

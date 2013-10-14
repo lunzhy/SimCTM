@@ -3,6 +3,7 @@
 #include "TunnelSolver.h"
 #include "SctmUtils.h"
 #include "PoissonSolver.h"
+#include "DDSolver.h"
 
 using namespace SctmUtils;
 void initialize()
@@ -37,10 +38,24 @@ void TunnelSolverTest()
 	tunnelDemo->SolveCalibrate();
 }
 
+void DDSolverTest()
+{
+	UtilsTimer.Set();
+	UtilsMsg.PrintHeader("Building a simple ONO domain.");
+	FDDomain *aDomain = new SimpleONO();
+	aDomain->BuildDomain();
+	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+
+	UtilsTimer.Set();
+	UtilsMsg.PrintHeader("Testing the drift diffusion solver.");
+	DDTest *ddSolver = new DDTest(aDomain);
+}
+
 int main()
 {
 	initialize();
-	TunnelSolverTest();
+	DDSolverTest();
+	//TunnelSolverTest();
 	//SctmTest();
 	//SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
 	//tunnelDemo.PrepareProblem(aTest.getVertex(0));

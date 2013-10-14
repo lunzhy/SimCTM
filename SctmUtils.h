@@ -57,6 +57,8 @@ namespace SctmUtils
 		std::clock_t set_time;
 	};
 	
+	
+	/// @brief SctmTimeStep is used to control the time step in the simulation.
 	class SctmTimeStep
 	{
 	public:

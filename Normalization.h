@@ -22,11 +22,13 @@
 /// 
 namespace SctmUtils
 {	
-	const double EPSILON = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm]
-	const double CHARGE = SctmPhys::ElementaryCharge; // in [C]
-	const double BOLTZMAN = SctmPhys::BoltzmanConstant; // in [J/K]
-	const double INTRINSIC_CONC_SI = 1.0e10;// in [cm-3]
-	const double ROOM_TEMP = SctmPhys::RoomTemperature;// in [K]
+	//the initialization of the const for normalization is not used.
+	//const double EPSILON = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm]
+	//const double CHARGE = SctmPhys::ElementaryCharge; // in [C]
+	//const double BOLTZMAN = SctmPhys::BoltzmanConstant; // in [J/K]
+	//const double INTRINSIC_CONC_SI = 1.0e10;// in [cm-3]
+	//const double ROOM_TEMP = SctmPhys::RoomTemperature;// in [K]
+	
 	//the const double cannot be initialized here with other method.
 	//const double RELATIVE_EPSILON_SI = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_DielectricConstant);
 	
@@ -72,6 +74,9 @@ namespace SctmUtils
 		double elecFieldFactor;///< factor of electric field normalization
 		double concFactor;///< factor of concentration normalization, including charge and carrier concentration
 		double temperature;///< factor of the system temperature
+		double diffusionFactor;///< factor of diffusion coefficient
+		double mobilityFactor;///< factor of carrier mobility
+		double timeFactor;///factor of time step
 	public:
 
 		/// @brief The method for normalization of the parameters.
@@ -108,7 +113,7 @@ namespace SctmUtils
 		/// @note
 		void ConverseLengthVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
 
-		//in [V]
+		//potential, in [V]
 		inline double PushPotential(double potential)
 		{
 			return potential / potentialFactor;
@@ -118,7 +123,8 @@ namespace SctmUtils
 			return potential * potentialFactor;
 		}
 		void ConversePotentialVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
-		//in [V*cm-1]
+		
+		//in electric field, in [V*cm^-1]
 		inline double PushElecField(double elecField)
 		{
 			return elecField / elecFieldFactor;
@@ -128,7 +134,8 @@ namespace SctmUtils
 			return elecField * elecFieldFactor;
 		}
 		void ConverseElecFieldVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
-		//in [cm-3]
+		
+		//concentration, in [cm^-3]
 		inline double PushConcentration(double conc)
 		{
 			return conc / concFactor;
@@ -138,6 +145,36 @@ namespace SctmUtils
 			return conc * concFactor;
 		}
 		void ConveseConcVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
+		
+		//diffusion coefficient, in [cm^2/s]
+		inline double PushDiffusion(double diffusion)
+		{
+			return diffusion / diffusionFactor;
+		}
+		inline double PullDiffusion(double diffusion)
+		{
+			return diffusion * diffusionFactor;
+		}
+
+		//mobility, in [cm^2/V/s]
+		inline double PushMobility(double mobility)
+		{
+			return mobility / mobilityFactor;
+		}
+		inline double PullMobility(double mobility)
+		{
+			return mobility * mobilityFactor;
+		}
+
+		//time step, in [s]
+		inline double PushTime(double time)
+		{
+			return time / timeFactor;
+		}
+		inline double PullTime(double time)
+		{
+			return time * timeFactor;
+		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.
 		/// 

@@ -22,11 +22,11 @@
 
 /// @brief FDDomain describes the simulation domain in finite differential method.
 ///
-/// This class is used as a base class for FD domain. It only contains the general properties in FD domain.
+/// This class is used as a base class for FD domain. It only contains the general properties in FD domain
 class FDDomain
 {
-public:
 	friend class SctmUtils::SctmDebug;
+public:
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 
 	/// This class in a virtual class. The detailed implementation of this class, i.e. detailed information

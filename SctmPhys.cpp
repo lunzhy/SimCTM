@@ -24,6 +24,7 @@ namespace SctmPhys
 	const double &eps = VacuumDielectricConstant;
 	const double &T0 = RoomTemperature;
 	const double &q = ElementaryCharge;
+	const double &ni = IntrinsicConcentration;
 	
 	double ReferencePotential;
 

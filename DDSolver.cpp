@@ -12,14 +12,14 @@
 */
 
 #include "DDSolver.h"
-#include "DomainDetails.h"
+#include "FDDomain.h"
 #include "Material.h"
 #include "SctmPhys.h"
 using namespace SctmPhys;
 
-DriftDiffusionSolver::DriftDiffusionSolver(vector<FDVertex *> _vertices)
-	:vertices(_vertices)
+DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
 {
+	getDDVertices(domain);
 	prepareSolver();
 }
 
@@ -31,7 +31,7 @@ void DriftDiffusionSolver::prepareSolver()
 	this->rhsVector.resize(vertSize);
 	this->eDensity.resize(vertSize);
 
-	this->temperature = 300; //temporarily used here
+	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
 	buildCoefficientMatrix();
 	buildRhsVector();
@@ -239,4 +239,35 @@ void DriftDiffusionSolver::refreshRhs()
 void DriftDiffusionSolver::refreshCoefficientMatrix()
 {
 	//The boundary conditions are always BC_Dirichlet, so there is no need refreshing the matrix.
+}
+
+void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
+{
+	FDVertex *currVert = NULL;
+
+	for (size_t iVert = 0; iVert != this->totalVertices.size(); ++iVert)
+	{
+		currVert = this->totalVertices.at(iVert);
+		if (
+			((currVert->NorthwestElem != NULL) 
+			&& (currVert->NorthwestElem->Region->Type == FDRegion::Trapping))
+			
+			||((currVert->NortheastElem != NULL) 
+			&& (currVert->NortheastElem->Region->Type == FDRegion::Trapping))
+			
+			||((currVert->SoutheastElem != NULL) 
+			&& (currVert->SoutheastElem->Region->Type == FDRegion::Trapping))
+			
+			||((currVert->SouthwestElem != NULL) 
+			&& (currVert->SouthwestElem->Region->Type == FDRegion::Trapping))
+		   )
+		{
+			this->vertices.push_back(currVert);
+		}
+	}
+}
+
+DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
+{
+
 }
