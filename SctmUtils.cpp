@@ -14,6 +14,7 @@
 #include "FDDomain.h"
 #include "DomainDetails.h"
 #include "Material.h"
+#include "Normalization.h"
 #include <iomanip>
 #include <cstring>
 #include <fstream>
@@ -27,6 +28,7 @@ namespace SctmUtils
 	SctmMessaging UtilsMsg = SctmMessaging();
 	SctmTimer UtilsTimer = SctmTimer();
 	SctmDebug UtilsDebug = SctmDebug();
+	SctmTimeStep UtilsTimeStep = SctmTimeStep();
 
 	void SctmTimer::Start()
 	{
@@ -127,30 +129,40 @@ namespace SctmUtils
 		for (size_t iVert = 0; iVert != domain.vertices.size(); ++iVert)
 		{
 			currVert = domain.GetVertex(iVert);
-			PrintValue(currVert->GetID()); cout << " -- ";
+			PrintValue(currVert->GetID());
+			cout << " -- ";
 			PrintValue(currVert->IsAtContact());
 			PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
 			if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
-			PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetID());
-			PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
-			PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
-			PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID()); cout << " -- ";
 			PrintValue(currVert->EastLength);
 			PrintValue(currVert->WestLength);
 			PrintValue(currVert->SouthLength);
-			PrintValue(currVert->NorthLength); cout << " -- ";
+			PrintValue(currVert->NorthLength);
+			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetID());
+			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
+			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
+			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID());
+			cout << " -- ";
+			PrintValue(currVert->EastLength);
+			PrintValue(currVert->WestLength);
+			PrintValue(currVert->SouthLength);
+			PrintValue(currVert->NorthLength);
+			cout << " -- ";
 			PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
 			PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
 			PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
-			PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID()); cout << " -- ";
-			PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity)); cout << " -- ";
-			PrintValue(currVert->NorthwestElem==NULL ? -1 : GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
-			PrintValue(currVert->NortheastElem==NULL ? -1 : GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_Bandgap));;
-			PrintValue(currVert->SouthwestElem==NULL ? -1 : GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
-			PrintValue(currVert->SoutheastElem==NULL ? -1 : GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_Bandgap));
+			PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
+			cout << " -- ";
+			PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::eMobility));
+			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			cout << " -- ";
+			//PrintValue(currVert->NorthwestElem==NULL ? -1 : GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
+			//PrintValue(currVert->NortheastElem==NULL ? -1 : GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_Bandgap));;
+			//PrintValue(currVert->SouthwestElem==NULL ? -1 : GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
+			//PrintValue(currVert->SoutheastElem==NULL ? -1 : GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_Bandgap));
 			cout << endl;
 		}
 	}
@@ -177,7 +189,7 @@ namespace SctmUtils
 		PrintValue(typestring);
 	}
 
-	void SctmDebug::PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix)
+	void SctmDebug::PrintSparseMatrix(const Eigen::SparseMatrix<double> &matrix)
 	{
 		if (!this->enable)
 			return;
@@ -256,7 +268,7 @@ namespace SctmUtils
 		string msg = "Time elapsed: ";
 		cout.setf(std::ios::fixed);
 		cout.precision(3);
-		cout << msg << time << "s" << endl;
+		cout << msg << time << "s" << endl << endl;
 		cout.unsetf(std::ios::fixed);
 		cout.precision(6);
 		return;
@@ -345,6 +357,20 @@ namespace SctmUtils
 			file >> val; elecfields.push_back(val);
 			file >> val; cbedges.push_back(val);
 		}
+	}
+
+
+	SctmTimeStep::SctmTimeStep()
+	{
+		Normalization norm = Normalization();
+		this->timeNormFactor = norm.timeFactor;
+	}
+
+	double SctmTimeStep::NextTimeStep()
+	{
+		//TODO: currently, constant time step is used in the simulation
+		double timestep = 1e-8;
+		return timestep / timeNormFactor;
 	}
 
 }

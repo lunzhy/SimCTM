@@ -23,22 +23,23 @@
 namespace SctmUtils
 {	
 	//the initialization of the const for normalization is not used.
-	//const double EPSILON = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm]
-	//const double CHARGE = SctmPhys::ElementaryCharge; // in [C]
-	//const double BOLTZMAN = SctmPhys::BoltzmanConstant; // in [J/K]
-	//const double INTRINSIC_CONC_SI = 1.0e10;// in [cm-3]
-	//const double ROOM_TEMP = SctmPhys::RoomTemperature;// in [K]
+	/*
+	const double EPSILON = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm]
+	const double CHARGE = SctmPhys::ElementaryCharge; // in [C]
+	const double BOLTZMAN = SctmPhys::BoltzmanConstant; // in [J/K]
+	const double INTRINSIC_CONC_SI = 1.0e10;// in [cm-3]
+	const double ROOM_TEMP = SctmPhys::RoomTemperature;// in [K]
+	*/
 	
 	//the const double cannot be initialized here with other method.
 	//const double RELATIVE_EPSILON_SI = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_DielectricConstant);
-	
-	
 	
 	/// @brief This class defines the normalization methods for the values used in the simulation
 	///
 	///
 	class Normalization
 	{
+		friend class SctmTimeStep;
 	public:
 		/// @brief physical parameter normalization conversion direction
 		///

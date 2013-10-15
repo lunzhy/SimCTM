@@ -43,18 +43,61 @@ namespace SctmUtils
 	/// @brief This class is used to deal with the timing problems in the simulation
 	class SctmTimer
 	{
-		static const int clockPerSecond = CLOCKS_PER_SEC;
+		static const int clockPerSecond = CLOCKS_PER_SEC; ///< the number of inner clock times per second. CLOCKS_PER_SEC is in ctime
 	public:
+		/// @brief SctmTimer is the construction method of the SctmTimer.
+		/// 
+		///
+		/// 
+		/// @pre
+		/// @return 
+		/// @note
 		SctmTimer(): start_time(0), end_time(0), set_time(0) {}
+		/// @brief Start is used to start or restart the timer.
+		/// 
+		///
+		/// 
+		/// @pre
+		/// @return void
+		/// @note
 		void Start();
+		/// @brief Set is used to set the current time in the timer.
+		/// 
+		/// Set is called to save current time in the beginning of executing certain procedures.
+		/// After the procedures are finished. SinceLastSet is used to obtain total time of the procedures.
+		/// 
+		/// @pre
+		/// @return void
+		/// @note
 		void Set();
+		/// @brief End is used to end the timer.
+		/// 
+		///
+		/// 
+		/// @pre
+		/// @return void
+		/// @note
 		void End();
+		/// @brief SinceLastSet returns the time elapsed from last set of the timer.
+		/// 
+		/// The timer will still go on when this method is called. It only returns the time elapsed from last set of the timer.
+		/// 
+		/// @pre
+		/// @return double
+		/// @note
 		double SinceLastSet();
+		/// @brief TotalTime is used to return the total time elapsed.
+		/// 
+		/// This method should be called after End() is called. 
+		/// 
+		/// @pre
+		/// @return double
+		/// @note
 		double TotalTime();
 	protected:
-		std::clock_t start_time;
-		std::clock_t end_time;
-		std::clock_t set_time;
+		std::clock_t start_time; ///< the start time of the timer, in inner clock unit
+		std::clock_t end_time; ///< the end time of the timer, in inner clock unit
+		std::clock_t set_time; ///< the time of setting the timer, in inner clock unit
 	};
 	
 	
@@ -62,7 +105,10 @@ namespace SctmUtils
 	class SctmTimeStep
 	{
 	public:
+		SctmTimeStep();
 		double NextTimeStep();
+	protected:
+		double timeNormFactor; ///< the factor of normalizing the time
 	};
 
 	/// @brief The methods used in debugging are defined in this class.
@@ -98,7 +144,7 @@ namespace SctmUtils
 		/// @note
 		static void ErrorCodeParser(int err_code);
 		void PrintDomainDetails(FDDomain &domain);
-		void PrintSparseMatrix(Eigen::SparseMatrix<double> &matrix);
+		void PrintSparseMatrix(const Eigen::SparseMatrix<double> &matrix);
 		void PrintSparseMatrixRow(Eigen::SparseMatrix<double> &matrix, int rowIndex);
 		void PrintVector(const std::vector<double> &vec, const char *title = "");
 		void PrintValue(int i) { std::cout << i << " ";}
@@ -142,6 +188,7 @@ namespace SctmUtils
 	extern SctmMessaging UtilsMsg;
 	extern SctmTimer UtilsTimer;
 	extern SctmDebug UtilsDebug;
+	extern SctmTimeStep UtilsTimeStep;
 }
 
 #endif

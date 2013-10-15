@@ -34,10 +34,12 @@ Normalization::~Normalization(void)
 void Normalization::initFactors()
 {
 	//this is not used.
-	//this->lengthFactor = SctmMath::sqrt(EPSILON * BOLTZMAN * this->temperature / CHARGE / CHARGE / INTRINSIC_CONC_SI);
-	//this->potentialFactor = BOLTZMAN * this->temperature / CHARGE;
-	//this->elecFieldFactor = potentialFactor / lengthFactor;
-	//this->concFactor = INTRINSIC_CONC_SI;
+	/*
+	this->lengthFactor = SctmMath::sqrt(EPSILON * BOLTZMAN * this->temperature / CHARGE / CHARGE / INTRINSIC_CONC_SI);
+	this->potentialFactor = BOLTZMAN * this->temperature / CHARGE;
+	this->elecFieldFactor = potentialFactor / lengthFactor;
+	this->concFactor = INTRINSIC_CONC_SI;
+	*/
 
 	const double eps0 = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm], important
 	const double k0 = SctmPhys::k0;

@@ -141,8 +141,8 @@ void SimpleONO::setDomainDetails()
 		{
 			//currCoordX = ix * xGrid;
 			//the coordinates are normalized before pushing into vertex
-			normCoordX = theNorm.PushLength(currCoordX * nm_in_cm);
-			normCoordY = theNorm.PushLength(currCoordY * nm_in_cm);
+			normCoordX = theNorm.PushLength(currCoordX); //the value of currCoordX is already in cm
+			normCoordY = theNorm.PushLength(currCoordY); //the value of currCoordY is already in cm
 			vertices.push_back(new FDVertex(cntVertex, normCoordX, normCoordY));
 			cntVertex++;
 			currCoordX += xNextGridLength(ix);//non-normalized value, in cm
@@ -425,10 +425,11 @@ void SimpleONO::setVertexPhysics()
 	using std::vector;
 
 	vector<MatProperty::Name> matPrptys;
-	vector<PhysProperty::Name> vertexPhyPrpty;
-	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); vertexPhyPrpty.push_back(PhysProperty::ElectronAffinity);
-	matPrptys.push_back(MatProperty::Mat_ElectronMass); vertexPhyPrpty.push_back(PhysProperty::eMass);
-	matPrptys.push_back(MatProperty::Mat_Bandgap); vertexPhyPrpty.push_back(PhysProperty::Bandgap);
+	vector<PhysProperty::Name> verPrptys; //vertex-based physical property
+	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); verPrptys.push_back(PhysProperty::ElectronAffinity);
+	matPrptys.push_back(MatProperty::Mat_ElectronMass); verPrptys.push_back(PhysProperty::eMass);
+	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
+	matPrptys.push_back(MatProperty::Mat_ElectronMobility); verPrptys.push_back(PhysProperty::eMobility);
 
 	//iteration over the vertices
 	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)
@@ -438,6 +439,9 @@ void SimpleONO::setVertexPhysics()
 		for (std::size_t iPrpty = 0; iPrpty != matPrptys.size(); ++iPrpty)
 		{
 			//TODO: The method for filling vertex-based physical value using material-based value is ready
+			currVertex->Phys.FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
+
+			/*
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;
 			tot += ( currElem != NULL ) ? currElem->Area : 0;
@@ -456,7 +460,8 @@ void SimpleONO::setVertexPhysics()
 			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
 
 			physValue = sum / tot;
-			currVertex->Phys.SetPhysPrpty(vertexPhyPrpty.at(iPrpty), physValue);
+			currVertex->Phys.SetPhysPrpty(verPrptys.at(iPrpty), physValue);
+			*/
 		}
 	}
 }

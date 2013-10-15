@@ -16,11 +16,13 @@
 #include "Material.h"
 #include "SctmPhys.h"
 using namespace SctmPhys;
+using namespace SctmUtils;
 
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
 {
 	getDDVertices(domain);
-	prepareSolver();
+	//for testing the DD solver, the preparation is done in the DDTest class.
+	//prepareSolver();
 }
 
 void DriftDiffusionSolver::prepareSolver()
@@ -33,6 +35,7 @@ void DriftDiffusionSolver::prepareSolver()
 
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
+	setTimeStep();
 	buildCoefficientMatrix();
 	buildRhsVector();
 	//the structure does not change, so the final coefficient matrix after refreshing does not change either
@@ -107,7 +110,10 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		deltaY = (currVert->NorthLength + currVert->SouthLength) / 2;
 
 		//the initial filling method can be used for boundary vertices and non-boundary vertices
-		if ( currVert->EastVertex != NULL )
+		if (   (currVert->EastVertex != NULL)
+			 &&( (currVert->NortheastElem == NULL ? false : currVert->NortheastElem->Region->Type == FDRegion::Trapping)
+			   ||(currVert->SoutheastElem == NULL ? false : currVert->SoutheastElem->Region->Type == FDRegion::Trapping) )
+		   )
 		{
 			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->EastVertex->GetID()];
@@ -121,7 +127,10 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
 
-		if ( currVert->WestVertex != NULL )
+		if (   (currVert->WestVertex != NULL)
+		     &&( (currVert->NorthwestElem == NULL ? false : currVert->NorthwestElem->Region->Type == FDRegion::Trapping)
+			   ||(currVert->SouthwestElem == NULL ? false : currVert->SouthwestElem->Region->Type == FDRegion::Trapping) )
+		   )
 		{
 			mobility = (mobilityMap[currVert->WestVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->WestVertex->GetID()];
@@ -135,7 +144,10 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
 
-		if ( currVert->NorthVertex != NULL )
+		if (   (currVert->NorthVertex != NULL)
+			 &&( (currVert->NortheastElem == NULL ? false : currVert->NortheastElem->Region->Type == FDRegion::Trapping)
+			   ||(currVert->NorthwestElem == NULL ? false : currVert->NorthwestElem->Region->Type == FDRegion::Trapping) )
+		   )
 		{
 			mobility = (mobilityMap[currVert->NorthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->NorthVertex->GetID()];
@@ -149,7 +161,10 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
 
-		if ( currVert->SouthVertex != NULL )
+		if (   (currVert->SouthVertex != NULL)
+			 &&( (currVert->SoutheastElem == NULL ? false : currVert->SoutheastElem->Region->Type == FDRegion::Trapping)
+			   ||(currVert->SouthwestElem == NULL ? false : currVert->SouthwestElem->Region->Type == FDRegion::Trapping))
+		   )
 		{
 			mobility = (mobilityMap[currVert->SouthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->SouthVertex->GetID()];
@@ -163,10 +178,11 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
 
-
 		coeff_center += -1 / timeStep; // from pn/pt, p=partial differential
+
+		indexCoefficient = vertMap[currVert->GetID()];
  		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
-		//indexCoefficent = indexEquation = vertMap[currVert->GetInternalID]
+		//indexCoefficent = indexEquation = vertMap[currVert->GetID]
 		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
 	}
 }
@@ -267,7 +283,62 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 	}
 }
 
+void DriftDiffusionSolver::setTimeStep()
+{
+	timeStep = UtilsTimeStep.NextTimeStep();
+}
+
 DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
 {
+	prepareSolver();
+}
 
+void DDTest::prepareSolver()
+{
+	SctmUtils::UtilsMsg.PrintHeader("Solving Drift-Diffusion");
+
+	int vertSize = this->vertices.size();
+	this->rhsVector.resize(vertSize);
+	this->eDensity.resize(vertSize);
+
+	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
+	buildVertexMap();
+	setTimeStep();
+	buildCoefficientMatrix();
+	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	buildRhsVector();
+	UtilsDebug.PrintVector(rhsVector);
+	//the structure does not change, so the final coefficient matrix after refreshing does not change either
+	refreshCoefficientMatrix();
+}
+
+void DDTest::buildVertexMap()
+{
+	std::pair<MapForVertex::iterator, bool> insertPairVertex;
+	std::pair<MapForPrpty::iterator, bool> insertPairPrpty;
+	int vertID = 0;
+	int equationID = 0;
+	double phyValue = 0;
+	FDVertex *currVert = NULL;
+
+	//this map is filled in order to obtain the vertex index from the vertex internal id. This is useful
+	//in setting up the equation, i.e. filling the matrix.
+	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		equationID = iVert; //equation index is also the vertex index in the vertices container
+		insertPairVertex = this->vertMap.insert(MapForVertex::value_type(vertID, equationID));
+		SCTM_ASSERT(insertPairVertex.second==true, 10011);
+
+		insertPairPrpty = this->mobilityMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eMobility)));
+		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
+
+		insertPairPrpty = this->potentialMap.insert(MapForPrpty::value_type(vertID, 0)); // suppose no electronic field exists
+		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
+
+		insertPairPrpty = this->lastDensityMap.insert(MapForPrpty::value_type(vertID, 0)); // suppose the initial carrier density is 0
+		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
+	}
 }

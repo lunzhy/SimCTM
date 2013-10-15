@@ -30,7 +30,7 @@ class DriftDiffusionSolver
 	typedef std::map<int, double> MapForPrpty; // <vertID, property value>
 public:
 	DriftDiffusionSolver(FDDomain *domain);
-private:
+protected:
 	vector<FDVertex *> vertices;
 	vector<FDVertex *> &totalVertices;
 
@@ -62,5 +62,8 @@ class DDTest : public DriftDiffusionSolver
 {
 public:
 	DDTest(FDDomain *_domain);
+protected:
+	void prepareSolver();
+	void buildVertexMap();
 };
 #endif

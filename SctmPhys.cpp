@@ -159,9 +159,9 @@ namespace SctmPhys
 		double mn = GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronMass);
 		double bandgap = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_Bandgap);
 		//the value of reference potential is
-		//electron affinity + Eg/2 + 3/4*kT/q*ln(mp/mn)
-		ReferencePotential = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronAffinity)
-			+ bandgap / 2 - 3/4 * k0 * T0 / q * SctmMath::ln( mp / mn);
+		//phi(electron affinity) + Eg/2 + 3/4*kT/q*ln(mp/mn)
+		SctmPhys::ReferencePotential = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronAffinity)
+										+ bandgap / 2 - 3/4 * k0 * T0 / q * SctmMath::ln( mp / mn);
 	}
 
 }

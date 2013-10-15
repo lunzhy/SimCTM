@@ -44,6 +44,7 @@ void DDSolverTest()
 	UtilsMsg.PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
+	//UtilsDebug.PrintDomainDetails(*aDomain);
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 
 	UtilsTimer.Set();
