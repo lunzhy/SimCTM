@@ -34,7 +34,7 @@ void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, doubl
 	{
 	case BC_Dirichlet:
 		this->bc_values[bcName] = bcValue1;
-		this->bc_values_second[bcName] = bcValue2; //BC_Dirichlet might have the second value (Current)
+		this->bc_values_second[bcName] = bcValue2; //BC_Dirichlet might have the second value (in case of current)
 		break;
 	case BC_Neumann:
 		this->bc_values[bcName] = bcValue1;
@@ -83,6 +83,17 @@ bool FDBoundary::Valid(BCName bcName)
 	//iter = this->bc_valid.find(bcName);
 	//SCTM_ASSERT(iter!=this->bc_valid.end(), 10010);
 	//return iter->second;
+}
+
+void FDBoundary::RefreshBndCondValue(BCName bcName, double bcValue1, double bcValue2)
+{
+	//check if the boundary condition exist.
+	map<BCName, BCType>::iterator iter;
+	iter = this->bc_types.find(bcName);
+	SCTM_ASSERT(iter!=this->bc_types.end(), 10014);
+
+	this->bc_values[bcName] = bcValue1;
+	this->bc_values_second[bcName] = bcValue2;
 }
 
 FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)

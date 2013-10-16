@@ -25,13 +25,18 @@ DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(doma
 	//prepareSolver();
 }
 
+void DriftDiffusionSolver::SolveDD()
+{
+	
+}
+
 void DriftDiffusionSolver::prepareSolver()
 {
 	SctmUtils::UtilsMsg.PrintHeader("Solving Drift-Diffusion");
 	
 	int vertSize = this->vertices.size();
 	this->rhsVector.resize(vertSize);
-	this->eDensity.resize(vertSize);
+	this->elecDensity.resize(vertSize);
 
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
@@ -68,14 +73,13 @@ void DriftDiffusionSolver::buildVertexMap()
 		insertPairPrpty = this->potentialMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastDensityMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)));
+		insertPairPrpty = this->lastElecDensMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }
 
-void DriftDiffusionSolver::setBndCondCurrent(vector<double> &current)
+void DriftDiffusionSolver::setBndCondCurrent(vector<double> &in_current)
 {
-
 }
 
 void DriftDiffusionSolver::buildCoefficientMatrix()
@@ -97,6 +101,8 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 	double deltaY = 0; // dJ/dy
 
 	double KT_div_q = SctmPhys::k0 * this->temperature / SctmPhys::q;
+	//we should consider the normalized current equation
+	//for electron, J = -u[ n * p_phi/p_x - p_n/p_x ]
 
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
@@ -108,6 +114,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		// in the boundary cases, the length of one or two direction may be zero 
 		deltaX = (currVert->EastLength + currVert->WestLength) / 2;
 		deltaY = (currVert->NorthLength + currVert->SouthLength) / 2;
+		SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
 		//the initial filling method can be used for boundary vertices and non-boundary vertices
 		if (   (currVert->EastVertex != NULL)
@@ -117,12 +124,10 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		{
 			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->EastVertex->GetID()];
-			coeff_adjacent = mobility / currVert->EastLength / deltaX *
-				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
-				+ KT_div_q );
-			coeff_center += mobility / currVert->EastLength / deltaX *
-				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
-				- KT_div_q );
+			coeff_adjacent = - mobility / currVert->EastLength / deltaX *
+				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 );
+			coeff_center += - mobility / currVert->EastLength / deltaX *
+				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 + 1 );
 
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
@@ -134,12 +139,10 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		{
 			mobility = (mobilityMap[currVert->WestVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->WestVertex->GetID()];
-			coeff_adjacent = mobility / currVert->WestLength / deltaX *
-				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) /2 
-				+ KT_div_q );
-			coeff_center += mobility / currVert->WestLength / deltaX *
-				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) /2 
-				- KT_div_q );
+			coeff_adjacent = - mobility / currVert->WestLength / deltaX *
+				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) /2 - 1 );
+			coeff_center += - mobility / currVert->WestLength / deltaX *
+				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) /2 + 1 );
 
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
@@ -151,12 +154,10 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		{
 			mobility = (mobilityMap[currVert->NorthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->NorthVertex->GetID()];
-			coeff_adjacent = mobility / currVert->NorthLength / deltaY *
-				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
-				+ KT_div_q );
-			coeff_center += mobility / currVert->NorthLength / deltaY *
-				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
-				- KT_div_q );
+			coeff_adjacent = - mobility / currVert->NorthLength / deltaY *
+				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 );
+			coeff_center += - mobility / currVert->NorthLength / deltaY *
+				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 + 1 );
 
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
@@ -168,17 +169,15 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		{
 			mobility = (mobilityMap[currVert->SouthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
 			indexCoefficient = vertMap[currVert->SouthVertex->GetID()];
-			coeff_adjacent = mobility / currVert->SouthLength / deltaY *
-				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
-				+ KT_div_q );
-			coeff_center += mobility / currVert->SouthLength / deltaY *
-				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2
-				- KT_div_q );
+			coeff_adjacent = - mobility / currVert->SouthLength / deltaY *
+				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 );
+			coeff_center += - mobility / currVert->SouthLength / deltaY *
+				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 + 1 );
 
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
 
-		coeff_center += -1 / timeStep; // from pn/pt, p=partial differential
+		coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
 
 		indexCoefficient = vertMap[currVert->GetID()];
  		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
@@ -194,7 +193,7 @@ void DriftDiffusionSolver::buildRhsVector()
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		rhsVal = -lastDensityMap[currVert->GetID()] / timeStep;
+		rhsVal = -lastElecDensMap[currVert->GetID()] / timeStep;
 		this->rhsVector.at(iVert) = rhsVal;
 	}
 }
@@ -213,41 +212,46 @@ void DriftDiffusionSolver::refreshRhs()
 
 		//the vertex is at current density boundary condition
 		equationID = vertMap[currVert->GetID()]; //equationIndex = iVert
-		if (currVert->BndCond.GetBCType(FDBoundary::eCurrentDensity) != FDBoundary::BC_Dirichlet)
-			continue;
+		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eCurrentDensity) == FDBoundary::BC_Dirichlet, 10013);
+		//if (currVert->BndCond.GetBCType(FDBoundary::eCurrentDensity) != FDBoundary::BC_Dirichlet)
+		//	continue;
 
 		//the vertex is at BC_Dirichlet boundary condition
 		//only solve DD equation in trapping region
 		if ( currVert->WestVertex == NULL
-			|| (currVert->WestVertex->NorthwestElem == NULL ? false : currVert->WestVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
-			|| (currVert->WestVertex->SouthwestElem == NULL ? false : currVert->WestVertex->SouthwestElem->Region->Type != FDRegion::Trapping) )
+			||(  (currVert->WestVertex->NorthwestElem == NULL ? true : currVert->WestVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
+			   &&(currVert->WestVertex->SouthwestElem == NULL ? true : currVert->WestVertex->SouthwestElem->Region->Type != FDRegion::Trapping) )
+		   )
 		{
 			bcVal = currVert->BndCond.GetBCValueWestEast(FDBoundary::eCurrentDensity);
-			rhsVector.at(equationID) += 1 / q * bcVal / (currVert->EastLength / 2);
+			rhsVector.at(equationID) += bcVal / (currVert->EastLength / 2);
 		}
 
 		if ( currVert->EastVertex == NULL
-			|| (currVert->EastVertex->NortheastElem == NULL ? false : currVert->EastVertex->NortheastElem->Region->Type != FDRegion::Trapping)
-			|| (currVert->EastVertex->SoutheastElem == NULL ? false : currVert->EastVertex->SoutheastElem->Region->Type != FDRegion::Trapping) )
+			||(  (currVert->EastVertex->NortheastElem == NULL ? true : currVert->EastVertex->NortheastElem->Region->Type != FDRegion::Trapping)
+			   &&(currVert->EastVertex->SoutheastElem == NULL ? true : currVert->EastVertex->SoutheastElem->Region->Type != FDRegion::Trapping) )
+		   )
 		{
 			bcVal = currVert->BndCond.GetBCValueWestEast(FDBoundary::eCurrentDensity);
-			rhsVector.at(equationID) += -1 / q * bcVal / (currVert->WestLength / 2);
+			rhsVector.at(equationID) += - bcVal / (currVert->WestLength / 2);
 		}
 
 		if ( currVert->SouthVertex == NULL
-			|| (currVert->SouthVertex->SoutheastElem == NULL ? false : currVert->SouthVertex->SoutheastElem->Region->Type != FDRegion::Trapping)
-			|| (currVert->SouthVertex->SouthwestElem == NULL ? false : currVert->SouthVertex->SouthwestElem->Region->Type != FDRegion::Trapping) )
+			||(  (currVert->SouthVertex->SoutheastElem == NULL ? true : currVert->SouthVertex->SoutheastElem->Region->Type != FDRegion::Trapping)
+			   &&(currVert->SouthVertex->SouthwestElem == NULL ? true : currVert->SouthVertex->SouthwestElem->Region->Type != FDRegion::Trapping) )
+		   )
 		{
 			bcVal = currVert->BndCond.GetBCValueSouthNorth(FDBoundary::eCurrentDensity);
-			rhsVector.at(equationID) += 1 / q * bcVal / (currVert->NorthLength / 2);
+			rhsVector.at(equationID) += bcVal / (currVert->NorthLength / 2);
 		}
 
 		if ( currVert->NorthVertex == NULL
-			|| (currVert->NorthVertex->NorthwestElem == NULL ? false : currVert->NorthVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
-			|| (currVert->NorthVertex->NortheastElem == NULL ? false : currVert->NorthVertex->NortheastElem->Region->Type != FDRegion::Trapping) )
+			||(  (currVert->NorthVertex->NorthwestElem == NULL ? true : currVert->NorthVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
+			   &&(currVert->NorthVertex->NortheastElem == NULL ? true : currVert->NorthVertex->NortheastElem->Region->Type != FDRegion::Trapping) )
+		   )
 		{
 			bcVal = currVert->BndCond.GetBCValueSouthNorth(FDBoundary::eCurrentDensity);
-			rhsVector.at(equationID) += -1 / q * bcVal / (currVert->SouthLength / 2);
+			rhsVector.at(equationID) += - bcVal / (currVert->SouthLength / 2);
 		}
 	}
 }
@@ -299,7 +303,7 @@ void DDTest::prepareSolver()
 
 	int vertSize = this->vertices.size();
 	this->rhsVector.resize(vertSize);
-	this->eDensity.resize(vertSize);
+	this->elecDensity.resize(vertSize);
 
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
@@ -338,7 +342,40 @@ void DDTest::buildVertexMap()
 		insertPairPrpty = this->potentialMap.insert(MapForPrpty::value_type(vertID, 0)); // suppose no electronic field exists
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastDensityMap.insert(MapForPrpty::value_type(vertID, 0)); // suppose the initial carrier density is 0
+		insertPairPrpty = this->lastElecDensMap.insert(MapForPrpty::value_type(vertID, 0)); // suppose the initial carrier density is 0
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
+}
+
+void DDTest::setBndCondCurrent()
+{
+	FDVertex *currVert = NULL;
+	int equaID = 0;
+	double bcVal = -1e-3; 
+	// current density at boundary for test, in [A/cm^2]
+	// note that the current direction is the reversed direction of electron flow
+
+	Normalization norm = Normalization();
+
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		//for the current tunneling from tunneling oxide
+		if (  currVert->IsAtBoundary(FDBoundary::eCurrentDensity) 
+			&&( (currVert->SoutheastElem == NULL ? false : currVert->SoutheastElem->Region->Type == FDRegion::Tunneling)
+			||(currVert->SouthwestElem == NULL ? false : currVert->SouthwestElem->Region->Type == FDRegion::Tunneling) )
+			)
+		{
+			currVert->BndCond.RefreshBndCondValue(FDBoundary::eCurrentDensity, 0, norm.PushCurrDens(bcVal));
+		}
+	}
+}
+
+void DDTest::SolveDD()
+{
+	setBndCondCurrent();
+	refreshRhs();
+	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
+	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
+	UtilsDebug.PrintVector(this->elecDensity, "electron density");
 }

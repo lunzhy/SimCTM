@@ -539,12 +539,13 @@ void SimpleONO::setBoundaryCondition()
 			if ( (currVertex->NorthwestElem == NULL) || (currVertex->NortheastElem == NULL) ||
 				 (currVertex->SouthwestElem == NULL) || (currVertex->SoutheastElem == NULL)) 
 			{
-				//both two values are of no use to artificial boundary conditions
+				//both two boundary condition values can be neglected in artificial boundary conditions
 				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Artificial);
-				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Artificial);
+				//currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Artificial);
 			}
 
-			//the following is used to set the current boundary conditions
+			//the following is used to set the current boundary conditions in for simple structures.
+			//TODO: for complicated structures, this method is not checked.
 			if ( 
 				(( currVertex->NortheastElem == NULL ? false : currVertex->NortheastElem->Region->Type == FDRegion::Blocking )
 				|| ( currVertex->NorthwestElem == NULL ? false : currVertex->NorthwestElem->Region->Type == FDRegion::Blocking ))

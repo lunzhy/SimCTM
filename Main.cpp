@@ -44,12 +44,14 @@ void DDSolverTest()
 	UtilsMsg.PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
-	//UtilsDebug.PrintDomainDetails(*aDomain);
+	UtilsDebug.PrintDomainDetails(*aDomain);
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 
 	UtilsTimer.Set();
 	UtilsMsg.PrintHeader("Testing the drift diffusion solver.");
 	DDTest *ddSolver = new DDTest(aDomain);
+
+	ddSolver->SolveDD();
 }
 
 int main()

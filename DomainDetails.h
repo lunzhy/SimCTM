@@ -59,11 +59,25 @@ public:
 	/// @return 
 	/// @note
 	FDBoundary(){}
+	/// @brief RefreshBndCondValue is called to refresh the boundary condition value with given boundary condition name.
+	/// 
+	/// Both values of the boundary condition must be given in this method, otherwise the value of 0 is applied 
+	/// in the refreshing.
+	/// 
+	/// @param BCName bcName
+	/// @param double bcValue1
+	/// @param double bcValue2
+	/// @pre
+	/// @return void
+	/// @note
+	void RefreshBndCondValue(BCName bcName, double bcValue1 = 0, double bcValue2 = 0);
 	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
 	/// 
 	/// For boundary condition type of BC_Dirichlet, only bcValue1 is used.
 	/// For boundary condition type of BC_Neumann and BC_Artificial, bcValue1 and bcValue2 represent the derivatives of
 	/// the boundary value in direction from west to east and south to north, respectively.
+	/// The default value of the boundary condition exists, so one can set the Dirichlet BC first in building the domain
+	/// and determine its value afterwards.
 	/// 
 	/// @param BCName bcName
 	/// @param BCType bcType

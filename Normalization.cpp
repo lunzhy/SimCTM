@@ -53,6 +53,7 @@ void Normalization::initFactors()
 	this->diffusionFactor = 1; // in [cm^2/s] the diffusion coefficient is normalized using D0 = 1 cm^2/s
 	this->mobilityFactor = this->diffusionFactor / this->potentialFactor;
 	this->timeFactor = this->lengthFactor * this->lengthFactor / this->diffusionFactor;
+	this->currDensFactor = q * ni * this->diffusionFactor / this->lengthFactor;
 }
 
 void Normalization::ConverseLengthVector( std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction )

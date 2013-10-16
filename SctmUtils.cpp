@@ -114,6 +114,15 @@ namespace SctmUtils
 		case 10012:
 			msg = "[DDSolver.cpp] Error found in vertex map when filling coefficient matrix.";
 			break;
+		case 10013:
+			msg = "[DDSolver.cpp] Bad boundary condition (not Dirichlet BC) configuration at the boundary.";
+			break;
+		case 10014:
+			msg = "[DomainDetails.cpp] Refreshing boundary conditions meet non-existed boundary condition.";
+			break;
+		case 10015:
+			msg = "[DDSolver.cpp] Zero value of delta X or Y occurred when filling the DD matrix.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -133,27 +142,28 @@ namespace SctmUtils
 			cout << " -- ";
 			PrintValue(currVert->IsAtContact());
 			PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
+			PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
 			if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
-			PrintValue(currVert->EastLength);
-			PrintValue(currVert->WestLength);
-			PrintValue(currVert->SouthLength);
-			PrintValue(currVert->NorthLength);
+			//PrintValue(currVert->EastLength);
+			//PrintValue(currVert->WestLength);
+			//PrintValue(currVert->SouthLength);
+			//PrintValue(currVert->NorthLength);
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetID());
 			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
 			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID());
 			cout << " -- ";
-			PrintValue(currVert->EastLength);
-			PrintValue(currVert->WestLength);
-			PrintValue(currVert->SouthLength);
-			PrintValue(currVert->NorthLength);
+			//PrintValue(currVert->EastLength);
+			//PrintValue(currVert->WestLength);
+			//PrintValue(currVert->SouthLength);
+			//PrintValue(currVert->NorthLength);
 			cout << " -- ";
-			PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
-			PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
-			PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
-			PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
+			//PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
+			//PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
+			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
+			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
 			cout << " -- ";
-			PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::eMobility));
+			//PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::eMobility));
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
@@ -369,7 +379,7 @@ namespace SctmUtils
 	double SctmTimeStep::NextTimeStep()
 	{
 		//TODO: currently, constant time step is used in the simulation
-		double timestep = 1e-8;
+		double timestep = 1e-10;
 		return timestep / timeNormFactor;
 	}
 

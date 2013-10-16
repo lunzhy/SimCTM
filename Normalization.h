@@ -78,6 +78,7 @@ namespace SctmUtils
 		double diffusionFactor;///< factor of diffusion coefficient
 		double mobilityFactor;///< factor of carrier mobility
 		double timeFactor;///factor of time step
+		double currDensFactor;///factor of current density
 	public:
 
 		/// @brief The method for normalization of the parameters.
@@ -175,6 +176,16 @@ namespace SctmUtils
 		inline double PullTime(double time)
 		{
 			return time * timeFactor;
+		}
+
+		//current density, in [A/cm^2]
+		inline double PushCurrDens(double currdens)
+		{
+			return currdens / currDensFactor;
+		}
+		inline double PullCurrDens(double currdens)
+		{
+			return currdens * currDensFactor;
 		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.
