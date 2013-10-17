@@ -20,7 +20,7 @@
 
 using namespace SctmMath;
 using std::vector;
-typedef std::map<int, int, std::less<int>> MapForVertex; // the map used for get the equation index with given vertex internal id
+typedef std::map<int, int, std::less<int>> VertexMapInt; // the map used for get the equation index with given vertex internal id
 
 class FDDomain;
 
@@ -56,7 +56,7 @@ private:
 	vector<FDVertex *> &vertices; ///< the vertices of the domain to be solved
 	vector<double> potential; ///< the potential of the vertices with same sequence in the vertices vector (same sequence of the equations)
 	vector<double> rhsVector; ///< the right-hand side of the equations
-	MapForVertex vertMap; ///< map the equation index to the internal id of the vertices. (equation index is the same with the index of vertices vector)
+	VertexMapInt equationMap; ///< map the equation index to the internal id of the vertices. (equation index is the same with the index of vertices vector)
 protected:
 	/// @brief prepareSolver is used to prepare the Poisson solver.
 	/// 

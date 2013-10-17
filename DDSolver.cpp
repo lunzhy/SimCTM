@@ -49,8 +49,8 @@ void DriftDiffusionSolver::prepareSolver()
 
 void DriftDiffusionSolver::buildVertexMap()
 {
-	std::pair<MapForVertex::iterator, bool> insertPairVertex;
-	std::pair<MapForPrpty::iterator, bool> insertPairPrpty;
+	std::pair<VertexMapInt::iterator, bool> insertPairVertex;
+	std::pair<VertexMapDouble::iterator, bool> insertPairPrpty;
 	int vertID = 0;
 	int equationID = 0;
 	double phyValue = 0;
@@ -64,16 +64,16 @@ void DriftDiffusionSolver::buildVertexMap()
 		vertID = currVert->GetID();
 
 		equationID = iVert; //equation index is also the vertex index in the vertices container
-		insertPairVertex = this->vertMap.insert(MapForVertex::value_type(vertID, equationID));
+		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
-		insertPairPrpty = this->mobilityMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eMobility)));
+		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eMobility)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->potentialMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
+		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)));
+		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }
@@ -107,7 +107,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		indexEquation = vertMap[currVert->GetID()];
+		indexEquation = equationMap[currVert->GetID()];
 		SCTM_ASSERT(indexEquation==iVert, 100012);
 
 		coeff_center = 0;
@@ -123,7 +123,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		   )
 		{
 			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
-			indexCoefficient = vertMap[currVert->EastVertex->GetID()];
+			indexCoefficient = equationMap[currVert->EastVertex->GetID()];
 			coeff_adjacent = - mobility / currVert->EastLength / deltaX *
 				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 );
 			coeff_center += - mobility / currVert->EastLength / deltaX *
@@ -138,7 +138,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		   )
 		{
 			mobility = (mobilityMap[currVert->WestVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
-			indexCoefficient = vertMap[currVert->WestVertex->GetID()];
+			indexCoefficient = equationMap[currVert->WestVertex->GetID()];
 			coeff_adjacent = - mobility / currVert->WestLength / deltaX *
 				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) /2 - 1 );
 			coeff_center += - mobility / currVert->WestLength / deltaX *
@@ -153,7 +153,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		   )
 		{
 			mobility = (mobilityMap[currVert->NorthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
-			indexCoefficient = vertMap[currVert->NorthVertex->GetID()];
+			indexCoefficient = equationMap[currVert->NorthVertex->GetID()];
 			coeff_adjacent = - mobility / currVert->NorthLength / deltaY *
 				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 );
 			coeff_center += - mobility / currVert->NorthLength / deltaY *
@@ -168,7 +168,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 		   )
 		{
 			mobility = (mobilityMap[currVert->SouthVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
-			indexCoefficient = vertMap[currVert->SouthVertex->GetID()];
+			indexCoefficient = equationMap[currVert->SouthVertex->GetID()];
 			coeff_adjacent = - mobility / currVert->SouthLength / deltaY *
 				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 );
 			coeff_center += - mobility / currVert->SouthLength / deltaY *
@@ -179,7 +179,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 
 		coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
 
-		indexCoefficient = vertMap[currVert->GetID()];
+		indexCoefficient = equationMap[currVert->GetID()];
  		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
 		//indexCoefficent = indexEquation = vertMap[currVert->GetID]
 		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
@@ -211,7 +211,7 @@ void DriftDiffusionSolver::refreshRhs()
 			continue;
 
 		//the vertex is at current density boundary condition
-		equationID = vertMap[currVert->GetID()]; //equationIndex = iVert
+		equationID = equationMap[currVert->GetID()]; //equationIndex = iVert
 		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eCurrentDensity) == FDBoundary::BC_Dirichlet, 10013);
 		//if (currVert->BndCond.GetBCType(FDBoundary::eCurrentDensity) != FDBoundary::BC_Dirichlet)
 		//	continue;
@@ -292,6 +292,20 @@ void DriftDiffusionSolver::setTimeStep()
 	timeStep = UtilsTimeStep.NextTimeStep();
 }
 
+void DriftDiffusionSolver::fillBackElecDens()
+{
+	FDVertex *currVert = NULL;
+	int equationID = 0;
+	double edens = 0;
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		equationID = equationMap[currVert->GetID()];
+		edens = this->elecDensity.at(equationID);
+		currVert->Phys.SetPhysPrpty(PhysProperty::eDensity, edens);
+	}
+}
+
 DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
 {
 	prepareSolver();
@@ -318,8 +332,8 @@ void DDTest::prepareSolver()
 
 void DDTest::buildVertexMap()
 {
-	std::pair<MapForVertex::iterator, bool> insertPairVertex;
-	std::pair<MapForPrpty::iterator, bool> insertPairPrpty;
+	std::pair<VertexMapInt::iterator, bool> insertPairVertex;
+	std::pair<VertexMapDouble::iterator, bool> insertPairPrpty;
 	int vertID = 0;
 	int equationID = 0;
 	double phyValue = 0;
@@ -333,16 +347,16 @@ void DDTest::buildVertexMap()
 		vertID = currVert->GetID();
 
 		equationID = iVert; //equation index is also the vertex index in the vertices container
-		insertPairVertex = this->vertMap.insert(MapForVertex::value_type(vertID, equationID));
+		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
-		insertPairPrpty = this->mobilityMap.insert(MapForPrpty::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eMobility)));
+		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eMobility)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->potentialMap.insert(MapForPrpty::value_type(vertID, 0)); // suppose no electronic field exists
+		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, 0)); // suppose no electronic field exists
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(MapForPrpty::value_type(vertID, 0)); // suppose the initial carrier density is 0
+		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, 0)); // suppose the initial carrier density is 0
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }
@@ -378,4 +392,8 @@ void DDTest::SolveDD()
 	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	UtilsDebug.PrintVector(this->elecDensity, "electron density");
+	fillBackElecDens();
+
+	SctmFileOperator write = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\SctmTest\\DDTest\\eDensity.txt", SctmFileOperator::Write);
+	write.WriteDDResultForOrigin(this->vertices, "electron density");
 }

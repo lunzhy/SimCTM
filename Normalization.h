@@ -73,7 +73,7 @@ namespace SctmUtils
 		double lengthFactor;///< factor of length normalization
 		double potentialFactor;///< factor of potential normalization
 		double elecFieldFactor;///< factor of electric field normalization
-		double concFactor;///< factor of concentration normalization, including charge and carrier concentration
+		double densityFactor;///< factor of concentration/density normalization, including charge and carrier density
 		double temperature;///< factor of the system temperature
 		double diffusionFactor;///< factor of diffusion coefficient
 		double mobilityFactor;///< factor of carrier mobility
@@ -137,16 +137,16 @@ namespace SctmUtils
 		}
 		void ConverseElecFieldVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
 		
-		//concentration, in [cm^-3]
-		inline double PushConcentration(double conc)
+		//concentration/density, in [cm^-3]
+		inline double PushDensity(double density)
 		{
-			return conc / concFactor;
+			return density / densityFactor;
 		}
-		inline double PullConcentration(double conc)
+		inline double PullDensity(double density)
 		{
-			return conc * concFactor;
+			return density * densityFactor;
 		}
-		void ConveseConcVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
+		void ConveseDensityVector(std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction);
 		
 		//diffusion coefficient, in [cm^2/s]
 		inline double PushDiffusion(double diffusion)

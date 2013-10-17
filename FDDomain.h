@@ -26,6 +26,7 @@
 class FDDomain
 {
 	friend class SctmUtils::SctmDebug;
+	friend class SctmUtils::SctmFileOperator;
 public:
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 

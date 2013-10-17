@@ -20,6 +20,7 @@
 #include <iostream>
 #include "DomainDetails.h"
 #include <Eigen/Sparse>
+#include <fstream>
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
 #ifdef DEBUG
@@ -35,6 +36,7 @@ using std::string;
 using std::vector;
 using std::cout;
 using std::endl;
+using std::fstream;
 class FDDomain;
 class FDBoundary;
 
@@ -111,6 +113,7 @@ namespace SctmUtils
 		double timeNormFactor; ///< the factor of normalizing the time
 	};
 
+
 	/// @brief The methods used in debugging are defined in this class.
 	///
 	/// This class is also used to observe the intermediate results during the simulation
@@ -156,7 +159,8 @@ namespace SctmUtils
 		bool enable;
 	};
 
-	//TODO: a common message class is needed to output the process of the computation
+	
+	/// @brief SctmMessaging deals with the output message and information of the computation process
 	class SctmMessaging
 	{
 	public:
@@ -169,18 +173,23 @@ namespace SctmUtils
 		void printLine(const char *line);
 	};
 
+	
+	/// @brief SctmFileOperator provides methods to read and write file.
+	///
+	/// Currently, the files of input parameters and output results for testing is manipulated using this class.
 	class SctmFileOperator
 	{
 	public:
-		enum Mode
+		enum FileMode
 		{
 			Write,
 			Read
 		};
-		SctmFileOperator(string _filename, Mode _mode);
+		SctmFileOperator(string _filename, FileMode _mode);
 		void WriteVector(vector<double> &vec, const char *title);
 		void Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title);
 		void ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields);
+		void WriteDDResultForOrigin(vector<FDVertex *> &vertices, const char *title);
 	private:
 		string fileName;
 	};

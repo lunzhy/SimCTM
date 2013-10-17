@@ -292,12 +292,12 @@ namespace SctmUtils
 
 	void SctmMessaging::PrintFileError(const char *filename)
 	{
-		cout << "XXXXX=>" << "cannot open or create file" << ' ' << filename << endl;
+		cout << endl << "XXXXX=>" << "cannot open or create file" << ' ' << filename << endl;
 		exit(1);
 	}
 
 
-	SctmFileOperator::SctmFileOperator(string _filename, Mode _mode)
+	SctmFileOperator::SctmFileOperator(string _filename, FileMode _mode)
 	{
 		this->fileName = _filename;
 		//if the file doesn't exist, create it.
@@ -309,7 +309,7 @@ namespace SctmUtils
 				file.open(this->fileName.c_str(), std::ios::out);
 			else
 			{
-				file.close();
+				file.close();//this is important because the existed file has been opened already.
 				file.open(this->fileName.c_str(), std::ios::out | std::ios::trunc);
 				file.close();
 			}
@@ -367,8 +367,25 @@ namespace SctmUtils
 			file >> val; elecfields.push_back(val);
 			file >> val; cbedges.push_back(val);
 		}
+		file.close();
 	}
 
+	void SctmFileOperator::WriteDDResultForOrigin(vector<FDVertex *> &vertices, const char *title)
+	{
+		fstream tofile;
+		tofile.open(this->fileName.c_str(), std::ios::app);
+		
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+		tofile << title << endl;
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			tofile << norm.PullLength(currVert->X) << '\t' << norm.PullLength(currVert->Y) << '\t' << 
+				norm.PullDensity(currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)) << endl;
+		}
+		tofile.close();
+	}
 
 	SctmTimeStep::SctmTimeStep()
 	{
@@ -379,7 +396,7 @@ namespace SctmUtils
 	double SctmTimeStep::NextTimeStep()
 	{
 		//TODO: currently, constant time step is used in the simulation
-		double timestep = 1e-10;
+		double timestep = 1e-12; // in [s]
 		return timestep / timeNormFactor;
 	}
 

@@ -49,7 +49,7 @@ void Normalization::initFactors()
 	this->lengthFactor = SctmMath::sqrt(eps0 * k0 * this->temperature / q / q / ni);
 	this->potentialFactor = k0 * this->temperature / q;
 	this->elecFieldFactor = this->potentialFactor / this->lengthFactor;
-	this->concFactor = ni;
+	this->densityFactor = ni;
 	this->diffusionFactor = 1; // in [cm^2/s] the diffusion coefficient is normalized using D0 = 1 cm^2/s
 	this->mobilityFactor = this->diffusionFactor / this->potentialFactor;
 	this->timeFactor = this->lengthFactor * this->lengthFactor / this->diffusionFactor;
@@ -113,20 +113,20 @@ void Normalization::ConverseElecFieldVector( std::vector<double> &real, std::vec
 	}
 }
 
-void Normalization::ConveseConcVector( std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction )
+void Normalization::ConveseDensityVector( std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction )
 {
 	switch (direction)
 	{
 	case Push:
 		for (std::vector<double>::size_type ix = 0; ix != real.size(); ++ix)
 		{
-			norm[ix] = this->PushConcentration(real[ix]);
+			norm[ix] = this->PushDensity(real[ix]);
 		}
 		break;
 	case Pull:
 		for (std::vector<double>::size_type ix = 0; ix != norm.size(); ++ix)
 		{
-			real[ix] = this->PullConcentration(norm[ix]);
+			real[ix] = this->PullDensity(norm[ix]);
 		}
 		break;
 	}

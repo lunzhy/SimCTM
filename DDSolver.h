@@ -26,8 +26,8 @@ class FDDomain;
 class DriftDiffusionSolver
 {
 	//friend class SctmUtils::SctmDebug;
-	typedef std::map<int, int> MapForVertex; // <equationID, vertID>
-	typedef std::map<int, double> MapForPrpty; // <vertID, property value>
+	typedef std::map<int, int> VertexMapInt; // <VertID, equationID> store map for equation ID
+	typedef std::map<int, double> VertexMapDouble; // <vertID, property value>, store the map for physical property
 public:
 	DriftDiffusionSolver(FDDomain *domain);
 	void SolveDD();
@@ -38,10 +38,10 @@ protected:
 	double temperature;
 	double timeStep;
 	//the material and physical properties
-	MapForPrpty mobilityMap; // mobility is used, so diffusion coefficient is derived
-	MapForPrpty potentialMap;
-	MapForPrpty lastElecDensMap; // the electron density of last time step
-	MapForVertex vertMap;
+	VertexMapDouble mobilityMap; // mobility is used, so diffusion coefficient is derived
+	VertexMapDouble potentialMap;
+	VertexMapDouble lastElecDensMap; // the electron density of last time step
+	VertexMapInt equationMap;
 
 	vector<double> rhsVector;
 	vector<double> elecDensity;
@@ -67,6 +67,7 @@ protected:
 	void refreshCoefficientMatrix();
 	void refreshRhs();
 	void setTimeStep();
+	void fillBackElecDens();
 };
 
 class DDTest : public DriftDiffusionSolver
