@@ -310,10 +310,12 @@ void TwoDimPoissonSolver::fillBackPotential()
 {
 	FDVertex *currVert = NULL;
 	double pot = 0;
+	int equationID = 0;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		pot = potential.at(iVert); //iVert = EquationID
+		equationID = equationMap[currVert->GetID()];
+		pot = potential.at(equationID); //iVert = EquationID
 		currVert->Phys.SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
 	}
 }
