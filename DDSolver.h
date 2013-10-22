@@ -48,7 +48,7 @@ protected:
 
 	SctmSparseMatrixSolver matrixSolver;
 protected:
-	void prepareSolver();
+	void initializeSolver();
 	void getDDVertices(FDDomain *domain);
 	void buildVertexMap();
 	/// @brief setBndCondCurrent is used to set the current boundary condition of the drift-diffusion area
@@ -62,10 +62,28 @@ protected:
 	/// @return void
 	/// @note
 	void setBndCondCurrent(vector<double> &in_current);
+	/// @brief buildCoefficientMatrix
+	/// 
+	/// The filling in of the coefficient matrix utilizes the potential of vertex at last time step, which make the equation
+	/// explicit in potential and velocity and implicit in carrier density.
+	/// IMPORTANT Another important notice is that this method only fills the main part of the coefficient matrix. Time dependent addition
+	/// of the coefficient is not done here.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
 	void buildCoefficientMatrix();
-	void buildRhsVector();
 	void refreshCoefficientMatrix();
-	void refreshRhs();
+	/// @brief buildRhsVector
+	/// 
+	/// This method is called at each simulation step. Because in each time step, the density of each vertex has to be
+	/// refreshed. It is called before refreshRhsWithBC .
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
+	void buildRhsVector();
+	void refreshRhsWithBC();
 	void setTimeStep();
 	void fillBackElecDens();
 };
@@ -76,7 +94,8 @@ public:
 	DDTest(FDDomain *_domain);
 	void SolveDD();
 protected:
-	void prepareSolver(); // use method with the same name with base class
+	void initializeSolver(); // use method with the same name with base class
+	void prepareSolver();
 	void buildVertexMap();
 	void setBndCondCurrent();
 };

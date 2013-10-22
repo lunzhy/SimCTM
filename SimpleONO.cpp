@@ -438,9 +438,9 @@ void SimpleONO::setVertexPhysics()
 		//iteration over the physical properties to be set from material property
 		for (std::size_t iPrpty = 0; iPrpty != matPrptys.size(); ++iPrpty)
 		{
-			//TODO: The method for filling vertex-based physical value using material-based value is ready
+			//filling vertex physics using material property
+			//The method for filling vertex-based physical value using material-based value is ready
 			currVertex->Phys.FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
-
 			/*
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;

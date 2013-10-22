@@ -28,6 +28,13 @@ namespace SctmMath
 	class SctmSparseMatrixSolver
 	{
 	public:
+		
+		/// @brief
+		enum RefreshMode
+		{
+			Add,///< add to the previous value
+			Cover///< cover the previous value
+		};
 		Eigen::SparseMatrix<double> matrix; ///< the sparse matrix of the coefficients
 		/// @brief SolveMatrix is used to solve the Ax=b problem with determined coefficient sparse matrix
 		/// 
@@ -40,6 +47,7 @@ namespace SctmMath
 		/// @return void
 		/// @note
 		void SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution);
+		void RefreshMatrixValue(int _row, int _col, double _value, RefreshMode _mode);
 	};
 }
 

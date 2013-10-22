@@ -223,6 +223,7 @@ void TwoDimPoissonSolver::refreshCoefficientMatrix()
 			//so the the equation index to set equals to iVert here.
 			equationIndexToSet = iVert;
 			coefficientIndexToSet = equationIndexToSet;
+			//TODO:  the method of refreshing coefficient value in SparseMatrixSolver class is ready
 			for (int k = 0; k < this->matrix.outerSize(); ++k)
 				for (Eigen::SparseMatrix<double>::InnerIterator it(matrix, k); it; ++it)
 				{

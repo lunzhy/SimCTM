@@ -14,7 +14,7 @@
 #define _SCTMUTILS_H_
 
 #define DEBUG
-#define SCTM_DEBUG_ENABLE true
+#define SCTM_DEBUG_ENABLE false
 #include <string>
 #include <ctime>
 #include <iostream>
@@ -189,7 +189,16 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec, const char *title);
 		void Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title);
 		void ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields);
-		void WriteDDResultForOrigin(vector<FDVertex *> &vertices, const char *title);
+		/// @brief WriteDDResult is used to write DD results for testing and DD solver
+		/// 
+		/// This method outputs the DD results within 3 columns, i.e. x coordinates, y coordinates and the electron density.
+		/// 
+		/// @param vector<FDVertex * > & vertices
+		/// @param const char * title
+		/// @pre
+		/// @return void
+		/// @note
+		void WriteDDResult(vector<FDVertex *> &vertices, const char *title);
 	private:
 		string fileName;
 	};

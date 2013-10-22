@@ -147,7 +147,7 @@ namespace SctmPhys
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
 		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		SCTM_ASSERT(tot>0, 10004);
+		SCTM_ASSERT(tot>=0, 10004);
 		physValue = sum / tot;
 
 		vertex->Phys.SetPhysPrpty(vertexPhys, physValue);

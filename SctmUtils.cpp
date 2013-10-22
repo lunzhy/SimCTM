@@ -135,6 +135,7 @@ namespace SctmUtils
 			return;
 		using namespace MaterialDB;
 		FDVertex *currVert = NULL;
+		Normalization norm = Normalization();
 		for (size_t iVert = 0; iVert != domain.vertices.size(); ++iVert)
 		{
 			currVert = domain.GetVertex(iVert);
@@ -153,10 +154,10 @@ namespace SctmUtils
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
 			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID());
 			cout << " -- ";
-			//PrintValue(currVert->EastLength);
-			//PrintValue(currVert->WestLength);
-			//PrintValue(currVert->SouthLength);
-			//PrintValue(currVert->NorthLength);
+			PrintValue(norm.PullLength(currVert->EastLength));
+			PrintValue(norm.PullLength(currVert->WestLength));
+			PrintValue(norm.PullLength(currVert->SouthLength));
+			PrintValue(norm.PullLength(currVert->NorthLength));
 			cout << " -- ";
 			//PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
 			//PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
@@ -370,7 +371,7 @@ namespace SctmUtils
 		file.close();
 	}
 
-	void SctmFileOperator::WriteDDResultForOrigin(vector<FDVertex *> &vertices, const char *title)
+	void SctmFileOperator::WriteDDResult(vector<FDVertex *> &vertices, const char *title)
 	{
 		fstream tofile;
 		tofile.open(this->fileName.c_str(), std::ios::app);
@@ -396,7 +397,7 @@ namespace SctmUtils
 	double SctmTimeStep::NextTimeStep()
 	{
 		//TODO: currently, constant time step is used in the simulation
-		double timestep = 1e-12; // in [s]
+		double timestep = 1e-11; // in [s]
 		return timestep / timeNormFactor;
 	}
 

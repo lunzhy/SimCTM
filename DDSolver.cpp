@@ -30,7 +30,7 @@ void DriftDiffusionSolver::SolveDD()
 	
 }
 
-void DriftDiffusionSolver::prepareSolver()
+void DriftDiffusionSolver::initializeSolver()
 {
 	SctmUtils::UtilsMsg.PrintHeader("Solving Drift-Diffusion");
 	
@@ -89,7 +89,6 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 	matrixSolver.matrix.reserve(Eigen::VectorXd::Constant(matrixSize, 5));
 
 	FDVertex *currVert = NULL;
-	int vertID = 0;
 	int indexEquation = 0;
 	int indexCoefficient = 0;
 	
@@ -177,7 +176,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 		}
 
-		coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
+		//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
 
 		indexCoefficient = equationMap[currVert->GetID()];
  		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
@@ -198,7 +197,7 @@ void DriftDiffusionSolver::buildRhsVector()
 	}
 }
 
-void DriftDiffusionSolver::refreshRhs()
+void DriftDiffusionSolver::refreshRhsWithBC()
 {
 	FDVertex *currVert = NULL;
 	int equationID = 0;
@@ -258,7 +257,30 @@ void DriftDiffusionSolver::refreshRhs()
 
 void DriftDiffusionSolver::refreshCoefficientMatrix()
 {
-	//The boundary conditions are always BC_Dirichlet, so there is no need refreshing the matrix.
+	//The boundary conditions are always BC_Dirichlet, so there is no need refreshing the matrix for this reason.
+	//However, due to that the time step is likely to be different in each simulation step, the time dependent item
+	//in the coefficient matrix has to be add to the corresponding item.
+	FDVertex *currVert = NULL;
+	int indexEquation = 0;
+	int indexCoefficient = 0;
+
+	double coeffToAdd = 0; // coefficient for center vertex
+	coeffToAdd += -1 / timeStep; // from p_n/p_t, p=partial differential
+	
+	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+
+		indexEquation = equationMap[currVert->GetID()];
+		SCTM_ASSERT(indexEquation==iVert, 100012);
+
+		indexCoefficient = equationMap[currVert->GetID()];
+		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
+		//indexCoefficent = indexEquation = vertMap[currVert->GetID]
+		//=iVert (at present)
+		
+		matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, coeffToAdd, SctmSparseMatrixSolver::Add);
+	}
 }
 
 void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
@@ -297,21 +319,25 @@ void DriftDiffusionSolver::fillBackElecDens()
 	FDVertex *currVert = NULL;
 	int equationID = 0;
 	double edens = 0;
+	int VertID = 0;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		equationID = equationMap[currVert->GetID()];
+		VertID = currVert->GetID();
+		equationID = equationMap[VertID];
 		edens = this->elecDensity.at(equationID);
 		currVert->Phys.SetPhysPrpty(PhysProperty::eDensity, edens);
+		//It is also essential to refresh property map
+		lastElecDensMap[equationID] = edens;
 	}
 }
 
 DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
 {
-	prepareSolver();
+	initializeSolver();
 }
 
-void DDTest::prepareSolver()
+void DDTest::initializeSolver()
 {
 	SctmUtils::UtilsMsg.PrintHeader("Solving Drift-Diffusion");
 
@@ -321,13 +347,6 @@ void DDTest::prepareSolver()
 
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
-	setTimeStep();
-	buildCoefficientMatrix();
-	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-	buildRhsVector();
-	UtilsDebug.PrintVector(rhsVector);
-	//the structure does not change, so the final coefficient matrix after refreshing does not change either
-	refreshCoefficientMatrix();
 }
 
 void DDTest::buildVertexMap()
@@ -387,13 +406,32 @@ void DDTest::setBndCondCurrent()
 
 void DDTest::SolveDD()
 {
-	setBndCondCurrent();
-	refreshRhs();
-	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
+	prepareSolver();
+
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
+	
+	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
 	UtilsDebug.PrintVector(this->elecDensity, "electron density");
+	
 	fillBackElecDens();
 
 	SctmFileOperator write = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\SctmTest\\DDTest\\eDensity.txt", SctmFileOperator::Write);
-	write.WriteDDResultForOrigin(this->vertices, "electron density");
+	write.WriteDDResult(this->vertices, "electron density");
+}
+
+void DDTest::prepareSolver()
+{
+	setTimeStep();
+	buildCoefficientMatrix();
+	UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
+	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	refreshCoefficientMatrix();
+	UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
+	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+
+	setBndCondCurrent();
+	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
+	//different due to the difference in last time electron density
+	buildRhsVector();
+	refreshRhsWithBC();
 }

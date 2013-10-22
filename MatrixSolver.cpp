@@ -39,5 +39,32 @@ namespace SctmMath
 			SCTM_ASSERT(SCTM_ERROR, 10006);
 		}
 	}
+
+	void SctmSparseMatrixSolver::RefreshMatrixValue(int _row, int _col, double _value, RefreshMode _mode)
+	{
+		//-------------------------------------------------------------------------------
+		//the following method is used to iterate the non-zero coefficient of the matrix
+		//for (int k=0; k<sparseMatrix.outerSize(); ++k)
+		//	for (SparseMatrix<double>::InnerIterator it(sparseMatrix,k); it; ++it)
+		//	{
+		//		it.valueRef() = 9; // for get the reference of the coefficient
+		//		it.row(); // get the row index
+		//		it.col(); // get the column index (here it is equal to k)
+		//		it.index(); // inner index, here it is equal to it.row()
+		//	}
+		//--------------------------------------------------------------------------------
+		for (int k = 0; k < this->matrix.outerSize(); ++k)
+			for (Eigen::SparseMatrix<double>::InnerIterator it(matrix, k); it; ++it)
+			{
+				if ( (it.row() == _row) && (it.col() == _col))
+				{
+					if ( _mode == Add )
+						it.valueRef() += _value;
+					else if ( _mode == Cover )
+						it.valueRef() = _value;
+				}
+			}
+	}
+
 }
 

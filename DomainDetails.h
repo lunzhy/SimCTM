@@ -38,7 +38,7 @@ public:
 	enum BCName
 	{
 		Potential, ///< potential boundary condition, note that BC_Neumann and BC_Artificial for potential is electric field.
-		eCurrentDensity, ///< electron current density. In this BC, only BC_Neumann is used.  
+		eCurrentDensity, ///< electron current density. In this BC, only BC_Dirichlet is used. It is also the third type of BC of carrier density
 	};
 
 	/// @brief BndCond is the enum of different kind of boundary conditions
