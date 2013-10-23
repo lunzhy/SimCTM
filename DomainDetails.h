@@ -25,6 +25,7 @@ using SctmPhys::PhysProperty;
 using MaterialDB::Material;
 using std::string;
 using std::map;
+using SctmMath::DirectionVector;
 
 /// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
 ///
@@ -38,15 +39,21 @@ public:
 	enum BCName
 	{
 		Potential, ///< potential boundary condition, note that BC_Neumann and BC_Artificial for potential is electric field.
-		eCurrentDensity, ///< electron current density. In this BC, only BC_Dirichlet is used. It is also the third type of BC of carrier density
+		eCurrentDensity, ///< electron current density. In this BC, only BC_Dirichlet is used. It is also the third type of BC of carrier density.
+		eDensity ///< electron density boundary condition. The BC_Cauchy of eDensity describes the electron current at the boundary.
 	};
 
-	/// @brief BndCond is the enum of different kind of boundary conditions
+	/// @brief BndCond is the enum of different kind of boundary conditions.
 	enum BCType
 	{
-		BC_Dirichlet, ///< the first type of boundary condition
-		BC_Neumann, ///< the second type of boundary condition
-		BC_Artificial ///< a special Neumann boundary condition, used when the vertex is at the artificial boundary of the domain
+		BC_Dirichlet, ///< the first type of boundary condition, giving the value to the boundary.
+		BC_Neumann, ///< the second type of boundary condition, giving the value to the normal derivative at the boundary.
+		BC_Cauchy, ///< the third type of boundary condition, giving the value to the normal derivative and the variable itself.
+		///[Notice!]
+		///It should be noticed that the specific form of BC_Neumnn or BC_Cauchy, in terms of the coefficient of the derivative,
+		///is not defined here. It is determined by the physical expression that defines the boundary condition, which is an additional
+		///information of the boundary condition.
+		BC_Artificial ///< a special Neumann boundary condition, used when the vertex is at the artificial boundary of the domain.
 	};
 	/// @brief FDBoundary is the construction method of this class
 	/// 
@@ -54,6 +61,7 @@ public:
 	/// vertex object. So the validity of the boundary condition is set to false, meaning that by default, the vertex is not
 	/// at the boundary of the domain. 
 	/// By default, the calling of non-existed map index will get the return value of 0 (false).
+	/// So the construction method without parameters is needed.
 	/// 
 	/// @pre
 	/// @return 
@@ -71,6 +79,7 @@ public:
 	/// @return void
 	/// @note
 	void RefreshBndCondValue(BCName bcName, double bcValue1 = 0, double bcValue2 = 0);
+	void RefreshBndCondValue(bool fake, BCName bcName, double newValue);
 	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
 	/// 
 	/// For boundary condition type of BC_Dirichlet, only bcValue1 is used.
@@ -87,9 +96,10 @@ public:
 	/// @return void
 	/// @note
 	void SetBndCond(BCName bcName, BCType bcType, double bcValue1 = 0, double bcValue2 = 0);
+	void SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, DirectionVector bcNormVec = DirectionVector(0, 0));
 	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
-	///
+	/// Both non-existent boundary condition and boundary condition with false validity will return false.
 	/// 
 	/// @param BCName bcName
 	/// @pre
@@ -123,7 +133,7 @@ public:
 	/// @pre
 	/// @return double
 	/// @note
-	double GetBCValueWestEast(BCName bcName);
+	double GetBCValueWestEast(BCName bcName); //--------------not use in new version
 	/// @brief GetBCValueSouthNorth is used to get the value of given name of boundary condition.
 	/// 
 	/// This method returns the value of BC_Neumann and BC_Artificial in the direction from south to north (Y-direction).
@@ -133,13 +143,16 @@ public:
 	/// @pre
 	/// @return double
 	/// @note
-	double GetBCValueSouthNorth(BCName bcName);
+	double GetBCValueSouthNorth(BCName bcName); //---------------------not use in new version
+	DirectionVector &GetBCNormVector(BCName bcName);
 protected:
 	//bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex
 	map<BCName, bool> bc_valid; ///< the validity of the boundary condition with given boundary condition name
+	//Finding the value of non-existed key will return false.
 	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
 	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions, the west-east value in case of two values
 	map<BCName, double> bc_values_second; ///< the second value to store boundary condition values, the south-north value in case of two values
+	map<BCName, DirectionVector> bc_normVector; ///< the map to store normal vector of the boundary
 };
 
 

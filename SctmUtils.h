@@ -21,10 +21,12 @@
 #include "DomainDetails.h"
 #include <Eigen/Sparse>
 #include <fstream>
+#include "SctmMath.h"
+using SctmMath::DirectionVector;
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
 #ifdef DEBUG
-	#define SCTM_ERROR false
+	#define SCTM_ERROR false // for making SCTM_ASSERT fail
 	#define SCTM_ASSERT(cond, err_code) if (!(cond)) { SctmUtils::SctmDebug::ErrorCodeParser(err_code); }
 #else
 	#define SCTM_ERROR
@@ -155,6 +157,7 @@ namespace SctmUtils
 		void PrintValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
 		void PrintValue(std::string &s) { std::cout << s << " ";}
 		void PrintBCType(FDBoundary &bc);
+		void PrintDirectionVector(DirectionVector &dv);
 	private:
 		bool enable;
 	};

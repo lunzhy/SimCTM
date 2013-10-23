@@ -19,6 +19,7 @@
 
 #include <math.h>
 #include <cmath>
+#include <iostream>
 
 
 /// @brief SctmMath is a namespace in which the math methods are defined for this simulation.
@@ -46,6 +47,37 @@ namespace SctmMath
 	inline double sqrt(double val)  { return std::sqrt(val); }
 	inline double ln(double val) { return std::log(val); }
 	inline double exp(double val) { return std::exp(val); }
+
+	class DirectionVector
+	{
+	public:
+		DirectionVector(){ this->vX = 0; this->vY = 0; }
+		DirectionVector(double _vx, double _vy)
+		{
+			if ( (_vx == 0) && (_vy == 0) )
+			{
+				this->vX = 0;
+				this->vY = 0;
+			}
+			else
+			{
+				this->vX = _vx / sqrt( square(_vx) + square(_vy) );
+				this->vY = _vy / sqrt( square(_vx) + square(_vy) );
+			}
+		}
+		DirectionVector &operator=(const DirectionVector &_dv)
+		{
+			this->vX = _dv.X();
+			this->vY = _dv.Y();
+			return *this;
+		}
+		double X() const { return this->vX; }
+		double Y() const { return this->vY; }
+		double Valid() const { return ( (this->vX != 0)||(this->vY != 0) ); }
+	protected:
+		double vX;
+		double vY;
+	};
 }
 
 #endif

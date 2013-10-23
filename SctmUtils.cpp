@@ -25,6 +25,12 @@ using std::fstream;
 
 namespace SctmUtils
 {
+	std::ostream &operator<<(std::ostream &os, const DirectionVector &_dv)
+	{
+		os << "(" << _dv.X() << "," << _dv.Y() << ")";
+		return os;
+	}
+
 	SctmMessaging UtilsMsg = SctmMessaging();
 	SctmTimer UtilsTimer = SctmTimer();
 	SctmDebug UtilsDebug = SctmDebug();
@@ -123,6 +129,12 @@ namespace SctmUtils
 		case 10015:
 			msg = "[DDSolver.cpp] Zero value of delta X or Y occurred when filling the DD matrix.";
 			break;
+		case 10016:
+			msg = "[DomainDetails.cpp] Neumann and Cauchy boundary condition encounters normal vector of (0,0).";
+			break;
+		case 10017:
+			msg = "[DomainDetails.cpp] SetBndCond encounters existed boundary conditions.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -141,10 +153,12 @@ namespace SctmUtils
 			currVert = domain.GetVertex(iVert);
 			PrintValue(currVert->GetID());
 			cout << " -- ";
-			PrintValue(currVert->IsAtContact());
-			PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
-			PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
-			if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
+			//PrintValue(currVert->IsAtContact());
+			//PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
+			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
+			//if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
+			PrintValue(currVert->BndCond.Valid(FDBoundary::eDensity));
+			//if (currVert->BndCond.Valid(FDBoundary::eDensity)) { PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity)); }
 			//PrintValue(currVert->EastLength);
 			//PrintValue(currVert->WestLength);
 			//PrintValue(currVert->SouthLength);
@@ -154,10 +168,10 @@ namespace SctmUtils
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
 			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID());
 			cout << " -- ";
-			PrintValue(norm.PullLength(currVert->EastLength));
-			PrintValue(norm.PullLength(currVert->WestLength));
-			PrintValue(norm.PullLength(currVert->SouthLength));
-			PrintValue(norm.PullLength(currVert->NorthLength));
+			//PrintValue(norm.PullLength(currVert->EastLength));
+			//PrintValue(norm.PullLength(currVert->WestLength));
+			//PrintValue(norm.PullLength(currVert->SouthLength));
+			//PrintValue(norm.PullLength(currVert->NorthLength));
 			cout << " -- ";
 			//PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
 			//PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
@@ -246,6 +260,12 @@ namespace SctmUtils
 		cout << "========================================================================================" << endl << endl;
 		return;
 	}
+
+	void SctmDebug::PrintDirectionVector(DirectionVector &dv)
+	{
+		cout << dv << endl;
+	}
+
 
 	void SctmMessaging::printLine(string &line)
 	{
@@ -400,5 +420,4 @@ namespace SctmUtils
 		double timestep = 1e-11; // in [s]
 		return timestep / timeNormFactor;
 	}
-
 }

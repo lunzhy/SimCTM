@@ -26,7 +26,6 @@ bool FDVertex::IsAtBoundary(FDBoundary::BCName bcName)
 
 void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2)
 {
-	//this->valid = true;
 	bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
 	this->bc_types[bcName] = bcType;
 
@@ -47,20 +46,40 @@ void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, doubl
 	}
 }
 
+void FDBoundary::SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, DirectionVector bcNormVec /*= DirectionVector(0, 0)*/)
+{
+	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.Valid(), 10016 );
+	SCTM_ASSERT( this->bc_valid.find(bcName) == this->bc_valid.end(), 10017 ); //bcName not exists
+
+	//bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
+	this->bc_valid[bcName] = true;
+	this->bc_types[bcName] = bcType;
+	this->bc_values[bcName] = bcValue;
+	this->bc_normVector[bcName] = bcNormVec;
+}
+
 FDBoundary::BCType FDBoundary::GetBCType(BCName bcName)
 {
-	map<BCName, BCType>::iterator iter;
-	iter = this->bc_types.find(bcName);
-	SCTM_ASSERT(iter!=this->bc_types.end(), 10010);
-	return iter->second;
+	//map<BCName, BCType>::iterator iter;
+	//iter = this->bc_types.find(bcName);
+	//SCTM_ASSERT(iter!=this->bc_types.end(), 10010);
+	//return iter->second;
+
+	//the same with above method
+	SCTM_ASSERT(bc_types.find(bcName)!=bc_types.end(), 10010);
+	return bc_types[bcName];
+
 }
 
 double FDBoundary::GetBCValue(BCName bcName)
 {
-	map<BCName, double>::iterator iter;
-	iter = this->bc_values.find(bcName);
-	SCTM_ASSERT(iter!=this->bc_values.end(), 10010);
-	return iter->second;
+	//map<BCName, double>::iterator iter;
+	//iter = this->bc_values.find(bcName);
+	//SCTM_ASSERT(iter!=this->bc_values.end(), 10010);
+	//return iter->second;
+
+	SCTM_ASSERT(bc_values.find(bcName)!=bc_values.end(), 10010);
+	return bc_values[bcName];
 }
 
 double FDBoundary::GetBCValueWestEast(BCName bcName)
@@ -78,7 +97,7 @@ double FDBoundary::GetBCValueSouthNorth(BCName bcName)
 
 bool FDBoundary::Valid(BCName bcName)
 {
-	return this->bc_valid[bcName];
+	return bc_valid[bcName];
 	//map<BCName, bool>::iterator iter;
 	//iter = this->bc_valid.find(bcName);
 	//SCTM_ASSERT(iter!=this->bc_valid.end(), 10010);
@@ -94,6 +113,19 @@ void FDBoundary::RefreshBndCondValue(BCName bcName, double bcValue1, double bcVa
 
 	this->bc_values[bcName] = bcValue1;
 	this->bc_values_second[bcName] = bcValue2;
+}
+
+void FDBoundary::RefreshBndCondValue(bool fake, BCName bcName, double newValue)
+{
+	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //bcName exists
+
+	bc_values[bcName] = newValue;
+}
+
+DirectionVector & FDBoundary::GetBCNormVector(BCName bcName)
+{
+	SCTM_ASSERT(bc_normVector.find(bcName)!=bc_normVector.end(), 10010);
+	return bc_normVector[bcName];
 }
 
 FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)

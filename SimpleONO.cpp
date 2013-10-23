@@ -56,7 +56,7 @@ void SimpleONO::setParameters()
 	double yLengthBlock_in_nm = 9;
 	int xGridNumber = 5; //the grid number, not vertex number
 	int yGridNumberTunnel = 5;
-	int yGridNumberTrap = 50;
+	int yGridNumberTrap = 5;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
@@ -544,8 +544,9 @@ void SimpleONO::setBoundaryCondition()
 				//currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Artificial);
 			}
 
-			//the following is used to set the current boundary conditions in for simple structures.
+			//the following is used to set the current boundary conditions in simpleONO structures.
 			//TODO: for complicated structures, this method is not checked.
+			/*
 			if ( 
 				(( currVertex->NortheastElem == NULL ? false : currVertex->NortheastElem->Region->Type == FDRegion::Blocking )
 				|| ( currVertex->NorthwestElem == NULL ? false : currVertex->NorthwestElem->Region->Type == FDRegion::Blocking ))
@@ -566,6 +567,129 @@ void SimpleONO::setBoundaryCondition()
 				)
 			{
 				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Dirichlet);
+			}
+			*/
+		}
+
+
+		//setting the density boundary condition, i.e. boundary dealing with current density
+		if (  (currVertex->EastVertex == NULL)
+		    ||(  (currVertex->NortheastElem != NULL && currVertex->NortheastElem->Region->Type != FDRegion::Trapping)
+			   &&(currVertex->SoutheastElem != NULL && currVertex->SoutheastElem->Region->Type != FDRegion::Trapping)			  
+			  )
+		   )
+		{
+			while (1)
+			{
+				if (currVertex->NorthwestElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(1, 0));
+					break;
+				}
+				if (currVertex->NorthwestElem->Region->Type != FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
+					break;
+				}
+				if (currVertex->NorthwestElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
+					break;
+				}
+				if (currVertex->NorthwestElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					break;
+				}
+			}
+		}
+
+		if (  (currVertex->WestVertex == NULL)
+			||(  (currVertex->NorthwestElem != NULL && currVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
+			   &&(currVertex->SouthwestElem != NULL && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)			  
+			  )
+			)
+		{
+			while (1)
+			{
+				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->SoutheastElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-1, 0));
+					break;
+				}
+				if (currVertex->NortheastElem->Region->Type != FDRegion::Trapping && currVertex->SoutheastElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
+					break;
+				}
+				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->SoutheastElem->Region->Type != FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
+					break;
+				}
+				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->SoutheastElem->Region->Type == FDRegion::Trapping)
+				{
+					break;
+				}
+			}
+		}
+
+		if (  (currVertex->NorthVertex == NULL)
+			||(  (currVertex->NortheastElem != NULL && currVertex->NortheastElem->Region->Type != FDRegion::Trapping)
+			   &&(currVertex->NorthwestElem != NULL && currVertex->NorthwestElem->Region->Type != FDRegion::Trapping)			  
+			  )
+			)
+		{
+			while (1)
+			{
+				if (currVertex->SoutheastElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
+					break;
+				}
+				if (currVertex->SoutheastElem->Region->Type != FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(1, 0));
+					break;
+				}
+				if (currVertex->SoutheastElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-1, 0));
+					break;
+				}
+				if (currVertex->SoutheastElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					break;
+				}
+			}
+		}
+
+		if (  (currVertex->SouthVertex == NULL)
+			||(  (currVertex->SoutheastElem != NULL && currVertex->SoutheastElem->Region->Type != FDRegion::Trapping)
+			   &&(currVertex->SouthwestElem != NULL && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)			  
+			  )
+			)
+		{
+			while (1)
+			{
+				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
+					break;
+				}
+				if (currVertex->NortheastElem->Region->Type != FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
+					break;
+				}
+				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
+					break;
+				}
+				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
+				{
+					break;
+				}
 			}
 		}
 	}
