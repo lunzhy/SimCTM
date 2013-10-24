@@ -32,7 +32,7 @@ void SimpleONO::BuildDomain()
 
 	//fill in the physical parameters and values
 	setVertexPhysics();
-	setBoundaryCondition();
+	setBoundaryCondition(true);
 	//stuffPotential();
 	//refreshBandEnergy();
 	//printStructure();
@@ -546,7 +546,6 @@ void SimpleONO::setBoundaryCondition()
 
 			//the following is used to set the current boundary conditions in simpleONO structures.
 			//TODO: for complicated structures, this method is not checked.
-			/*
 			if ( 
 				(( currVertex->NortheastElem == NULL ? false : currVertex->NortheastElem->Region->Type == FDRegion::Blocking )
 				|| ( currVertex->NorthwestElem == NULL ? false : currVertex->NorthwestElem->Region->Type == FDRegion::Blocking ))
@@ -568,129 +567,275 @@ void SimpleONO::setBoundaryCondition()
 			{
 				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Dirichlet);
 			}
-			*/
-		}
-
-
-		//setting the density boundary condition, i.e. boundary dealing with current density
-		if (  (currVertex->EastVertex == NULL)
-		    ||(  (currVertex->NortheastElem != NULL && currVertex->NortheastElem->Region->Type != FDRegion::Trapping)
-			   &&(currVertex->SoutheastElem != NULL && currVertex->SoutheastElem->Region->Type != FDRegion::Trapping)			  
-			  )
-		   )
-		{
-			while (1)
-			{
-				if (currVertex->NorthwestElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(1, 0));
-					break;
-				}
-				if (currVertex->NorthwestElem->Region->Type != FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
-					break;
-				}
-				if (currVertex->NorthwestElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
-					break;
-				}
-				if (currVertex->NorthwestElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					break;
-				}
-			}
-		}
-
-		if (  (currVertex->WestVertex == NULL)
-			||(  (currVertex->NorthwestElem != NULL && currVertex->NorthwestElem->Region->Type != FDRegion::Trapping)
-			   &&(currVertex->SouthwestElem != NULL && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)			  
-			  )
-			)
-		{
-			while (1)
-			{
-				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->SoutheastElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-1, 0));
-					break;
-				}
-				if (currVertex->NortheastElem->Region->Type != FDRegion::Trapping && currVertex->SoutheastElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
-					break;
-				}
-				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->SoutheastElem->Region->Type != FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
-					break;
-				}
-				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->SoutheastElem->Region->Type == FDRegion::Trapping)
-				{
-					break;
-				}
-			}
-		}
-
-		if (  (currVertex->NorthVertex == NULL)
-			||(  (currVertex->NortheastElem != NULL && currVertex->NortheastElem->Region->Type != FDRegion::Trapping)
-			   &&(currVertex->NorthwestElem != NULL && currVertex->NorthwestElem->Region->Type != FDRegion::Trapping)			  
-			  )
-			)
-		{
-			while (1)
-			{
-				if (currVertex->SoutheastElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
-					break;
-				}
-				if (currVertex->SoutheastElem->Region->Type != FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(1, 0));
-					break;
-				}
-				if (currVertex->SoutheastElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-1, 0));
-					break;
-				}
-				if (currVertex->SoutheastElem->Region->Type == FDRegion::Trapping && currVertex->SouthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					break;
-				}
-			}
-		}
-
-		if (  (currVertex->SouthVertex == NULL)
-			||(  (currVertex->SoutheastElem != NULL && currVertex->SoutheastElem->Region->Type != FDRegion::Trapping)
-			   &&(currVertex->SouthwestElem != NULL && currVertex->SouthwestElem->Region->Type != FDRegion::Trapping)			  
-			  )
-			)
-		{
-			while (1)
-			{
-				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
-					break;
-				}
-				if (currVertex->NortheastElem->Region->Type != FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
-					break;
-				}
-				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					currVertex->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
-					break;
-				}
-				if (currVertex->NortheastElem->Region->Type == FDRegion::Trapping && currVertex->NorthwestElem->Region->Type == FDRegion::Trapping)
-				{
-					break;
-				}
-			}
 		}
 	}
+}
+
+void SimpleONO::setBoundaryCondition(bool fake)
+{
+	/////////////////////////////////////////////////////////////////////////////
+	//set physical class members
+	//in [V]
+	//TODO: the gate potential should be obtained with gate voltage and work function.
+	//Currently, the gate voltage is not considered in the structure.
+	/////////////////////////////////////////////////////////////////////////////
+	this->gatePotential = 16.526;
+	this->channelPotential = 0.634;
+
+	//normalization is needed here because all the values related to the domain details (i.e. the stored value) are normalized
+	//Normalization theNorm = Normalization();
+
+	FDVertex *currVertex;
+	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
+	{
+		currVertex = GetVertex(iVer);
+		setVertBC_Potential(currVertex);
+		setVertBC_eDensity(currVertex);
+	}
+}
+
+bool SimpleONO::isValidElem(FDElement *elem)
+{
+	return elem != NULL;
+}
+
+bool SimpleONO::isNotElemOf(FDRegion::RegionType rType, FDElement *elem)
+{
+	if (elem == NULL)
+		return true;
+	else
+	{
+		return elem->Region->Type != rType;
+	}
+}
+
+void SimpleONO::setVertBC_eDensity(FDVertex *vert)
+{
+	bool notTrapping_NW = isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
+	bool notTrapping_NE = isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
+	bool notTrapping_SE = isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
+	bool notTrapping_SW = isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+
+	bool valid_NW = isValidElem(vert->NorthwestElem);
+	bool valid_NE = isValidElem(vert->NortheastElem);
+	bool valid_SE = isValidElem(vert->SoutheastElem);
+	bool valid_SW = isValidElem(vert->SouthwestElem);
+	
+	//Northwest corner
+	if ( notTrapping_NW && notTrapping_NE &&
+		notTrapping_SW && !notTrapping_SE )
+	{
+		if (              valid_NE &&
+	         !valid_SW )
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
+			return;
+		}
+		if (              !valid_NE &&
+			 valid_SW )
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-1, 0));
+			return;
+		}
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-vert->EastLength, vert->SouthLength));
+		return;
+	}
+
+	//Northeast corner
+	if ( notTrapping_NW && notTrapping_NE && 
+		!notTrapping_SW && notTrapping_SE )
+	{
+		if ( valid_NW &&
+							!valid_SE)
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0 ,1));
+			return;
+		}
+		if ( !valid_NW &&
+							valid_SE)
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(1, 0));
+			return;
+		}
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(vert->WestLength, vert->SouthLength));
+		return;
+	}
+
+	//Southeast corner
+	if ( !notTrapping_NW && notTrapping_NE && 
+		notTrapping_SW && notTrapping_SE )
+	{
+		if (			!valid_NE &&
+			valid_SW)
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
+			return;
+		}
+		if (			valid_NE &&
+			!valid_SW)
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(1, 0));
+			return;
+		}
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(vert->WestLength, -vert->NorthLength));
+		return;
+	}
+
+	//Southwest corner
+	if ( notTrapping_NW && !notTrapping_NE && 
+		notTrapping_SW && notTrapping_SE)
+	{
+		if ( valid_NW &&
+						!valid_SE )
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-1, 0));
+			return;
+		}
+		if ( !valid_NW &&
+						valid_SE )
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
+			return;
+		}
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-vert->EastLength, -vert->NorthLength));
+		return;
+	}
+
+	//North side
+	if ( notTrapping_NW && notTrapping_NE && 
+		!notTrapping_SW && !notTrapping_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, 1));
+		return;
+	}
+
+	//East side
+	if ( !notTrapping_NW && notTrapping_NE && 
+		!notTrapping_SW && notTrapping_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(1, 0));
+		return;
+	}
+
+	//South side
+	if ( !notTrapping_NW && !notTrapping_NE && 
+		notTrapping_SW && notTrapping_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(0, -1));
+		return;
+	}
+
+	//West side
+	if ( notTrapping_NW && !notTrapping_NE && 
+		notTrapping_SW && !notTrapping_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, DirectionVector(-1, 0));
+		return;
+	}
+
+}
+
+void SimpleONO::setVertBC_Potential(FDVertex *vert)
+{
+	//normalization is needed here because all the values related to the domain details (i.e. the stored value) are normalized
+	static Normalization theNorm = Normalization();
+	static double potentialValue = 0;
+
+	bool isValid_NW = isValidElem(vert->NorthwestElem);
+	bool isValid_NE = isValidElem(vert->NortheastElem);
+	bool isValid_SE = isValidElem(vert->SoutheastElem);
+	bool isValid_SW = isValidElem(vert->SouthwestElem);
+
+	//firstly, to decide if the vertex is at a contact.
+	if ( vert->IsAtContact() )
+	{
+		//the gate name is in accordance with the name specified in setting domain details
+		if (vert->Contact->ContactName == "Gate")
+		{
+			potentialValue = theNorm.PushPotential(this->gatePotential);
+			//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
+			vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
+			return;
+		}
+		else if (vert->Contact->ContactName == "Channel")
+		{
+			potentialValue = theNorm.PushPotential(this->channelPotential);
+			//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
+			vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
+			return;
+		}
+	}
+
+	//Northwest corner
+	if ( !isValid_NW && !isValid_NE &&
+		!isValid_SW && isValid_SE )
+	{
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(-vert->EastLength, vert->SouthLength));
+		return;
+	}
+
+	//Northeast corner
+	if ( !isValid_NW && !isValid_NE && 
+		isValid_SW && !isValid_SE )
+	{
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(vert->WestLength, vert->SouthLength));
+		return;
+	}
+
+	//Southeast corner
+	if ( isValid_NW && !isValid_NE && 
+		!isValid_SW && !isValid_SE )
+	{
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(vert->WestLength, -vert->NorthLength));
+		return;
+	}
+
+	//Southwest corner
+	if ( !isValid_NW && isValid_NE && 
+		!isValid_SW && !isValid_SE)
+	{
+		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(-vert->EastLength, -vert->NorthLength));
+		return;
+	}
+
+	//North side
+	if ( !isValid_NW && !isValid_NE && 
+		isValid_SW && isValid_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(0, 1));
+		return;
+	}
+
+	//East side
+	if ( isValid_NW && !isValid_NE && 
+		isValid_SW && !isValid_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(1, 0));
+		return;
+	}
+
+	//South side
+	if ( isValid_NW && isValid_NE && 
+		!isValid_SW && !isValid_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(0, -1));
+		return;
+	}
+
+	//West side
+	if ( !isValid_NW && isValid_NE && 
+		!isValid_SW && isValid_SE)
+	{
+		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, DirectionVector(-1, 0));
+		return;
+	}
+
 }

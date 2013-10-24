@@ -25,12 +25,6 @@ using std::fstream;
 
 namespace SctmUtils
 {
-	std::ostream &operator<<(std::ostream &os, const DirectionVector &_dv)
-	{
-		os << "(" << _dv.X() << "," << _dv.Y() << ")";
-		return os;
-	}
-
 	SctmMessaging UtilsMsg = SctmMessaging();
 	SctmTimer UtilsTimer = SctmTimer();
 	SctmDebug UtilsDebug = SctmDebug();
@@ -157,7 +151,35 @@ namespace SctmUtils
 			//PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
 			//if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
-			PrintValue(currVert->BndCond.Valid(FDBoundary::eDensity));
+			PrintValue(currVert->IsAtBoundary(FDBoundary::Potential));
+			if (currVert->IsAtBoundary(FDBoundary::Potential))
+			{
+				PrintValue(currVert->BndCond.GetBCType(FDBoundary::Potential));
+				if (currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet)
+				{
+					PrintValue(norm.PullPotential(currVert->BndCond.GetBCValue(FDBoundary::Potential)));
+				}
+				else
+				{
+					PrintValue(norm.PullPotential(currVert->BndCond.GetBCValue(FDBoundary::Potential)));
+					PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::Potential));
+				}
+			}
+			cout << " -- -- -- ";
+			PrintValue(currVert->IsAtBoundary(FDBoundary::eDensity));
+			if (currVert->IsAtBoundary(FDBoundary::eDensity))
+			{
+				PrintValue(currVert->BndCond.GetBCType(FDBoundary::eDensity));
+				if (currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Dirichlet)
+				{
+					PrintValue(norm.PullPotential(currVert->BndCond.GetBCValue(FDBoundary::eDensity)));
+				}
+				else
+				{
+					PrintValue(norm.PullPotential(currVert->BndCond.GetBCValue(FDBoundary::eDensity)));
+					PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity));
+				}
+			}
 			//if (currVert->BndCond.Valid(FDBoundary::eDensity)) { PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity)); }
 			//PrintValue(currVert->EastLength);
 			//PrintValue(currVert->WestLength);
@@ -167,23 +189,23 @@ namespace SctmUtils
 			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
 			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID());
-			cout << " -- ";
+			//cout << " -- ";
 			//PrintValue(norm.PullLength(currVert->EastLength));
 			//PrintValue(norm.PullLength(currVert->WestLength));
 			//PrintValue(norm.PullLength(currVert->SouthLength));
 			//PrintValue(norm.PullLength(currVert->NorthLength));
-			cout << " -- ";
+			//cout << " -- ";
 			//PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
 			//PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
 			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
-			cout << " -- ";
+			//cout << " -- ";
 			//PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::eMobility));
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			cout << " -- ";
+			//cout << " -- ";
 			//PrintValue(currVert->NorthwestElem==NULL ? -1 : GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
 			//PrintValue(currVert->NortheastElem==NULL ? -1 : GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_Bandgap));;
 			//PrintValue(currVert->SouthwestElem==NULL ? -1 : GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
@@ -197,13 +219,16 @@ namespace SctmUtils
 		if (!this->enable)
 			return;
 		string typestring;
-		switch (bc.GetBCType(FDBoundary::eCurrentDensity))
+		switch (bc.GetBCType(FDBoundary::eDensity))
 		{
 		case FDBoundary::BC_Dirichlet:
 			typestring = "Dirichlet";
 			break;
 		case FDBoundary::BC_Neumann:
 			typestring = "Neumann";
+			break;
+		case FDBoundary::BC_Cauchy:
+			typestring = "Cauchy";
 			break;
 		case FDBoundary::BC_Artificial:
 			typestring = "Artificial";
@@ -263,7 +288,7 @@ namespace SctmUtils
 
 	void SctmDebug::PrintDirectionVector(DirectionVector &dv)
 	{
-		cout << dv << endl;
+		cout << dv;
 	}
 
 

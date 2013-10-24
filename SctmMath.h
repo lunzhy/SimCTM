@@ -71,6 +71,11 @@ namespace SctmMath
 			this->vY = _dv.Y();
 			return *this;
 		}
+		friend std::ostream &operator<<(std::ostream &os, const DirectionVector &_dv)
+		{
+			os << "(" << _dv.X() << "," << _dv.Y() << ")";
+			return os;
+		}
 		double X() const { return this->vX; }
 		double Y() const { return this->vY; }
 		double Valid() const { return ( (this->vX != 0)||(this->vY != 0) ); }

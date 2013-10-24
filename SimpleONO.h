@@ -166,6 +166,11 @@ private:
 	/// @return void
 	/// @note
 	void setBoundaryCondition();
+	void setBoundaryCondition(bool fake);
+	bool isValidElem(FDElement *elem);
+	bool isNotElemOf(FDRegion::RegionType rType, FDElement *elem);
+	void setVertBC_eDensity(FDVertex *vert);
+	void setVertBC_Potential(FDVertex *vert);
 };
 
 #endif
