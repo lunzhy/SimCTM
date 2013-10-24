@@ -48,33 +48,37 @@ namespace SctmMath
 	inline double ln(double val) { return std::log(val); }
 	inline double exp(double val) { return std::exp(val); }
 
-	class DirectionVector
+	class VectorValue
 	{
 	public:
-		DirectionVector(){ this->vX = 0; this->vY = 0; }
-		DirectionVector(double _vx, double _vy)
+		VectorValue(){ this->vX = 0; this->vY = 0; }
+		VectorValue(double _vx, double _vy)
 		{
-			if ( (_vx == 0) && (_vy == 0) )
-			{
-				this->vX = 0;
-				this->vY = 0;
-			}
-			else
-			{
-				this->vX = _vx / sqrt( square(_vx) + square(_vy) );
-				this->vY = _vy / sqrt( square(_vx) + square(_vy) );
-			}
+			this->vX = _vx;
+			this->vY = _vy;
 		}
-		DirectionVector &operator=(const DirectionVector &_dv)
+		VectorValue &operator=(const VectorValue &_dv)
 		{
 			this->vX = _dv.X();
 			this->vY = _dv.Y();
 			return *this;
 		}
-		friend std::ostream &operator<<(std::ostream &os, const DirectionVector &_dv)
+		friend std::ostream &operator<<(std::ostream &os, const VectorValue &_dv)
 		{
 			os << "(" << _dv.X() << "," << _dv.Y() << ")";
 			return os;
+		}
+		void Normalize()
+		{
+			if ( (vX == 0) && (vY == 0) )
+			{
+				//keep (0, 0) vector for valid inspection
+			}
+			else
+			{
+				vX = vX / sqrt( square(vX) + square(vY) );
+				vY = vY / sqrt( square(vX) + square(vY) );
+			}
 		}
 		double X() const { return this->vX; }
 		double Y() const { return this->vY; }

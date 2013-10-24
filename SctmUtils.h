@@ -23,7 +23,7 @@
 #include <Eigen/Sparse>
 #include <fstream>
 #include "SctmMath.h"
-using SctmMath::DirectionVector;
+using SctmMath::VectorValue;
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
 #ifdef DEBUG
@@ -158,7 +158,7 @@ namespace SctmUtils
 		void PrintValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
 		void PrintValue(std::string &s) { std::cout << s << " ";}
 		void PrintBCType(FDBoundary &bc);
-		void PrintDirectionVector(DirectionVector &dv);
+		void PrintDirectionVector(VectorValue &dv);
 	private:
 		bool enable;
 	};

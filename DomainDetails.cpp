@@ -46,7 +46,7 @@ void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, doubl
 	}
 }
 
-void FDBoundary::SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, DirectionVector bcNormVec /*= DirectionVector(0, 0)*/)
+void FDBoundary::SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec /*= DirectionVector(0, 0)*/)
 {
 	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.Valid(), 10016 );
 	SCTM_ASSERT( this->bc_valid.find(bcName) == this->bc_valid.end(), 10017 ); //bcName not exists
@@ -55,6 +55,7 @@ void FDBoundary::SetBndCond(bool fake, BCName bcName, BCType bcType, double bcVa
 	this->bc_valid[bcName] = true;
 	this->bc_types[bcName] = bcType;
 	this->bc_values[bcName] = bcValue;
+	bcNormVec.Normalize();
 	this->bc_normVector[bcName] = bcNormVec;
 }
 
@@ -122,7 +123,7 @@ void FDBoundary::RefreshBndCondValue(bool fake, BCName bcName, double newValue)
 	bc_values[bcName] = newValue;
 }
 
-DirectionVector & FDBoundary::GetBCNormVector(BCName bcName)
+VectorValue & FDBoundary::GetBCNormVector(BCName bcName)
 {
 	SCTM_ASSERT(bc_normVector.find(bcName)!=bc_normVector.end(), 10010);
 	return bc_normVector[bcName];

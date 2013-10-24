@@ -25,7 +25,7 @@ using SctmPhys::PhysProperty;
 using MaterialDB::Material;
 using std::string;
 using std::map;
-using SctmMath::DirectionVector;
+using SctmMath::VectorValue;
 
 /// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
 ///
@@ -96,7 +96,7 @@ public:
 	/// @return void
 	/// @note
 	void SetBndCond(BCName bcName, BCType bcType, double bcValue1 = 0, double bcValue2 = 0);
-	void SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, DirectionVector bcNormVec = DirectionVector(0, 0));
+	void SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
 	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
 	/// Both non-existent boundary condition and boundary condition with false validity will return false.
@@ -144,7 +144,7 @@ public:
 	/// @return double
 	/// @note
 	double GetBCValueSouthNorth(BCName bcName); //---------------------not use in new version
-	DirectionVector &GetBCNormVector(BCName bcName);
+	VectorValue &GetBCNormVector(BCName bcName);
 protected:
 	//bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex
 	map<BCName, bool> bc_valid; ///< the validity of the boundary condition with given boundary condition name
@@ -152,7 +152,7 @@ protected:
 	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
 	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions, the west-east value in case of two values
 	map<BCName, double> bc_values_second; ///< the second value to store boundary condition values, the south-north value in case of two values
-	map<BCName, DirectionVector> bc_normVector; ///< the map to store normal vector of the boundary
+	map<BCName, VectorValue> bc_normVector; ///< the map to store normal vector of the boundary
 };
 
 

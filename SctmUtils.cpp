@@ -286,7 +286,7 @@ namespace SctmUtils
 		return;
 	}
 
-	void SctmDebug::PrintDirectionVector(DirectionVector &dv)
+	void SctmDebug::PrintDirectionVector(VectorValue &dv)
 	{
 		cout << dv;
 	}
