@@ -82,7 +82,7 @@ namespace SctmMath
 		}
 		double X() const { return this->vX; }
 		double Y() const { return this->vY; }
-		double Valid() const { return ( (this->vX != 0)||(this->vY != 0) ); }
+		double DirectionValid() const { return ( (this->vX != 0)||(this->vY != 0) ); }
 	protected:
 		double vX;
 		double vY;

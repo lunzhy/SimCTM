@@ -172,11 +172,11 @@ namespace SctmUtils
 				PrintValue(currVert->BndCond.GetBCType(FDBoundary::eDensity));
 				if (currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Dirichlet)
 				{
-					PrintValue(norm.PullPotential(currVert->BndCond.GetBCValue(FDBoundary::eDensity)));
+					PrintValue(norm.PullCurrDens(currVert->BndCond.GetBCValue(FDBoundary::eDensity)));
 				}
 				else
 				{
-					PrintValue(norm.PullPotential(currVert->BndCond.GetBCValue(FDBoundary::eDensity)));
+					PrintValue(norm.PullCurrDens(currVert->BndCond.GetBCValue(FDBoundary::eDensity)));
 					PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity));
 				}
 			}

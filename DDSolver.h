@@ -22,7 +22,7 @@
 using std::vector;
 using SctmMath::SctmSparseMatrixSolver;
 
-class FDDomain;
+//class FDDomain;
 class DriftDiffusionSolver
 {
 	//friend class SctmUtils::SctmDebug;
@@ -73,6 +73,18 @@ protected:
 	/// @return void
 	/// @note
 	void buildCoefficientMatrix();
+	void buildCoefficientMatrix(bool newMethod);
+	void setCoefficientBCVertex(FDVertex *vert);
+	void setCoefficientInnerVertex(FDVertex *vert);
+	/// @brief refreshCoefficientMatrix
+	/// 
+	/// The boundary conditions are always BC_Cauchy, so there is no need to refresh the matrix for this reason.
+	/// However, due to that the time step is likely to be different in each simulation step, the time dependent item
+	/// in the coefficient matrix has to be add to the corresponding item.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note
 	void refreshCoefficientMatrix();
 	/// @brief buildRhsVector
 	/// 
@@ -97,6 +109,11 @@ protected:
 	void initializeSolver(); // use method with the same name with base class
 	void prepareSolver();
 	void buildVertexMap();
+public:
 	void setBndCondCurrent();
+
+	//temp class
+	bool isValidElem(FDElement *elem);
+	bool isNotElemOf(FDRegion::RegionType rType, FDElement *elem);
 };
 #endif

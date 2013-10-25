@@ -185,6 +185,31 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 	}
 }
 
+void DriftDiffusionSolver::buildCoefficientMatrix(bool newMethod)
+{
+	int indexEquation = 0;
+	int matrixSize = this->vertices.size();
+	matrixSolver.matrix.resize(matrixSize, matrixSize);
+	matrixSolver.matrix.reserve(Eigen::VectorXd::Constant(matrixSize, 5));
+
+	FDVertex *currVert = NULL;
+
+	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		indexEquation = equationMap[currVert->GetID()];
+		SCTM_ASSERT(indexEquation==iVert, 100012);
+		//boundary vertex
+		if (currVert->IsAtBoundary(FDBoundary::eDensity))
+		{
+			setCoefficientBCVertex(currVert);
+			continue;
+		}
+		//inner vertex
+		setCoefficientInnerVertex(currVert);
+	}
+}
+
 void DriftDiffusionSolver::buildRhsVector()
 {
 	FDVertex *currVert = NULL;
@@ -192,7 +217,16 @@ void DriftDiffusionSolver::buildRhsVector()
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		rhsVal = -lastElecDensMap[currVert->GetID()] / timeStep;
+		if (currVert->IsAtBoundary(FDBoundary::eDensity))
+		{
+			//for Cauchy boundary condition
+			rhsVal = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
+		}
+		else
+		{
+			//the inner vertex
+			rhsVal = -lastElecDensMap[currVert->GetID()] / timeStep;
+		}
 		this->rhsVector.at(iVert) = rhsVal;
 	}
 }
@@ -257,7 +291,7 @@ void DriftDiffusionSolver::refreshRhsWithBC()
 
 void DriftDiffusionSolver::refreshCoefficientMatrix()
 {
-	//The boundary conditions are always BC_Dirichlet, so there is no need refreshing the matrix for this reason.
+	//The boundary conditions are always BC_Cauchy, so there is no need to refresh the matrix for this reason.
 	//However, due to that the time step is likely to be different in each simulation step, the time dependent item
 	//in the coefficient matrix has to be add to the corresponding item.
 	FDVertex *currVert = NULL;
@@ -265,11 +299,15 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 	int indexCoefficient = 0;
 
 	double coeffToAdd = 0; // coefficient for center vertex
-	coeffToAdd += -1 / timeStep; // from p_n/p_t, p=partial differential
+	coeffToAdd = -1 / timeStep; // from p_n/p_t, p=partial differential
 	
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
+
+		//there is no need refreshing coefficient related to boundary condition for this reason
+		if (currVert->IsAtBoundary(FDBoundary::eDensity))
+			continue;
 
 		indexEquation = equationMap[currVert->GetID()];
 		SCTM_ASSERT(indexEquation==iVert, 100012);
@@ -332,6 +370,164 @@ void DriftDiffusionSolver::fillBackElecDens()
 	}
 }
 
+void DriftDiffusionSolver::setCoefficientBCVertex(FDVertex *vert)
+{
+	//for Cauchy boundary condition
+	int indexEquation = 0;
+	int indexCoeff = 0;
+	
+	double coeff_center = 0;
+	double coeff_east = 0;
+	double coeff_west = 0;
+	double coeff_south = 0;
+	double coeff_north = 0;
+
+	double val_alpha = 0;
+	double val_beta = 0;
+
+	double mobility = mobilityMap[vert->GetID()]; 
+	//the vector of normal direction is (alpha, beta)
+	double norm_alpha = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).X();
+	double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
+
+	//for center vertex
+	if (norm_alpha > 0)
+	{
+		coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()] ) / vert->WestLength;
+		coeff_center += norm_alpha * 1 / vert->WestLength;
+		coeff_west = norm_alpha * (-1) / vert->WestLength;
+	}
+	else if (norm_alpha < 0)
+	{
+		coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()] ) / (-vert->EastLength);
+		coeff_center += norm_alpha * 1 / (-vert->EastLength);
+		coeff_east = norm_alpha * (-1) / (-vert->EastLength);
+	}
+	else
+		coeff_center = 0;
+
+	if (norm_beta > 0)
+	{
+		coeff_center += -norm_beta * ( potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()] ) / vert->SouthLength;
+		coeff_center += norm_beta * 1 / vert->SouthLength;
+		coeff_south = norm_beta * (-1) / vert->SouthLength;
+	}
+	else if (norm_beta < 0)
+	{
+		coeff_center += -norm_beta * ( potentialMap[vert->GetID()] -  potentialMap[vert->NorthVertex->GetID()] ) / (-vert->NorthLength);
+		coeff_center += norm_beta * 1 / (-vert->NorthLength);
+		coeff_north = norm_beta * (-1) / (-vert->NorthLength);
+	}
+	else
+		coeff_center += 0;
+
+	coeff_center *= mobility;
+	coeff_east *= mobility;
+	coeff_west *= mobility;
+	coeff_north *= mobility;
+	coeff_south *= mobility;
+
+	indexEquation = equationMap[vert->GetID()];
+	indexCoeff = equationMap[vert->GetID()];
+	matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
+	if (coeff_east != 0)
+	{
+		indexCoeff = equationMap[vert->EastVertex->GetID()];
+		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_east;
+	}
+	if (coeff_west != 0)
+	{
+		indexCoeff = equationMap[vert->WestVertex->GetID()];
+		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_west;
+	}
+	if (coeff_north != 0)
+	{
+		indexCoeff = equationMap[vert->NorthVertex->GetID()];
+		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_north;
+	}
+	if (coeff_south != 0)
+	{
+		indexCoeff = equationMap[vert->SouthVertex->GetID()];
+		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_south;
+	}
+
+}
+
+void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
+{
+	int indexEquation = 0;
+	int indexCoefficient = 0;
+
+	double mobility = 0;
+	double coeff_adjacent = 0; // coefficient for adjacent vertex
+	double coeff_center = 0; // coefficient for center vertex
+
+	double deltaX = 0; // dJ/dx
+	double deltaY = 0; // dJ/dy
+
+	//we should consider the normalized current equation
+	//for electron, J = -u[ n * p_phi/p_x - p_n/p_x ]
+
+	indexEquation = equationMap[vert->GetID()];
+	
+	coeff_center = 0;
+	// in the boundary cases, the length of one or two direction may be zero 
+	deltaX = (vert->EastLength + vert->WestLength) / 2;
+	deltaY = (vert->NorthLength + vert->SouthLength) / 2;
+	SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
+
+	//the initial filling method can be used for boundary vertices and non-boundary vertices
+	//related to east vertex
+	mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+	indexCoefficient = equationMap[vert->EastVertex->GetID()];
+	coeff_adjacent = - mobility / vert->EastLength / deltaX *
+		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+	coeff_center += - mobility / vert->EastLength / deltaX *
+		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+
+
+	//related to west vertex
+	mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+	indexCoefficient = equationMap[vert->WestVertex->GetID()];
+	coeff_adjacent = - mobility / vert->WestLength / deltaX *
+		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 );
+	coeff_center += - mobility / vert->WestLength / deltaX *
+		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 );
+
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+
+
+	//related to north vertex
+	mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+	indexCoefficient = equationMap[vert->NorthVertex->GetID()];
+	coeff_adjacent = - mobility / vert->NorthLength / deltaY *
+		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+	coeff_center += - mobility / vert->NorthLength / deltaY *
+		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+
+	//related to south vertex
+	mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+	indexCoefficient = equationMap[vert->SouthVertex->GetID()];
+	coeff_adjacent = - mobility / vert->SouthLength / deltaY *
+		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+	coeff_center += - mobility / vert->SouthLength / deltaY *
+		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+
+	//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
+
+	//related to current center vertex
+	indexCoefficient = equationMap[vert->GetID()];
+	SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
+	//indexCoefficent = indexEquation = vertMap[currVert->GetID]
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+}
+
 DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
 {
 	initializeSolver();
@@ -347,6 +543,7 @@ void DDTest::initializeSolver()
 
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
+	buildCoefficientMatrix(true);
 }
 
 void DDTest::buildVertexMap()
@@ -384,23 +581,147 @@ void DDTest::setBndCondCurrent()
 {
 	FDVertex *currVert = NULL;
 	int equaID = 0;
-	double bcVal = -1e-3; 
+	double bcVal_in = 1e-3; //the magnitude of current density vector
+	double bcVal_out = 0;
 	// current density at boundary for test, in [A/cm^2]
 	// note that the current direction is the reversed direction of electron flow
 
 	Normalization norm = Normalization();
+	bcVal_in = norm.PushCurrDens(bcVal_in);
 
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
 		//for the current tunneling from tunneling oxide
-		if (  currVert->IsAtBoundary(FDBoundary::eCurrentDensity) 
-			&&( (currVert->SoutheastElem == NULL ? false : currVert->SoutheastElem->Region->Type == FDRegion::Tunneling)
-			||(currVert->SouthwestElem == NULL ? false : currVert->SouthwestElem->Region->Type == FDRegion::Tunneling) )
-			)
+
+		bool notTrapping_NW = isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
+		bool notTrapping_NE = isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
+		bool notTrapping_SE = isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
+		bool notTrapping_SW = isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
+
+		bool valid_NW = isValidElem(currVert->NorthwestElem);
+		bool valid_NE = isValidElem(currVert->NortheastElem);
+		bool valid_SE = isValidElem(currVert->SoutheastElem);
+		bool valid_SW = isValidElem(currVert->SouthwestElem);
+
+		//Southeast corner
+		if ( !notTrapping_NW && notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE )
 		{
-			currVert->BndCond.RefreshBndCondValue(FDBoundary::eCurrentDensity, 0, norm.PushCurrDens(bcVal));
+			if (			!valid_NE &&
+				valid_SW)
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+				continue;
+			}
+			if (			valid_NE &&
+				!valid_SW)
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+				continue;
+			}
+			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+			continue;
 		}
+
+		//Southwest corner
+		if ( notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE)
+		{
+			if ( valid_NW &&
+				!valid_SE )
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+				continue;
+			}
+			if ( !valid_NW &&
+				valid_SE )
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+				continue;
+			}
+			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+			continue;
+		}
+
+		//South side
+		if ( !notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE)
+		{
+			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+			continue;
+		}
+
+		//Northwest corner
+		if ( notTrapping_NW && notTrapping_NE &&
+			notTrapping_SW && !notTrapping_SE )
+		{
+			if (              valid_NE &&
+				!valid_SW )
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_out);
+				return;
+			}
+			if (              !valid_NE &&
+				valid_SW )
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_out);
+				return;
+			}
+			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_out);
+			return;
+		}
+
+		//Northeast corner
+		if ( notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && notTrapping_SE )
+		{
+			if ( valid_NW &&
+				!valid_SE)
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_out);
+				return;
+			}
+			if ( !valid_NW &&
+				valid_SE)
+			{
+				currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_out);
+				return;
+			}
+			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
+			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_out);
+			return;
+		}
+
+		//North side
+		if ( notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && !notTrapping_SE)
+		{
+			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_out);
+			return;
+		}
+
+		//for testing
+		/*
+		//East side
+		if ( !notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && notTrapping_SE)
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
+			return;
+		}
+
+		//West side
+		if ( notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && !notTrapping_SE)
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-1, 0));
+			return;
+		}
+		*/
 	}
 }
 
@@ -422,16 +743,33 @@ void DDTest::SolveDD()
 void DDTest::prepareSolver()
 {
 	setTimeStep();
-	buildCoefficientMatrix();
-	UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
+	setBndCondCurrent();
+
+	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
 	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	refreshCoefficientMatrix();
-	UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
+	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
 	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 
-	setBndCondCurrent();
 	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
 	//different due to the difference in last time electron density
 	buildRhsVector();
-	refreshRhsWithBC();
+	UtilsDebug.PrintVector(this->rhsVector);
+	//refreshRhsWithBC();
+}
+
+
+bool DDTest::isValidElem(FDElement *elem)
+{
+	return elem != NULL;
+}
+
+bool DDTest::isNotElemOf(FDRegion::RegionType rType, FDElement *elem)
+{
+	if (elem == NULL)
+		return true;
+	else
+	{
+		return elem->Region->Type != rType;
+	}
 }
