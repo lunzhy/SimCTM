@@ -52,6 +52,7 @@ void DDSolverTest()
 	DDTest *ddSolver = new DDTest(aDomain);
 
 	ddSolver->SolveDD();
+	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 
 int main()

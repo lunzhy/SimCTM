@@ -48,8 +48,8 @@ void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, doubl
 
 void FDBoundary::SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec /*= DirectionVector(0, 0)*/)
 {
+	SCTM_ASSERT( this->bc_valid.find(bcName) == this->bc_valid.end(), 10017 ); //make sure bcName not exists
 	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
-	SCTM_ASSERT( this->bc_valid.find(bcName) == this->bc_valid.end(), 10017 ); //bcName not exists
 
 	//bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
 	this->bc_valid[bcName] = true;
@@ -105,7 +105,7 @@ bool FDBoundary::Valid(BCName bcName)
 	//return iter->second;
 }
 
-void FDBoundary::RefreshBndCondValue(BCName bcName, double bcValue1, double bcValue2)
+void FDBoundary::RefreshBndCond(BCName bcName, double bcValue1, double bcValue2)
 {
 	//check if the boundary condition exist.
 	map<BCName, BCType>::iterator iter;
@@ -116,11 +116,22 @@ void FDBoundary::RefreshBndCondValue(BCName bcName, double bcValue1, double bcVa
 	this->bc_values_second[bcName] = bcValue2;
 }
 
-void FDBoundary::RefreshBndCondValue(bool fake, BCName bcName, double newValue)
+void FDBoundary::RefreshBndCond(bool fake, BCName bcName, double newValue)
 {
-	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //bcName exists
+	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //make sure bcName exists
 
 	bc_values[bcName] = newValue;
+}
+
+void FDBoundary::RefreshBndCond(bool fake, BCName bcName, BCType bcType, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
+{
+	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //make sure bcName exists
+	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
+
+	bc_types[bcName] = bcType;
+	bcNormVec.Normalize();
+
+	bc_normVector[bcName] = bcNormVec;
 }
 
 VectorValue & FDBoundary::GetBCNormVector(BCName bcName)
