@@ -442,7 +442,7 @@ namespace SctmUtils
 	double SctmTimeStep::NextTimeStep()
 	{
 		//TODO: currently, constant time step is used in the simulation
-		double timestep = 1e-11; // in [s]
+		double timestep = 1e-12; // in [s]
 		return timestep / timeNormFactor;
 	}
 }

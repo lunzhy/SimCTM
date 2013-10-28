@@ -121,7 +121,8 @@ namespace SctmPhys
 		return ret;
 	}
 
-	void PhysProperty::FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys, MaterialDB::MatProperty::Name matPrpty)
+	void PhysProperty::FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
+		MaterialDB::MatProperty::Name matPrpty)
 	{
 		//TODO : need to solve the problem of mutual including.
 		//the problem is solved but with some unknowns.

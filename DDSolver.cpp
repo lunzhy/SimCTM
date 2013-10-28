@@ -555,6 +555,12 @@ void DDTest::buildVertexMap()
 	double phyValue = 0;
 	FDVertex *currVert = NULL;
 
+	//TODO: this is only a temporary method
+	//the following is used to set the mobility to uniform value, because the original setting method leads to incorrect calculation
+	//of the mobility at the trapping layer interface
+	Normalization norm = Normalization();
+	double mobility = MaterialDB::GetMatPrpty(&MaterialDB::Si3N4, MaterialDB::MatProperty::Mat_ElectronMobility);
+
 	//this map is filled in order to obtain the vertex index from the vertex internal id. This is useful
 	//in setting up the equation, i.e. filling the matrix.
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
@@ -566,7 +572,7 @@ void DDTest::buildVertexMap()
 		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
-		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eMobility)));
+		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, mobility));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
 		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, 0)); // suppose no electronic field exists
