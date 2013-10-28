@@ -662,17 +662,17 @@ void DDTest::setBndCondCurrent()
 				!valid_SW )
 			{
 				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_out);
-				return;
+				continue;
 			}
 			if (              !valid_NE &&
 				valid_SW )
 			{
 				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_out);
-				return;
+				continue;
 			}
 			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_out);
-			return;
+			continue;
 		}
 
 		//Northeast corner
@@ -683,17 +683,17 @@ void DDTest::setBndCondCurrent()
 				!valid_SE)
 			{
 				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_out);
-				return;
+				continue;
 			}
 			if ( !valid_NW &&
 				valid_SE)
 			{
 				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_out);
-				return;
+				continue;
 			}
 			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_out);
-			return;
+			continue;
 		}
 
 		//North side
@@ -701,7 +701,7 @@ void DDTest::setBndCondCurrent()
 			!notTrapping_SW && !notTrapping_SE)
 		{
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_out);
-			return;
+			continue;
 		}
 
 		//for testing
@@ -731,7 +731,7 @@ void DDTest::SolveDD()
 
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
-	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
+	//UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
 	UtilsDebug.PrintVector(this->elecDensity, "electron density");
 	
 	fillBackElecDens();
@@ -746,7 +746,7 @@ void DDTest::prepareSolver()
 	setBndCondCurrent();
 
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
-	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	refreshCoefficientMatrix();
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
 	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
@@ -754,7 +754,7 @@ void DDTest::prepareSolver()
 	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
 	//different due to the difference in last time electron density
 	buildRhsVector();
-	UtilsDebug.PrintVector(this->rhsVector);
+	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
 	//refreshRhsWithBC();
 }
 
