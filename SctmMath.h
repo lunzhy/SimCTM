@@ -51,38 +51,20 @@ namespace SctmMath
 	class VectorValue
 	{
 	public:
-		VectorValue(){ this->vX = 0; this->vY = 0; }
-		VectorValue(double _vx, double _vy)
-		{
-			this->vX = _vx;
-			this->vY = _vy;
-		}
-		VectorValue &operator=(const VectorValue &_dv)
-		{
-			this->vX = _dv.X();
-			this->vY = _dv.Y();
-			return *this;
-		}
+		VectorValue();
+		VectorValue(double _vx, double _vy);
+		VectorValue &operator=(const VectorValue &_dv);
 		friend std::ostream &operator<<(std::ostream &os, const VectorValue &_dv)
 		{
 			os << "(" << _dv.X() << "," << _dv.Y() << ")";
 			return os;
 		}
-		void Normalize()
-		{
-			if ( (vX == 0) && (vY == 0) )
-			{
-				//keep (0, 0) vector for valid inspection
-			}
-			else
-			{
-				vX = vX / sqrt( square(vX) + square(vY) );
-				vY = vY / sqrt( square(vX) + square(vY) );
-			}
-		}
-		double X() const { return this->vX; }
-		double Y() const { return this->vY; }
-		double DirectionValid() const { return ( (this->vX != 0)||(this->vY != 0) ); }
+		void Normalize();
+		double X() const;
+		double Y() const;
+		double NormX() const;
+		double NormY() const;
+		double DirectionValid() const;
 	protected:
 		double vX;
 		double vY;

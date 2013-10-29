@@ -20,6 +20,7 @@ using namespace SctmUtils;
 
 void SimpleONO::BuildDomain()
 {
+	UtilsTimer.Set();
 	//Initialize the vectors
 	vertices.clear();
 	elements.clear();
@@ -36,6 +37,7 @@ void SimpleONO::BuildDomain()
 	//stuffPotential();
 	//refreshBandEnergy();
 	//printStructure();
+	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 
 void SimpleONO::prepareStructure()
@@ -54,9 +56,9 @@ void SimpleONO::setParameters()
 	double yLengthTunnel_in_nm = 4;
 	double yLengthTrap_in_nm = 10;
 	double yLengthBlock_in_nm = 9;
-	int xGridNumber = 50; //the grid number, not vertex number
+	int xGridNumber = 5; //the grid number, not vertex number
 	int yGridNumberTunnel = 5;
-	int yGridNumberTrap = 50;
+	int yGridNumberTrap = 200;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
@@ -582,8 +584,8 @@ void SimpleONO::setBoundaryCondition(bool fake)
 	this->gatePotential = 16.526;
 	this->channelPotential = 0.634;
 
-	//normalization is needed here because all the values related to the domain details (i.e. the stored value) are normalized
-	//Normalization theNorm = Normalization();
+	//this->gatePotential = 0.634;
+	//this->channelPotential = 16.526;
 
 	FDVertex *currVertex;
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)

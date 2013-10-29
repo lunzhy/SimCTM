@@ -129,6 +129,9 @@ namespace SctmUtils
 		case 10017:
 			msg = "[DomainDetails.cpp] SetBndCond encounters existed boundary conditions.";
 			break;
+		case 10018:
+			msg = "[SctmMath.h] Try to normalize a zero vector or to get the norm X or Y of a zero vector.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -199,8 +202,8 @@ namespace SctmUtils
 			//PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
 			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
-			//cout << " -- ";
-			//PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::eMobility));
+			cout << " -- ";
+			PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential));
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
@@ -212,6 +215,7 @@ namespace SctmUtils
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_Bandgap));
 			cout << endl;
 		}
+		cout << endl;
 	}
 
 	void SctmDebug::PrintBCType(FDBoundary &bc)
@@ -416,11 +420,11 @@ namespace SctmUtils
 		file.close();
 	}
 
-	void SctmFileOperator::WriteDDResult(vector<FDVertex *> &vertices, const char *title)
+	void SctmFileOperator::WriteDDResult(vector<FDVertex *> &vertices, const char *title /*= "Drift-Diffusion Result"*/)
 	{
 		fstream tofile;
 		tofile.open(this->fileName.c_str(), std::ios::app);
-		
+
 		Normalization norm = Normalization();
 		FDVertex *currVert = NULL;
 		tofile << title << endl;
@@ -432,6 +436,25 @@ namespace SctmUtils
 		}
 		tofile.close();
 	}
+
+
+	void SctmFileOperator::WritePoissonResult(vector<FDVertex *> &vertices, const char *title /*= "Poisson Result"*/)
+	{
+		fstream tofile;
+		tofile.open(this->fileName.c_str(), std::ios::app);
+
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+		tofile << title << endl;
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			tofile << norm.PullLength(currVert->X) << '\t' << norm.PullLength(currVert->Y) << '\t' << 
+				norm.PullPotential(currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)) << endl;
+		}
+		tofile.close();
+	}
+
 
 	SctmTimeStep::SctmTimeStep()
 	{

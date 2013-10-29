@@ -18,7 +18,7 @@
 #include <vector>
 #include <map>
 
-using namespace SctmMath;
+using SctmMath::SctmSparseMatrixSolver;
 using std::vector;
 typedef std::map<int, int, std::less<int>> VertexMapInt; // the map used for get the equation index with given vertex internal id
 
@@ -29,7 +29,7 @@ class FDDomain;
 /// The solvers utilizes finite-difference method to solve two-dimensional Poisson problem.
 /// Currently this class is inherited from the sparse matrix solver. But in other conditions, the solver serves
 /// as a member of the specific class.
-class TwoDimPoissonSolver : public SctmSparseMatrixSolver
+class TwoDimPoissonSolver : protected SctmSparseMatrixSolver
 {
 public:
 	friend class SctmUtils::SctmDebug; // so SctmDebug can get the private and protected member of this solver.

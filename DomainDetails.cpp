@@ -55,7 +55,10 @@ void FDBoundary::SetBndCond(bool fake, BCName bcName, BCType bcType, double bcVa
 	this->bc_valid[bcName] = true;
 	this->bc_types[bcName] = bcType;
 	this->bc_values[bcName] = bcValue;
-	bcNormVec.Normalize();
+	if (bcNormVec.DirectionValid())
+	{
+		bcNormVec.Normalize();
+	}
 	this->bc_normVector[bcName] = bcNormVec;
 }
 
@@ -130,8 +133,10 @@ void FDBoundary::RefreshBndCond(bool fake, BCName bcName, BCType bcType, double 
 
 	bc_types[bcName] = bcType;
 	bc_values[bcName] = bcVal;
-	bcNormVec.Normalize();
-
+	if (bcNormVec.DirectionValid())
+	{
+		bcNormVec.Normalize();
+	}
 	bc_normVector[bcName] = bcNormVec;
 }
 

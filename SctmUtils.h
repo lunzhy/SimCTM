@@ -202,7 +202,8 @@ namespace SctmUtils
 		/// @pre
 		/// @return void
 		/// @note
-		void WriteDDResult(vector<FDVertex *> &vertices, const char *title);
+		void WriteDDResult(vector<FDVertex *> &vertices, const char *title = "Drift-Diffusion Result");
+		void WritePoissonResult(vector<FDVertex *> &vertices, const char *title = "Poisson Result");
 	private:
 		string fileName;
 	};

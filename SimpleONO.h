@@ -20,6 +20,8 @@ class FDRegion;
 /// This class is derived from SimpleONO. It can build a rectangle domain by using FDDomainHelper.
 class SimpleONO : public FDDomain
 {
+	friend class DDTest;
+	friend class DriftDiffusionSolver;
 public:
 	/// @brief BuildDomain is used to build the mesh of rectangle domain defined in this class
 	/// 
@@ -167,8 +169,8 @@ private:
 	/// @note
 	void setBoundaryCondition();
 	void setBoundaryCondition(bool fake);
-	bool isValidElem(FDElement *elem);
-	bool isNotElemOf(FDRegion::RegionType rType, FDElement *elem);
+	static bool isValidElem(FDElement *elem);
+	static bool isNotElemOf(FDRegion::RegionType rType, FDElement *elem);
 	void setVertBC_eDensity(FDVertex *vert);
 	void setVertBC_Potential(FDVertex *vert);
 };

@@ -15,6 +15,7 @@
 #include "FDDomain.h"
 #include "Material.h"
 #include "SctmPhys.h"
+#include "SimpleONO.h"
 using namespace SctmPhys;
 using namespace SctmUtils;
 
@@ -32,8 +33,6 @@ void DriftDiffusionSolver::SolveDD()
 
 void DriftDiffusionSolver::initializeSolver()
 {
-	SctmUtils::UtilsMsg.PrintHeader("Solving Drift-Diffusion");
-	
 	int vertSize = this->vertices.size();
 	this->rhsVector.resize(vertSize);
 	this->elecDensity.resize(vertSize);
@@ -554,8 +553,6 @@ DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
 
 void DDTest::initializeSolver()
 {
-	SctmUtils::UtilsMsg.PrintHeader("Solving Drift-Diffusion");
-
 	int vertSize = this->vertices.size();
 	this->rhsVector.resize(vertSize);
 	this->elecDensity.resize(vertSize);
@@ -595,15 +592,15 @@ void DDTest::buildVertexMap()
 		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, mobility));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, 0)); // suppose no electronic field exists
+		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, 0)); // suppose the initial carrier density is 0
+		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }
 
-void DDTest::setBndCondCurrent()
+void DDTest::refreshBndCondCurrent()
 {
 	FDVertex *currVert = NULL;
 	int equaID = 0;
@@ -615,29 +612,27 @@ void DDTest::setBndCondCurrent()
 	Normalization norm = Normalization();
 	bcVal_in = norm.PushCurrDens(bcVal_in);
 
+	//the sequence of the assignment is in accordance with the direction
+						bool inNorth = false;
+	bool inWest = false;						bool inEast = false;
+						bool inSouth = true;
+	bool inNorthWest = false; bool inNorthEast = false;
+	bool inSouthWest = true; bool inSouthEast = true;
+
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
 		//for the current tunneling from tunneling oxide
 
-		bool notTrapping_NW = isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
-		bool notTrapping_NE = isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
-		bool notTrapping_SE = isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
-		bool notTrapping_SW = isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
+		bool notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
+		bool notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
+		bool notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
+		bool notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
 
-		bool valid_NW = isValidElem(currVert->NorthwestElem);
-		bool valid_NE = isValidElem(currVert->NortheastElem);
-		bool valid_SE = isValidElem(currVert->SoutheastElem);
-		bool valid_SW = isValidElem(currVert->SouthwestElem);
-
-		bool inWest = true;
-		bool inEast = true;
-		bool inSouth = true;
-		bool inNorth = true;
-		bool inNorthWest = true;
-		bool inNorthEast = true;
-		bool inSouthEast = true;
-		bool inSouthWest = true;
+		bool valid_NW = SimpleONO::isValidElem(currVert->NorthwestElem);
+		bool valid_NE = SimpleONO::isValidElem(currVert->NortheastElem);
+		bool valid_SE = SimpleONO::isValidElem(currVert->SoutheastElem);
+		bool valid_SW = SimpleONO::isValidElem(currVert->SouthwestElem);
 
 		//Southeast corner
 		if (( !notTrapping_NW && notTrapping_NE && 
@@ -760,6 +755,7 @@ void DDTest::setBndCondCurrent()
 
 void DDTest::SolveDD()
 {
+	UtilsTimer.Set();
 	prepareSolver();
 
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
@@ -768,6 +764,7 @@ void DDTest::SolveDD()
 	UtilsDebug.PrintVector(this->elecDensity, "electron density");
 	
 	fillBackElecDens();
+	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 
 	SctmFileOperator write = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\DDTest\\eDensity.txt", SctmFileOperator::Write);
 	write.WriteDDResult(this->vertices, "electron density");
@@ -776,7 +773,7 @@ void DDTest::SolveDD()
 void DDTest::prepareSolver()
 {
 	setTimeStep();
-	setBndCondCurrent();
+	refreshBndCondCurrent();
 
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
 	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
@@ -791,22 +788,7 @@ void DDTest::prepareSolver()
 	//refreshRhsWithBC();
 }
 
-bool DDTest::isValidElem(FDElement *elem)
-{
-	return elem != NULL;
-}
-
-bool DDTest::isNotElemOf(FDRegion::RegionType rType, FDElement *elem)
-{
-	if (elem == NULL)
-		return true;
-	else
-	{
-		return elem->Region->Type != rType;
-	}
-}
-
-void DDTest::setBndCondDensity()
+void DDTest::refreshBndCondDensity()
 {
 	FDVertex *currVert = NULL;
 	int equaID = 0;
@@ -819,86 +801,91 @@ void DDTest::setBndCondDensity()
 	bcVal_in = norm.PushDensity(bcVal_in);
 	bcVal_out = norm.PushDensity(bcVal_out);
 
+	//the sequence of the assignment is in accordance with the direction
+						bool inNorth = false;
+	bool inWest = false;						bool inEast = false;
+						bool inSouth = true;
+	bool inNorthWest = false; bool inNorthEast = false;
+	bool inSouthWest = true; bool inSouthEast = true;
+
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
 		//for the current tunneling from tunneling oxide
 
-		bool notTrapping_NW = isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
-		bool notTrapping_NE = isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
-		bool notTrapping_SE = isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
-		bool notTrapping_SW = isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
+		bool notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
+		bool notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
+		bool notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
+		bool notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
 
-		bool valid_NW = isValidElem(currVert->NorthwestElem);
-		bool valid_NE = isValidElem(currVert->NortheastElem);
-		bool valid_SE = isValidElem(currVert->SoutheastElem);
-		bool valid_SW = isValidElem(currVert->SouthwestElem);
+		bool valid_NW = SimpleONO::isValidElem(currVert->NorthwestElem);
+		bool valid_NE = SimpleONO::isValidElem(currVert->NortheastElem);
+		bool valid_SE = SimpleONO::isValidElem(currVert->SoutheastElem);
+		bool valid_SW = SimpleONO::isValidElem(currVert->SouthwestElem);
 
 		//Southeast corner
-		if ( !notTrapping_NW && notTrapping_NE && 
-			notTrapping_SW && notTrapping_SE )
+		if (( !notTrapping_NW && notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE ) && inSouthEast)
 		{
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
 			continue;
 		}
 
 		//Southwest corner
-		if ( notTrapping_NW && !notTrapping_NE && 
-			notTrapping_SW && notTrapping_SE)
-		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
-			continue;
-		}
-
-		//South side
-		if ( !notTrapping_NW && !notTrapping_NE && 
-			notTrapping_SW && notTrapping_SE)
+		if (( notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE) && inSouthWest)
 		{
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
 			continue;
 		}
 
 		//Northwest corner
-		if ( notTrapping_NW && notTrapping_NE &&
-			notTrapping_SW && !notTrapping_SE )
+		if (( notTrapping_NW && notTrapping_NE &&
+			notTrapping_SW && !notTrapping_SE ) && inNorthWest)
 		{
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
 			continue;
 		}
 
 		//Northeast corner
-		if ( notTrapping_NW && notTrapping_NE && 
-			!notTrapping_SW && notTrapping_SE )
+		if (( notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && notTrapping_SE ) && inNorthEast)
+		{
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			continue;
+		}
+
+		//South side
+		if (( !notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE) && inSouth)
 		{
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
 			continue;
 		}
 
 		//North side
-		if ( notTrapping_NW && notTrapping_NE && 
-			!notTrapping_SW && !notTrapping_SE)
+		if (( notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && !notTrapping_SE) && inNorth)
 		{
 			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
 			continue;
 		}
 
-		//for testing
-		/*
 		//East side
-		if ( !notTrapping_NW && notTrapping_NE && 
-			!notTrapping_SW && notTrapping_SE)
+		if (( !notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && notTrapping_SE) && inEast)
 		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
-			return;
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			continue;;
 		}
 		
 		//West side
-		if ( notTrapping_NW && !notTrapping_NE && 
-			notTrapping_SW && !notTrapping_SE)
+		if (( notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && !notTrapping_SE) && inWest)
 		{
-			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
-			return;
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			continue;;
 		}
-		*/
+
 	}
 }

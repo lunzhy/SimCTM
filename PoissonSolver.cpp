@@ -17,6 +17,9 @@
 
 using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
+using SctmUtils::SctmFileOperator;
+using SctmUtils::UtilsTimer;
+using SctmUtils::UtilsMsg;
 
 TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *domain) :vertices(domain->GetVertices())
 {
@@ -25,8 +28,6 @@ TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *domain) :vertices(domain->Get
 
 void TwoDimPoissonSolver::prepareSolver()
 {
-	SctmUtils::UtilsMsg.PrintHeader("Solving potential using initial value.");
-
 	int vertSize = this->vertices.size();
 	this->potential.resize(vertSize);
 	this->rhsVector.resize(vertSize);
@@ -220,10 +221,11 @@ void TwoDimPoissonSolver::refreshCoefficientMatrix()
 		if ( currVert->IsAtBoundary(FDBoundary::Potential) && ( currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet ) ) 
 		{ 
 			//the equation index is the same with the position of the vertex in the vertices list
-			//so the the equation index to set equals to iVert here.
-			equationIndexToSet = iVert;
+			//so the equation index to set equals to iVert here. Use iVert alternatively.
+			equationIndexToSet = equationMap[currVert->GetID()];
 			coefficientIndexToSet = equationIndexToSet;
-			//TODO:  the method of refreshing coefficient value in SparseMatrixSolver class is ready
+			//Although the method of refreshing coefficient value in SparseMatrixSolver class is ready,
+			//it cannot be applied here, because refreshing the whole row of the matrix is need here.
 			for (int k = 0; k < this->matrix.outerSize(); ++k)
 				for (Eigen::SparseMatrix<double>::InnerIterator it(matrix, k); it; ++it)
 				{
@@ -300,11 +302,14 @@ void TwoDimPoissonSolver::refreshRhs()
 
 void TwoDimPoissonSolver::SolvePotential()
 {
+	UtilsTimer.Set();
 	refreshRhs();
-	SctmUtils::UtilsDebug.PrintSparseMatrixRow(this->matrix, 56);
-	SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
+	//SctmUtils::UtilsDebug.PrintSparseMatrix(this->matrix);
+	//SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
 	SolveMatrix(rhsVector, potential);
-	SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
+	//SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
+	fillBackPotential();
+	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 
 void TwoDimPoissonSolver::fillBackPotential()
@@ -319,4 +324,7 @@ void TwoDimPoissonSolver::fillBackPotential()
 		pot = potential.at(equationID); //iVert = EquationID
 		currVert->Phys.SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
 	}
+
+	SctmFileOperator write = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\PoissonTest\\potential.txt", SctmFileOperator::Write);
+	write.WritePoissonResult(this->vertices);
 }

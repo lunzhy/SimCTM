@@ -17,17 +17,17 @@ void initialize()
 	SctmPhys::SetPhysConstant();
 }
 
-void SctmTest()
+void PoissonTest()
 {
+	UtilsMsg.PrintHeader("Building a simple ONO domain.");
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
 	UtilsDebug.PrintDomainDetails(*aTest);
 
-	UtilsTimer.Set();
+	UtilsMsg.PrintHeader("Solving potential using initial value.");
 	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aTest);
 	poisson.SolvePotential();
-
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+	//UtilsDebug.PrintDomainDetails(*aTest);
 }
 
 void TunnelSolverTest()
@@ -40,19 +40,18 @@ void TunnelSolverTest()
 
 void DDSolverTest()
 {
-	UtilsTimer.Set();
 	UtilsMsg.PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
 	//UtilsDebug.PrintDomainDetails(*aDomain);
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 
-	UtilsTimer.Set();
+	UtilsMsg.PrintHeader("Solving potential using initial value.");
+	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aDomain);
+	poisson.SolvePotential();
+
 	UtilsMsg.PrintHeader("Testing the drift diffusion solver.");
 	DDTest *ddSolver = new DDTest(aDomain);
-
 	ddSolver->SolveDD();
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 
 int main()
@@ -60,7 +59,7 @@ int main()
 	initialize();
 	DDSolverTest();
 	//TunnelSolverTest();
-	//SctmTest();
+	//PoissonTest();
 	//SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
 	//tunnelDemo.PrepareProblem(aTest.getVertex(0));
 }
