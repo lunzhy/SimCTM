@@ -50,13 +50,13 @@ void SimpleONO::setParameters()
 	////////////////////////////////////////////////////////////////////////////
 	//modify here to change the structures
 	//current parameters is set according to the structure prepared in Sentaurus
-	double xLength_in_nm = 90;
+	double xLength_in_nm = 10;
 	double yLengthTunnel_in_nm = 4;
 	double yLengthTrap_in_nm = 10;
 	double yLengthBlock_in_nm = 9;
 	int xGridNumber = 5; //the grid number, not vertex number
 	int yGridNumberTunnel = 5;
-	int yGridNumberTrap = 1000;
+	int yGridNumberTrap = 200;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members

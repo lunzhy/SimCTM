@@ -284,11 +284,11 @@ void TunnelTest::SolveCalibrate()
 	}
 
 	// read-in from the parameter file
-	SctmFileOperator writeFile = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\result.txt", SctmFileOperator::Write);
+	SctmFileOperator writeFile = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\result.txt", SctmFileOperator::Write);
 	
 	//calculation of tunneling current for 2nm
 	this->oxideThickness = 2;
-	SctmFileOperator readFile_2nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\2nm.txt", SctmFileOperator::Read);
+	SctmFileOperator readFile_2nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\2nm.txt", SctmFileOperator::Read);
 	readFile_2nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)
@@ -304,7 +304,7 @@ void TunnelTest::SolveCalibrate()
 
 	//calculation of tunneling current for 3nm
 	this->oxideThickness = 3;
-	SctmFileOperator readFile_3nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\3nm.txt", SctmFileOperator::Read);
+	SctmFileOperator readFile_3nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\3nm.txt", SctmFileOperator::Read);
 	readFile_3nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)
@@ -320,7 +320,7 @@ void TunnelTest::SolveCalibrate()
 	
 	//calculation of tunneling current for 4nm
 	this->oxideThickness = 4;
-	SctmFileOperator readFile_4nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\4nm.txt", SctmFileOperator::Read);
+	SctmFileOperator readFile_4nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\4nm.txt", SctmFileOperator::Read);
 	readFile_4nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)
@@ -336,7 +336,7 @@ void TunnelTest::SolveCalibrate()
 
 	//calculation of tunneling current for 5nm
 	this->oxideThickness = 5;
-	SctmFileOperator readFile_5nm = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelCalibrate\\5nm.txt", SctmFileOperator::Read);
+	SctmFileOperator readFile_5nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\5nm.txt", SctmFileOperator::Read);
 	readFile_5nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)

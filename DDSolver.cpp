@@ -742,7 +742,7 @@ void DDTest::SolveDD()
 	
 	fillBackElecDens();
 
-	SctmFileOperator write = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\SctmTest\\DDTest\\eDensity.txt", SctmFileOperator::Write);
+	SctmFileOperator write = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\DDTest\\eDensity.txt", SctmFileOperator::Write);
 	write.WriteDDResult(this->vertices, "electron density");
 }
 
