@@ -562,8 +562,7 @@ void DDTest::initializeSolver()
 
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
-	//setBndCondCurrent();
-	setBndCondDensity();
+	
 	buildCoefficientMatrix(true);
 }
 
@@ -770,6 +769,7 @@ void DDTest::SolveDD()
 void DDTest::prepareSolver()
 {
 	setTimeStep();
+	setBndCondCurrent();
 
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
 	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
