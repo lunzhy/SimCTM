@@ -113,7 +113,7 @@ public:
 	void setBndCondCurrent();
 	void setBndCondDensity();
 
-	//temp class
+	//temp class for setting boundary condition current and density
 	bool isValidElem(FDElement *elem);
 	bool isNotElemOf(FDRegion::RegionType rType, FDElement *elem);
 };
