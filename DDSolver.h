@@ -111,6 +111,7 @@ protected:
 	void buildVertexMap();
 public:
 	void setBndCondCurrent();
+	void setBndCondDensity();
 
 	//temp class for setting boundary condition current and density
 	bool isValidElem(FDElement *elem);

@@ -123,12 +123,13 @@ void FDBoundary::RefreshBndCond(bool fake, BCName bcName, double newValue)
 	bc_values[bcName] = newValue;
 }
 
-void FDBoundary::RefreshBndCond(bool fake, BCName bcName, BCType bcType, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
+void FDBoundary::RefreshBndCond(bool fake, BCName bcName, BCType bcType, double bcVal, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
 	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //make sure bcName exists
 	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
 
 	bc_types[bcName] = bcType;
+	bc_values[bcName] = bcVal;
 	bcNormVec.Normalize();
 
 	bc_normVector[bcName] = bcNormVec;

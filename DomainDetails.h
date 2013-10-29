@@ -80,7 +80,7 @@ public:
 	/// @note
 	void RefreshBndCond(BCName bcName, double bcValue1 = 0, double bcValue2 = 0);
 	void RefreshBndCond(bool fake, BCName bcName, double newValue);
-	void RefreshBndCond(bool fake, BCName bcName, BCType bcType, VectorValue bcNormVec = VectorValue(0, 0));
+	void RefreshBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
 	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
 	/// 
 	/// For boundary condition type of BC_Dirichlet, only bcValue1 is used.

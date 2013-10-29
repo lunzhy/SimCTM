@@ -219,8 +219,16 @@ void DriftDiffusionSolver::buildRhsVector()
 		currVert = this->vertices.at(iVert);
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
-			//for Cauchy boundary condition
-			rhsVal = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
+			switch (currVert->BndCond.GetBCType(FDBoundary::eDensity))
+			{
+			case FDBoundary::BC_Dirichlet:
+				rhsVal = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
+				break;
+			case FDBoundary::BC_Cauchy:
+				//for Cauchy boundary condition
+				rhsVal = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
+				break;	
+			}
 		}
 		else
 		{
@@ -375,7 +383,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex(FDVertex *vert)
 	//for Cauchy boundary condition
 	int indexEquation = 0;
 	int indexCoeff = 0;
-	
+
 	double coeff_center = 0;
 	double coeff_east = 0;
 	double coeff_west = 0;
@@ -390,65 +398,76 @@ void DriftDiffusionSolver::setCoefficientBCVertex(FDVertex *vert)
 	double norm_alpha = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).X();
 	double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
 
-	//for center vertex
-	if (norm_alpha > 0)
+	switch (vert->BndCond.GetBCType(FDBoundary::eDensity))
 	{
-		coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()] ) / vert->WestLength;
-		coeff_center += norm_alpha * 1 / vert->WestLength;
-		coeff_west = norm_alpha * (-1) / vert->WestLength;
-	}
-	else if (norm_alpha < 0)
-	{
-		coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()] ) / (-vert->EastLength);
-		coeff_center += norm_alpha * 1 / (-vert->EastLength);
-		coeff_east = norm_alpha * (-1) / (-vert->EastLength);
-	}
-	else
-		coeff_center = 0;
+	case FDBoundary::BC_Dirichlet:
+		coeff_center = 1;
+		indexEquation = equationMap[vert->GetID()];
+		indexCoeff = equationMap[vert->GetID()];
+		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
+		break;
+	case FDBoundary::BC_Cauchy:
+		//for center vertex
+		if (norm_alpha > 0)
+		{
+			coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()] ) / vert->WestLength;
+			coeff_center += norm_alpha * 1 / vert->WestLength;
+			coeff_west = norm_alpha * (-1) / vert->WestLength;
+		}
+		else if (norm_alpha < 0)
+		{
+			coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()] ) / (-vert->EastLength);
+			coeff_center += norm_alpha * 1 / (-vert->EastLength);
+			coeff_east = norm_alpha * (-1) / (-vert->EastLength);
+		}
+		else
+			coeff_center = 0;
 
-	if (norm_beta > 0)
-	{
-		coeff_center += -norm_beta * ( potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()] ) / vert->SouthLength;
-		coeff_center += norm_beta * 1 / vert->SouthLength;
-		coeff_south = norm_beta * (-1) / vert->SouthLength;
-	}
-	else if (norm_beta < 0)
-	{
-		coeff_center += -norm_beta * ( potentialMap[vert->GetID()] -  potentialMap[vert->NorthVertex->GetID()] ) / (-vert->NorthLength);
-		coeff_center += norm_beta * 1 / (-vert->NorthLength);
-		coeff_north = norm_beta * (-1) / (-vert->NorthLength);
-	}
-	else
-		coeff_center += 0;
+		if (norm_beta > 0)
+		{
+			coeff_center += -norm_beta * ( potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()] ) / vert->SouthLength;
+			coeff_center += norm_beta * 1 / vert->SouthLength;
+			coeff_south = norm_beta * (-1) / vert->SouthLength;
+		}
+		else if (norm_beta < 0)
+		{
+			coeff_center += -norm_beta * ( potentialMap[vert->GetID()] -  potentialMap[vert->NorthVertex->GetID()] ) / (-vert->NorthLength);
+			coeff_center += norm_beta * 1 / (-vert->NorthLength);
+			coeff_north = norm_beta * (-1) / (-vert->NorthLength);
+		}
+		else
+			coeff_center += 0;
 
-	coeff_center *= mobility;
-	coeff_east *= mobility;
-	coeff_west *= mobility;
-	coeff_north *= mobility;
-	coeff_south *= mobility;
+		coeff_center *= mobility;
+		coeff_east *= mobility;
+		coeff_west *= mobility;
+		coeff_north *= mobility;
+		coeff_south *= mobility;
 
-	indexEquation = equationMap[vert->GetID()];
-	indexCoeff = equationMap[vert->GetID()];
-	matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
-	if (coeff_east != 0)
-	{
-		indexCoeff = equationMap[vert->EastVertex->GetID()];
-		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_east;
-	}
-	if (coeff_west != 0)
-	{
-		indexCoeff = equationMap[vert->WestVertex->GetID()];
-		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_west;
-	}
-	if (coeff_north != 0)
-	{
-		indexCoeff = equationMap[vert->NorthVertex->GetID()];
-		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_north;
-	}
-	if (coeff_south != 0)
-	{
-		indexCoeff = equationMap[vert->SouthVertex->GetID()];
-		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_south;
+		indexEquation = equationMap[vert->GetID()];
+		indexCoeff = equationMap[vert->GetID()];
+		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
+		if (coeff_east != 0)
+		{
+			indexCoeff = equationMap[vert->EastVertex->GetID()];
+			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_east;
+		}
+		if (coeff_west != 0)
+		{
+			indexCoeff = equationMap[vert->WestVertex->GetID()];
+			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_west;
+		}
+		if (coeff_north != 0)
+		{
+			indexCoeff = equationMap[vert->NorthVertex->GetID()];
+			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_north;
+		}
+		if (coeff_south != 0)
+		{
+			indexCoeff = equationMap[vert->SouthVertex->GetID()];
+			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_south;
+		}
+		break;
 	}
 
 }
@@ -543,6 +562,8 @@ void DDTest::initializeSolver()
 
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	buildVertexMap();
+	//setBndCondCurrent();
+	setBndCondDensity();
 	buildCoefficientMatrix(true);
 }
 
@@ -749,7 +770,6 @@ void DDTest::SolveDD()
 void DDTest::prepareSolver()
 {
 	setTimeStep();
-	setBndCondCurrent();
 
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
 	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
@@ -764,7 +784,6 @@ void DDTest::prepareSolver()
 	//refreshRhsWithBC();
 }
 
-
 bool DDTest::isValidElem(FDElement *elem)
 {
 	return elem != NULL;
@@ -777,5 +796,102 @@ bool DDTest::isNotElemOf(FDRegion::RegionType rType, FDElement *elem)
 	else
 	{
 		return elem->Region->Type != rType;
+	}
+}
+
+void DDTest::setBndCondDensity()
+{
+	FDVertex *currVert = NULL;
+	int equaID = 0;
+	double bcVal_in = 1e12; //electron density in [cm^-3]
+	double bcVal_out = 1e11;
+	// current density at boundary for test, in [A/cm^2]
+	// note that the current direction is the reversed direction of electron flow
+
+	Normalization norm = Normalization();
+	bcVal_in = norm.PushDensity(bcVal_in);
+	bcVal_out = norm.PushDensity(bcVal_out);
+
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		//for the current tunneling from tunneling oxide
+
+		bool notTrapping_NW = isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
+		bool notTrapping_NE = isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
+		bool notTrapping_SE = isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
+		bool notTrapping_SW = isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
+
+		bool valid_NW = isValidElem(currVert->NorthwestElem);
+		bool valid_NE = isValidElem(currVert->NortheastElem);
+		bool valid_SE = isValidElem(currVert->SoutheastElem);
+		bool valid_SW = isValidElem(currVert->SouthwestElem);
+
+		//Southeast corner
+		if ( !notTrapping_NW && notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE )
+		{
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
+			continue;
+		}
+
+		//Southwest corner
+		if ( notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE)
+		{
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
+			continue;
+		}
+
+		//South side
+		if ( !notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && notTrapping_SE)
+		{
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
+			continue;
+		}
+
+		//Northwest corner
+		if ( notTrapping_NW && notTrapping_NE &&
+			notTrapping_SW && !notTrapping_SE )
+		{
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			continue;
+		}
+
+		//Northeast corner
+		if ( notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && notTrapping_SE )
+		{
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			continue;
+		}
+
+		//North side
+		if ( notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && !notTrapping_SE)
+		{
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			continue;
+		}
+
+		//for testing
+		/*
+		//East side
+		if ( !notTrapping_NW && notTrapping_NE && 
+			!notTrapping_SW && notTrapping_SE)
+		{
+			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
+			return;
+		}
+		
+		//West side
+		if ( notTrapping_NW && !notTrapping_NE && 
+			notTrapping_SW && !notTrapping_SE)
+		{
+			currVert->BndCond.RefreshBndCondValue(true, FDBoundary::eDensity, bcVal_in);
+			return;
+		}
+		*/
 	}
 }
