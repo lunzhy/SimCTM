@@ -15,19 +15,21 @@
 #define _DOMAINDETAIL_H_
 
 #include <vector>
-#include "Normalization.h"
-#include "Material.h"
+#include "SctmMath.h"
 #include <map>
 
-using MaterialDB::Material;
-using std::string;
-using std::map;
-using SctmMath::VectorValue;
-
+namespace MaterialDB
+{
+	class Material;
+}
 namespace SctmPhys
 {
 	class PhysProperty;
 }
+using MaterialDB::Material;
+using std::string;
+using std::map;
+using SctmMath::VectorValue;
 using SctmPhys::PhysProperty;
 /// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
 ///

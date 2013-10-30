@@ -14,7 +14,8 @@
 #define _TUNNELSOLVER_H_
 
 #include <vector>
-#include "DomainDetails.h"
+class FDVertex;
+
 using std::vector;
 class TunnelSolver
 {

@@ -13,6 +13,7 @@
 #ifndef _SIMPLEONO_H_
 #define _SIMPLEONO_H_
 #include "FDDomain.h"
+#include "DomainDetails.h"
 class FDRegion;
 
 /// @brief SimpleONO is used for set the domain for finite differential method

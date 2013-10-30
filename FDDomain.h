@@ -17,12 +17,17 @@
 
 #include <vector>
 #include <iostream>
-#include "SctmUtils.h"
 
 class FDVertex;
 class FDElement;
 class FDRegion;
 class FDContact;
+
+namespace SctmUtils
+{
+	class SctmDebug;
+	class SctmFileOperator;
+}
 
 /// @brief FDDomain describes the simulation domain in finite differential method.
 ///

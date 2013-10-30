@@ -14,15 +14,20 @@
 #define _POISSONSOLVER_H_
 
 #include "MatrixSolver.h"
-#include "FDDomain.h"
 #include <vector>
 #include <map>
+
+namespace SctmUtils
+{
+	class SctmDebug;
+}
+
+class FDDomain;
+class FDVertex;
 
 using SctmMath::SctmSparseMatrixSolver;
 using std::vector;
 typedef std::map<int, int, std::less<int>> VertexMapInt; // the map used for get the equation index with given vertex internal id
-
-class FDDomain;
 
 /// @brief TwoDimPoissonSolver is a Poisson solver used to solve two-dimensional Poisson problem
 ///

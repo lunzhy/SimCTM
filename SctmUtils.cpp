@@ -12,16 +12,18 @@
 */
 #include "SctmUtils.h"
 #include "FDDomain.h"
-//#include "DomainDetails.h"
+#include "DomainDetails.h"
 #include "Material.h"
 #include "Normalization.h"
 #include <iomanip>
 #include <cstring>
 #include <fstream>
+#include "SctmPhys.h"
 
 using std::cout;
 using std::endl;
 using std::fstream;
+using SctmPhys::PhysProperty;
 
 namespace SctmUtils
 {

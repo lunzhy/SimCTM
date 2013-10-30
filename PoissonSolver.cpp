@@ -14,12 +14,13 @@
 #include "DomainDetails.h"
 #include "SctmUtils.h"
 #include "Material.h"
+#include "SctmPhys.h"
+#include "FDDomain.h"
 
+using SctmPhys::PhysProperty;
 using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
 using SctmUtils::SctmFileOperator;
-using SctmUtils::UtilsTimer;
-using SctmUtils::UtilsMsg;
 
 TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *domain) :vertices(domain->GetVertices())
 {
@@ -302,14 +303,14 @@ void TwoDimPoissonSolver::refreshRhs()
 
 void TwoDimPoissonSolver::SolvePotential()
 {
-	UtilsTimer.Set();
+	SctmUtils::UtilsTimer.Set();
 	refreshRhs();
 	//SctmUtils::UtilsDebug.PrintSparseMatrix(this->matrix);
 	//SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
 	SolveMatrix(rhsVector, potential);
 	//SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
 	fillBackPotential();
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+	SctmUtils::UtilsMsg.PrintTimeElapsed(SctmUtils::UtilsTimer.SinceLastSet());
 }
 
 void TwoDimPoissonSolver::fillBackPotential()

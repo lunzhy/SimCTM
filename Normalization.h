@@ -14,8 +14,6 @@
 #define _NORMALIZATION_H_
 #include <vector>
 #include <string>
-#include "SctmPhys.h"
-#include "Material.h"
 
 /// @brief This namespace contains the common utilities used in the simulation
 /// 

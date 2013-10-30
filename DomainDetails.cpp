@@ -14,6 +14,8 @@
 #include "DomainDetails.h"
 #include "SctmMath.h"
 #include "SctmUtils.h"
+#include "SctmPhys.h"
+using SctmPhys::PhysProperty;
 
 double FDVertex::Distance( FDVertex *vertex1, FDVertex *vertex2 )
 {

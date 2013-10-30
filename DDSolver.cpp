@@ -16,6 +16,8 @@
 #include "Material.h"
 #include "SctmPhys.h"
 #include "SimpleONO.h"
+#include "Normalization.h"
+#include "SctmUtils.h"
 using namespace SctmPhys;
 using namespace SctmUtils;
 

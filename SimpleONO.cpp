@@ -16,6 +16,8 @@
 #include "SctmUtils.h"
 #include <iostream>
 #include "SctmPhys.h"
+#include "Normalization.h"
+using SctmPhys::PhysProperty;
 using namespace SctmUtils;
 
 void SimpleONO::BuildDomain()

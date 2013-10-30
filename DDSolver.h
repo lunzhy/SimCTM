@@ -16,8 +16,10 @@
 
 #include <vector>
 #include <map>
-#include "SctmUtils.h"
 #include "MatrixSolver.h"
+
+class FDDomain;
+class FDVertex;
 
 using std::vector;
 using SctmMath::SctmSparseMatrixSolver;

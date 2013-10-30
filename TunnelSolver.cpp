@@ -14,6 +14,9 @@
 #include "TunnelSolver.h"
 #include "SctmMath.h"
 #include "SctmUtils.h"
+#include "SctmPhys.h"
+
+using SctmPhys::PhysProperty;
 using SctmUtils::SctmFileOperator;
 
 double TunnelSolver::getSupplyFunction(double energy)
