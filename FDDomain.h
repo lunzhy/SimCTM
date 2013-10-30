@@ -16,9 +16,13 @@
 #define _FDDOMAIN_H_
 
 #include <vector>
-#include "DomainDetails.h"
 #include <iostream>
+#include "SctmUtils.h"
 
+class FDVertex;
+class FDElement;
+class FDRegion;
+class FDContact;
 
 /// @brief FDDomain describes the simulation domain in finite differential method.
 ///

@@ -12,7 +12,7 @@
 */
 #include "SctmUtils.h"
 #include "FDDomain.h"
-#include "DomainDetails.h"
+//#include "DomainDetails.h"
 #include "Material.h"
 #include "Normalization.h"
 #include <iomanip>
@@ -157,7 +157,7 @@ namespace SctmUtils
 			PrintValue(currVert->IsAtBoundary(FDBoundary::Potential));
 			if (currVert->IsAtBoundary(FDBoundary::Potential))
 			{
-				PrintValue(currVert->BndCond.GetBCType(FDBoundary::Potential));
+				PrintBCType(currVert->BndCond.GetBCType(FDBoundary::Potential));
 				if (currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet)
 				{
 					PrintValue(norm.PullPotential(currVert->BndCond.GetBCValue(FDBoundary::Potential)));
@@ -172,7 +172,7 @@ namespace SctmUtils
 			PrintValue(currVert->IsAtBoundary(FDBoundary::eDensity));
 			if (currVert->IsAtBoundary(FDBoundary::eDensity))
 			{
-				PrintValue(currVert->BndCond.GetBCType(FDBoundary::eDensity));
+				PrintBCType(currVert->BndCond.GetBCType(FDBoundary::eDensity));
 				if (currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Dirichlet)
 				{
 					PrintValue(norm.PullCurrDens(currVert->BndCond.GetBCValue(FDBoundary::eDensity)));
@@ -203,7 +203,7 @@ namespace SctmUtils
 			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
 			cout << " -- ";
-			PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential));
+			PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::eDensity));
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
@@ -218,12 +218,12 @@ namespace SctmUtils
 		cout << endl;
 	}
 
-	void SctmDebug::PrintBCType(FDBoundary &bc)
+	void SctmDebug::PrintBCType(FDBoundary::BCType bcType)
 	{
 		if (!this->enable)
 			return;
 		string typestring;
-		switch (bc.GetBCType(FDBoundary::eDensity))
+		switch (bcType)
 		{
 		case FDBoundary::BC_Dirichlet:
 			typestring = "Dirichlet";

@@ -38,6 +38,7 @@ namespace SctmPhys
 		e_mass = 0;
 		h_mass = 0;
 		netCharge = 0;
+		e_density = 0;
 	}
 
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)

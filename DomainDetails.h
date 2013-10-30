@@ -18,7 +18,6 @@
 #include "Normalization.h"
 #include "SctmPhys.h"
 #include "Material.h"
-#include "SctmUtils.h"
 #include <map>
 
 using SctmPhys::PhysProperty;

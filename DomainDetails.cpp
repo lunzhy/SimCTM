@@ -13,6 +13,7 @@
 
 #include "DomainDetails.h"
 #include "SctmMath.h"
+#include "SctmUtils.h"
 
 double FDVertex::Distance( FDVertex *vertex1, FDVertex *vertex2 )
 {

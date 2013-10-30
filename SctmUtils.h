@@ -14,7 +14,7 @@
 #define _SCTMUTILS_H_
 
 #define DEBUG
-#define SCTM_DEBUG_ENABLE false
+#define SCTM_DEBUG_ENABLE true
 
 #include <string>
 #include <ctime>
@@ -41,7 +41,6 @@ using std::cout;
 using std::endl;
 using std::fstream;
 class FDDomain;
-class FDBoundary;
 
 namespace SctmUtils
 {
@@ -157,7 +156,7 @@ namespace SctmUtils
 		void PrintValue(double d) { std::cout << d << " "; }
 		void PrintValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
 		void PrintValue(std::string &s) { std::cout << s << " ";}
-		void PrintBCType(FDBoundary &bc);
+		void PrintBCType(FDBoundary::BCType bcType);
 		void PrintDirectionVector(VectorValue &dv);
 	private:
 		bool enable;

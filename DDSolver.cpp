@@ -614,9 +614,9 @@ void DDTest::refreshBndCondCurrent()
 
 	//the sequence of the assignment is in accordance with the direction
 						bool inNorth = false;
-	bool inWest = false;						bool inEast = false;
+	bool inWest = true;						bool inEast = false;
 						bool inSouth = true;
-	bool inNorthWest = false; bool inNorthEast = false;
+	bool inNorthWest = true; bool inNorthEast = false;
 	bool inSouthWest = true; bool inSouthEast = true;
 
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
