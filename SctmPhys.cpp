@@ -155,6 +155,45 @@ namespace SctmPhys
 		vertex->Phys->SetPhysPrpty(vertexPhys, physValue);
 	}		
 
+	void PhysProperty::FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys, 
+		MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType)
+	{
+		//TODO : need to solve the problem of mutual including.
+		//the problem is solved but with some unknowns.
+		double tot = 0; //total area
+		double sum = 0; //sum corresponds to the integral
+		double physValue = 0; //the final physical value related to vertex
+
+		using MaterialDB::GetMatPrpty;
+		FDElement *currElem = NULL;
+		currElem = vertex->NortheastElem;
+		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
+		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+
+		currElem = vertex->NorthwestElem;
+		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
+		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+
+		currElem = vertex->SoutheastElem;
+		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
+		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+
+		currElem = vertex->SouthwestElem;
+		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
+		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+
+		if (tot == 0)
+		{
+			physValue = 0;
+		}
+		else
+		{
+			physValue = sum / tot;
+		}
+		//SCTM_ASSERT(tot>=0, 10004);
+		vertex->Phys->SetPhysPrpty(vertexPhys, physValue);
+	}
+
 	void SetPhysConstant()
 	{
 		double mp = GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_HoleMass);

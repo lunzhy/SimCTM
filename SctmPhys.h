@@ -126,6 +126,8 @@ namespace SctmPhys
 		/// @note This method is not checked until now. || Used.
 		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty);
+		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
+			MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType);
 	private:
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used
 		//the value of these physical properties is normalized value.

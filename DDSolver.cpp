@@ -574,11 +574,12 @@ void DDTest::buildVertexMap()
 	double phyValue = 0;
 	FDVertex *currVert = NULL;
 
-	//TODO: this is only a temporary method
+	//Previously, this is only a temporary method
 	//the following is used to set the mobility to uniform value, because the original setting method leads to incorrect calculation
-	//of the mobility at the trapping layer interface
-	Normalization norm = Normalization();
-	double mobility = MaterialDB::GetMatPrpty(&MaterialDB::Si3N4, MaterialDB::MatProperty::Mat_ElectronMobility);
+	//of the mobility at the trapping layer interface.
+	//This is now solved by using different method of setting vertex-related physical values.
+	//Normalization norm = Normalization();
+	//double mobility = MaterialDB::GetMatPrpty(&MaterialDB::Si3N4, MaterialDB::MatProperty::Mat_ElectronMobility);
 
 	//this map is filled in order to obtain the vertex index from the vertex internal id. This is useful
 	//in setting up the equation, i.e. filling the matrix.
@@ -591,7 +592,7 @@ void DDTest::buildVertexMap()
 		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
-		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, mobility));
+		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
 		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
@@ -616,9 +617,9 @@ void DDTest::refreshBndCondCurrent()
 
 	//the sequence of the assignment is in accordance with the direction
 						bool inNorth = false;
-	bool inWest = true;						bool inEast = false;
+	bool inWest = false;						bool inEast = false;
 						bool inSouth = true;
-	bool inNorthWest = true; bool inNorthEast = false;
+	bool inNorthWest = false; bool inNorthEast = false;
 	bool inSouthWest = true; bool inSouthEast = true;
 
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)

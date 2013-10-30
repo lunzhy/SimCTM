@@ -444,7 +444,14 @@ void SimpleONO::setVertexPhysics()
 		{
 			//filling vertex physics using material property
 			//The method for filling vertex-based physical value using material-based value is ready
-			currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
+			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility)
+			{
+				currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty), FDRegion::Trapping);
+			}
+			else
+			{
+				currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
+			}
 			/*
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;

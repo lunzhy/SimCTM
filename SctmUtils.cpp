@@ -206,6 +206,8 @@ namespace SctmUtils
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
 			cout << " -- ";
 			PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity));
+			cout << " -- ";
+			PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::eMobility));
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
