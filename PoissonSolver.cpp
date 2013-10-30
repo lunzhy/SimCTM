@@ -191,7 +191,7 @@ void TwoDimPoissonSolver::buildRhsVector()
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		charge = currVert->Phys.GetPhysPrpty(PhysProperty::NetCharge);
+		charge = currVert->Phys->GetPhysPrpty(PhysProperty::NetCharge);
 		this->rhsVector.at(iVert) = charge;
 	}
 }
@@ -322,7 +322,7 @@ void TwoDimPoissonSolver::fillBackPotential()
 		currVert = this->vertices.at(iVert);
 		equationID = equationMap[currVert->GetID()];
 		pot = potential.at(equationID); //iVert = EquationID
-		currVert->Phys.SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
+		currVert->Phys->SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
 	}
 
 	SctmFileOperator write = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\PoissonTest\\potential.txt", SctmFileOperator::Write);

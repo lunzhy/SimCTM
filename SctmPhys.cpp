@@ -152,7 +152,7 @@ namespace SctmPhys
 		SCTM_ASSERT(tot>=0, 10004);
 		physValue = sum / tot;
 
-		vertex->Phys.SetPhysPrpty(vertexPhys, physValue);
+		vertex->Phys->SetPhysPrpty(vertexPhys, physValue);
 	}		
 
 	void SetPhysConstant()

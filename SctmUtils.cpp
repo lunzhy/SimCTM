@@ -203,11 +203,11 @@ namespace SctmUtils
 			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
 			cout << " -- ";
-			PrintValue(currVert->Phys.GetPhysPrpty(PhysProperty::eDensity));
-			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
-			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity));
+			PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity));
+			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
+			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
+			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
+			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
 			//cout << " -- ";
 			//PrintValue(currVert->NorthwestElem==NULL ? -1 : GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_Bandgap));
 			//PrintValue(currVert->NortheastElem==NULL ? -1 : GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_Bandgap));;
@@ -432,7 +432,7 @@ namespace SctmUtils
 		{
 			currVert = vertices.at(iVert);
 			tofile << norm.PullLength(currVert->X) << '\t' << norm.PullLength(currVert->Y) << '\t' << 
-				norm.PullDensity(currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)) << endl;
+				norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)) << endl;
 		}
 		tofile.close();
 	}
@@ -450,7 +450,7 @@ namespace SctmUtils
 		{
 			currVert = vertices.at(iVert);
 			tofile << norm.PullLength(currVert->X) << '\t' << norm.PullLength(currVert->Y) << '\t' << 
-				norm.PullPotential(currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)) << endl;
+				norm.PullPotential(currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)) << endl;
 		}
 		tofile.close();
 	}

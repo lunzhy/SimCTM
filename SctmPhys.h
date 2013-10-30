@@ -16,6 +16,7 @@
 #include <cmath>
 #include "SctmMath.h"
 #include "Material.h"
+#include "DomainDetails.h"
 
 //in order to use the pointer of FDVertex in this head file
 class FDVertex;
@@ -119,9 +120,10 @@ namespace SctmPhys
 		/// @param FDVertex * vertex the vertex to set
 		/// @param PhysProperty::Name vertexPhys
 		/// @param MaterialDB::MatProperty::Name matPrpty
+		/// @param FDRegion::RegionType rType the designated type of region
 		/// @pre
 		/// @return void
-		/// @note This method is not checked until now
+		/// @note This method is not checked until now. || Used.
 		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty);
 	private:

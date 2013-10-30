@@ -4,6 +4,7 @@
 #include "SctmUtils.h"
 #include "PoissonSolver.h"
 #include "DDSolver.h"
+#include "SctmPhys.h"
 
 using namespace SctmUtils;
 void initialize()

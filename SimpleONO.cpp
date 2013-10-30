@@ -387,7 +387,7 @@ void SimpleONO::stuffPotential()
 			currVertex = GetVertex(id);
 			// the calculated potential is in [V], so normalization is needed here when stuffing.
 			normPotential = theNorm.PushPotential(potential);
-			currVertex->Phys.SetPhysPrpty(PhysProperty::ElectrostaticPotential, normPotential);
+			currVertex->Phys->SetPhysPrpty(PhysProperty::ElectrostaticPotential, normPotential);
 		}
 		
 		//for next electric field
@@ -442,7 +442,7 @@ void SimpleONO::setVertexPhysics()
 		{
 			//filling vertex physics using material property
 			//The method for filling vertex-based physical value using material-based value is ready
-			currVertex->Phys.FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
+			currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
 			/*
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;
@@ -462,7 +462,7 @@ void SimpleONO::setVertexPhysics()
 			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
 
 			physValue = sum / tot;
-			currVertex->Phys.SetPhysPrpty(verPrptys.at(iPrpty), physValue);
+			currVertex->Phys->SetPhysPrpty(verPrptys.at(iPrpty), physValue);
 			*/
 		}
 	}
@@ -483,17 +483,17 @@ void SimpleONO::refreshBandEnergy()
 	{
 		currVertex = GetVertex(iver);
 
-		potential = currVertex->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential);
-		affinity = currVertex->Phys.GetPhysPrpty(PhysProperty::ElectronAffinity);
-		bandgap = currVertex->Phys.GetPhysPrpty(PhysProperty::Bandgap);
+		potential = currVertex->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		affinity = currVertex->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity);
+		bandgap = currVertex->Phys->GetPhysPrpty(PhysProperty::Bandgap);
 
 		//Ec = -X-q(phi-phiRef)
 		energy = -affinity - q*(potential-RefPotential);
-		currVertex->Phys.SetPhysPrpty(PhysProperty::ConductionBandEnergy, energy);
+		currVertex->Phys->SetPhysPrpty(PhysProperty::ConductionBandEnergy, energy);
 		
 		//Ev = -X-q(phi-phiRef)-Eg
 		energy = energy - bandgap;
-		currVertex->Phys.SetPhysPrpty(PhysProperty::ValenceBandEnergy, energy);
+		currVertex->Phys->SetPhysPrpty(PhysProperty::ValenceBandEnergy, energy);
 	}
 }
 

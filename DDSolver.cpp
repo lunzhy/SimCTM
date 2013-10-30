@@ -66,13 +66,13 @@ void DriftDiffusionSolver::buildVertexMap()
 		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
-		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eMobility)));
+		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
+		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)));
+		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }
@@ -371,7 +371,7 @@ void DriftDiffusionSolver::fillBackElecDens()
 		VertID = currVert->GetID();
 		equationID = equationMap[VertID];
 		edens = this->elecDensity.at(equationID);
-		currVert->Phys.SetPhysPrpty(PhysProperty::eDensity, edens);
+		currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
 		//It is also essential to refresh property map
 		lastElecDensMap[equationID] = edens;
 	}
@@ -592,10 +592,10 @@ void DDTest::buildVertexMap()
 		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, mobility));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
+		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys.GetPhysPrpty(PhysProperty::eDensity)));
+		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }

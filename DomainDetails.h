@@ -16,16 +16,19 @@
 
 #include <vector>
 #include "Normalization.h"
-#include "SctmPhys.h"
 #include "Material.h"
 #include <map>
 
-using SctmPhys::PhysProperty;
 using MaterialDB::Material;
 using std::string;
 using std::map;
 using SctmMath::VectorValue;
 
+namespace SctmPhys
+{
+	class PhysProperty;
+}
+using SctmPhys::PhysProperty;
 /// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
 ///
 /// The object of FDBoundary is a member in FDVertex to store the boundary information(valid/invalid).
@@ -175,20 +178,7 @@ public:
 	/// @pre
 	/// @return 
 	/// @note
-	FDVertex(unsigned _id, double _x, double _y): X(_x), Y(_y), id(_id)
-	{
-		//These pointers will be set to NULL outside when the setting of adjacency of a vertex 
-		//and initializing the contact.
-		EastVertex = NULL;
-		WestVertex = NULL;
-		NorthVertex = NULL;
-		SouthVertex = NULL;
-		NortheastElem = NULL;
-		NorthwestElem = NULL;
-		SoutheastElem = NULL;
-		SouthwestElem = NULL;
-		Contact = NULL;
-	}
+	FDVertex(unsigned _id, double _x, double _y);
 	double X; ///< coordinate of x direction
 	double Y; ///< coordinate of y direction
 	double EastLength; ///< the edge length to the east of the current vertex
@@ -205,7 +195,7 @@ public:
 	FDElement *SouthwestElem; ///< the pointer to southwest element
 	FDContact *Contact; ///< the pointer to the contact the vertex belongs
 
-	PhysProperty Phys; ///< the physical values attached to current vertex
+	PhysProperty *Phys; ///< the physical values attached to current vertex
 	FDBoundary BndCond; ///< the boundary condition of current vertex
 	
 	/// @brief IsAtBoundary is used to check if the vertex is a boundary vertex with specified boundary name

@@ -25,6 +25,22 @@ bool FDVertex::IsAtBoundary(FDBoundary::BCName bcName)
 	return this->BndCond.Valid(bcName);
 }
 
+FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
+{
+	//These pointers will be set to NULL outside when the setting of adjacency of a vertex 
+	//and initializing the contact.
+	EastVertex = NULL;
+	WestVertex = NULL;
+	NorthVertex = NULL;
+	SouthVertex = NULL;
+	NortheastElem = NULL;
+	NorthwestElem = NULL;
+	SoutheastElem = NULL;
+	SouthwestElem = NULL;
+	Contact = NULL;
+	Phys = new PhysProperty();
+}
+
 void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2)
 {
 	bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
