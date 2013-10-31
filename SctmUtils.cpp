@@ -352,6 +352,11 @@ namespace SctmUtils
 		exit(1);
 	}
 
+	void SctmMessaging::PrintDirectoryError()
+	{
+		cout << endl << "XXXXX=>" << "no directory available" << endl;
+		exit(1);
+	}
 
 	SctmFileStream::SctmFileStream(string _filename, FileMode _mode)
 	{
@@ -364,7 +369,10 @@ namespace SctmUtils
 			{
 				//if the file doesn't exist, create it.
 				file.open(this->fileName.c_str(), std::ios::out);
-				file.close();
+				if (!file)
+					UtilsMsg.PrintDirectoryError();
+				else
+					file.close();
 			}
 			else
 			{
