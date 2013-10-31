@@ -39,15 +39,16 @@ protected:
 
 	double temperature;
 	double timeStep;
+	double lastTimeStep; // to revert the coefficients because they have been modified in last time step 
 	//the material and physical properties
 	VertexMapDouble mobilityMap; ///< mobility is used, so diffusion coefficient is derived
 	VertexMapDouble potentialMap;
 	VertexMapDouble lastElecDensMap; ///< the electron density of last time step
 	VertexMapInt equationMap;
 
+	//the index of this kind of vector is equation id, which is obtained from equation map.
 	vector<double> rhsVector;
 	vector<double> elecDensity;
-	vector<double> coeffReversion; ///< revert the coefficients because they have been modified in last time step 
 
 	SctmSparseMatrixSolver matrixSolver;
 protected:

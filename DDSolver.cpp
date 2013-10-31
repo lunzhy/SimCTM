@@ -61,7 +61,7 @@ void DriftDiffusionSolver::buildVertexMap()
 		currVert = this->vertices.at(iVert);
 		vertID = currVert->GetID();
 
-		equationID = iVert; //equation index is also the vertex index in the vertices container
+		//equationID = iVert; //equation index is also the vertex index in the vertices container
 		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
@@ -73,6 +73,8 @@ void DriftDiffusionSolver::buildVertexMap()
 
 		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
+
+		equationID += 1;
 	}
 }
 
@@ -211,10 +213,14 @@ void DriftDiffusionSolver::buildCoefficientMatrix(bool newMethod)
 void DriftDiffusionSolver::buildRhsVector()
 {
 	FDVertex *currVert = NULL;
+	int vertID = 0;
+	int equationID = 0;
 	double rhsVal = 0;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
+		vertID = currVert->GetID();
+		equationID = equationMap[vertID];
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
 			switch (currVert->BndCond.GetBCType(FDBoundary::eDensity))
@@ -233,7 +239,7 @@ void DriftDiffusionSolver::buildRhsVector()
 			//the inner vertex
 			rhsVal = -lastElecDensMap[currVert->GetID()] / timeStep;
 		}
-		this->rhsVector.at(iVert) = rhsVal;
+		this->rhsVector.at(equationID) = rhsVal;
 	}
 }
 
@@ -305,7 +311,10 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 	int indexCoefficient = 0;
 
 	double coeffToAdd = 0; // coefficient for center vertex
-	coeffToAdd = -1 / timeStep; // from p_n/p_t, p=partial differential
+	if ( lastTimeStep == 0 )
+		coeffToAdd = -1 / timeStep; // from p_n/p_t, p=partial differential
+	else
+		coeffToAdd = -1 / timeStep - ( -1 / lastTimeStep );
 	
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
@@ -325,6 +334,7 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 		
 		matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, coeffToAdd, SctmSparseMatrixSolver::Add);
 	}
+	lastTimeStep = timeStep; // to revert the matrix coefficient, this position is important
 }
 
 void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
@@ -372,7 +382,7 @@ void DriftDiffusionSolver::fillBackElecDens()
 		edens = this->elecDensity.at(equationID);
 		currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
 		//It is also essential to refresh property map
-		lastElecDensMap[equationID] = edens;
+		lastElecDensMap[VertID] = edens;
 	}
 }
 
@@ -554,7 +564,7 @@ void DriftDiffusionSolver::prepareSolver()
 	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	refreshCoefficientMatrix();
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
-	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 
 	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
 	//different due to the difference in last time electron density
