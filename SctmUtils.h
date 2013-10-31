@@ -111,6 +111,7 @@ namespace SctmUtils
 	public:
 		SctmTimeStep();
 		double NextTimeStep();
+
 	protected:
 		double timeNormFactor; ///< the factor of normalizing the time
 	};
@@ -180,6 +181,7 @@ namespace SctmUtils
 	/// @brief SctmFileOperator provides methods to read and write file.
 	///
 	/// Currently, the files of input parameters and output results for testing is manipulated using this class.
+	/// Writing to one file needs to using the same object. New object will generate new file.
 	class SctmFileOperator
 	{
 	public:
@@ -190,6 +192,17 @@ namespace SctmUtils
 		};
 		SctmFileOperator(string _filename, FileMode _mode);
 		void WriteVector(vector<double> &vec, const char *title);
+		/// @brief Write2DVectorForOrigin is used to write 2D vector in the format of Origin input
+		/// 
+		///
+		/// 
+		/// @param vector<double> & vecX
+		/// @param vector<double> & vecY
+		/// @param vector<vector<double>> & vector2D
+		/// @param const char * title
+		/// @pre
+		/// @return void
+		/// @note this method is obsolete
 		void Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title);
 		void ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields);
 		/// @brief WriteDDResult is used to write DD results for testing and DD solver
