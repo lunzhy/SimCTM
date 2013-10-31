@@ -24,8 +24,7 @@ using namespace SctmUtils;
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
 {
 	getDDVertices(domain);
-	//for testing the DD solver, the preparation is done in the DDTest class.
-	//prepareSolver();
+	initializeSolver();
 }
 
 void DriftDiffusionSolver::SolveDD()
@@ -38,14 +37,10 @@ void DriftDiffusionSolver::initializeSolver()
 	int vertSize = this->vertices.size();
 	this->rhsVector.resize(vertSize);
 	this->elecDensity.resize(vertSize);
-
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
-	buildVertexMap();
-	setTimeStep();
-	buildCoefficientMatrix();
-	buildRhsVector();
-	//the structure does not change, so the final coefficient matrix after refreshing does not change either
-	refreshCoefficientMatrix();
+	
+	buildVertexMap(); //call the method in DDSolver (Base class), because at this time the derived class is not constructed.
+	buildCoefficientMatrix(true);
 }
 
 void DriftDiffusionSolver::buildVertexMap()
@@ -57,6 +52,8 @@ void DriftDiffusionSolver::buildVertexMap()
 	double phyValue = 0;
 	FDVertex *currVert = NULL;
 
+	//Previously another method of building vertex map is used in DDTest due to the incorrect calculation of
+	//mobility of boundary vertex. This is now solved by introducing a new method of filling vertex physical values.
 	//this map is filled in order to obtain the vertex index from the vertex internal id. This is useful
 	//in setting up the equation, i.e. filling the matrix.
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
@@ -358,7 +355,7 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 
 void DriftDiffusionSolver::setTimeStep()
 {
-	timeStep = UtilsTimeStep.NextTimeStep();
+	timeStep = UtilsTimeStep.GenerateNext();
 }
 
 void DriftDiffusionSolver::fillBackElecDens()
@@ -548,21 +545,32 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
 }
 
-DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
+void DriftDiffusionSolver::prepareSolver()
 {
-	initializeSolver();
+	setTimeStep();
+	refreshBndCurrent();
+
+	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
+	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	refreshCoefficientMatrix();
+	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
+	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+
+	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
+	//different due to the difference in last time electron density
+	buildRhsVector();
+	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
+	//refreshRhsWithBC();
 }
 
-void DDTest::initializeSolver()
+void DriftDiffusionSolver::refreshBndCurrent()
 {
-	int vertSize = this->vertices.size();
-	this->rhsVector.resize(vertSize);
-	this->elecDensity.resize(vertSize);
+	//current nothing is done here.
+}
 
-	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
-	buildVertexMap();
+DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
+{
 	
-	buildCoefficientMatrix(true);
 }
 
 void DDTest::buildVertexMap()
@@ -583,6 +591,8 @@ void DDTest::buildVertexMap()
 
 	//this map is filled in order to obtain the vertex index from the vertex internal id. This is useful
 	//in setting up the equation, i.e. filling the matrix.
+	Normalization norm = Normalization();
+	double lastDensity = norm.PushDensity(1e12);
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
@@ -598,12 +608,12 @@ void DDTest::buildVertexMap()
 		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
+		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, lastDensity));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }
 
-void DDTest::refreshBndCondCurrent()
+void DDTest::refreshBndCurrent()
 {
 	FDVertex *currVert = NULL;
 	int equaID = 0;
@@ -769,29 +779,12 @@ void DDTest::SolveDD()
 	fillBackElecDens();
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 
-	SctmFileOperator write = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\DDTest\\eDensity.txt", SctmFileOperator::Write);
-	write.WriteDDResult(this->vertices, "electron density");
+	UtilsData.WriteDDResult(this->vertices);
+	//SctmFileStream write = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\DDTest\\eDensity.txt", SctmFileStream::Write);
+	//write.WriteDDResult(this->vertices, "electron density");
 }
 
-void DDTest::prepareSolver()
-{
-	setTimeStep();
-	refreshBndCondCurrent();
-
-	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
-	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-	refreshCoefficientMatrix();
-	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
-	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-
-	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
-	//different due to the difference in last time electron density
-	buildRhsVector();
-	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
-	//refreshRhsWithBC();
-}
-
-void DDTest::refreshBndCondDensity()
+void DDTest::refreshBndDensity()
 {
 	FDVertex *currVert = NULL;
 	int equaID = 0;

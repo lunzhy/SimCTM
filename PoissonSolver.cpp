@@ -20,7 +20,7 @@
 using SctmPhys::PhysProperty;
 using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
-using SctmUtils::SctmFileOperator;
+using SctmUtils::SctmFileStream;
 
 TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *domain) :vertices(domain->GetVertices())
 {
@@ -326,6 +326,6 @@ void TwoDimPoissonSolver::fillBackPotential()
 		currVert->Phys->SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
 	}
 
-	SctmFileOperator write = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\PoissonTest\\potential.txt", SctmFileOperator::Write);
+	SctmFileStream write = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\PoissonTest\\potential.txt", SctmFileStream::Write);
 	write.WritePoissonResult(this->vertices);
 }

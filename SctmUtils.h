@@ -40,6 +40,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::fstream;
+
 class FDDomain;
 
 namespace SctmUtils
@@ -106,14 +107,19 @@ namespace SctmUtils
 	
 	
 	/// @brief SctmTimeStep is used to control the time step in the simulation.
+	///
+	/// the time used in the simulation is stored in the normalized value.
 	class SctmTimeStep
 	{
 	public:
 		SctmTimeStep();
-		double NextTimeStep();
-
+		double GenerateNext();
+		double CurrTotalTime() const;
+		int CurrStep() const;
 	protected:
-		double timeNormFactor; ///< the factor of normalizing the time
+		double currTotalTime; /// current time of the simulation
+		int currStep; /// current step of the simulation
+		double nextTimeStep();
 	};
 
 
@@ -182,7 +188,7 @@ namespace SctmUtils
 	///
 	/// Currently, the files of input parameters and output results for testing is manipulated using this class.
 	/// Writing to one file needs to using the same object. New object will generate new file.
-	class SctmFileOperator
+	class SctmFileStream
 	{
 	public:
 		enum FileMode
@@ -190,8 +196,7 @@ namespace SctmUtils
 			Write,
 			Read
 		};
-		SctmFileOperator(string _filename, FileMode _mode);
-		void WriteVector(vector<double> &vec, const char *title);
+		SctmFileStream(string _filename, FileMode _mode);
 		/// @brief Write2DVectorForOrigin is used to write 2D vector in the format of Origin input
 		/// 
 		///
@@ -214,16 +219,35 @@ namespace SctmUtils
 		/// @pre
 		/// @return void
 		/// @note
-		void WriteDDResult(vector<FDVertex *> &vertices, const char *title = "Drift-Diffusion Result");
 		void WritePoissonResult(vector<FDVertex *> &vertices, const char *title = "Poisson Result");
+		void WriteVector(vector<double> &vec, const char *title = "title not assigned");
+		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 	private:
 		string fileName;
+	};
+
+	
+	/// @brief
+	///
+	///
+	class SctmData
+	{
+	public:
+		SctmData();
+		void ReadTunnelParamter();
+		void WriteDDResult(vector<FDVertex *> &vertices);
+		void WritePoissonResult();
+	protected:
+		string fileName;
+		string directoryName;
+		string generateSuffix();
 	};
 
 	extern SctmMessaging UtilsMsg;
 	extern SctmTimer UtilsTimer;
 	extern SctmDebug UtilsDebug;
 	extern SctmTimeStep UtilsTimeStep;
+	extern SctmData UtilsData;
 }
 
 #endif

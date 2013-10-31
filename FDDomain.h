@@ -26,7 +26,7 @@ class FDContact;
 namespace SctmUtils
 {
 	class SctmDebug;
-	class SctmFileOperator;
+	class SctmFileStream;
 }
 
 /// @brief FDDomain describes the simulation domain in finite differential method.
@@ -35,7 +35,7 @@ namespace SctmUtils
 class FDDomain
 {
 	friend class SctmUtils::SctmDebug;
-	friend class SctmUtils::SctmFileOperator;
+	friend class SctmUtils::SctmFileStream;
 public:
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 

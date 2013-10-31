@@ -23,6 +23,7 @@
 using std::cout;
 using std::endl;
 using std::fstream;
+using std::stringstream;
 using SctmPhys::PhysProperty;
 
 namespace SctmUtils
@@ -31,6 +32,7 @@ namespace SctmUtils
 	SctmTimer UtilsTimer = SctmTimer();
 	SctmDebug UtilsDebug = SctmDebug();
 	SctmTimeStep UtilsTimeStep = SctmTimeStep();
+	SctmData UtilsData = SctmData();
 
 	void SctmTimer::Start()
 	{
@@ -351,32 +353,38 @@ namespace SctmUtils
 	}
 
 
-	SctmFileOperator::SctmFileOperator(string _filename, FileMode _mode)
+	SctmFileStream::SctmFileStream(string _filename, FileMode _mode)
 	{
 		this->fileName = _filename;
-		//if the file doesn't exist, create it.
 		fstream file;
 		if (_mode == Write)
 		{
 			file.open(this->fileName.c_str(), std::ios::in);
 			if (!file)
+			{
+				//if the file doesn't exist, create it.
 				file.open(this->fileName.c_str(), std::ios::out);
+				file.close();
+			}
 			else
 			{
 				file.close();//this is important because the existed file has been opened already.
+				//if the file exist, truncate it
 				file.open(this->fileName.c_str(), std::ios::out | std::ios::trunc);
 				file.close();
 			}
 		}
-		if (_mode = Read)
+		if (_mode == Read)
 		{
 			file.open(this->fileName.c_str(), std::ios::in);
 			if (!file.is_open())
 				UtilsMsg.PrintFileError(_filename.c_str());
+			else
+				file.close();
 		}
 	}
 
-	void SctmFileOperator::Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title)
+	void SctmFileStream::Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title)
 	{
 		fstream tofile;
 		tofile.open(this->fileName.c_str(), std::ios::app);
@@ -394,23 +402,30 @@ namespace SctmUtils
 		tofile.close();
 	}
 
-	void SctmFileOperator::WriteVector(vector<double> &vec, const char *title)
+	void SctmFileStream::WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title /*= "title not assigned"*/)
 	{
-		fstream tofile;
-		tofile.open(this->fileName.c_str(), std::ios::app);
-		if (!tofile) 
-			UtilsMsg.PrintFileError(this->fileName.c_str());
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
+		{
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << endl;
+		}
+		tofile.close();
+	}
+
+	void SctmFileStream::WriteVector(vector<double> &vec, const char *title /*= "title not assigned"*/)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
 
 		tofile << title << endl;
 		for (size_t ix = 0; ix != vec.size(); ++ix)
 		{
-			tofile << vec.at(ix) <<  '\t';
+			tofile << vec.at(ix);
 		}
-		tofile << endl;
 		tofile.close();
 	}
 
-	void SctmFileOperator::ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields)
+	void SctmFileStream::ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields)
 	{
 		cbedges.clear(); elecfields.clear();
 		std::ifstream file(this->fileName.c_str());
@@ -424,25 +439,7 @@ namespace SctmUtils
 		file.close();
 	}
 
-	void SctmFileOperator::WriteDDResult(vector<FDVertex *> &vertices, const char *title /*= "Drift-Diffusion Result"*/)
-	{
-		fstream tofile;
-		tofile.open(this->fileName.c_str(), std::ios::app);
-
-		Normalization norm = Normalization();
-		FDVertex *currVert = NULL;
-		tofile << title << endl;
-		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
-		{
-			currVert = vertices.at(iVert);
-			tofile << norm.PullLength(currVert->X) << '\t' << norm.PullLength(currVert->Y) << '\t' << 
-				norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)) << endl;
-		}
-		tofile.close();
-	}
-
-
-	void SctmFileOperator::WritePoissonResult(vector<FDVertex *> &vertices, const char *title /*= "Poisson Result"*/)
+	void SctmFileStream::WritePoissonResult(vector<FDVertex *> &vertices, const char *title /*= "Poisson Result"*/)
 	{
 		fstream tofile;
 		tofile.open(this->fileName.c_str(), std::ios::app);
@@ -462,14 +459,77 @@ namespace SctmUtils
 
 	SctmTimeStep::SctmTimeStep()
 	{
-		Normalization norm = Normalization();
-		this->timeNormFactor = norm.timeFactor;
+		this->currStep = 0;
+		this->currTotalTime = 0;
 	}
 
-	double SctmTimeStep::NextTimeStep()
+	double SctmTimeStep::GenerateNext()
+	{
+		double timestep = 0;
+		timestep = nextTimeStep();
+
+		currStep += 1;
+		currTotalTime += timestep;
+		return timestep;
+	}
+
+	double SctmTimeStep::CurrTotalTime() const
+	{
+		Normalization norm = Normalization();
+		return norm.PullTime(currTotalTime);
+	}
+
+	double SctmTimeStep::nextTimeStep()
 	{
 		//TODO: currently, constant time step is used in the simulation
-		double timestep = 1e-12; // in [s]
-		return timestep / timeNormFactor;
+		Normalization norm = Normalization();
+		double next = 1e-12; // in [s]
+		return norm.PushTime(next);
 	}
+
+	int SctmTimeStep::CurrStep() const
+	{
+		return currStep;
+	}
+
+
+	SctmData::SctmData()
+	{
+		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest";
+	}
+
+
+	void SctmData::WriteDDResult(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "\\DDTest\\" + "eDensity" + generateSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		Normalization norm = Normalization();
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecDen;
+
+		FDVertex *currVert = NULL;
+		for (size_t iVer = 0; iVer != vertices.size(); ++iVer)
+		{
+			currVert = vertices.at(iVer);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			vecDen.push_back(norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
+		}
+		file.WriteVector(vecX, vecY, vecDen, "electron density");
+	}
+
+	string SctmData::generateSuffix()
+	{
+		string ret;
+		stringstream ss;
+		ss << UtilsTimeStep.CurrStep();
+		string step = ss.str();
+
+		ret = "_s" + step + ".txt";
+		return ret;
+	}
+
+
 }

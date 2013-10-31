@@ -32,7 +32,7 @@ class DriftDiffusionSolver
 	typedef std::map<int, double> VertexMapDouble; // <vertID, property value>, store the map for physical property
 public:
 	DriftDiffusionSolver(FDDomain *domain);
-	void SolveDD();
+	virtual void SolveDD();
 protected:
 	vector<FDVertex *> vertices;
 	vector<FDVertex *> &totalVertices;
@@ -40,19 +40,21 @@ protected:
 	double temperature;
 	double timeStep;
 	//the material and physical properties
-	VertexMapDouble mobilityMap; // mobility is used, so diffusion coefficient is derived
+	VertexMapDouble mobilityMap; ///< mobility is used, so diffusion coefficient is derived
 	VertexMapDouble potentialMap;
-	VertexMapDouble lastElecDensMap; // the electron density of last time step
+	VertexMapDouble lastElecDensMap; ///< the electron density of last time step
 	VertexMapInt equationMap;
 
 	vector<double> rhsVector;
 	vector<double> elecDensity;
+	vector<double> coeffReversion; ///< revert the coefficients because they have been modified in last time step 
 
 	SctmSparseMatrixSolver matrixSolver;
 protected:
 	void initializeSolver();
+	void prepareSolver();
 	void getDDVertices(FDDomain *domain);
-	void buildVertexMap();
+	virtual void buildVertexMap();
 	/// @brief setBndCondCurrent is used to set the current boundary condition of the drift-diffusion area
 	/// 
 	/// Currently, this method is restricted in the simple structures.
@@ -100,6 +102,7 @@ protected:
 	void refreshRhsWithBC();
 	void setTimeStep();
 	void fillBackElecDens();
+	virtual void refreshBndCurrent();
 };
 
 class DDTest : public DriftDiffusionSolver
@@ -108,11 +111,8 @@ public:
 	DDTest(FDDomain *_domain);
 	void SolveDD();
 protected:
-	void initializeSolver(); // use method with the same name with base class
-	void prepareSolver();
 	void buildVertexMap();
-public:
-	void refreshBndCondCurrent();
-	void refreshBndCondDensity();
+	void refreshBndCurrent();
+	void refreshBndDensity();
 };
 #endif

@@ -17,7 +17,7 @@
 #include "SctmPhys.h"
 
 using SctmPhys::PhysProperty;
-using SctmUtils::SctmFileOperator;
+using SctmUtils::SctmFileStream;
 
 double TunnelSolver::getSupplyFunction(double energy)
 {
@@ -267,7 +267,7 @@ void TunnelTest::SolveParamterSet()
 		}
 		currentMatrix.push_back(v);
 	}
-	SctmFileOperator writeFile = SctmFileOperator("C:\\Users\\Lunzhy\\Desktop\\TunnelTest.txt", SctmFileOperator::Write);
+	SctmFileStream writeFile = SctmFileStream("C:\\Users\\Lunzhy\\Desktop\\TunnelTest.txt", SctmFileStream::Write);
 	writeFile.Write2DVectorForOrigin(oxideEmassSet, siliconBandEdgeSet, currentMatrix, "Tunneling current -- x: oxide emass -- y: silicon band edge");
 }
 
@@ -287,11 +287,11 @@ void TunnelTest::SolveCalibrate()
 	}
 
 	// read-in from the parameter file
-	SctmFileOperator writeFile = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\result.txt", SctmFileOperator::Write);
+	SctmFileStream writeFile = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\result.txt", SctmFileStream::Write);
 	
 	//calculation of tunneling current for 2nm
 	this->oxideThickness = 2;
-	SctmFileOperator readFile_2nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\2nm.txt", SctmFileOperator::Read);
+	SctmFileStream readFile_2nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\2nm.txt", SctmFileStream::Read);
 	readFile_2nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)
@@ -307,7 +307,7 @@ void TunnelTest::SolveCalibrate()
 
 	//calculation of tunneling current for 3nm
 	this->oxideThickness = 3;
-	SctmFileOperator readFile_3nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\3nm.txt", SctmFileOperator::Read);
+	SctmFileStream readFile_3nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\3nm.txt", SctmFileStream::Read);
 	readFile_3nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)
@@ -323,7 +323,7 @@ void TunnelTest::SolveCalibrate()
 	
 	//calculation of tunneling current for 4nm
 	this->oxideThickness = 4;
-	SctmFileOperator readFile_4nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\4nm.txt", SctmFileOperator::Read);
+	SctmFileStream readFile_4nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\4nm.txt", SctmFileStream::Read);
 	readFile_4nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)
@@ -339,7 +339,7 @@ void TunnelTest::SolveCalibrate()
 
 	//calculation of tunneling current for 5nm
 	this->oxideThickness = 5;
-	SctmFileOperator readFile_5nm = SctmFileOperator("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\5nm.txt", SctmFileOperator::Read);
+	SctmFileStream readFile_5nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\5nm.txt", SctmFileStream::Read);
 	readFile_5nm.ReadTunnelParameter(cbedges, elecFields);
 	tunnelCurrent.clear();
 	for (int ix = 0; ix != 10; ++ix)
