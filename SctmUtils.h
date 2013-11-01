@@ -178,6 +178,7 @@ namespace SctmUtils
 		void PrintHeader(const char *header);
 		void PrintTimeElapsed(double time);
 		void PrintFileError(const char *filename);
+		void PrintDirectoryError();
 	protected:
 		void printLine(string &line);
 		void printLine(const char *line);
