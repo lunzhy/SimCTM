@@ -31,9 +31,15 @@ class DriftDiffusionSolver
 	typedef std::map<int, int> VertexMapInt; // <VertID, equationID> store map for equation ID
 	typedef std::map<int, double> VertexMapDouble; // <vertID, property value>, store the map for physical property
 public:
+	enum BCMethod
+	{
+		DirectDiscretization,
+		UsingCurrentDensity,
+	};
 	DriftDiffusionSolver(FDDomain *domain);
 	virtual void SolveDD();
 protected:
+	BCMethod bcMethod;
 	vector<FDVertex *> vertices;
 	vector<FDVertex *> &totalVertices;
 
@@ -78,7 +84,8 @@ protected:
 	/// @return void
 	/// @note
 	void buildCoefficientMatrix();
-	void buildCoefficientMatrix(bool newMethod);
+	void buildCoefficientMatrix_Obsolete();
+	void setCoefficientBCVertex_UsingCurrent(FDVertex *vert);
 	void setCoefficientBCVertex(FDVertex *vert);
 	void setCoefficientInnerVertex(FDVertex *vert);
 	/// @brief refreshCoefficientMatrix
@@ -100,6 +107,10 @@ protected:
 	/// @return void
 	/// @note
 	void buildRhsVector();
+	void buildRhsVector_UsingCurrent();
+	double getRhsBCVertex(FDVertex *vert);
+	double getRhsBCVertex_UsingCurrent(FDVertex *vert);
+	double getRhsInnerVertex(FDVertex *vert);
 	void refreshRhsWithBC();
 	void setTimeStep();
 	void fillBackElecDens();
