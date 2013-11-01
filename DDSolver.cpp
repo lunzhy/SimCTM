@@ -41,6 +41,7 @@ void DriftDiffusionSolver::initializeSolver()
 	
 	buildVertexMap(); //call the method in DDSolver (Base class), because at this time the derived class is not constructed.
 	buildCoefficientMatrix(true);
+	//buildCoefficientMatrix();
 }
 
 void DriftDiffusionSolver::buildVertexMap()
@@ -215,7 +216,14 @@ void DriftDiffusionSolver::buildRhsVector()
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	int equationID = 0;
+	double rhs_relatedToTime = 0; // the item in rhs related to time step
+	double rhs_relatedToLastStep = 0; // the item in rhs related to the current density of last step
 	double rhsVal = 0;
+	
+	double mobility = 0;
+	double deltaX = 0;
+	double deltaY = 0;
+
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
@@ -226,18 +234,67 @@ void DriftDiffusionSolver::buildRhsVector()
 			switch (currVert->BndCond.GetBCType(FDBoundary::eDensity))
 			{
 			case FDBoundary::BC_Dirichlet:
-				rhsVal = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
+				rhs_relatedToTime = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
 				break;
 			case FDBoundary::BC_Cauchy:
 				//for Cauchy boundary condition
-				rhsVal = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
+				rhs_relatedToTime = currVert->BndCond.GetBCValue(FDBoundary::eDensity);
 				break;	
 			}
+			rhsVal = rhs_relatedToTime;
 		}
 		else
 		{
 			//the inner vertex
-			rhsVal = -lastElecDensMap[currVert->GetID()] / timeStep;
+			//related to time step
+			rhs_relatedToTime = 2 * (-1) * lastElecDensMap[currVert->GetID()] / timeStep;
+
+			//related to current of last time step
+			rhs_relatedToLastStep = 0;
+			// in the boundary cases, the length of one or two direction may be zero 
+			deltaX = (currVert->EastLength + currVert->WestLength) / 2;
+			deltaY = (currVert->NorthLength + currVert->SouthLength) / 2;
+			SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
+
+			//the initial filling method can be used for boundary vertices and non-boundary vertices
+			//related to east vertex
+			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			double east = - (-1) * mobility / currVert->EastLength / deltaX *
+				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 + 1 ) *
+				lastElecDensMap[currVert->GetID()];
+
+			east += - (-1) * mobility / currVert->EastLength / deltaX *
+				( (potentialMap[currVert->EastVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 ) * 
+				lastElecDensMap[currVert->EastVertex->GetID()];
+
+			//related to west vertex
+			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			double west = - (-1) * mobility / currVert->WestLength / deltaX *
+				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 ) *
+				lastElecDensMap[currVert->GetID()];
+			west += - (-1) * mobility / currVert->WestLength / deltaX *
+				( (potentialMap[currVert->WestVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 + 1 ) *
+				lastElecDensMap[currVert->WestVertex->GetID()];
+
+			//related to north vertex
+			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			double north = - (-1) * mobility / currVert->NorthLength / deltaY *
+				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 ) *
+				lastElecDensMap[currVert->GetID()];
+			north += - (-1) * mobility / currVert->NorthLength / deltaY *
+				( (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 + 1 ) *
+				lastElecDensMap[currVert->NorthVertex->GetID()];
+
+			//related to south vertex
+			mobility = (mobilityMap[currVert->EastVertex->GetID()] + mobilityMap[currVert->GetID()]) / 2;
+			double south = - (-1) * mobility / currVert->SouthLength / deltaY *
+				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 - 1 ) *
+				lastElecDensMap[currVert->GetID()];
+			south += - (-1) * mobility / currVert->SouthLength / deltaY *
+				( (potentialMap[currVert->SouthVertex->GetID()] - potentialMap[currVert->GetID()]) / 2 + 1 ) *
+				lastElecDensMap[currVert->SouthVertex->GetID()];
+
+			rhsVal = rhs_relatedToTime + rhs_relatedToLastStep;
 		}
 		this->rhsVector.at(equationID) = rhsVal;
 	}
@@ -312,9 +369,9 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 
 	double coeffToAdd = 0; // coefficient for center vertex
 	if ( lastTimeStep == 0 )
-		coeffToAdd = -1 / timeStep; // from p_n/p_t, p=partial differential
+		coeffToAdd = 2 * (-1) / timeStep; // from p_n/p_t, p=partial differential
 	else
-		coeffToAdd = -1 / timeStep - ( -1 / lastTimeStep );
+		coeffToAdd = 2 * (-1) / timeStep - ( 2 * (-1) / lastTimeStep );
 	
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
@@ -784,7 +841,7 @@ void DDTest::SolveDD()
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
 	//UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
-	UtilsDebug.PrintVector(this->elecDensity, "electron density");
+	//UtilsDebug.PrintVector(this->elecDensity, "electron density");
 	
 	fillBackElecDens();
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
