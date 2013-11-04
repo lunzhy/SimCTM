@@ -322,9 +322,9 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 
 	double coeffToAdd = 0; // coefficient for center vertex
 	if ( lastTimeStep == 0 )
-		coeffToAdd = 2 * (-1) / timeStep; // from p_n/p_t, p=partial differential
+		coeffToAdd = -1 / timeStep; // from p_n/p_t, p=partial differential
 	else
-		coeffToAdd = 2 * (-1) / timeStep - ( 2 * (-1) / lastTimeStep );
+		coeffToAdd = -1 / timeStep - ( -1 / lastTimeStep );
 	
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
@@ -332,11 +332,11 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 
 		//there is no need refreshing coefficient related to boundary condition for this reason
 		//this is true for two method of differentiating boundary equation
-		if (currVert->IsAtBoundary(FDBoundary::eDensity))
-			continue;
+		//if (currVert->IsAtBoundary(FDBoundary::eDensity))
+		//	continue;
 
 		indexEquation = equationMap[currVert->GetID()];
-		SCTM_ASSERT(indexEquation==iVert, 100012);
+		SCTM_ASSERT(indexEquation==iVert, 10012);
 
 		indexCoefficient = equationMap[currVert->GetID()];
 		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
@@ -514,7 +514,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	deltaY = (vert->NorthLength + vert->SouthLength) / 2;
 	SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
-	//the initial filling method can be used for boundary vertices and non-boundary vertices
+	//"coeff / 2" for Crank-Nilson discretization method
 	//related to east vertex
 	mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 	indexCoefficient = equationMap[vert->EastVertex->GetID()];
@@ -523,7 +523,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->EastLength / deltaX *
 		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 
 
 	//related to west vertex
@@ -534,7 +534,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->WestLength / deltaX *
 		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 
 
 	//related to north vertex
@@ -545,7 +545,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->NorthLength / deltaY *
 		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 
 	//related to south vertex
 	mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -555,7 +555,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->SouthLength / deltaY *
 		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 
 	//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
 
@@ -563,7 +563,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	indexCoefficient = equationMap[vert->GetID()];
 	SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
 	//indexCoefficent = indexEquation = vertMap[currVert->GetID]
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
 }
 
 void DriftDiffusionSolver::prepareSolver()
@@ -726,7 +726,7 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 	double retVal = 0;
 	//the inner vertex
 	//related to time step
-	rhs_relatedToTime = 2 * (-1) * lastElecDensMap[vert->GetID()] / timeStep;
+	rhs_relatedToTime = -1 * lastElecDensMap[vert->GetID()] / timeStep;
 
 	//related to current of last time step
 	rhs_relatedToLastStep = 0;
@@ -735,7 +735,7 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 	deltaY = (vert->NorthLength + vert->SouthLength) / 2;
 	SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
-	//the initial filling method can be used for boundary vertices and non-boundary vertices
+	//for Crank-Nilson discretization method
 	//related to east vertex
 	mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 	double east = - mobility / vert->EastLength / deltaX *
@@ -776,7 +776,8 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
 		lastElecDensMap[vert->SouthVertex->GetID()];
 
-	rhs_relatedToLastStep = east + west + south + north;
+	//use Crank-Nilson method
+	rhs_relatedToLastStep = east / 2 + west / 2 + south / 2 + north / 2;
 	retVal = rhs_relatedToTime - rhs_relatedToLastStep;
 
 	return retVal;
