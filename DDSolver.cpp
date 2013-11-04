@@ -780,9 +780,9 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 		lastElecDensMap[vert->SouthVertex->GetID()];
 
 	//use Crank-Nilson method
-	rhs_relatedToLastStep = east + west + south + north;
-	retVal = rhs_relatedToTime - rhs_relatedToLastStep;
-
+	//rhs_relatedToLastStep = east + west + south + north;
+	//retVal = rhs_relatedToTime - rhs_relatedToLastStep;
+	return rhs_relatedToTime;
 	return retVal;
 }
 
