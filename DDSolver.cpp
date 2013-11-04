@@ -234,10 +234,11 @@ void DriftDiffusionSolver::buildRhsVector()
 
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
-			//the following function will judge the type of the boundary condition.
+			//for boundary vertex
 			switch (this->bcMethod)
 			{
 			case DirectDiscretization:
+				//the following function will judge the type of the boundary condition.
 				rhsVal = getRhsBCVertex(currVert);
 				break;
 			case UsingCurrentDensity:
@@ -247,6 +248,7 @@ void DriftDiffusionSolver::buildRhsVector()
 		}
 		else
 		{
+			//for inner vertex
 			rhsVal = getRhsInnerVertex(currVert);
 		}
 		this->rhsVector.at(equationID) = rhsVal;
@@ -523,7 +525,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->EastLength / deltaX *
 		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 
 
 	//related to west vertex
@@ -534,7 +536,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->WestLength / deltaX *
 		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 
 
 	//related to north vertex
@@ -545,7 +547,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->NorthLength / deltaY *
 		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 
 	//related to south vertex
 	mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -555,15 +557,16 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->SouthLength / deltaY *
 		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
 
+	//time-related modification of coefficient is done in refreshing coefficient
 	//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
 
 	//related to current center vertex
 	indexCoefficient = equationMap[vert->GetID()];
 	SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
 	//indexCoefficent = indexEquation = vertMap[currVert->GetID]
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
+	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
 }
 
 void DriftDiffusionSolver::prepareSolver()
@@ -777,7 +780,7 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 		lastElecDensMap[vert->SouthVertex->GetID()];
 
 	//use Crank-Nilson method
-	rhs_relatedToLastStep = east / 2 + west / 2 + south / 2 + north / 2;
+	rhs_relatedToLastStep = east + west + south + north;
 	retVal = rhs_relatedToTime - rhs_relatedToLastStep;
 
 	return retVal;
@@ -787,15 +790,43 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 {
 	double retVal = 0;
 
+	double rhs_relatedToTime = -1 * lastElecDensMap[vert->GetID()] / timeStep;
+	double rhs_relatedToLastStep = 0;
+
+	double deltaX = 0;
+	double deltaY = 0;
+
+	bool notTrapping_NW = false;
+	bool notTrapping_NE = false;
+	bool notTrapping_SE = false;
+	bool notTrapping_SW = false;
+
 	switch (vert->BndCond.GetBCType(FDBoundary::eDensity))
 	{
 	case FDBoundary::BC_Dirichlet:
+		//in BC_Dirichlet, the the rhs of boundary vertex is directly set.
 		retVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
 		break;
 	case FDBoundary::BC_Cauchy:
 		//for Cauchy boundary condition
-		double deltaX = (vert->EastLength + vert->WestLength) / 2;
-		double deltaY = (vert->NorthLength + vert->SouthLength) / 2;
+		notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
+		notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
+		notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
+		notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+
+		//West
+		if (!(notTrapping_NW && notTrapping_SW))
+			deltaX += vert->WestLength / 2;
+		//East
+		if (!(notTrapping_NE && notTrapping_SE))
+			deltaX += vert->EastLength / 2;
+		//South
+		if (!(notTrapping_SE && notTrapping_SW))
+			deltaY += vert->SouthLength / 2;
+		//North
+		if (!(notTrapping_NE && notTrapping_NW))
+			deltaY += vert->NorthLength / 2;
+
 		SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
 		double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
@@ -803,25 +834,27 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
 
 		//retVal = - ( bcVal * norm_alpha / deltaX + bcVal * norm_beta / deltaY);
-		//the sign represents moving the symbol from right to left
+		
 		//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
 		if (norm_alpha > 0) //lack of east part
 		{
-			retVal += - bcVal * norm_alpha / deltaX;
+			rhs_relatedToLastStep += bcVal * norm_alpha / deltaX;
 		}
 		else if (norm_alpha < 0) //lack of west part
 		{
-			retVal += bcVal * norm_alpha / deltaX;
+			rhs_relatedToLastStep += - bcVal * norm_alpha / deltaX;
 		}
 
 		if (norm_beta > 0) // lack of north part
 		{
-			retVal += - bcVal * norm_beta / deltaY;
+			rhs_relatedToLastStep += bcVal * norm_beta / deltaY;
 		}
 		else if (norm_beta < 0) //  lack of south part
 		{
-			retVal += bcVal * norm_beta / deltaY;
+			rhs_relatedToLastStep += - bcVal * norm_beta / deltaY;
 		}
+		//the sign represents moving the symbol from right to left
+		retVal = rhs_relatedToTime - rhs_relatedToLastStep;
 		break;
 	}
 	return retVal;

@@ -14,7 +14,7 @@
 #define _SCTMUTILS_H_
 
 #define DEBUG
-#define SCTM_DEBUG_ENABLE false
+#define SCTM_DEBUG_ENABLE true
 
 #include <string>
 #include <ctime>
