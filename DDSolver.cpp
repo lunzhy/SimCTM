@@ -24,7 +24,7 @@ using namespace SctmUtils;
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
 {
 	this->bcMethod = UsingCurrentDensity;
-	this->useCrankNilsonMethod = false;
+	this->useCrankNilsonMethod = true;
 	this->lastTimeStep = 0;
 	getDDVertices(domain);
 	initializeSolver();

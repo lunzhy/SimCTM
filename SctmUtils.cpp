@@ -526,7 +526,10 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			vecDen.push_back(norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
 		}
-		file.WriteVector(vecX, vecY, vecDen, "electron density");
+
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "electron density of time [" + numStr + "]"; 
+		file.WriteVector(vecX, vecY, vecDen, title.c_str());
 	}
 
 	string SctmData::generateFileSuffix()
