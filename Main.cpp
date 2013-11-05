@@ -54,9 +54,9 @@ void DDSolverTest()
 	DDTest *ddSolver = new DDTest(aDomain);
 	ddSolver->SolveDD();
 	//UtilsDebug.PrintDomainDetails(*aDomain);
-	//ddSolver->SolveDD();
+	ddSolver->SolveDD();
 	//UtilsDebug.PrintDomainDetails(*aDomain);
-	//ddSolver->SolveDD();
+	ddSolver->SolveDD();
 }
 
 int main()

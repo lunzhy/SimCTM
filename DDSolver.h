@@ -40,6 +40,8 @@ public:
 	virtual void SolveDD();
 protected:
 	BCMethod bcMethod;
+	bool useCrankNilsonMethod;
+
 	vector<FDVertex *> vertices;
 	vector<FDVertex *> &totalVertices;
 
@@ -86,7 +88,7 @@ protected:
 	void buildCoefficientMatrix();
 	void buildCoefficientMatrix_Obsolete();
 	void setCoefficientBCVertex_UsingCurrent(FDVertex *vert);
-	void setCoefficientBCVertex(FDVertex *vert);
+	void setCoefficientBCVertex_DirectDiscretization(FDVertex *vert);
 	void setCoefficientInnerVertex(FDVertex *vert);
 	/// @brief refreshCoefficientMatrix
 	/// 
@@ -108,7 +110,7 @@ protected:
 	/// @note
 	void buildRhsVector();
 	void buildRhsVector_UsingCurrent();
-	double getRhsBCVertex(FDVertex *vert);
+	double getRhsBCVertex_DirectDiscretiztion(FDVertex *vert);
 	double getRhsBCVertex_UsingCurrent(FDVertex *vert);
 	double getRhsInnerVertex(FDVertex *vert);
 	void refreshRhsWithBC();

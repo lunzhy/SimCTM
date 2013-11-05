@@ -24,6 +24,7 @@ using namespace SctmUtils;
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
 {
 	this->bcMethod = UsingCurrentDensity;
+	this->useCrankNilsonMethod = true;
 	getDDVertices(domain);
 	initializeSolver();
 }
@@ -206,7 +207,7 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 			switch (this->bcMethod)
 			{
 			case DirectDiscretization:
-				setCoefficientBCVertex(currVert);
+				setCoefficientBCVertex_DirectDiscretization(currVert);
 				break;
 			case UsingCurrentDensity:
 				setCoefficientBCVertex_UsingCurrent(currVert);
@@ -239,7 +240,7 @@ void DriftDiffusionSolver::buildRhsVector()
 			{
 			case DirectDiscretization:
 				//the following function will judge the type of the boundary condition.
-				rhsVal = getRhsBCVertex(currVert);
+				rhsVal = getRhsBCVertex_DirectDiscretiztion(currVert);
 				break;
 			case UsingCurrentDensity:
 				rhsVal = getRhsBCVertex_UsingCurrent(currVert);
@@ -398,7 +399,7 @@ void DriftDiffusionSolver::fillBackElecDens()
 	}
 }
 
-void DriftDiffusionSolver::setCoefficientBCVertex(FDVertex *vert)
+void DriftDiffusionSolver::setCoefficientBCVertex_DirectDiscretization(FDVertex *vert)
 {
 	//for Cauchy boundary condition
 	int indexEquation = 0;
@@ -525,8 +526,14 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->EastLength / deltaX *
 		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
-
+	if (useCrankNilsonMethod)
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	}
+	else
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	}
 
 	//related to west vertex
 	mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -536,8 +543,14 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->WestLength / deltaX *
 		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
-
+	if (useCrankNilsonMethod)
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	}
+	else
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	}
 
 	//related to north vertex
 	mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -547,7 +560,14 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->NorthLength / deltaY *
 		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	if (useCrankNilsonMethod)
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	}
+	else
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	}
 
 	//related to south vertex
 	mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -557,7 +577,14 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->SouthLength / deltaY *
 		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	if (useCrankNilsonMethod)
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+	}
+	else
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+	}
 
 	//time-related modification of coefficient is done in refreshing coefficient
 	//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
@@ -566,7 +593,15 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	indexCoefficient = equationMap[vert->GetID()];
 	SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
 	//indexCoefficent = indexEquation = vertMap[currVert->GetID]
-	matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+	if (useCrankNilsonMethod)
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
+	}
+	else
+	{
+		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+	}
+	
 }
 
 void DriftDiffusionSolver::prepareSolver()
@@ -648,7 +683,15 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->WestLength / deltaX *
 				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 );
 
-			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			if (useCrankNilsonMethod)
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+			}
+			else
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			}
+			
 		}
 
 		//East
@@ -661,7 +704,14 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->EastLength / deltaX *
 				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			if (useCrankNilsonMethod)
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+			}
+			else
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			}
 		}
 
 		//South
@@ -674,7 +724,14 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->SouthLength / deltaY *
 				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			if (useCrankNilsonMethod)
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+			}
+			else
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			}
 		}
 
 		//North
@@ -687,7 +744,14 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->NorthLength / deltaY *
 				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			if (useCrankNilsonMethod)
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+			}
+			else
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+			}
 		}
 
 		//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
@@ -695,12 +759,19 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 		indexCoefficient = equationMap[vert->GetID()];
 		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
 		//indexCoefficent = indexEquation = vertMap[currVert->GetID]
-		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+		if (useCrankNilsonMethod)
+		{
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
+		}
+		else
+		{
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+		}
 		break;
 	}
 }
 
-double DriftDiffusionSolver::getRhsBCVertex(FDVertex *vert)
+double DriftDiffusionSolver::getRhsBCVertex_DirectDiscretiztion(FDVertex *vert)
 {
 	double retVal = 0;
 	switch (vert->BndCond.GetBCType(FDBoundary::eDensity))
@@ -719,70 +790,72 @@ double DriftDiffusionSolver::getRhsBCVertex(FDVertex *vert)
 
 double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 {
-	double rhs_relatedToTime = 0; // the item in rhs related to time step
-	double rhs_relatedToLastStep = 0; // the item in rhs related to the current density of last step
+	double rhsTime = 0; // the addend in rhs related to time step
+	double rhsLastStepCurrent = 0; // the addend related to current of last time step, in Crank-Nilson method
 
 	double mobility = 0;
 	double deltaX = 0;
 	double deltaY = 0;
 	
 	double retVal = 0;
-	//the inner vertex
-	//related to time step
-	rhs_relatedToTime = -1 * lastElecDensMap[vert->GetID()] / timeStep;
 
-	//related to current of last time step
-	rhs_relatedToLastStep = 0;
+	//related to time step
+	rhsTime = -1 * lastElecDensMap[vert->GetID()] / timeStep;
+
 	// in the boundary cases, the length of one or two direction may be zero 
 	deltaX = (vert->EastLength + vert->WestLength) / 2;
 	deltaY = (vert->NorthLength + vert->SouthLength) / 2;
 	SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
-	//for Crank-Nilson discretization method
-	//related to east vertex
-	mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-	double east = - mobility / vert->EastLength / deltaX *
-		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-		lastElecDensMap[vert->GetID()];
+	if (useCrankNilsonMethod)
+	{
+		//for Crank-Nilson discretization method
+		//related to east vertex
+		mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+		double east = - mobility / vert->EastLength / deltaX *
+			( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+			lastElecDensMap[vert->GetID()];
 
-	east += - mobility / vert->EastLength / deltaX *
-		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) * 
-		lastElecDensMap[vert->EastVertex->GetID()];
+		east += - mobility / vert->EastLength / deltaX *
+			( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) * 
+			lastElecDensMap[vert->EastVertex->GetID()];
 
-	//related to west vertex
-	mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-	double west = - mobility / vert->WestLength / deltaX *
-		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-		lastElecDensMap[vert->GetID()];
+		//related to west vertex
+		mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+		double west = - mobility / vert->WestLength / deltaX *
+			( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+			lastElecDensMap[vert->GetID()];
 
-	west += - mobility / vert->WestLength / deltaX *
-		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-		lastElecDensMap[vert->WestVertex->GetID()];
+		west += - mobility / vert->WestLength / deltaX *
+			( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+			lastElecDensMap[vert->WestVertex->GetID()];
 
-	//related to north vertex
-	mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-	double north = - mobility / vert->NorthLength / deltaY *
-		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-		lastElecDensMap[vert->GetID()];
+		//related to north vertex
+		mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+		double north = - mobility / vert->NorthLength / deltaY *
+			( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+			lastElecDensMap[vert->GetID()];
 
-	north += - mobility / vert->NorthLength / deltaY *
-		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-		lastElecDensMap[vert->NorthVertex->GetID()];
+		north += - mobility / vert->NorthLength / deltaY *
+			( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+			lastElecDensMap[vert->NorthVertex->GetID()];
 
-	//related to south vertex
-	mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-	double south = - mobility / vert->SouthLength / deltaY *
-		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-		lastElecDensMap[vert->GetID()];
+		//related to south vertex
+		mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+		double south = - mobility / vert->SouthLength / deltaY *
+			( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+			lastElecDensMap[vert->GetID()];
 
-	south += - mobility / vert->SouthLength / deltaY *
-		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-		lastElecDensMap[vert->SouthVertex->GetID()];
+		south += - mobility / vert->SouthLength / deltaY *
+			( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+			lastElecDensMap[vert->SouthVertex->GetID()];
+		
+		//use Crank-Nilson method
+		rhsLastStepCurrent = ( east + west + south + north ) / 2;
 
-	//use Crank-Nilson method
-	//rhs_relatedToLastStep = east + west + south + north;
-	//retVal = rhs_relatedToTime - rhs_relatedToLastStep;
-	return rhs_relatedToTime;
+	}
+	
+	retVal = rhsTime - rhsLastStepCurrent;
 	return retVal;
 }
 
@@ -790,8 +863,10 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 {
 	double retVal = 0;
 
-	double rhs_relatedToTime = -1 * lastElecDensMap[vert->GetID()] / timeStep;
-	double rhs_relatedToLastStep = 0;
+	double rhsTime = 0; // rhs addend related to time and electron density of this vertex of last simulation step
+	double rhsBoundary = 0; // rhs addend related to the current boundary condition
+	double rhsLastStepCurrent = 0; // rhs addend ralated to the current density from other vertices in last simulation step
+	double rhsLastBoundary = 0; // rhs addend related to boundary condition in last simulation step
 
 	double deltaX = 0;
 	double deltaY = 0;
@@ -801,6 +876,14 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 	bool notTrapping_SE = false;
 	bool notTrapping_SW = false;
 
+	double mobility = 0;
+	double east = 0;
+	double west = 0;
+	double north = 0;
+	double south = 0;
+
+	static VertexMapDouble lastBCMap = VertexMapDouble(); // to store the overall current density of boundary conditions
+
 	switch (vert->BndCond.GetBCType(FDBoundary::eDensity))
 	{
 	case FDBoundary::BC_Dirichlet:
@@ -809,52 +892,104 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		break;
 	case FDBoundary::BC_Cauchy:
 		//for Cauchy boundary condition
+		//calculation of the addend related current simulation time step
+		rhsTime= -1 * lastElecDensMap[vert->GetID()] / timeStep;
+
 		notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
 		notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
 		notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
 		notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
-
 		//West
 		if (!(notTrapping_NW && notTrapping_SW))
+		{
 			deltaX += vert->WestLength / 2;
+			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+			west += - mobility / vert->WestLength / deltaX *
+				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 ) *
+				lastElecDensMap[vert->WestVertex->GetID()];
+
+			west += - mobility / vert->WestLength / deltaX *
+				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 ) *
+				lastElecDensMap[vert->GetID()];
+		}
 		//East
 		if (!(notTrapping_NE && notTrapping_SE))
+		{
 			deltaX += vert->EastLength / 2;
+			mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+			east += - mobility / vert->EastLength / deltaX *
+				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+				lastElecDensMap[vert->EastVertex->GetID()];
+
+			east += - mobility / vert->EastLength / deltaX *
+				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+				lastElecDensMap[vert->GetID()];
+		}
 		//South
 		if (!(notTrapping_SE && notTrapping_SW))
+		{
 			deltaY += vert->SouthLength / 2;
+			mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+			south += - mobility / vert->SouthLength / deltaY *
+				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+				lastElecDensMap[vert->SouthVertex->GetID()];
+
+			south += - mobility / vert->SouthLength / deltaY *
+				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+				lastElecDensMap[vert->GetID()];
+		}
 		//North
 		if (!(notTrapping_NE && notTrapping_NW))
+		{
 			deltaY += vert->NorthLength / 2;
+			mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+			north += - mobility / vert->NorthLength / deltaY *
+				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+				lastElecDensMap[vert->NorthVertex->GetID()];
+
+			north += - mobility / vert->NorthLength / deltaY *
+				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+				lastElecDensMap[vert->GetID()];
+		}
 
 		SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
-
 		double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
 		double norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 		double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
-
-		//retVal = - ( bcVal * norm_alpha / deltaX + bcVal * norm_beta / deltaY);
-		
 		//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
 		if (norm_alpha > 0) //lack of east part
 		{
-			rhs_relatedToLastStep += bcVal * norm_alpha / deltaX;
+			rhsBoundary += bcVal * norm_alpha / deltaX;
 		}
 		else if (norm_alpha < 0) //lack of west part
 		{
-			rhs_relatedToLastStep += - bcVal * norm_alpha / deltaX;
+			rhsBoundary += - bcVal * norm_alpha / deltaX;
 		}
-
 		if (norm_beta > 0) // lack of north part
 		{
-			rhs_relatedToLastStep += bcVal * norm_beta / deltaY;
+			rhsBoundary += bcVal * norm_beta / deltaY;
 		}
 		else if (norm_beta < 0) //  lack of south part
 		{
-			rhs_relatedToLastStep += - bcVal * norm_beta / deltaY;
+			rhsBoundary += - bcVal * norm_beta / deltaY;
 		}
+		
+		if (this->useCrankNilsonMethod)
+		{
+			rhsBoundary = rhsBoundary / 2;
+			//calculation of the addend related to the current density of last simulation time step
+			rhsLastStepCurrent = (west + east + south + north) / 2;
+			//this addend is not included in the first simulation step
+			if (lastBCMap.find(vert->GetID()) != lastBCMap.end())
+			{
+				rhsLastBoundary = lastBCMap[vert->GetID()] / 2;
+			}
+			//to store the overall current density of boundary conditions
+			lastBCMap[vert->GetID()] = rhsBoundary;
+		}
+
 		//the sign represents moving the symbol from right to left
-		retVal = rhs_relatedToTime - rhs_relatedToLastStep;
+		retVal = rhsTime - rhsBoundary - rhsLastStepCurrent - rhsLastBoundary;
 		break;
 	}
 	return retVal;
