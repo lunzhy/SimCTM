@@ -60,7 +60,7 @@ void SimpleONO::setParameters()
 	double yLengthBlock_in_nm = 9;
 	int xGridNumber = 5; //the grid number, not vertex number
 	int yGridNumberTunnel =5;
-	int yGridNumberTrap = 5;
+	int yGridNumberTrap = 200;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
@@ -452,6 +452,7 @@ void SimpleONO::setVertexPhysics()
 			{
 				currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
 			}
+			currVertex->Phys->CalculateDensityControlArea(currVertex);
 			/*
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;

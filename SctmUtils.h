@@ -14,7 +14,7 @@
 #define _SCTMUTILS_H_
 
 #define DEBUG
-#define SCTM_DEBUG_ENABLE true
+#define SCTM_DEBUG_ENABLE false
 
 #include <string>
 #include <ctime>
@@ -243,7 +243,14 @@ namespace SctmUtils
 	protected:
 		string fileName;
 		string directoryName;
-		string generateSuffix();
+		string generateFileSuffix();
+	};
+
+	class ConvertToString
+	{
+	public:
+		static string Int(int num);
+		static string Double(double num, bool useScientific = true, int numAfterPoionts = 3);
 	};
 
 	extern SctmMessaging UtilsMsg;

@@ -39,6 +39,7 @@ namespace SctmPhys
 		h_mass = 0;
 		netCharge = 0;
 		e_density = 0;
+		contronArea = 0;
 	}
 
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
@@ -113,6 +114,9 @@ namespace SctmPhys
 			break;
 		case eDensity:
 			ret = e_density;
+			break;
+		case DensityControlArea:
+			ret = contronArea;
 			break;
 		default:
 			// use SCTM_ASSERT for non-existed property
@@ -192,6 +196,34 @@ namespace SctmPhys
 		}
 		//SCTM_ASSERT(tot>=0, 10004);
 		vertex->Phys->SetPhysPrpty(vertexPhys, physValue);
+	}
+
+	void PhysProperty::CalculateDensityControlArea(FDVertex *vertex)
+	{
+		double area = 0;
+		FDElement *currElem = NULL;
+
+		currElem = vertex->NorthwestElem;
+		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		{
+			area += 0.25 * currElem->Area;
+		}
+		currElem = vertex->NortheastElem;
+		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		{
+			area += 0.25 * currElem->Area;
+		}
+		currElem = vertex->SouthwestElem;
+		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		{
+			area += 0.25 * currElem->Area;
+		}
+		currElem = vertex->SoutheastElem;
+		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		{
+			area += 0.25 * currElem->Area;
+		}
+		this->contronArea = area;
 	}
 
 	void SetPhysConstant()

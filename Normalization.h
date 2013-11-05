@@ -185,6 +185,12 @@ namespace SctmUtils
 		{
 			return currdens * currDensFactor;
 		}
+		
+		//area, in [cm^2]
+		inline double PullLineDensity(double lineDensity)
+		{
+			return lineDensity * densityFactor * lengthFactor * lengthFactor;
+		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.
 		/// 

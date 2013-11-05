@@ -38,6 +38,7 @@ public:
 	};
 	DriftDiffusionSolver(FDDomain *domain);
 	virtual void SolveDD();
+	double CalculateTotalLineDensity();
 protected:
 	BCMethod bcMethod;
 	bool useCrankNilsonMethod;
@@ -117,6 +118,7 @@ protected:
 	void setTimeStep();
 	void fillBackElecDens();
 	virtual void refreshBndCurrent();
+	void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
 };
 
 class DDTest : public DriftDiffusionSolver

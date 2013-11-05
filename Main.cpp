@@ -7,6 +7,7 @@
 #include "SctmPhys.h"
 
 using namespace SctmUtils;
+
 void initialize()
 {
 	UtilsMsg.PrintWelcomingInformation();
@@ -56,11 +57,9 @@ void DDSolverTest()
 	UtilsTimeStep.GenerateNext();
 	ddSolver->SolveDD();
 	//UtilsDebug.PrintDomainDetails(*aDomain);
-	UtilsTimeStep.GenerateNext();
-	ddSolver->SolveDD();
+	//UtilsTimeStep.GenerateNext();
+	//ddSolver->SolveDD();
 	//UtilsDebug.PrintDomainDetails(*aDomain);
-	UtilsTimeStep.GenerateNext();
-	ddSolver->SolveDD();
 }
 
 int main()

@@ -24,7 +24,8 @@ using namespace SctmUtils;
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
 {
 	this->bcMethod = UsingCurrentDensity;
-	this->useCrankNilsonMethod = true;
+	this->useCrankNilsonMethod = false;
+	this->lastTimeStep = 0;
 	getDDVertices(domain);
 	initializeSolver();
 }
@@ -378,7 +379,7 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 
 void DriftDiffusionSolver::setTimeStep()
 {
-	timeStep = UtilsTimeStep.TimeStep();
+ 	timeStep = UtilsTimeStep.TimeStep();
 }
 
 void DriftDiffusionSolver::fillBackElecDens()
@@ -663,15 +664,13 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 
 	case FDBoundary::BC_Cauchy:
 		indexEquation = equationMap[vert->GetID()];
-		// in the boundary cases, the length of one or two direction may be zero 
-		deltaX = (vert->EastLength + vert->WestLength) / 2;
-		deltaY = (vert->NorthLength + vert->SouthLength) / 2;
-		SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
 		notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
 		notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
 		notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
 		notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+
+		getDeltaXYAtVertex(vert, deltaX, deltaY);
 
 		//West
 		if (!(notTrapping_NW && notTrapping_SW))
@@ -679,9 +678,9 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			indexCoefficient = equationMap[vert->WestVertex->GetID()];
 			coeff_adjacent = - mobility / vert->WestLength / deltaX *
-				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 );
+				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
 			coeff_center += - mobility / vert->WestLength / deltaX *
-				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 );
+				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
 			if (useCrankNilsonMethod)
 			{
@@ -801,11 +800,8 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 
 	//related to time step
 	rhsTime = -1 * lastElecDensMap[vert->GetID()] / timeStep;
-
-	// in the boundary cases, the length of one or two direction may be zero 
-	deltaX = (vert->EastLength + vert->WestLength) / 2;
-	deltaY = (vert->NorthLength + vert->SouthLength) / 2;
-	SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
+ 
+	getDeltaXYAtVertex(vert, deltaX, deltaY);
 
 	if (useCrankNilsonMethod)
 	{
@@ -899,10 +895,12 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
 		notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
 		notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+
+		getDeltaXYAtVertex(vert, deltaX, deltaY);
+
 		//West
 		if (!(notTrapping_NW && notTrapping_SW))
 		{
-			deltaX += vert->WestLength / 2;
 			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			west += - mobility / vert->WestLength / deltaX *
 				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 ) *
@@ -915,7 +913,6 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		//East
 		if (!(notTrapping_NE && notTrapping_SE))
 		{
-			deltaX += vert->EastLength / 2;
 			mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			east += - mobility / vert->EastLength / deltaX *
 				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
@@ -928,7 +925,6 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		//South
 		if (!(notTrapping_SE && notTrapping_SW))
 		{
-			deltaY += vert->SouthLength / 2;
 			mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			south += - mobility / vert->SouthLength / deltaY *
 				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
@@ -941,7 +937,6 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		//North
 		if (!(notTrapping_NE && notTrapping_NW))
 		{
-			deltaY += vert->NorthLength / 2;
 			mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			north += - mobility / vert->NorthLength / deltaY *
 				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
@@ -952,7 +947,6 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 				lastElecDensMap[vert->GetID()];
 		}
 
-		SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 		double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
 		double norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 		double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
@@ -993,6 +987,67 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		break;
 	}
 	return retVal;
+}
+
+double DriftDiffusionSolver::CalculateTotalLineDensity()
+{
+	double ret = 0;
+	
+	bool notTrapping_NW = false;
+	bool notTrapping_NE = false;
+	bool notTrapping_SE = false;
+	bool notTrapping_SW = false;
+
+	FDVertex *vert = NULL;
+	double dens = 0;
+	double area = 0;
+
+	Normalization norm = Normalization();
+
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		vert = this->vertices.at(iVert);
+		ret += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
+			* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+	}
+	return ret;
+}
+
+void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy)
+{
+	//in the trapping boundary, the length of one or two direction may be zero
+	//however, this vertex may not be a real boundary vertex, i.e. the corresponding length may not be zero
+	bool notTrapping_NW = false;
+	bool notTrapping_NE = false;
+	bool notTrapping_SE = false;
+	bool notTrapping_SW = false;
+
+	notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
+	notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
+	notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
+	notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+
+	//West
+	if (!(notTrapping_NW && notTrapping_SW))
+	{
+		dx += vert->WestLength / 2;
+	}
+	//East
+	if (!(notTrapping_NE && notTrapping_SE))
+	{
+		dx += vert->EastLength / 2;
+	}
+	//South
+	if (!(notTrapping_SE && notTrapping_SW))
+	{
+		dy += vert->SouthLength / 2;
+	}
+	//North
+	if (!(notTrapping_NE && notTrapping_NW))
+	{
+		dy += vert->NorthLength / 2;
+	}
+	SCTM_ASSERT(dx!=0 && dy!=0, 10015);
 }
 
 DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)

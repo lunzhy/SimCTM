@@ -510,7 +510,7 @@ namespace SctmUtils
 
 	void SctmData::WriteDDResult(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\DDTest\\" + "eDensity" + generateSuffix();
+		fileName = directoryName + "\\DDTest\\" + "eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -529,15 +529,27 @@ namespace SctmUtils
 		file.WriteVector(vecX, vecY, vecDen, "electron density");
 	}
 
-	string SctmData::generateSuffix()
+	string SctmData::generateFileSuffix()
 	{
-		string ret;
-		stringstream ss;
-		ss << UtilsTimeStep.StepNumber();
-		string step = ss.str();
+		string ret = "";
+		string step = ConvertToString::Int(UtilsTimeStep.StepNumber());
 
 		ret = "_s" + step + ".txt";
 		return ret;
+	}
+
+	string ConvertToString::Int(int num)
+	{
+		stringstream ss;
+		ss << num;
+		return ss.str();
+	}
+
+	string ConvertToString::Double(double num, bool useScientific /*= true*/, int numAfterPoionts /*= 3*/)
+	{
+		stringstream ss;
+		ss << num;
+		return ss.str();
 	}
 
 
