@@ -467,24 +467,26 @@ namespace SctmUtils
 
 	SctmTimeStep::SctmTimeStep()
 	{
-		this->currStep = 0;
-		this->currTotalTime = 0;
+		this->currStepNumber = 0;
+		this->currElapsedTime = 0;
 	}
 
-	double SctmTimeStep::GenerateNext()
+	void SctmTimeStep::GenerateNext()
 	{
-		double timestep = 0;
-		timestep = nextTimeStep();
-
-		currStep += 1;
-		currTotalTime += timestep;
-		return timestep;
+		this->currTimeStep = nextTimeStep();
+		this->currElapsedTime += this->currTimeStep;
+		currStepNumber += 1;
 	}
 
-	double SctmTimeStep::CurrTotalTime() const
+	double SctmTimeStep::TimeStep() const
+	{
+		return currTimeStep;
+	}
+
+	double SctmTimeStep::ElapsedTime() const
 	{
 		Normalization norm = Normalization();
-		return norm.PullTime(currTotalTime);
+		return norm.PullTime(currElapsedTime);
 	}
 
 	double SctmTimeStep::nextTimeStep()
@@ -495,11 +497,10 @@ namespace SctmUtils
 		return norm.PushTime(next);
 	}
 
-	int SctmTimeStep::CurrStep() const
+	int SctmTimeStep::StepNumber() const
 	{
-		return currStep;
+		return currStepNumber;
 	}
-
 
 	SctmData::SctmData()
 	{
@@ -532,7 +533,7 @@ namespace SctmUtils
 	{
 		string ret;
 		stringstream ss;
-		ss << UtilsTimeStep.CurrStep();
+		ss << UtilsTimeStep.StepNumber();
 		string step = ss.str();
 
 		ret = "_s" + step + ".txt";

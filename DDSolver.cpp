@@ -378,7 +378,7 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 
 void DriftDiffusionSolver::setTimeStep()
 {
-	timeStep = UtilsTimeStep.GenerateNext();
+	timeStep = UtilsTimeStep.TimeStep();
 }
 
 void DriftDiffusionSolver::fillBackElecDens()

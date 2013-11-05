@@ -113,12 +113,14 @@ namespace SctmUtils
 	{
 	public:
 		SctmTimeStep();
-		double GenerateNext();
-		double CurrTotalTime() const;
-		int CurrStep() const;
+		void GenerateNext();
+		double ElapsedTime() const;
+		int StepNumber() const;
+		double TimeStep() const;
 	protected:
-		double currTotalTime; /// current time of the simulation
-		int currStep; /// current step of the simulation
+		double currElapsedTime; /// current time of the simulation
+		int currStepNumber; /// current step of the simulation
+		double currTimeStep; /// current simulation time step
 		double nextTimeStep();
 	};
 
