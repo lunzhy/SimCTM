@@ -41,7 +41,7 @@ public:
 	double CalculateTotalLineDensity();
 protected:
 	BCMethod bcMethod;
-	bool useCrankNilsonMethod;
+	bool useCrankNicolsonMethod;
 
 	vector<FDVertex *> vertices;
 	vector<FDVertex *> &totalVertices;

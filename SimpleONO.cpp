@@ -58,9 +58,9 @@ void SimpleONO::setParameters()
 	double yLengthTunnel_in_nm = 4;
 	double yLengthTrap_in_nm = 10;
 	double yLengthBlock_in_nm = 9;
-	int xGridNumber = 50; //the grid number, not vertex number
+	int xGridNumber = 5; //the grid number, not vertex number
 	int yGridNumberTunnel =5;
-	int yGridNumberTrap = 50;
+	int yGridNumberTrap = 5;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
@@ -594,8 +594,8 @@ void SimpleONO::setBoundaryCondition(bool fake)
 	this->gatePotential = 16.526;
 	this->channelPotential = 0.634;
 
-	//this->gatePotential = 0.634;
-	//this->channelPotential = 16.526;
+	//this->gatePotential = 5;
+	//this->channelPotential = 0;
 
 	FDVertex *currVertex;
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)

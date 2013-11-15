@@ -358,6 +358,12 @@ namespace SctmUtils
 		exit(1);
 	}
 
+	void SctmMessaging::PrintValue(double num)
+	{
+		cout << num << endl;
+	}
+
+
 	SctmFileStream::SctmFileStream(string _filename, FileMode _mode)
 	{
 		this->fileName = _filename;
@@ -493,7 +499,7 @@ namespace SctmUtils
 	{
 		//TODO: currently, constant time step is used in the simulation
 		Normalization norm = Normalization();
-		double next = 1e-12; // in [s]
+		double next = 0.5e-12; // in [s]
 		return norm.PushTime(next);
 	}
 

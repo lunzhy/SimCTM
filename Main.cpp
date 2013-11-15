@@ -54,6 +54,12 @@ void DDSolverTest()
 	UtilsMsg.PrintHeader("Testing the drift diffusion solver.");
 	DDTest *ddSolver = new DDTest(aDomain);
 
+	int i = 1;
+	while ( i-->0)
+	{
+		UtilsTimeStep.GenerateNext();
+		ddSolver->SolveDD();
+	}
 	//UtilsDebug.PrintDomainDetails(*aDomain);
 	//UtilsTimeStep.GenerateNext();
 	//ddSolver->SolveDD();

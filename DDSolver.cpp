@@ -24,7 +24,7 @@ using namespace SctmUtils;
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
 {
 	this->bcMethod = UsingCurrentDensity;
-	this->useCrankNilsonMethod = true;
+	this->useCrankNicolsonMethod = true;
 	this->lastTimeStep = 0;
 	getDDVertices(domain);
 	initializeSolver();
@@ -518,7 +518,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	deltaY = (vert->NorthLength + vert->SouthLength) / 2;
 	SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
-	//"coeff / 2" for Crank-Nilson discretization method
+	//"coeff / 2" for Crank-Nicolson discretization method
 	//related to east vertex
 	mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 	indexCoefficient = equationMap[vert->EastVertex->GetID()];
@@ -527,7 +527,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->EastLength / deltaX *
 		( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	if (useCrankNilsonMethod)
+	if (useCrankNicolsonMethod)
 	{
 		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 	}
@@ -544,7 +544,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->WestLength / deltaX *
 		( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 );
 
-	if (useCrankNilsonMethod)
+	if (useCrankNicolsonMethod)
 	{
 		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 	}
@@ -561,7 +561,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->NorthLength / deltaY *
 		( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	if (useCrankNilsonMethod)
+	if (useCrankNicolsonMethod)
 	{
 		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 	}
@@ -578,7 +578,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	coeff_center += - mobility / vert->SouthLength / deltaY *
 		( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-	if (useCrankNilsonMethod)
+	if (useCrankNicolsonMethod)
 	{
 		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 	}
@@ -594,7 +594,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	indexCoefficient = equationMap[vert->GetID()];
 	SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
 	//indexCoefficent = indexEquation = vertMap[currVert->GetID]
-	if (useCrankNilsonMethod)
+	if (useCrankNicolsonMethod)
 	{
 		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
 	}
@@ -672,7 +672,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 
 		getDeltaXYAtVertex(vert, deltaX, deltaY);
 
-		//West
+		//West vertex
 		if (!(notTrapping_NW && notTrapping_SW))
 		{
 			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -682,7 +682,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->WestLength / deltaX *
 				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-			if (useCrankNilsonMethod)
+			if (useCrankNicolsonMethod)
 			{
 				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 			}
@@ -693,7 +693,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			
 		}
 
-		//East
+		//East vertex
 		if (!(notTrapping_NE && notTrapping_SE))
 		{
 			mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -703,7 +703,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->EastLength / deltaX *
 				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-			if (useCrankNilsonMethod)
+			if (useCrankNicolsonMethod)
 			{
 				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 			}
@@ -713,7 +713,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			}
 		}
 
-		//South
+		//South vertex
 		if (!(notTrapping_SE && notTrapping_SW))
 		{
 			mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -723,7 +723,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->SouthLength / deltaY *
 				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-			if (useCrankNilsonMethod)
+			if (useCrankNicolsonMethod)
 			{
 				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 			}
@@ -733,7 +733,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			}
 		}
 
-		//North
+		//North vertex
 		if (!(notTrapping_NE && notTrapping_NW))
 		{
 			mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
@@ -743,7 +743,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			coeff_center += - mobility / vert->NorthLength / deltaY *
 				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
 
-			if (useCrankNilsonMethod)
+			if (useCrankNicolsonMethod)
 			{
 				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
 			}
@@ -758,7 +758,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 		indexCoefficient = equationMap[vert->GetID()];
 		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
 		//indexCoefficent = indexEquation = vertMap[currVert->GetID]
-		if (useCrankNilsonMethod)
+		if (useCrankNicolsonMethod)
 		{
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
 		}
@@ -790,7 +790,7 @@ double DriftDiffusionSolver::getRhsBCVertex_DirectDiscretiztion(FDVertex *vert)
 double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 {
 	double rhsTime = 0; // the addend in rhs related to time step
-	double rhsLastStepCurrent = 0; // the addend related to current of last time step, in Crank-Nilson method
+	double rhsLastStepCurrent = 0; // the addend related to current of last time step, in Crank-Nicolson method
 
 	double mobility = 0;
 	double deltaX = 0;
@@ -803,9 +803,9 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
  
 	getDeltaXYAtVertex(vert, deltaX, deltaY);
 
-	if (useCrankNilsonMethod)
+	if (useCrankNicolsonMethod)
 	{
-		//for Crank-Nilson discretization method
+		//for Crank-Nicolson discretization method
 		//related to east vertex
 		mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 		double east = - mobility / vert->EastLength / deltaX *
@@ -846,7 +846,7 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 			( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
 			lastElecDensMap[vert->SouthVertex->GetID()];
 		
-		//use Crank-Nilson method
+		//use Crank-Nicolson method
 		rhsLastStepCurrent = ( east + west + south + north ) / 2;
 
 	}
@@ -968,7 +968,7 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 			rhsBoundary += - bcVal * norm_beta / deltaY;
 		}
 		
-		if (this->useCrankNilsonMethod)
+		if (this->useCrankNicolsonMethod)
 		{
 			rhsBoundary = rhsBoundary / 2;
 			//calculation of the addend related to the current density of last simulation time step
@@ -1010,7 +1010,7 @@ double DriftDiffusionSolver::CalculateTotalLineDensity()
 		ret += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
 			* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 	}
-	return ret;
+	return norm.PullLineDensity(ret);
 }
 
 void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy)
