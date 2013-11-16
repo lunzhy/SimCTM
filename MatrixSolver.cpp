@@ -66,5 +66,24 @@ namespace SctmMath
 			}
 	}
 
+	void SctmSparseMatrixSolver::RefreshRowOfDirichletBC(int _row)
+	{
+		for (int k = 0; k < this->matrix.outerSize(); ++k)
+			for (Eigen::SparseMatrix<double>::InnerIterator it(matrix, k); it; ++it)
+			{
+				if ( it.row() == _row )
+				{
+					if ( it.col() == _row )
+					{
+						it.valueRef() = 1;
+					}
+					else
+					{
+						it.valueRef() = 0;
+					}
+				}
+			}
+	}
+
 }
 

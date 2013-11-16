@@ -117,7 +117,7 @@ protected:
 	void refreshRhsWithBC();
 	void setTimeStep();
 	void fillBackElecDens();
-	virtual void refreshBndCurrent();
+	virtual void refreshBoundary();
 	void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
 };
 
@@ -128,7 +128,9 @@ public:
 	void SolveDD();
 protected:
 	void buildVertexMap();
-	void refreshBndCurrent();
-	void refreshBndDensity();
+	void refreshBoundary();
+	void setBndCurrent();
+	void setBndDensity();
+	void refreshCoeffMatrixDueToBC();
 };
 #endif
