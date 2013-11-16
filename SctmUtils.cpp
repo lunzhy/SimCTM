@@ -503,7 +503,7 @@ namespace SctmUtils
 	{
 		//TODO: currently, constant time step is used in the simulation
 		Normalization norm = Normalization();
-		double next = 1e-12; // in [s]
+		double next = 1e-15; // in [s]
 		return norm.PushTime(next);
 	}
 

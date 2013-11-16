@@ -1098,7 +1098,7 @@ void DDTest::buildVertexMap()
 void DDTest::setBndCurrent()
 {
 	FDVertex *currVert = NULL;
-	double bcVal_in = 1e-3; //the magnitude of current density vector, the direction is the same with boundary normal direction
+	double bcVal_in = 1e-6; //the magnitude of current density vector, the direction is the same with boundary normal direction
 	double bcVal_out = 0;
 	// current density at boundary for test, in [A/cm^2]
 	// note that the current direction is the reversed direction of electron flow
@@ -1332,7 +1332,8 @@ void DDTest::setBndDensity()
 
 void DDTest::refreshBoundary()
 {
-	setBndDensity();
+	//setBndDensity();
+	setBndCurrent();
 }
 
 void DDTest::refreshCoeffMatrixDueToBC()
