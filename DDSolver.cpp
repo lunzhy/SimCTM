@@ -608,10 +608,10 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 void DriftDiffusionSolver::prepareSolver()
 {
 	setTimeStep();
-	refreshBndCurrent();
+	refreshBoundary();
 
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
-	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	refreshCoefficientMatrix();
 	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
 	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
@@ -623,7 +623,7 @@ void DriftDiffusionSolver::prepareSolver()
 	//refreshRhsWithBC();
 }
 
-void DriftDiffusionSolver::refreshBndCurrent()
+void DriftDiffusionSolver::refreshBoundary()
 {
 	//current nothing is done here.
 }
@@ -1095,11 +1095,10 @@ void DDTest::buildVertexMap()
 	}
 }
 
-void DDTest::refreshBndCurrent()
+void DDTest::setBndCurrent()
 {
 	FDVertex *currVert = NULL;
-	int equaID = 0;
-	double bcVal_in = 1e-3; //the magnitude of current density vector, the direction is the same with boundary normal direction
+	double bcVal_in = 1e-6; //the magnitude of current density vector, the direction is the same with boundary normal direction
 	double bcVal_out = 0;
 	// current density at boundary for test, in [A/cm^2]
 	// note that the current direction is the reversed direction of electron flow
@@ -1108,6 +1107,7 @@ void DDTest::refreshBndCurrent()
 	bcVal_in = norm.PushCurrDens(bcVal_in);
 
 	//the sequence of the assignment is in accordance with the direction
+	//refresh the boundary condition if needed, determined by the following direction
 						bool inNorth = false;
 	bool inWest = false;						bool inEast = false;
 						bool inSouth = true;
@@ -1251,10 +1251,11 @@ void DDTest::refreshBndCurrent()
 void DDTest::SolveDD()
 {
 	UtilsTimer.Set();
-	prepareSolver();
-
+	prepareSolver(); //call method from base, DriftDiffusionSolver
+	refreshCoeffMatrixDueToBC();
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
+	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	//UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
 	//UtilsDebug.PrintVector(this->elecDensity, "electron density");
 	
@@ -1266,25 +1267,24 @@ void DDTest::SolveDD()
 	//write.WriteDDResult(this->vertices, "electron density");
 }
 
-void DDTest::refreshBndDensity()
+void DDTest::setBndDensity()
 {
 	FDVertex *currVert = NULL;
-	int equaID = 0;
-	double bcVal_in = 1e12; //electron density in [cm^-3]
-	double bcVal_out = 1e11;
-	// current density at boundary for test, in [A/cm^2]
-	// note that the current direction is the reversed direction of electron flow
-
-	Normalization norm = Normalization();
-	bcVal_in = norm.PushDensity(bcVal_in);
-	bcVal_out = norm.PushDensity(bcVal_out);
 
 	//the sequence of the assignment is in accordance with the direction
-						bool inNorth = false;
-	bool inWest = false;						bool inEast = false;
-						bool inSouth = true;
-	bool inNorthWest = false; bool inNorthEast = false;
-	bool inSouthWest = true; bool inSouthEast = true;
+						bool bindNorth = false;
+	bool bindWest = false;						bool bindEast = false;
+						bool bindSouth = true;
+	//the value of the electron density in each directions, in [cm^-3]
+						double valNorth = 0;
+	double valWest = 0;							double valEast = 0;
+						double valSouth = 1e12;
+
+	Normalization norm = Normalization();
+	valNorth = norm.PushDensity(valNorth);
+	valSouth = norm.PushDensity(valSouth);
+	valEast = norm.PushDensity(valEast);
+	valWest = norm.PushDensity(valWest);
 
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
@@ -1296,74 +1296,61 @@ void DDTest::refreshBndDensity()
 		bool notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
 		bool notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
 
-		bool valid_NW = SimpleONO::isValidElem(currVert->NorthwestElem);
-		bool valid_NE = SimpleONO::isValidElem(currVert->NortheastElem);
-		bool valid_SE = SimpleONO::isValidElem(currVert->SoutheastElem);
-		bool valid_SW = SimpleONO::isValidElem(currVert->SouthwestElem);
-
-		//Southeast corner
-		if (( !notTrapping_NW && notTrapping_NE && 
-			notTrapping_SW && notTrapping_SE ) && inSouthEast)
-		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
-			continue;
-		}
-
-		//Southwest corner
-		if (( notTrapping_NW && !notTrapping_NE && 
-			notTrapping_SW && notTrapping_SE) && inSouthWest)
-		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_in);
-			continue;
-		}
-
-		//Northwest corner
-		if (( notTrapping_NW && notTrapping_NE &&
-			notTrapping_SW && !notTrapping_SE ) && inNorthWest)
-		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
-			continue;
-		}
-
-		//Northeast corner
-		if (( notTrapping_NW && notTrapping_NE && 
-			!notTrapping_SW && notTrapping_SE ) && inNorthEast)
-		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
-			continue;
-		}
-
+		//TODO: how to do with the situation when two adjacent boundaries are bound to certain values.
 		//South side
-		if (( !notTrapping_NW && !notTrapping_NE && 
-			notTrapping_SW && notTrapping_SE) && inSouth)
+		if (( notTrapping_SW && notTrapping_SE ) && bindSouth)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valSouth);
 			continue;
 		}
 
 		//North side
-		if (( notTrapping_NW && notTrapping_NE && 
-			!notTrapping_SW && !notTrapping_SE) && inNorth)
+		if (( notTrapping_NW && notTrapping_NE ) && bindNorth)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valNorth);
 			continue;
 		}
 
 		//East side
-		if (( !notTrapping_NW && notTrapping_NE && 
-			!notTrapping_SW && notTrapping_SE) && inEast)
+		if (( notTrapping_NE && 
+			notTrapping_SE) && bindEast)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
-			continue;;
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valEast);
+			continue;
 		}
 		
 		//West side
-		if (( notTrapping_NW && !notTrapping_NE && 
-			notTrapping_SW && !notTrapping_SE) && inWest)
+		if (( notTrapping_NW &&
+			notTrapping_SW) && bindWest)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, bcVal_out);
-			continue;;
+			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valWest);
+			continue;
 		}
 
+	}
+}
+
+void DDTest::refreshBoundary()
+{
+	//setBndDensity();
+	setBndCurrent();
+}
+
+void DDTest::refreshCoeffMatrixDueToBC()
+{
+	FDVertex *vert = NULL;
+	int equID = 0;
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		vert = this->vertices.at(iVert);
+		
+		if (vert->IsAtBoundary(FDBoundary::eDensity))
+		{
+			if (vert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Dirichlet)
+			{
+				equID = equationMap[vert->GetID()];
+				this->matrixSolver.RefreshRowOfDirichletBC(equID);
+			}
+		}
 	}
 }

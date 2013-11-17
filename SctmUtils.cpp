@@ -331,6 +331,10 @@ namespace SctmUtils
 
 	void SctmMessaging::PrintTimeElapsed(double time)
 	{
+		cout << "Simulation time step: ";
+		string timeStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		cout << timeStr << "s" << "\t\t";
+
 		string msg = "Time elapsed: ";
 		cout.setf(std::ios::fixed);
 		cout.precision(3);
@@ -499,7 +503,7 @@ namespace SctmUtils
 	{
 		//TODO: currently, constant time step is used in the simulation
 		Normalization norm = Normalization();
-		double next = 0.5e-12; // in [s]
+		double next = 1e-15; // in [s]
 		return norm.PushTime(next);
 	}
 
@@ -510,13 +514,13 @@ namespace SctmUtils
 
 	SctmData::SctmData()
 	{
-		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest";
+		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest\\DDTest\\TempData\\";
 	}
 
 
 	void SctmData::WriteDDResult(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\DDTest\\" + "eDensity" + generateFileSuffix();
+		fileName = directoryName + "eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
