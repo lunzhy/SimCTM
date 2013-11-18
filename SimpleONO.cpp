@@ -454,14 +454,14 @@ void SimpleONO::refreshPotential()
 			{
 				potentialValue = theNorm.PushPotential(this->gatePotential);
 				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
-				vert->BndCond.RefreshBndCond(true, FDBoundary::Potential, potentialValue);
+				vert->BndCond.RefreshBndCond(FDBoundary::Potential, potentialValue);
 				//vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
 				return;
 			}
 			else if (vert->Contact->ContactName == "Channel")
 			{
 				potentialValue = theNorm.PushPotential(this->channelPotential);
-				vert->BndCond.RefreshBndCond(true, FDBoundary::Potential, potentialValue);
+				vert->BndCond.RefreshBndCond(FDBoundary::Potential, potentialValue);
 				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
 				//vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
 				return;

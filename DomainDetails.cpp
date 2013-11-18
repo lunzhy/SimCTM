@@ -43,29 +43,7 @@ FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
 	Phys = new PhysProperty();
 }
 
-void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue1, double bcValue2)
-{
-	bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
-	this->bc_types[bcName] = bcType;
-
-	switch (bcType)
-	{
-	case BC_Dirichlet:
-		this->bc_values[bcName] = bcValue1;
-		this->bc_values_second[bcName] = bcValue2; //BC_Dirichlet might have the second value (in case of current)
-		break;
-	case BC_Neumann:
-		this->bc_values[bcName] = bcValue1;
-		this->bc_values_second[bcName] = bcValue2;
-		break;
-	case BC_Artificial:
-		this->bc_values[bcName] = 0;
-		this->bc_values_second[bcName] = 0;
-		break;
-	}
-}
-
-void FDBoundary::SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec /*= DirectionVector(0, 0)*/)
+void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
 	SCTM_ASSERT( this->bc_valid.find(bcName) == this->bc_valid.end(), 10017 ); //make sure bcName not exists
 	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
@@ -105,19 +83,6 @@ double FDBoundary::GetBCValue(BCName bcName)
 	return bc_values[bcName];
 }
 
-double FDBoundary::GetBCValueWestEast(BCName bcName)
-{
-	return GetBCValue(bcName);
-}
-
-double FDBoundary::GetBCValueSouthNorth(BCName bcName)
-{
-	map<BCName, double>::iterator iter;
-	iter = this->bc_values_second.find(bcName);
-	SCTM_ASSERT(iter!=this->bc_values_second.end(), 10010);
-	return iter->second;
-}
-
 bool FDBoundary::Valid(BCName bcName)
 {
 	return bc_valid[bcName];
@@ -127,25 +92,14 @@ bool FDBoundary::Valid(BCName bcName)
 	//return iter->second;
 }
 
-void FDBoundary::RefreshBndCond(BCName bcName, double bcValue1, double bcValue2)
-{
-	//check if the boundary condition exist.
-	map<BCName, BCType>::iterator iter;
-	iter = this->bc_types.find(bcName);
-	SCTM_ASSERT(iter!=this->bc_types.end(), 10014);
-
-	this->bc_values[bcName] = bcValue1;
-	this->bc_values_second[bcName] = bcValue2;
-}
-
-void FDBoundary::RefreshBndCond(bool fake, BCName bcName, double newValue)
+void FDBoundary::RefreshBndCond(BCName bcName, double newValue)
 {
 	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //make sure bcName exists
 
 	bc_values[bcName] = newValue;
 }
 
-void FDBoundary::RefreshBndCond(bool fake, BCName bcName, BCType bcType, double bcVal, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
+void FDBoundary::RefreshBndCond(BCName bcName, BCType bcType, double bcVal, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
 	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //make sure bcName exists
 	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );

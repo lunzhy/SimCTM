@@ -82,9 +82,8 @@ public:
 	/// @pre
 	/// @return void
 	/// @note
-	void RefreshBndCond(BCName bcName, double bcValue1 = 0, double bcValue2 = 0);
-	void RefreshBndCond(bool fake, BCName bcName, double newValue);
-	void RefreshBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
+	void RefreshBndCond(BCName bcName, double newValue);
+	void RefreshBndCond(BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
 	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
 	/// 
 	/// For boundary condition type of BC_Dirichlet, only bcValue1 is used.
@@ -100,8 +99,7 @@ public:
 	/// @pre
 	/// @return void
 	/// @note
-	void SetBndCond(BCName bcName, BCType bcType, double bcValue1 = 0, double bcValue2 = 0);
-	void SetBndCond(bool fake, BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
+	void SetBndCond(BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
 	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
 	/// Both non-existent boundary condition and boundary condition with false validity will return false.
@@ -129,26 +127,6 @@ public:
 	/// @return double
 	/// @note
 	double GetBCValue(BCName bcName);
-	/// @brief GetBCValueWestEast is used to get the value of given name of boundary condition.
-	/// 
-	/// This method returns the value of BC_Neumann and BC_Artificial in the direction from west to east (X-direction).
-	/// This value is stored in the map bc_values.
-	/// 
-	/// @param BCName bcName
-	/// @pre
-	/// @return double
-	/// @note
-	double GetBCValueWestEast(BCName bcName); //--------------not use in new version
-	/// @brief GetBCValueSouthNorth is used to get the value of given name of boundary condition.
-	/// 
-	/// This method returns the value of BC_Neumann and BC_Artificial in the direction from south to north (Y-direction).
-	/// This value is stored in the map bc_values_second.
-	/// 
-	/// @param BCName bcName
-	/// @pre
-	/// @return double
-	/// @note
-	double GetBCValueSouthNorth(BCName bcName); //---------------------not use in new version
 	VectorValue &GetBCNormVector(BCName bcName);
 protected:
 	//bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex

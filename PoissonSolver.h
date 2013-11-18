@@ -32,9 +32,8 @@ typedef std::map<int, int, std::less<int>> VertexMapInt; // the map used for get
 /// @brief TwoDimPoissonSolver is a Poisson solver used to solve two-dimensional Poisson problem
 ///
 /// The solvers utilizes finite-difference method to solve two-dimensional Poisson problem.
-/// Currently this class is inherited from the sparse matrix solver. But in other conditions, the solver serves
-/// as a member of the specific class.
-class TwoDimPoissonSolver : protected SctmSparseMatrixSolver
+/// SctmSparseMatrixSolver serves as a member in this class
+class TwoDimPoissonSolver
 {
 public:
 	friend class SctmUtils::SctmDebug; // so SctmDebug can get the private and protected member of this solver.
@@ -60,18 +59,20 @@ public:
 private:
 	vector<FDVertex *> &vertices; ///< the vertices of the domain to be solved
 	vector<double> potential; ///< the potential of the vertices with same sequence in the vertices vector (same sequence of the equations)
-	vector<double> rhsVector; ///< the right-hand side of the equations
+	vector<double> rhsVector; ///< the right-hand side of the equations, the index is equation index
 	VertexMapInt equationMap; ///< map the equation index to the internal id of the vertices. (equation index is the same with the index of vertices vector)
 protected:
-	/// @brief prepareSolver is used to prepare the Poisson solver.
+	SctmSparseMatrixSolver matrixSolver; ///< the sparse matrix solver
+protected:
+	/// @brief initializeSolver is used to initialize the Poisson solver.
 	/// 
-	/// Several preparation is finished in this method. Vertex map is build. The coefficient matrix is filled in and refreshed in consideration of the
+	/// Several initialization is finished in this method. Vertex map is build. The coefficient matrix is filled in and refreshed in consideration of the
 	/// boundary conditions. The right-hand side vector is filled in with initial consideration of the boundary conditions.
 	/// 
 	/// @pre
 	/// @return void
 	/// @note
-	void prepareSolver();
+	void initializeSolver();
 	/// @brief buildVertexMap is used to build the vertex map.
 	/// 
 	/// The vertex map is used to get the equation index, also the index of the specific vertex in vertices list of this class, with given

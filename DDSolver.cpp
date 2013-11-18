@@ -797,6 +797,7 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		{
 			rhsBoundary += - bcVal * norm_alpha / deltaX;
 		}
+
 		if (norm_beta > 0) // lack of north part
 		{
 			rhsBoundary += bcVal * norm_beta / deltaY;
@@ -974,17 +975,17 @@ void DDTest::setBndCurrent()
 			if (			!valid_NE &&
 				valid_SW)
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			if (			valid_NE &&
 				!valid_SW)
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -995,17 +996,17 @@ void DDTest::setBndCurrent()
 			if ( valid_NW &&
 				!valid_SE )
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			if ( !valid_NW &&
 				valid_SE )
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -1016,17 +1017,17 @@ void DDTest::setBndCurrent()
 			if (              valid_NE &&
 				!valid_SW )
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			if (              !valid_NE &&
 				valid_SW )
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -1037,17 +1038,17 @@ void DDTest::setBndCurrent()
 			if ( valid_NW &&
 				!valid_SE)
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			if ( !valid_NW &&
 				valid_SE)
 			{
-				currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+				currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 				continue;
 			}
 			//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -1055,7 +1056,7 @@ void DDTest::setBndCurrent()
 		if (( notTrapping_NW && notTrapping_NE && 
 			!notTrapping_SW && !notTrapping_SE ) && inNorth)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -1063,7 +1064,7 @@ void DDTest::setBndCurrent()
 		if (( !notTrapping_NW && !notTrapping_NE && 
 			notTrapping_SW && notTrapping_SE ) && inSouth)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -1071,7 +1072,7 @@ void DDTest::setBndCurrent()
 		if (( !notTrapping_NW && notTrapping_NE && 
 			!notTrapping_SW && notTrapping_SE ) && inEast)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -1079,7 +1080,7 @@ void DDTest::setBndCurrent()
 		if (( notTrapping_NW && !notTrapping_NE && 
 			notTrapping_SW && !notTrapping_SE) && inWest)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, bcVal_in);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, bcVal_in);
 			continue;
 		}
 
@@ -1138,14 +1139,14 @@ void DDTest::setBndDensity()
 		//South side
 		if (( notTrapping_SW && notTrapping_SE ) && bindSouth)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valSouth);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valSouth);
 			continue;
 		}
 
 		//North side
 		if (( notTrapping_NW && notTrapping_NE ) && bindNorth)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valNorth);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valNorth);
 			continue;
 		}
 
@@ -1153,7 +1154,7 @@ void DDTest::setBndDensity()
 		if (( notTrapping_NE && 
 			notTrapping_SE) && bindEast)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valEast);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valEast);
 			continue;
 		}
 		
@@ -1161,7 +1162,7 @@ void DDTest::setBndDensity()
 		if (( notTrapping_NW &&
 			notTrapping_SW) && bindWest)
 		{
-			currVert->BndCond.RefreshBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valWest);
+			currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, FDBoundary::BC_Dirichlet, valWest);
 			continue;
 		}
 

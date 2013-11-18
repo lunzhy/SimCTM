@@ -24,14 +24,15 @@ using SctmUtils::SctmFileStream;
 
 TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *domain) :vertices(domain->GetVertices())
 {
-	prepareSolver();
+	initializeSolver();
 }
 
-void TwoDimPoissonSolver::prepareSolver()
+void TwoDimPoissonSolver::initializeSolver()
 {
 	int vertSize = this->vertices.size();
 	this->potential.resize(vertSize);
 	this->rhsVector.resize(vertSize);
+
 	buildVertexMap();
 	buildCoefficientMatrix();
 	buildRhsVector();
@@ -42,8 +43,8 @@ void TwoDimPoissonSolver::prepareSolver()
 void TwoDimPoissonSolver::buildCoefficientMatrix()
 {
 	int matrixSize = this->vertices.size();
-	matrix.resize(matrixSize, matrixSize);
-	matrix.reserve(Eigen::VectorXd::Constant(matrixSize, 5));//reserver room for 5 non-zeros per column
+	matrixSolver.matrix.resize(matrixSize, matrixSize);
+	matrixSolver.matrix.reserve(Eigen::VectorXd::Constant(matrixSize, 5));//reserver room for 5 non-zeros per column
 
 	//the sequence of the equation and the sequence of the coefficient in each equation are in accordance with the 
 	//sequence of the vertices container.
@@ -57,8 +58,8 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
-		indexEquation = iVert;
-		SCTM_ASSERT(indexEquation==equationMap[currVert->GetID()], 10008);
+		indexEquation = equationMap[currVert->GetID()];
+		SCTM_ASSERT(indexEquation==iVert, 10008);
 
 		//fill the coefficient related to west vertex
 		if ( currVert->WestVertex != NULL )
@@ -75,7 +76,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * currVert->SouthLength / currVert->WestLength;
 			}
-			matrix.insert(indexEquation, indexCoefficient) = val;
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill the coefficient related to east vertex
@@ -93,7 +94,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * currVert->SouthLength / currVert->EastLength;
 			}
-			matrix.insert(indexEquation, indexCoefficient) = val;
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill the coefficient related to the current vertex
@@ -124,7 +125,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += -0.5 * epsilon * ( currVert->NorthLength / currVert->EastLength + currVert->EastLength / currVert->NorthLength );
 			}
-			matrix.insert(indexEquation, indexCoefficient) = val;
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill in the coefficient related to the south vertex
@@ -142,7 +143,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * ( currVert->EastLength / currVert->SouthLength);
 			}
-			matrix.insert(indexEquation, indexCoefficient) = val;
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 
 		//fill in the coefficient related to the north vertex
@@ -160,7 +161,7 @@ void TwoDimPoissonSolver::buildCoefficientMatrix()
 				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				val += 0.5 * epsilon * ( currVert->WestLength / currVert->NorthLength);
 			}
-			matrix.insert(indexEquation, indexCoefficient) = val;
+			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = val;
 		}
 	}
 }
@@ -179,9 +180,9 @@ void TwoDimPoissonSolver::buildVertexMap()
 	{
 		currVert = this->vertices.at(iVert);
 		vertID = currVert->GetID();
-		equationIndex = iVert;
 		insertPair = this->equationMap.insert(VertexMapInt::value_type(vertID, equationIndex));
 		SCTM_ASSERT(insertPair.second==true, 10007);//to check if the insertion is successful.
+		equationIndex += 1;
 	}
 }
 
@@ -189,31 +190,21 @@ void TwoDimPoissonSolver::buildRhsVector()
 {
 	FDVertex *currVert = NULL;
 	double charge = 0;
+	int equationID = 0;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
+		equationID = equationMap[currVert->GetID()];
+		SCTM_ASSERT(equationID==iVert, 10008);
 		charge = currVert->Phys->GetPhysPrpty(PhysProperty::NetCharge);
-		this->rhsVector.at(iVert) = charge;
+		this->rhsVector.at(equationID) = charge;
 	}
 }
 
 void TwoDimPoissonSolver::refreshCoefficientMatrix()
 {
-	//-------------------------------------------------------------------------------
-	//the following method is used to iterate the non-zero coefficient of the matrix
-	//for (int k=0; k<sparseMatrix.outerSize(); ++k)
-	//	for (SparseMatrix<double>::InnerIterator it(sparseMatrix,k); it; ++it)
-	//	{
-	//		it.valueRef() = 9; // for get the reference of the coefficient
-	//		it.row(); // get the row index
-	//		it.col(); // get the column index (here it is equal to k)
-	//		it.index(); // inner index, here it is equal to it.row()
-	//	}
-	//--------------------------------------------------------------------------------
-
 	FDVertex *currVert = NULL;
-	int equationIndexToSet= 0;
-	int coefficientIndexToSet = 0;
+	int equationID= 0;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = this->vertices.at(iVert);
@@ -223,21 +214,8 @@ void TwoDimPoissonSolver::refreshCoefficientMatrix()
 		{ 
 			//the equation index is the same with the position of the vertex in the vertices list
 			//so the equation index to set equals to iVert here. Use iVert alternatively.
-			equationIndexToSet = equationMap[currVert->GetID()];
-			coefficientIndexToSet = equationIndexToSet;
-			//Although the method of refreshing coefficient value in SparseMatrixSolver class is ready,
-			//it cannot be applied here, because refreshing the whole row of the matrix is need here.
-			for (int k = 0; k < this->matrix.outerSize(); ++k)
-				for (Eigen::SparseMatrix<double>::InnerIterator it(matrix, k); it; ++it)
-				{
-					if ( it.row() == equationIndexToSet )
-					{
-						if ( it.col() == coefficientIndexToSet )
-							it.valueRef() = 1;
-						else
-							it.valueRef() = 0;
-					}
-				}
+			equationID = equationMap[currVert->GetID()];
+			matrixSolver.RefreshRowOfDirichletBC(equationID);
 		}
 	}
 }
@@ -245,56 +223,76 @@ void TwoDimPoissonSolver::refreshCoefficientMatrix()
 void TwoDimPoissonSolver::refreshRhs()
 {
 	FDVertex *currVert = NULL;
+	int equationID = 0;
+	double bcVal = 0;
+	double norm_alpha = 0;
+	double norm_beta = 0;
+
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
+		equationID = equationMap[currVert->GetID()];
 		if (currVert->IsAtBoundary(FDBoundary::Potential))
 		{
 			switch (currVert->BndCond.GetBCType(FDBoundary::Potential))
 			{
 			case FDBoundary::BC_Dirichlet:
-				rhsVector.at(iVert) = currVert->BndCond.GetBCValue(FDBoundary::Potential);//for potential           
+				rhsVector.at(equationID) = currVert->BndCond.GetBCValue(FDBoundary::Potential);//for potential           
 				break;
 			case FDBoundary::BC_Neumann:
-			case FDBoundary::BC_Artificial: //BC_Artificial is a special kind of BC_Neumann
+				bcVal = currVert->BndCond.GetBCValue(FDBoundary::Potential);
+				norm_alpha = currVert->BndCond.GetBCNormVector(FDBoundary::Potential).NormX();
+				norm_beta = currVert->BndCond.GetBCNormVector(FDBoundary::Potential).NormY();
+
+				/*
+				if (norm_alpha > 0)
+				{
+
+				} 
+				else
+				{
+				}
+
 				if (currVert->NorthwestElem == NULL)
 				{
 					if (currVert->NortheastElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
+						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
 											GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->SouthwestElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
+						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
 											GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);	
 				}
 
 				if (currVert->NortheastElem == NULL)
 				{
 					if (currVert->NorthwestElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
+						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
 											GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->SoutheastElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
+						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
 											GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
 
 				if (currVert->SouthwestElem == NULL)
 				{
 					if (currVert->SoutheastElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
+						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
 											GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->NorthwestElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
+						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
 											GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
 				if (currVert->SoutheastElem == NULL)
 				{
 					if (currVert->SouthwestElem != NULL)
-						rhsVector.at(iVert) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
+						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
 											GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					if (currVert->NortheastElem != NULL)
-						rhsVector.at(iVert) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
+						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
 											GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
+				*/
+				
 				break;
 			}
 		}
@@ -304,10 +302,11 @@ void TwoDimPoissonSolver::refreshRhs()
 void TwoDimPoissonSolver::SolvePotential()
 {
 	SctmUtils::UtilsTimer.Set();
+	//the density of different kinds of charge is updated
 	refreshRhs();
 	//SctmUtils::UtilsDebug.PrintSparseMatrix(this->matrix);
 	//SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
-	SolveMatrix(rhsVector, potential);
+	matrixSolver.SolveMatrix(rhsVector, potential);
 	//SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
 	fillBackPotential();
 	SctmUtils::UtilsMsg.PrintTimeElapsed(SctmUtils::UtilsTimer.SinceLastSet());
