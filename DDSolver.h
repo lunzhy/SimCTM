@@ -87,7 +87,6 @@ protected:
 	/// @return void
 	/// @note
 	void buildCoefficientMatrix();
-	void buildCoefficientMatrix_Obsolete();
 	void setCoefficientBCVertex_UsingCurrent(FDVertex *vert);
 	void setCoefficientBCVertex_DirectDiscretization(FDVertex *vert);
 	void setCoefficientInnerVertex(FDVertex *vert);
@@ -114,7 +113,6 @@ protected:
 	double getRhsBCVertex_DirectDiscretiztion(FDVertex *vert);
 	double getRhsBCVertex_UsingCurrent(FDVertex *vert);
 	double getRhsInnerVertex(FDVertex *vert);
-	void refreshRhsWithBC();
 	void setTimeStep();
 	void fillBackElecDens();
 	virtual void refreshBoundary();
