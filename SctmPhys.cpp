@@ -16,6 +16,7 @@
 #include "Material.h"
 #include "SctmUtils.h"
 #include "DomainDetails.h"
+#include "FDDomain.h"
 
 namespace SctmPhys
 {
@@ -39,7 +40,7 @@ namespace SctmPhys
 		h_mass = 0;
 		netCharge = 0;
 		e_density = 0;
-		contronArea = 0;
+		controlArea = 0;
 	}
 
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
@@ -116,7 +117,7 @@ namespace SctmPhys
 			ret = e_density;
 			break;
 		case DensityControlArea:
-			ret = contronArea;
+			ret = controlArea;
 			break;
 		default:
 			// use SCTM_ASSERT for non-existed property
@@ -223,7 +224,7 @@ namespace SctmPhys
 		{
 			area += 0.25 * currElem->Area;
 		}
-		this->contronArea = area;
+		this->controlArea = area;
 	}
 
 	void SetPhysConstant()

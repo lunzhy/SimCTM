@@ -131,7 +131,7 @@ namespace SctmPhys
 			MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType);
 		void CalculateDensityControlArea(FDVertex *vertex);
 	private:
-		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used
+		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used.
 		//the value of these physical properties is normalized value.
 		double bandgap; ///< bandgap of the material
 		double electrostaticPotential; ///< potential, normalized
@@ -143,7 +143,7 @@ namespace SctmPhys
 		double netCharge; ///< total net charge belongs to the vertex
 		double e_mobility; ///< electron mobility
 		double e_density; ///< the electron density
-		double contronArea; ///< density control area, only valid in trapping layer
+		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
 	};
 }
 

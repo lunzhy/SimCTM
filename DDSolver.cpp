@@ -15,7 +15,6 @@
 #include "FDDomain.h"
 #include "Material.h"
 #include "SctmPhys.h"
-#include "SimpleONO.h"
 #include "Normalization.h"
 #include "SctmUtils.h"
 using namespace SctmPhys;
@@ -365,10 +364,10 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 	{
 		currVert = this->totalVertices.at(iVert);
 
-		bool notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
-		bool notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
-		bool notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
-		bool notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
+		bool notTrapping_NW = FDDomain::isNotTrappingElem(currVert->NorthwestElem);
+		bool notTrapping_NE = FDDomain::isNotTrappingElem(currVert->NortheastElem);
+		bool notTrapping_SE = FDDomain::isNotTrappingElem(currVert->SoutheastElem);
+		bool notTrapping_SW = FDDomain::isNotTrappingElem(currVert->SouthwestElem);
 
 		if (!(notTrapping_NE && notTrapping_NW && notTrapping_SE && notTrapping_SW))
 		{
@@ -665,10 +664,10 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 	case FDBoundary::BC_Cauchy:
 		indexEquation = equationMap[vert->GetID()];
 
-		notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
-		notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
-		notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
-		notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+		notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
+		notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
+		notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
+		notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
 
 		getDeltaXYAtVertex(vert, deltaX, deltaY);
 
@@ -891,10 +890,10 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		//calculation of the addend related current simulation time step
 		rhsTime= -1 * lastElecDensMap[vert->GetID()] / timeStep;
 
-		notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
-		notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
-		notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
-		notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+		notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
+		notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
+		notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
+		notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
 
 		getDeltaXYAtVertex(vert, deltaX, deltaY);
 
@@ -1022,10 +1021,10 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 	bool notTrapping_SE = false;
 	bool notTrapping_SW = false;
 
-	notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
-	notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
-	notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
-	notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
+	notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
+	notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
+	notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
+	notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
 
 	//West
 	if (!(notTrapping_NW && notTrapping_SW))
@@ -1119,15 +1118,15 @@ void DDTest::setBndCurrent()
 		currVert = this->vertices.at(iVert);
 		//for the current tunneling from tunneling oxide
 
-		bool notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
-		bool notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
-		bool notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
-		bool notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
+		bool notTrapping_NW = FDDomain::isNotTrappingElem(currVert->NorthwestElem);
+		bool notTrapping_NE = FDDomain::isNotTrappingElem(currVert->NortheastElem);
+		bool notTrapping_SE = FDDomain::isNotTrappingElem(currVert->SoutheastElem);
+		bool notTrapping_SW = FDDomain::isNotTrappingElem(currVert->SouthwestElem);
 
-		bool valid_NW = SimpleONO::isValidElem(currVert->NorthwestElem);
-		bool valid_NE = SimpleONO::isValidElem(currVert->NortheastElem);
-		bool valid_SE = SimpleONO::isValidElem(currVert->SoutheastElem);
-		bool valid_SW = SimpleONO::isValidElem(currVert->SouthwestElem);
+		bool valid_NW = FDDomain::isValidElem(currVert->NorthwestElem);
+		bool valid_NE = FDDomain::isValidElem(currVert->NortheastElem);
+		bool valid_SE = FDDomain::isValidElem(currVert->SoutheastElem);
+		bool valid_SW = FDDomain::isValidElem(currVert->SouthwestElem);
 
 		//Southeast corner
 		if (( !notTrapping_NW && notTrapping_NE && 
@@ -1291,10 +1290,10 @@ void DDTest::setBndDensity()
 		currVert = this->vertices.at(iVert);
 		//for the current tunneling from tunneling oxide
 
-		bool notTrapping_NW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NorthwestElem);
-		bool notTrapping_NE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->NortheastElem);
-		bool notTrapping_SE = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SoutheastElem);
-		bool notTrapping_SW = SimpleONO::isNotElemOf(FDRegion::Trapping, currVert->SouthwestElem);
+		bool notTrapping_NW = FDDomain::isNotTrappingElem(currVert->NorthwestElem);
+		bool notTrapping_NE = FDDomain::isNotTrappingElem(currVert->NortheastElem);
+		bool notTrapping_SE = FDDomain::isNotTrappingElem(currVert->SoutheastElem);
+		bool notTrapping_SW = FDDomain::isNotTrappingElem(currVert->SouthwestElem);
 
 		//TODO: how to do with the situation when two adjacent boundaries are bound to certain values.
 		//South side

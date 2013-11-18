@@ -21,20 +21,6 @@ class FDRegion;
 /// This class is derived from SimpleONO. It can build a rectangle domain by using FDDomainHelper.
 class SimpleONO : public FDDomain
 {
-	friend class DDTest;
-	friend class DriftDiffusionSolver;
-public:
-	/// @brief BuildDomain is used to build the mesh of rectangle domain defined in this class
-	/// 
-	/// This method is called in outer class to build domain without pass-in parameters, this is
-	/// because the parameters and details of the domain are defined and set in the class.
-	/// In the mesh structure of this rectangle domain, the grid length in x direction is uniform
-	/// And the grid length of y direction is uniform in each region.
-	/// 
-	/// @pre
-	/// @return void
-	/// @note
-	void BuildDomain();
 protected:
 	double xLength; ///< the length in x direction of the rectangle structure.
 	double yLengthTunnel; ///< the length in y direction of tunneling oxide
@@ -56,6 +42,17 @@ protected:
 	double channelPotential; ///< the channel potential 
 
 private:
+	/// @brief buildStructure is used to prepare the domain structure for the following process.
+	/// 
+	/// This method called the related methods to set the domain structure, including the preparation of
+	/// the parameters, the filling of domain details, setting the adjacent objects.
+	/// In the mesh structure of this rectangle domain, the grid length in x direction is uniform
+	/// And the grid length of y direction is uniform in each region.
+	///
+	/// @pre
+	/// @return void
+	/// @note 
+	void buildStructure();
 	/// @brief setParameters is used to set the structure parameters of the rectangle domain
 	/// 
 	/// Currently, the parameters used to build the mesh of this domain are defined and
@@ -80,18 +77,9 @@ private:
 	///
 	/// @pre
 	/// @return void
-	/// @note
-	void setAdjacency();
-	/// @brief prepareStructure is used to prepare the domain structure for the following process.
-	/// 
-	/// Currently, setParameter is the only method called in this method. It is designed to include all
-	/// the process used to prepare the simulation structure.
-	/// 
-	/// @pre
-	/// @return void
 	/// @note If current vertex/element doesn't have an adjacent neighbor in specific direction, the pointer is set NULL. 
 	/// If current vertex doesn't have a west/east/south/north edge, the length is set 0.
-	void prepareStructure();
+	void setAdjacency();
 	/// @brief printStructure is used to print the processing result of the designed structure.
 	/// 
 	/// This is a temporary method used to check the results.
@@ -100,7 +88,6 @@ private:
 	/// @return void
 	/// @note
 	void printStructure();
-	
 	/// @brief yNextGridLength is used to determine the next grid length in y direction
 	/// 
 	/// This is used in setting the coordinates when initializing the vertices at given vertex
@@ -159,21 +146,8 @@ private:
 	/// @return void
 	/// @note
 	void refreshBandEnergy();
-	/// @brief setBoundaryCondition is used to set the boundary condition for each vertex.
-	/// 
-	/// For each vertex, a first judgment on whether it is a vertex related to contact is made.
-	/// And thus the boundary condition is set within this vertex. Secondly, if the contact is at
-	/// the boundary, another type of boundary condition will be applied to this vertex.
-	/// 
-	/// @pre
-	/// @return void
-	/// @note
-	void setBoundaryCondition();
-	void setBoundaryCondition(bool fake);
-	static bool isValidElem(FDElement *elem);
-	static bool isNotElemOf(FDRegion::RegionType rType, FDElement *elem);
-	void setVertBC_eDensity(FDVertex *vert);
-	void setVertBC_Potential(FDVertex *vert);
+
+	void refreshPotential();
 };
 
 #endif
