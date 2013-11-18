@@ -333,10 +333,10 @@ public:
 	/// @pre
 	/// @return 
 	/// @note
-	FDRegion(unsigned int _id, RegionType _type)
+	FDRegion(unsigned int _id, FDRegion::RegionType _type)
 		:id(_id), Type(_type) {}
 
-	RegionType Type; ///< type of the region, in enum RegionType
+	FDRegion::RegionType Type; ///< type of the region, in enum RegionType
 	Material * Mat; ///< the material of current region, a pointer to const material
 
 	/// @brief AddElement adds element in current region

@@ -20,31 +20,12 @@
 using SctmPhys::PhysProperty;
 using namespace SctmUtils;
 
-void SimpleONO::BuildDomain()
+void SimpleONO::buildStructure()
 {
-	UtilsTimer.Set();
-	//Initialize the vectors
-	vertices.clear();
-	elements.clear();
-	regions.clear();
-
-	//set the data structure of simulated region
-	prepareStructure(); //mainly set the structure and mesh parameters
+	//TODO: read the parameters from user's input should be called here.
+	setParameters(); ////mainly set the structure and mesh parameters
 	setDomainDetails(); //fill in the regions, vertices and elements
 	setAdjacency(); //set the adjacency of vertices and elements
-
-	//fill in the physical parameters and values
-	setVertexPhysics();
-	setBoundaryCondition(true);
-	//stuffPotential();
-	//refreshBandEnergy();
-	//printStructure();
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
-}
-
-void SimpleONO::prepareStructure()
-{
-	setParameters();
 }
 
 void SimpleONO::setParameters()
@@ -79,6 +60,18 @@ void SimpleONO::setParameters()
 	yGridTunnel = yLengthTunnel / ( yCntVertexTunnel - 1 );
 	yGridTrap = yLengthTrap / ( yCntVertexTrap - 1 );
 	yGridBlock = yLengthBlock / ( yCntVertexBlock - 1 );
+
+	/////////////////////////////////////////////////////////////////////////////
+	//set physical class members
+	//in [V]
+	//TODO: the gate potential should be obtained with gate voltage and work function.
+	//Currently, the gate voltage is not considered in the structure.
+	/////////////////////////////////////////////////////////////////////////////
+	this->gatePotential = 16.526;
+	this->channelPotential = 0.634;
+
+	//this->gatePotential = 5;
+	//this->channelPotential = 0;
 }
 
 void SimpleONO::printStructure()
@@ -126,8 +119,6 @@ void SimpleONO::setDomainDetails()
 	double currCoordX = 0.0;
 	double currCoordY = 0.0;
 
-	double nm_in_cm = SctmPhys::nm_in_cm;
-
 	////////////////////////////////////////////////////////////////////
 	//set vertices
 	////////////////////////////////////////////////////////////////////
@@ -163,9 +154,10 @@ void SimpleONO::setDomainDetails()
 	contacts.push_back(new FDContact(cntContact, "Gate", 0));
 	cntContact++;
 	contacts.push_back(new FDContact(cntContact, "Channel", 0));//here channel is an imagined contact
+	
 	FDContact *currContact = NULL;
 	FDVertex *currVertex = NULL;
-	int id = 0;
+	int vertID = 0;
 
 	for (int iy = 0; iy != yCntTotalVertex; ++iy)
 	{
@@ -175,8 +167,8 @@ void SimpleONO::setDomainDetails()
 			else if ( iy == 0 ) { currContact = contacts[1]; }//imagined channel contact
 			else { currContact = NULL; }
 
-			id = vertexHelper.IdAt(ix, iy);
-			currVertex = GetVertex(id);
+			vertID = vertexHelper.IdAt(ix, iy);
+			currVertex = GetVertex(vertID);
 
 			if ( currContact != NULL )
 			{
@@ -416,68 +408,6 @@ void SimpleONO::stuffPotential()
 	}
 }
 
-void SimpleONO::setVertexPhysics()
-{
-	FDVertex * currVertex = NULL;
-	FDElement * currElem = NULL;
-	double tot = 0; //total area
-	double sum = 0; //sum corresponds to integral value
-	double physValue = 0;
-
-	using namespace MaterialDB;
-	using namespace SctmPhys;
-	using std::vector;
-
-	vector<MatProperty::Name> matPrptys;
-	vector<PhysProperty::Name> verPrptys; //vertex-based physical property
-	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); verPrptys.push_back(PhysProperty::ElectronAffinity);
-	matPrptys.push_back(MatProperty::Mat_ElectronMass); verPrptys.push_back(PhysProperty::eMass);
-	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
-	matPrptys.push_back(MatProperty::Mat_ElectronMobility); verPrptys.push_back(PhysProperty::eMobility);
-
-	//iteration over the vertices
-	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)
-	{
-		currVertex = GetVertex(iVer);
-		//iteration over the physical properties to be set from material property
-		for (std::size_t iPrpty = 0; iPrpty != matPrptys.size(); ++iPrpty)
-		{
-			//filling vertex physics using material property
-			//The method for filling vertex-based physical value using material-based value is ready
-			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility)
-			{
-				currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty), FDRegion::Trapping);
-			}
-			else
-			{
-				currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
-			}
-			currVertex->Phys->CalculateDensityControlArea(currVertex);
-			/*
-			tot = 0; sum = 0;
-			currElem = currVertex->SouthwestElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-			
-			currElem = currVertex->SoutheastElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-			
-			currElem = currVertex->NortheastElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-			
-			currElem = currVertex->NorthwestElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-
-			physValue = sum / tot;
-			currVertex->Phys->SetPhysPrpty(verPrptys.at(iPrpty), physValue);
-			*/
-		}
-	}
-}
-
 void SimpleONO::refreshBandEnergy()
 {
 	double RefPotential = SctmPhys::ReferencePotential;
@@ -507,347 +437,36 @@ void SimpleONO::refreshBandEnergy()
 	}
 }
 
-void SimpleONO::setBoundaryCondition()
+void SimpleONO::refreshPotential()
 {
-	/////////////////////////////////////////////////////////////////////////////
-	//set physical class members
-	//in [V]
-	//TODO: the gate potential should be obtained with gate voltage and work function.
-	//Currently, the gate voltage is not considered in the structure.
-	/////////////////////////////////////////////////////////////////////////////
-	this->gatePotential = 16.526;
-	this->channelPotential = 0.634;
-	double potentialValue = 0;
-
 	//normalization is needed here because all the values related to the domain details (i.e. the stored value) are normalized
 	Normalization theNorm = Normalization();
+	double potentialValue = 0.0;
 
-	FDVertex *currVertex;
-	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
+	FDVertex *vert = NULL;
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
-		currVertex = GetVertex(iVer);
-		
-		//firstly, to decide if the vertex is at contact.
-		if (currVertex->IsAtContact())
+		vert = GetVertex(iVert);
+		if ( vert->IsAtContact() )
 		{
 			//the gate name is in accordance with the name specified in setting domain details
-			if (currVertex->Contact->ContactName == "Gate")
+			if (vert->Contact->ContactName == "Gate")
 			{
 				potentialValue = theNorm.PushPotential(this->gatePotential);
 				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
-				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
+				vert->BndCond.RefreshBndCond(true, FDBoundary::Potential, potentialValue);
+				//vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
+				return;
 			}
-			else if (currVertex->Contact->ContactName == "Channel")
+			else if (vert->Contact->ContactName == "Channel")
 			{
 				potentialValue = theNorm.PushPotential(this->channelPotential);
+				vert->BndCond.RefreshBndCond(true, FDBoundary::Potential, potentialValue);
 				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
-				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
+				//vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
+				return;
 			}
 		}
-		else //the vertex is not related to a contact
-		{
-			//check the existence of adjacent element to check if the vertex is boundary vertex
-			//the following is used to set the potential boundary conditions
-			if ( (currVertex->NorthwestElem == NULL) || (currVertex->NortheastElem == NULL) ||
-				 (currVertex->SouthwestElem == NULL) || (currVertex->SoutheastElem == NULL)) 
-			{
-				//both two boundary condition values can be neglected in artificial boundary conditions
-				currVertex->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Artificial);
-				//currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Artificial);
-			}
-
-			//the following is used to set the current boundary conditions in simpleONO structures.
-			//TODO: for complicated structures, this method is not checked.
-			if ( 
-				(( currVertex->NortheastElem == NULL ? false : currVertex->NortheastElem->Region->Type == FDRegion::Blocking )
-				|| ( currVertex->NorthwestElem == NULL ? false : currVertex->NorthwestElem->Region->Type == FDRegion::Blocking ))
-				&& 
-				(( currVertex->SoutheastElem == NULL ? false : currVertex->SoutheastElem->Region->Type == FDRegion::Trapping )
-				|| ( currVertex->SouthwestElem == NULL ? false : currVertex->SouthwestElem->Region->Type == FDRegion::Trapping) )
-			   )
-			{
-				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Dirichlet);
-			}
-
-			if ( 
-				(( currVertex->NortheastElem == NULL ? false : currVertex->NortheastElem->Region->Type == FDRegion::Trapping )
-				|| ( currVertex->NorthwestElem == NULL ? false : currVertex->NorthwestElem->Region->Type == FDRegion::Trapping ))
-				&& 
-				(( currVertex->SoutheastElem == NULL ? false : currVertex->SoutheastElem->Region->Type == FDRegion::Tunneling )
-				|| ( currVertex->SouthwestElem == NULL ? false : currVertex->SouthwestElem->Region->Type == FDRegion::Tunneling) )
-				)
-			{
-				currVertex->BndCond.SetBndCond(FDBoundary::eCurrentDensity, FDBoundary::BC_Dirichlet);
-			}
-		}
-	}
-}
-
-void SimpleONO::setBoundaryCondition(bool fake)
-{
-	/////////////////////////////////////////////////////////////////////////////
-	//set physical class members
-	//in [V]
-	//TODO: the gate potential should be obtained with gate voltage and work function.
-	//Currently, the gate voltage is not considered in the structure.
-	/////////////////////////////////////////////////////////////////////////////
-	this->gatePotential = 16.526;
-	this->channelPotential = 0.634;
-
-	//this->gatePotential = 5;
-	//this->channelPotential = 0;
-
-	FDVertex *currVertex;
-	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
-	{
-		currVertex = GetVertex(iVer);
-		setVertBC_Potential(currVertex);
-		setVertBC_eDensity(currVertex);
-	}
-}
-
-bool SimpleONO::isValidElem(FDElement *elem)
-{
-	return elem != NULL;
-}
-
-bool SimpleONO::isNotElemOf(FDRegion::RegionType rType, FDElement *elem)
-{
-	if (elem == NULL)
-		return true;
-	else
-	{
-		return elem->Region->Type != rType;
-	}
-}
-
-void SimpleONO::setVertBC_eDensity(FDVertex *vert)
-{
-	bool notTrapping_NW = isNotElemOf(FDRegion::Trapping, vert->NorthwestElem);
-	bool notTrapping_NE = isNotElemOf(FDRegion::Trapping, vert->NortheastElem);
-	bool notTrapping_SE = isNotElemOf(FDRegion::Trapping, vert->SoutheastElem);
-	bool notTrapping_SW = isNotElemOf(FDRegion::Trapping, vert->SouthwestElem);
-
-	bool valid_NW = isValidElem(vert->NorthwestElem);
-	bool valid_NE = isValidElem(vert->NortheastElem);
-	bool valid_SE = isValidElem(vert->SoutheastElem);
-	bool valid_SW = isValidElem(vert->SouthwestElem);
-	
-	//Northwest corner
-	if ( notTrapping_NW && notTrapping_NE &&
-		notTrapping_SW && !notTrapping_SE )
-	{
-		if (              valid_NE &&
-	         !valid_SW )
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, 1));
-			return;
-		}
-		if (              !valid_NE &&
-			 valid_SW )
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-1, 0));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-vert->EastLength, vert->SouthLength));
-		return;
-	}
-
-	//Northeast corner
-	if ( notTrapping_NW && notTrapping_NE && 
-		!notTrapping_SW && notTrapping_SE )
-	{
-		if ( valid_NW &&
-							!valid_SE)
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0 ,1));
-			return;
-		}
-		if ( !valid_NW &&
-							valid_SE)
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(vert->WestLength, vert->SouthLength));
-		return;
-	}
-
-	//Southeast corner
-	if ( !notTrapping_NW && notTrapping_NE && 
-		notTrapping_SW && notTrapping_SE )
-	{
-		if (			!valid_NE &&
-			valid_SW)
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, -1));
-			return;
-		}
-		if (			valid_NE &&
-			!valid_SW)
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(vert->WestLength, -vert->NorthLength));
-		return;
-	}
-
-	//Southwest corner
-	if ( notTrapping_NW && !notTrapping_NE && 
-		notTrapping_SW && notTrapping_SE)
-	{
-		if ( valid_NW &&
-						!valid_SE )
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-1, 0));
-			return;
-		}
-		if ( !valid_NW &&
-						valid_SE )
-		{
-			vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, -1));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-vert->EastLength, -vert->NorthLength));
-		return;
-	}
-
-	//North side
-	if ( notTrapping_NW && notTrapping_NE && 
-		!notTrapping_SW && !notTrapping_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, 1));
-		return;
-	}
-
-	//East side
-	if ( !notTrapping_NW && notTrapping_NE && 
-		!notTrapping_SW && notTrapping_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
-		return;
-	}
-
-	//South side
-	if ( !notTrapping_NW && !notTrapping_NE && 
-		notTrapping_SW && notTrapping_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, -1));
-		return;
-	}
-
-	//West side
-	if ( notTrapping_NW && !notTrapping_NE && 
-		notTrapping_SW && !notTrapping_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-1, 0));
-		return;
-	}
-
-}
-
-void SimpleONO::setVertBC_Potential(FDVertex *vert)
-{
-	//normalization is needed here because all the values related to the domain details (i.e. the stored value) are normalized
-	static Normalization theNorm = Normalization();
-	static double potentialValue = 0;
-
-	bool isValid_NW = isValidElem(vert->NorthwestElem);
-	bool isValid_NE = isValidElem(vert->NortheastElem);
-	bool isValid_SE = isValidElem(vert->SoutheastElem);
-	bool isValid_SW = isValidElem(vert->SouthwestElem);
-
-	//firstly, to decide if the vertex is at a contact.
-	if ( vert->IsAtContact() )
-	{
-		//the gate name is in accordance with the name specified in setting domain details
-		if (vert->Contact->ContactName == "Gate")
-		{
-			potentialValue = theNorm.PushPotential(this->gatePotential);
-			//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
-			vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
-			return;
-		}
-		else if (vert->Contact->ContactName == "Channel")
-		{
-			potentialValue = theNorm.PushPotential(this->channelPotential);
-			//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
-			vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
-			return;
-		}
-	}
-
-	//Northwest corner
-	if ( !isValid_NW && !isValid_NE &&
-		!isValid_SW && isValid_SE )
-	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-vert->EastLength, vert->SouthLength));
-		return;
-	}
-
-	//Northeast corner
-	if ( !isValid_NW && !isValid_NE && 
-		isValid_SW && !isValid_SE )
-	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(vert->WestLength, vert->SouthLength));
-		return;
-	}
-
-	//Southeast corner
-	if ( isValid_NW && !isValid_NE && 
-		!isValid_SW && !isValid_SE )
-	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(vert->WestLength, -vert->NorthLength));
-		return;
-	}
-
-	//Southwest corner
-	if ( !isValid_NW && isValid_NE && 
-		!isValid_SW && !isValid_SE)
-	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-vert->EastLength, -vert->NorthLength));
-		return;
-	}
-
-	//North side
-	if ( !isValid_NW && !isValid_NE && 
-		isValid_SW && isValid_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(0, 1));
-		return;
-	}
-
-	//East side
-	if ( isValid_NW && !isValid_NE && 
-		isValid_SW && !isValid_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(1, 0));
-		return;
-	}
-
-	//South side
-	if ( isValid_NW && isValid_NE && 
-		!isValid_SW && !isValid_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(0, -1));
-		return;
-	}
-
-	//West side
-	if ( !isValid_NW && isValid_NE && 
-		!isValid_SW && isValid_SE)
-	{
-		vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-1, 0));
-		return;
 	}
 
 }

@@ -16,7 +16,6 @@
 #define _FDDOMAIN_H_
 
 #include <vector>
-#include <iostream>
 
 class FDVertex;
 class FDElement;
@@ -36,18 +35,24 @@ class FDDomain
 {
 	friend class SctmUtils::SctmDebug;
 	friend class SctmUtils::SctmFileStream;
+	friend class DDTest;
+	friend class DriftDiffusionSolver;
 public:
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 
-	/// This class in a virtual class. The detailed implementation of this class, i.e. detailed information
-	/// of the target structures and method to build the domain, is defined in the derived class. 
-	/// 
+	/// This class depends on some virtual classes which are defined in derived class. The detailed implementation 
+	/// of this class, i.e. detailed information of the target structures and method to build the domain, is defined
+	/// in the derived class. 
+	/// This method is called in outer class to build domain without pass-in parameters, this is
+	/// because the parameters and details of the domain are defined and set in the class.
+	///
 	/// @pre
 	/// @return void
 	/// @note
-	virtual void BuildDomain() = 0;
+	void BuildDomain();
 protected:
 	std::vector<FDVertex *> vertices; ///< the vertices contained in the domain
+	std::vector<FDVertex *> vertsTrapping; ///< the vertices related to trapping layers in the domain
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
 	std::vector<FDRegion *> regions; ///< the regions contained in the domain
 	std::vector<FDContact *> contacts; ///< the contacts contained in the domain
@@ -99,6 +104,15 @@ public:
 	/// @return FDContact *
 	/// @note
 	FDContact * GetContact(unsigned int id);
+protected:
+	void virtual buildStructure() = 0;
+	void setVertexPhysics();
+	void setBoundaryCondition();
+	void setVertBC_Potential(FDVertex *vert);
+	void setVertBC_eDensity(FDVertex *vert);
+private:
+	static bool isValidElem(FDElement *elem);
+	static bool isNotTrappingElem(FDElement *elem);
 };
 
 
