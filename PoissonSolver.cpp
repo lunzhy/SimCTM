@@ -228,6 +228,11 @@ void TwoDimPoissonSolver::refreshRhs()
 	double norm_alpha = 0;
 	double norm_beta = 0;
 
+	double deltaX = 0;
+	double daltaY = 0;
+	double eps_dot_dL = 0; // epsilon * deltaX(Y)
+	double deltaRhs = 0;
+
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
@@ -240,58 +245,44 @@ void TwoDimPoissonSolver::refreshRhs()
 				rhsVector.at(equationID) = currVert->BndCond.GetBCValue(FDBoundary::Potential);//for potential           
 				break;
 			case FDBoundary::BC_Neumann:
+				//CAUTION!! The case of BC_Neumann with certain boundary condition value has not been tested and verified.
 				bcVal = currVert->BndCond.GetBCValue(FDBoundary::Potential);
 				norm_alpha = currVert->BndCond.GetBCNormVector(FDBoundary::Potential).NormX();
 				norm_beta = currVert->BndCond.GetBCNormVector(FDBoundary::Potential).NormY();
 
-				/*
 				if (norm_alpha > 0)
 				{
-
+					eps_dot_dL = (currVert->NorthwestElem == NULL) ? 0 :
+								0.5 * currVert->NorthLength * GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+					eps_dot_dL += (currVert->SouthwestElem == NULL) ? 0 :
+								0.5 * currVert->SouthLength * GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				} 
-				else
+				else if (norm_alpha < 0)
 				{
+					eps_dot_dL = (currVert->NortheastElem == NULL) ? 0 :
+								0.5 * currVert->NorthLength * GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+					eps_dot_dL += (currVert->SoutheastElem == NULL) ? 0 :
+								0.5 * currVert->SouthLength * GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
+				deltaRhs = bcVal * norm_alpha * eps_dot_dL;
 
-				if (currVert->NorthwestElem == NULL)
+				if (norm_beta > 0)
 				{
-					if (currVert->NortheastElem != NULL)
-						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
-											GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					if (currVert->SouthwestElem != NULL)
-						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
-											GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);	
+					eps_dot_dL = (currVert->SouthwestElem == NULL) ? 0 :
+								0.5 * currVert->WestLength * GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+					eps_dot_dL = (currVert->SoutheastElem == NULL) ? 0 :
+								0.5 * currVert->EastLength * GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 				}
+				else if (norm_beta < 0)
+				{
+					eps_dot_dL = (currVert->NorthwestElem == NULL) ? 0 :
+								0.5 * currVert->WestLength * GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+				eps_dot_dL = (currVert->NortheastElem == NULL) ? 0 :
+								0.5 * currVert->EastLength * GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+				}
+				deltaRhs += bcVal * norm_beta * eps_dot_dL;
 
-				if (currVert->NortheastElem == NULL)
-				{
-					if (currVert->NorthwestElem != NULL)
-						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->NorthLength *
-											GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					if (currVert->SoutheastElem != NULL)
-						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
-											GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-				}
-
-				if (currVert->SouthwestElem == NULL)
-				{
-					if (currVert->SoutheastElem != NULL)
-						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
-											GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					if (currVert->NorthwestElem != NULL)
-						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->WestLength *
-											GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-				}
-				if (currVert->SoutheastElem == NULL)
-				{
-					if (currVert->SouthwestElem != NULL)
-						rhsVector.at(equationID) += +0.5 * currVert->BndCond.GetBCValueWestEast(FDBoundary::Potential) * currVert->SouthLength *
-											GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					if (currVert->NortheastElem != NULL)
-						rhsVector.at(equationID) += -0.5 * currVert->BndCond.GetBCValueSouthNorth(FDBoundary::Potential) * currVert->EastLength *
-											GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-				}
-				*/
+				rhsVector.at(equationID) += deltaRhs;
 				
 				break;
 			}

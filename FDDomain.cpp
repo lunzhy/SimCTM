@@ -99,7 +99,7 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 		}
 	}
 
-	//for vertex that is not correlated to a contact.
+	//for vertex that is not correlated to a contact. The value of 0 indicated an artificial boundary there.
 	//Northwest corner
 	if ( !isValid_NW && !isValid_NE &&
 		!isValid_SW && isValid_SE )
