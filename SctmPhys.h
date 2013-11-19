@@ -83,7 +83,7 @@ namespace SctmPhys
 			NetCharge, ///< the total net charge belongs to the vertex 
 			eMobility, ///< the electron mobility
 			eDensity, ///< the electron density
-			DensityControlArea,
+			DensityControlArea, ///< density control area of trapping layer
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -130,6 +130,7 @@ namespace SctmPhys
 		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType);
 		void CalculateDensityControlArea(FDVertex *vertex);
+		void RefreshPhyValue(Name prptyName, double val);
 	private:
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used.
 		//the value of these physical properties is normalized value.

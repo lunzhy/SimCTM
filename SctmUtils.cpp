@@ -483,9 +483,9 @@ namespace SctmUtils
 
 	void SctmTimeStep::GenerateNext()
 	{
-		this->currTimeStep = nextTimeStep();
-		this->currElapsedTime += this->currTimeStep;
 		currStepNumber += 1;
+		this->currTimeStep = getTimeStep();
+		this->currElapsedTime += this->currTimeStep;
 	}
 
 	double SctmTimeStep::TimeStep() const
@@ -499,11 +499,72 @@ namespace SctmUtils
 		return norm.PullTime(currElapsedTime);
 	}
 
-	double SctmTimeStep::nextTimeStep()
+	double SctmTimeStep::getTimeStep()
 	{
 		//TODO: currently, constant time step is used in the simulation
 		Normalization norm = Normalization();
-		double next = 1e-15; // in [s]
+		double next = 0; // in [s]
+
+		while(false)
+		{
+			if (currStepNumber <= 10)
+			{
+				next = 1e-15;
+				break;
+			}
+			if (currStepNumber <= 19)
+			{
+				next = 1e-14;
+				break;
+			}
+			if (currStepNumber <= 28 )
+			{
+				next = 1e-13;
+				break;
+			}
+			if (currStepNumber <= 37)
+			{
+				next = 1e-12;
+				break;
+			}
+			if (currStepNumber <= 46)
+			{
+				next = 1e-11;
+				break;
+			}
+			break;
+		}
+
+		while(true)
+		{
+			if (currStepNumber <= 10)
+			{
+				next = 1e-15;
+				break;
+			}
+			if (currStepNumber <= 13)
+			{
+				next = 3e-14;
+				break;
+			}
+			if (currStepNumber <= 16 )
+			{
+				next = 3e-13;
+				break;
+			}
+			if (currStepNumber <= 19)
+			{
+				next = 3e-12;
+				break;
+			}
+			if (currStepNumber <= 22)
+			{
+				next = 3e-11;
+				break;
+			}
+			break;
+		}
+		
 		return norm.PushTime(next);
 	}
 

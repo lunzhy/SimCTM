@@ -121,7 +121,7 @@ namespace SctmUtils
 		double currElapsedTime; /// current time of the simulation
 		int currStepNumber; /// current step of the simulation
 		double currTimeStep; /// current simulation time step
-		double nextTimeStep();
+		double getTimeStep();
 	};
 
 
