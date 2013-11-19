@@ -319,6 +319,8 @@ void FDDomain::BuildDomain()
 	setVertexPhysics();
 	//set the boundary condition, the specific value is not considered in this class.
 	setBoundaryCondition();
+	//in case the specific domain has some special post-process
+	postProcessOfDomain();
 
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }

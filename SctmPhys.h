@@ -130,11 +130,11 @@ namespace SctmPhys
 		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType);
 		void CalculateDensityControlArea(FDVertex *vertex);
-		void RefreshPhyValue(Name prptyName, double val);
+		void UpdateValue(Name prptyName, double val);
 	private:
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used.
 		//the value of these physical properties is normalized value.
-		double bandgap; ///< bandgap of the material
+		double bandgap; ///< bandgap of the material, normalized, in[eV]
 		double electrostaticPotential; ///< potential, normalized
 		double conductionBandEnergy; ///< i.e. conduction band edge
 		double valenceBandEnergy; ///< i.e. valence band edge

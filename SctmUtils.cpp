@@ -136,22 +136,25 @@ namespace SctmUtils
 		case 10018:
 			msg = "[SctmMath.h] Try to normalize a zero vector or to get the norm X or Y of a zero vector.";
 			break;
+		case 10019:
+			msg = "[SctmPhy.h] Fail to set the physical property value that depends on other value.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
 		PrintErrorInfo(msg);
 	}
 
-	void SctmDebug::PrintDomainDetails(FDDomain &domain)
+	void SctmDebug::PrintDomainDetails(FDDomain *domain)
 	{
 		if (!this->enable)
 			return;
 		using namespace MaterialDB;
 		FDVertex *currVert = NULL;
 		Normalization norm = Normalization();
-		for (size_t iVert = 0; iVert != domain.vertices.size(); ++iVert)
+		for (size_t iVert = 0; iVert != domain->vertices.size(); ++iVert)
 		{
-			currVert = domain.GetVertex(iVert);
+			currVert = domain->GetVertex(iVert);
 			PrintValue(currVert->GetID());
 			cout << " -- ";
 			//PrintValue(currVert->IsAtContact());
@@ -159,6 +162,7 @@ namespace SctmUtils
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
 			//if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
 			PrintValue(currVert->IsAtBoundary(FDBoundary::Potential));
+			PrintValue(currVert->BndCond.Valid(FDBoundary::Potential));
 			if (currVert->IsAtBoundary(FDBoundary::Potential))
 			{
 				PrintBCType(currVert->BndCond.GetBCType(FDBoundary::Potential));
@@ -301,6 +305,10 @@ namespace SctmUtils
 		cout << dv;
 	}
 
+	void SctmDebug::WritePoisson(FDDomain *domain)
+	{
+		UtilsData.WritePoissonResult(domain->GetVertices());
+	}
 
 	void SctmMessaging::printLine(string &line)
 	{
@@ -457,24 +465,6 @@ namespace SctmUtils
 		file.close();
 	}
 
-	void SctmFileStream::WritePoissonResult(vector<FDVertex *> &vertices, const char *title /*= "Poisson Result"*/)
-	{
-		fstream tofile;
-		tofile.open(this->fileName.c_str(), std::ios::app);
-
-		Normalization norm = Normalization();
-		FDVertex *currVert = NULL;
-		tofile << title << endl;
-		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
-		{
-			currVert = vertices.at(iVert);
-			tofile << norm.PullLength(currVert->X) << '\t' << norm.PullLength(currVert->Y) << '\t' << 
-				norm.PullPotential(currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)) << endl;
-		}
-		tofile.close();
-	}
-
-
 	SctmTimeStep::SctmTimeStep()
 	{
 		this->currStepNumber = 0;
@@ -575,13 +565,13 @@ namespace SctmUtils
 
 	SctmData::SctmData()
 	{
-		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest\\DDTest\\TempData\\";
+		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest";
 	}
 
 
 	void SctmData::WriteDDResult(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "eDensity" + generateFileSuffix();
+		fileName = directoryName + "\\DDTest\\TempData\\eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -601,6 +591,30 @@ namespace SctmUtils
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
 		string title = "electron density of time [" + numStr + "]"; 
 		file.WriteVector(vecX, vecY, vecDen, title.c_str());
+	}
+
+	void SctmData::WritePoissonResult(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "\\PoissonTest\\potential" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		Normalization norm = Normalization();
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecPot;
+
+		FDVertex *currVert = NULL;
+		for (size_t iVer = 0; iVer != vertices.size(); ++iVer)
+		{
+			currVert = vertices.at(iVer);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			vecPot.push_back(norm.PullPotential(currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
+		}
+
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "potential of time [" + numStr + "]"; 
+		file.WriteVector(vecX, vecY, vecPot, title.c_str());
 	}
 
 	string SctmData::generateFileSuffix()

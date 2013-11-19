@@ -24,7 +24,6 @@ class FDVertex;
 using std::vector;
 using SctmMath::SctmSparseMatrixSolver;
 
-//class FDDomain;
 class DriftDiffusionSolver
 {
 	//friend class SctmUtils::SctmDebug;

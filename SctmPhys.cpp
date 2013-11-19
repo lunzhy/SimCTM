@@ -33,12 +33,12 @@ namespace SctmPhys
 	{
 		bandgap = 0;
 		electrostaticPotential = 0;
-		conductionBandEnergy = 0;
-		valenceBandEnergy = 0;
+		//conductionBandEnergy = 0;
+		//valenceBandEnergy = 0;
 		electronAffinity = 0;
 		e_mass = 0;
 		h_mass = 0;
-		netCharge = 0;
+		//netCharge = 0;
 		e_density = 0;
 		controlArea = 0;
 	}
@@ -49,12 +49,6 @@ namespace SctmPhys
 		{
 		case ElectrostaticPotential:
 			electrostaticPotential = prptyValue;
-			break;
-		case ConductionBandEnergy:
-			conductionBandEnergy = prptyValue;
-			break;
-		case ValenceBandEnergy:
-			valenceBandEnergy = prptyValue;
 			break;
 		case eMass:
 			e_mass = prptyValue;
@@ -77,12 +71,19 @@ namespace SctmPhys
 		case eDensity:
 			e_density = prptyValue;
 			break;
+		default:
+			SCTM_ASSERT(SCTM_ERROR, 10019);
 		}
 	}
 
 	double PhysProperty::GetPhysPrpty(Name prptyName) const
 	{
-		double ret;
+		static double RefPotential = SctmPhys::ReferencePotential;
+
+		double energy = 0;
+		double affinity = 0;
+		double pot = 0;
+		double ret = 0;
 
 		switch (prptyName)
 		{
@@ -90,10 +91,15 @@ namespace SctmPhys
 			ret = electrostaticPotential;
 			break;
 		case ConductionBandEnergy:
-			ret = conductionBandEnergy;
+			//Ec = -X-q(phi-phiRef)
+			pot = this->electrostaticPotential;
+			affinity = this->electronAffinity;
+			energy = -affinity - (pot-RefPotential);
+			ret = energy;
 			break;
 		case ValenceBandEnergy:
-			ret = valenceBandEnergy;
+			//Ev = Ev-Eg = -X-q(phi-phiRef)-Eg
+			ret =  GetPhysPrpty(ConductionBandEnergy) - bandgap;
 			break;
 		case eMass:
 			ret = e_mass;
@@ -108,7 +114,8 @@ namespace SctmPhys
 			ret = bandgap;
 			break;
 		case NetCharge:
-			ret = netCharge;
+			//there should be four parts
+			ret = e_density;
 			break;
 		case eMobility:
 			ret = e_mobility;
@@ -225,6 +232,12 @@ namespace SctmPhys
 			area += 0.25 * currElem->Area;
 		}
 		this->controlArea = area;
+	}
+
+	void PhysProperty::UpdateValue(Name prptyName, double val)
+	{
+		//only several properties are updated
+		SetPhysPrpty(prptyName, val);
 	}
 
 	void SetPhysConstant()

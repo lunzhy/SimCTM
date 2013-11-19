@@ -41,7 +41,7 @@ void SimpleONO::setParameters()
 	double yLengthBlock_in_nm = 9;
 	int xGridNumber = 5; //the grid number, not vertex number
 	int yGridNumberTunnel =5;
-	int yGridNumberTrap = 100;
+	int yGridNumberTrap = 5;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
@@ -456,7 +456,7 @@ void SimpleONO::refreshPotential()
 				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
 				vert->BndCond.RefreshBndCond(FDBoundary::Potential, potentialValue);
 				//vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
-				return;
+				continue;;
 			}
 			else if (vert->Contact->ContactName == "Channel")
 			{
@@ -464,9 +464,15 @@ void SimpleONO::refreshPotential()
 				vert->BndCond.RefreshBndCond(FDBoundary::Potential, potentialValue);
 				//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
 				//vert->BndCond.SetBndCond(true, FDBoundary::Potential, FDBoundary::BC_Dirichlet, potentialValue);
-				return;
+				continue;;
 			}
 		}
 	}
 
+}
+
+void SimpleONO::postProcessOfDomain()
+{
+	//temporarily used for setting the initial boundary condition
+	refreshPotential();
 }

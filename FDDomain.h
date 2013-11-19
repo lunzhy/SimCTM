@@ -106,6 +106,7 @@ public:
 	FDContact * GetContact(unsigned int id);
 protected:
 	void virtual buildStructure() = 0;
+	void virtual postProcessOfDomain() = 0;
 	void setVertexPhysics();
 	void setBoundaryCondition();
 	void setVertBC_Potential(FDVertex *vert);

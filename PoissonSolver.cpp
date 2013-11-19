@@ -283,7 +283,6 @@ void TwoDimPoissonSolver::refreshRhs()
 				deltaRhs += bcVal * norm_beta * eps_dot_dL;
 
 				rhsVector.at(equationID) += deltaRhs;
-				
 				break;
 			}
 		}
@@ -299,7 +298,6 @@ void TwoDimPoissonSolver::SolvePotential()
 	//SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
 	matrixSolver.SolveMatrix(rhsVector, potential);
 	//SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
-	fillBackPotential();
 	SctmUtils::UtilsMsg.PrintTimeElapsed(SctmUtils::UtilsTimer.SinceLastSet());
 }
 
@@ -315,7 +313,20 @@ void TwoDimPoissonSolver::fillBackPotential()
 		pot = potential.at(equationID); //iVert = EquationID
 		currVert->Phys->SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
 	}
+}
 
-	SctmFileStream write = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\PoissonTest\\potential.txt", SctmFileStream::Write);
-	write.WritePoissonResult(this->vertices);
+void TwoDimPoissonSolver::ReturnResult(VertexMapDouble &ret)
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	int equationID = 0;
+	double pot = 0;
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		vertID = currVert->GetID();
+		equationID = equationMap[vertID];
+		pot = potential.at(equationID); //iVert = EquationID
+		ret[vertID] = pot;
+	}
 }

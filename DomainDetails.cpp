@@ -46,7 +46,7 @@ FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
 void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
 	SCTM_ASSERT( this->bc_valid.find(bcName) == this->bc_valid.end(), 10017 ); //make sure bcName not exists
-	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
+	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 ); //make sure a valid BC is set
 
 	//bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
 	this->bc_valid[bcName] = true;

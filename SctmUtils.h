@@ -14,7 +14,7 @@
 #define _SCTMUTILS_H_
 
 #define DEBUG
-#define SCTM_DEBUG_ENABLE false
+#define SCTM_DEBUG_ENABLE true
 
 #include <string>
 #include <ctime>
@@ -157,7 +157,7 @@ namespace SctmUtils
 		/// @return void
 		/// @note
 		static void ErrorCodeParser(int err_code);
-		void PrintDomainDetails(FDDomain &domain);
+		void PrintDomainDetails(FDDomain *domain);
 		void PrintSparseMatrix(const Eigen::SparseMatrix<double> &matrix);
 		void PrintSparseMatrixRow(Eigen::SparseMatrix<double> &matrix, int rowIndex);
 		void PrintVector(const std::vector<double> &vec, const char *title = "");
@@ -167,6 +167,8 @@ namespace SctmUtils
 		void PrintValue(std::string &s) { std::cout << s << " ";}
 		void PrintBCType(FDBoundary::BCType bcType);
 		void PrintDirectionVector(VectorValue &dv);
+
+		void WritePoisson(FDDomain *domain);
 	private:
 		bool enable;
 	};
@@ -214,16 +216,7 @@ namespace SctmUtils
 		/// @note this method is obsolete
 		void Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title);
 		void ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields);
-		/// @brief WriteDDResult is used to write DD results for testing and DD solver
-		/// 
-		/// This method outputs the DD results within 3 columns, i.e. x coordinates, y coordinates and the electron density.
-		/// 
-		/// @param vector<FDVertex * > & vertices
-		/// @param const char * title
-		/// @pre
-		/// @return void
-		/// @note
-		void WritePoissonResult(vector<FDVertex *> &vertices, const char *title = "Poisson Result");
+		
 		void WriteVector(vector<double> &vec, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 	private:
@@ -240,7 +233,7 @@ namespace SctmUtils
 		SctmData();
 		void ReadTunnelParamter();
 		void WriteDDResult(vector<FDVertex *> &vertices);
-		void WritePoissonResult();
+		void WritePoissonResult(vector<FDVertex *> &vertices);
 	protected:
 		string fileName;
 		string directoryName;

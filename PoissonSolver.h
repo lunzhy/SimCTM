@@ -28,6 +28,7 @@ class FDVertex;
 using SctmMath::SctmSparseMatrixSolver;
 using std::vector;
 typedef std::map<int, int, std::less<int>> VertexMapInt; // the map used for get the equation index with given vertex internal id
+typedef std::map<int, double> VertexMapDouble;
 
 /// @brief TwoDimPoissonSolver is a Poisson solver used to solve two-dimensional Poisson problem
 ///
@@ -56,6 +57,7 @@ public:
 	/// @return void
 	/// @note
 	void SolvePotential();
+	void ReturnResult(VertexMapDouble &ret);
 private:
 	vector<FDVertex *> &vertices; ///< the vertices of the domain to be solved
 	vector<double> potential; ///< the potential of the vertices with same sequence in the vertices vector (same sequence of the equations)

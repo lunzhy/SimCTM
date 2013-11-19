@@ -147,6 +147,7 @@ private:
 	/// @note
 	void refreshBandEnergy();
 
+	void postProcessOfDomain();
 	void refreshPotential();
 };
 

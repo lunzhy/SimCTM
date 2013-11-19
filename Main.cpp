@@ -5,6 +5,7 @@
 #include "PoissonSolver.h"
 #include "DDSolver.h"
 #include "SctmPhys.h"
+#include "SolverPack.h"
 
 using namespace SctmUtils;
 
@@ -24,7 +25,7 @@ void PoissonTest()
 	UtilsMsg.PrintHeader("Building a simple ONO domain.");
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
-	UtilsDebug.PrintDomainDetails(*aTest);
+	UtilsDebug.PrintDomainDetails(aTest);
 
 	UtilsMsg.PrintHeader("Solving potential using initial value.");
 	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aTest);
@@ -66,10 +67,20 @@ void DDSolverTest()
 	//UtilsDebug.PrintDomainDetails(*aDomain);
 }
 
+void SolverPackTest()
+{
+	UtilsMsg.PrintHeader("Building a simple ONO domain.");
+	FDDomain *aDomain = new SimpleONO();
+	aDomain->BuildDomain();
+	SolverPack aPack = SolverPack(aDomain);
+	aPack.Run();
+}
+
 int main()
 {
 	initialize();
-	DDSolverTest();
+	SolverPackTest();
+	//DDSolverTest();
 	//TunnelSolverTest();
 	//PoissonTest();
 	//SubsToGateEletronTunnel tunnelDemo = SubsToGateEletronTunnel();
