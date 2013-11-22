@@ -65,8 +65,10 @@ namespace SctmMath
 		}
 		else
 		{
-			vX = vX / sqrt( square(vX) + square(vY) );
-			vY = vY / sqrt( square(vX) + square(vY) );
+			double tempX = vX;
+			double tempY = vY;
+			vX = tempX / sqrt( square(tempX) + square(tempY) );
+			vY = tempY / sqrt( square(tempX) + square(tempY) );
 		}
 	}
 
