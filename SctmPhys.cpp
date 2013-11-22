@@ -63,9 +63,6 @@ namespace SctmPhys
 		case Bandgap:
 			bandgap = prptyValue;
 			break;
-		case NetCharge:
-			netCharge = prptyValue;
-			break;
 		case eMobility:
 			e_mobility = prptyValue;
 			break;
@@ -256,7 +253,7 @@ namespace SctmPhys
 		//phi(electron affinity) + Eg/2 + 3/4*kT/q*ln(mp/mn)
 		//affinity and bandgap is in eV, so ReferencePotential is in [eV]
 		//the reference potential should be normalized.
-		SctmPhys::ReferencePotential = affinity + bandgap / 2 - 3/4 * k0 * temp / q * SctmMath::ln( mp / mn );
+		SctmPhys::ReferencePotential = norm.PullEnergy(affinity) + norm.PullEnergy(bandgap / 2) - 3/4 * k0 * temp / q * SctmMath::ln( mp / mn );
 		SctmPhys::ReferencePotential = norm.PushPotential(SctmPhys::ReferencePotential);
 	}
 

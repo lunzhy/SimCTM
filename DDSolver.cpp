@@ -260,75 +260,80 @@ void DriftDiffusionSolver::setCoefficientBCVertex_DirectDiscretization(FDVertex 
 
 	switch (vert->BndCond.GetBCType(FDBoundary::eDensity))
 	{
-	case FDBoundary::BC_Dirichlet:
-		coeff_center = 1;
-		indexEquation = equationMap[vert->GetID()];
-		indexCoeff = equationMap[vert->GetID()];
-		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
-		break;
+		case FDBoundary::BC_Dirichlet:
+		{
+			coeff_center = 1;
+			indexEquation = equationMap[vert->GetID()];
+			indexCoeff = equationMap[vert->GetID()];
+			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
+			break;
+		}
 
-	case FDBoundary::BC_Cauchy:
-		//for center vertex
-		if (norm_alpha > 0)
-		{
-			coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()] ) / vert->WestLength;
-			coeff_center += norm_alpha * 1 / vert->WestLength;
-			coeff_west = norm_alpha * (-1) / vert->WestLength;
-		}
-		else if (norm_alpha < 0)
-		{
-			coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()] ) / (-vert->EastLength);
-			coeff_center += norm_alpha * 1 / (-vert->EastLength);
-			coeff_east = norm_alpha * (-1) / (-vert->EastLength);
-		}
-		else
-			coeff_center = 0;
 
-		if (norm_beta > 0)
+		case FDBoundary::BC_Cauchy:
 		{
-			coeff_center += -norm_beta * ( potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()] ) / vert->SouthLength;
-			coeff_center += norm_beta * 1 / vert->SouthLength;
-			coeff_south = norm_beta * (-1) / vert->SouthLength;
-		}
-		else if (norm_beta < 0)
-		{
-			coeff_center += -norm_beta * ( potentialMap[vert->GetID()] -  potentialMap[vert->NorthVertex->GetID()] ) / (-vert->NorthLength);
-			coeff_center += norm_beta * 1 / (-vert->NorthLength);
-			coeff_north = norm_beta * (-1) / (-vert->NorthLength);
-		}
-		else
-			coeff_center += 0;
+			//for center vertex
+			if (norm_alpha > 0)
+			{
+				coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()] ) / vert->WestLength;
+				coeff_center += norm_alpha * 1 / vert->WestLength;
+				coeff_west = norm_alpha * (-1) / vert->WestLength;
+			}
+			else if (norm_alpha < 0)
+			{
+				coeff_center = -norm_alpha * ( potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()] ) / (-vert->EastLength);
+				coeff_center += norm_alpha * 1 / (-vert->EastLength);
+				coeff_east = norm_alpha * (-1) / (-vert->EastLength);
+			}
+			else
+				coeff_center = 0;
 
-		coeff_center *= mobility;
-		coeff_east *= mobility;
-		coeff_west *= mobility;
-		coeff_north *= mobility;
-		coeff_south *= mobility;
+			if (norm_beta > 0)
+			{
+				coeff_center += -norm_beta * ( potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()] ) / vert->SouthLength;
+				coeff_center += norm_beta * 1 / vert->SouthLength;
+				coeff_south = norm_beta * (-1) / vert->SouthLength;
+			}
+			else if (norm_beta < 0)
+			{
+				coeff_center += -norm_beta * ( potentialMap[vert->GetID()] -  potentialMap[vert->NorthVertex->GetID()] ) / (-vert->NorthLength);
+				coeff_center += norm_beta * 1 / (-vert->NorthLength);
+				coeff_north = norm_beta * (-1) / (-vert->NorthLength);
+			}
+			else
+				coeff_center += 0;
 
-		indexEquation = equationMap[vert->GetID()];
-		indexCoeff = equationMap[vert->GetID()];
-		matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
-		if (coeff_east != 0)
-		{
-			indexCoeff = equationMap[vert->EastVertex->GetID()];
-			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_east;
+			coeff_center *= mobility;
+			coeff_east *= mobility;
+			coeff_west *= mobility;
+			coeff_north *= mobility;
+			coeff_south *= mobility;
+
+			indexEquation = equationMap[vert->GetID()];
+			indexCoeff = equationMap[vert->GetID()];
+			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_center;
+			if (coeff_east != 0)
+			{
+				indexCoeff = equationMap[vert->EastVertex->GetID()];
+				matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_east;
+			}
+			if (coeff_west != 0)
+			{
+				indexCoeff = equationMap[vert->WestVertex->GetID()];
+				matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_west;
+			}
+			if (coeff_north != 0)
+			{
+				indexCoeff = equationMap[vert->NorthVertex->GetID()];
+				matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_north;
+			}
+			if (coeff_south != 0)
+			{
+				indexCoeff = equationMap[vert->SouthVertex->GetID()];
+				matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_south;
+			}
+			break;
 		}
-		if (coeff_west != 0)
-		{
-			indexCoeff = equationMap[vert->WestVertex->GetID()];
-			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_west;
-		}
-		if (coeff_north != 0)
-		{
-			indexCoeff = equationMap[vert->NorthVertex->GetID()];
-			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_north;
-		}
-		if (coeff_south != 0)
-		{
-			indexCoeff = equationMap[vert->SouthVertex->GetID()];
-			matrixSolver.matrix.insert(indexEquation, indexCoeff) = coeff_south;
-		}
-		break;
 	}
 
 }
@@ -493,118 +498,123 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 
 	switch (vert->BndCond.GetBCType(FDBoundary::eDensity))
 	{
-	case FDBoundary::BC_Dirichlet:
-		coeff_center = 1;
-		indexEquation = equationMap[vert->GetID()];
-		indexCoefficient = equationMap[vert->GetID()];
-		matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
-		break;
-
-	case FDBoundary::BC_Cauchy:
-		indexEquation = equationMap[vert->GetID()];
-
-		notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
-		notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
-		notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
-		notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
-
-		getDeltaXYAtVertex(vert, deltaX, deltaY);
-
-		//West vertex
-		if (!(notTrapping_NW && notTrapping_SW))
+		case FDBoundary::BC_Dirichlet:
 		{
-			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			indexCoefficient = equationMap[vert->WestVertex->GetID()];
-			coeff_adjacent = - mobility / vert->WestLength / deltaX *
-				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-			coeff_center += - mobility / vert->WestLength / deltaX *
-				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-
-			if (useCrankNicolsonMethod)
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
-			}
-			else
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
-			}
-			
-		}
-
-		//East vertex
-		if (!(notTrapping_NE && notTrapping_SE))
-		{
-			mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			indexCoefficient = equationMap[vert->EastVertex->GetID()];
-			coeff_adjacent = - mobility / vert->EastLength / deltaX *
-				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-			coeff_center += - mobility / vert->EastLength / deltaX *
-				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-
-			if (useCrankNicolsonMethod)
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
-			}
-			else
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
-			}
-		}
-
-		//South vertex
-		if (!(notTrapping_SE && notTrapping_SW))
-		{
-			mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			indexCoefficient = equationMap[vert->SouthVertex->GetID()];
-			coeff_adjacent = - mobility / vert->SouthLength / deltaY *
-				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-			coeff_center += - mobility / vert->SouthLength / deltaY *
-				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-
-			if (useCrankNicolsonMethod)
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
-			}
-			else
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
-			}
-		}
-
-		//North vertex
-		if (!(notTrapping_NE && notTrapping_NW))
-		{
-			mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			indexCoefficient = equationMap[vert->NorthVertex->GetID()];
-			coeff_adjacent = - mobility / vert->NorthLength / deltaY *
-				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-			coeff_center += - mobility / vert->NorthLength / deltaY *
-				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-
-			if (useCrankNicolsonMethod)
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
-			}
-			else
-			{
-				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
-			}
-		}
-
-		//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
-
-		indexCoefficient = equationMap[vert->GetID()];
-		SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
-		//indexCoefficent = indexEquation = vertMap[currVert->GetID]
-		if (useCrankNicolsonMethod)
-		{
-			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
-		}
-		else
-		{
+			coeff_center = 1;
+			indexEquation = equationMap[vert->GetID()];
+			indexCoefficient = equationMap[vert->GetID()];
 			matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+			break;
 		}
-		break;
+		
+		case FDBoundary::BC_Cauchy:
+		{
+			indexEquation = equationMap[vert->GetID()];
+
+			notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
+			notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
+			notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
+			notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
+
+			getDeltaXYAtVertex(vert, deltaX, deltaY);
+
+			//West vertex
+			if (!(notTrapping_NW && notTrapping_SW))
+			{
+				mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				indexCoefficient = equationMap[vert->WestVertex->GetID()];
+				coeff_adjacent = - mobility / vert->WestLength / deltaX *
+					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+				coeff_center += - mobility / vert->WestLength / deltaX *
+					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+
+				if (useCrankNicolsonMethod)
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+				}
+				else
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+				}
+
+			}
+
+			//East vertex
+			if (!(notTrapping_NE && notTrapping_SE))
+			{
+				mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				indexCoefficient = equationMap[vert->EastVertex->GetID()];
+				coeff_adjacent = - mobility / vert->EastLength / deltaX *
+					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+				coeff_center += - mobility / vert->EastLength / deltaX *
+					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+
+				if (useCrankNicolsonMethod)
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+				}
+				else
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+				}
+			}
+
+			//South vertex
+			if (!(notTrapping_SE && notTrapping_SW))
+			{
+				mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				indexCoefficient = equationMap[vert->SouthVertex->GetID()];
+				coeff_adjacent = - mobility / vert->SouthLength / deltaY *
+					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+				coeff_center += - mobility / vert->SouthLength / deltaY *
+					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+
+				if (useCrankNicolsonMethod)
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+				}
+				else
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+				}
+			}
+
+			//North vertex
+			if (!(notTrapping_NE && notTrapping_NW))
+			{
+				mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				indexCoefficient = equationMap[vert->NorthVertex->GetID()];
+				coeff_adjacent = - mobility / vert->NorthLength / deltaY *
+					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+				coeff_center += - mobility / vert->NorthLength / deltaY *
+					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+
+				if (useCrankNicolsonMethod)
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent / 2;
+				}
+				else
+				{
+					matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_adjacent;
+				}
+			}
+
+			//coeff_center += -1 / timeStep; // from p_n/p_t, p=partial differential
+
+			indexCoefficient = equationMap[vert->GetID()];
+			SCTM_ASSERT(indexCoefficient==indexEquation, 10012);
+			//indexCoefficent = indexEquation = vertMap[currVert->GetID]
+			if (useCrankNicolsonMethod)
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center / 2;
+			}
+			else
+			{
+				matrixSolver.matrix.insert(indexEquation, indexCoefficient) = coeff_center;
+			}
+			break;
+		}
+		
 	}
 }
 
@@ -720,110 +730,116 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 
 	switch (vert->BndCond.GetBCType(FDBoundary::eDensity))
 	{
-	case FDBoundary::BC_Dirichlet:
-		//in BC_Dirichlet, the the rhs of boundary vertex is directly set.
-		retVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
-		break;
-	case FDBoundary::BC_Cauchy:
-		//for Cauchy boundary condition
-		//calculation of the addend related current simulation time step
-		rhsTime= -1 * lastElecDensMap[vert->GetID()] / timeStep;
-
-		notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
-		notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
-		notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
-		notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
-
-		getDeltaXYAtVertex(vert, deltaX, deltaY);
-
-		//West
-		if (!(notTrapping_NW && notTrapping_SW))
+		case FDBoundary::BC_Dirichlet:
 		{
-			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			west += - mobility / vert->WestLength / deltaX *
-				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 ) *
-				lastElecDensMap[vert->WestVertex->GetID()];
-
-			west += - mobility / vert->WestLength / deltaX *
-				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
-		}
-		//East
-		if (!(notTrapping_NE && notTrapping_SE))
-		{
-			mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			east += - mobility / vert->EastLength / deltaX *
-				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-				lastElecDensMap[vert->EastVertex->GetID()];
-
-			east += - mobility / vert->EastLength / deltaX *
-				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
-		}
-		//South
-		if (!(notTrapping_SE && notTrapping_SW))
-		{
-			mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			south += - mobility / vert->SouthLength / deltaY *
-				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-				lastElecDensMap[vert->SouthVertex->GetID()];
-
-			south += - mobility / vert->SouthLength / deltaY *
-				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
-		}
-		//North
-		if (!(notTrapping_NE && notTrapping_NW))
-		{
-			mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			north += - mobility / vert->NorthLength / deltaY *
-				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-				lastElecDensMap[vert->NorthVertex->GetID()];
-
-			north += - mobility / vert->NorthLength / deltaY *
-				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
-		}
-
-		double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
-		double norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
-		double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
-		//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
-		if (norm_alpha > 0) //lack of east part
-		{
-			rhsBoundary += bcVal * norm_alpha / deltaX;
-		}
-		else if (norm_alpha < 0) //lack of west part
-		{
-			rhsBoundary += - bcVal * norm_alpha / deltaX;
-		}
-
-		if (norm_beta > 0) // lack of north part
-		{
-			rhsBoundary += bcVal * norm_beta / deltaY;
-		}
-		else if (norm_beta < 0) //  lack of south part
-		{
-			rhsBoundary += - bcVal * norm_beta / deltaY;
+			//in BC_Dirichlet, the the rhs of boundary vertex is directly set.
+			retVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
+			break;
 		}
 		
-		if (this->useCrankNicolsonMethod)
+		case FDBoundary::BC_Cauchy:
 		{
-			rhsBoundary = rhsBoundary / 2;
-			//calculation of the addend related to the current density of last simulation time step
-			rhsLastStepCurrent = (west + east + south + north) / 2;
-			//this addend is not included in the first simulation step
-			if (lastBCMap.find(vert->GetID()) != lastBCMap.end())
-			{
-				rhsLastBoundary = lastBCMap[vert->GetID()] / 2;
-			}
-			//to store the overall current density of boundary conditions
-			lastBCMap[vert->GetID()] = rhsBoundary;
-		}
+			//for Cauchy boundary condition
+			//calculation of the addend related current simulation time step
+			rhsTime= -1 * lastElecDensMap[vert->GetID()] / timeStep;
 
-		//the sign represents moving the symbol from right to left
-		retVal = rhsTime - rhsBoundary - rhsLastStepCurrent - rhsLastBoundary;
-		break;
+			notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
+			notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
+			notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
+			notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
+
+			getDeltaXYAtVertex(vert, deltaX, deltaY);
+
+			//West
+			if (!(notTrapping_NW && notTrapping_SW))
+			{
+				mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				west += - mobility / vert->WestLength / deltaX *
+					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 ) *
+					lastElecDensMap[vert->WestVertex->GetID()];
+
+				west += - mobility / vert->WestLength / deltaX *
+					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 ) *
+					lastElecDensMap[vert->GetID()];
+			}
+			//East
+			if (!(notTrapping_NE && notTrapping_SE))
+			{
+				mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				east += - mobility / vert->EastLength / deltaX *
+					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+					lastElecDensMap[vert->EastVertex->GetID()];
+
+				east += - mobility / vert->EastLength / deltaX *
+					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+					lastElecDensMap[vert->GetID()];
+			}
+			//South
+			if (!(notTrapping_SE && notTrapping_SW))
+			{
+				mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				south += - mobility / vert->SouthLength / deltaY *
+					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+					lastElecDensMap[vert->SouthVertex->GetID()];
+
+				south += - mobility / vert->SouthLength / deltaY *
+					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+					lastElecDensMap[vert->GetID()];
+			}
+			//North
+			if (!(notTrapping_NE && notTrapping_NW))
+			{
+				mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
+				north += - mobility / vert->NorthLength / deltaY *
+					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+					lastElecDensMap[vert->NorthVertex->GetID()];
+
+				north += - mobility / vert->NorthLength / deltaY *
+					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+					lastElecDensMap[vert->GetID()];
+			}
+
+			double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
+			double norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
+			double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
+			//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
+			if (norm_alpha > 0) //lack of east part
+			{
+				rhsBoundary += bcVal * norm_alpha / deltaX;
+			}
+			else if (norm_alpha < 0) //lack of west part
+			{
+				rhsBoundary += - bcVal * norm_alpha / deltaX;
+			}
+
+			if (norm_beta > 0) // lack of north part
+			{
+				rhsBoundary += bcVal * norm_beta / deltaY;
+			}
+			else if (norm_beta < 0) //  lack of south part
+			{
+				rhsBoundary += - bcVal * norm_beta / deltaY;
+			}
+
+			if (this->useCrankNicolsonMethod)
+			{
+				rhsBoundary = rhsBoundary / 2;
+				//calculation of the addend related to the current density of last simulation time step
+				rhsLastStepCurrent = (west + east + south + north) / 2;
+				//this addend is not included in the first simulation step
+				if (lastBCMap.find(vert->GetID()) != lastBCMap.end())
+				{
+					rhsLastBoundary = lastBCMap[vert->GetID()] / 2;
+				}
+				//to store the overall current density of boundary conditions
+				lastBCMap[vert->GetID()] = rhsBoundary;
+			}
+
+			//the sign represents moving the symbol from right to left
+			retVal = rhsTime - rhsBoundary - rhsLastStepCurrent - rhsLastBoundary;
+			break;
+		}
+		
 	}
 	return retVal;
 }

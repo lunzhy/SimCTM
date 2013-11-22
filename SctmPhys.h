@@ -136,12 +136,12 @@ namespace SctmPhys
 		//the value of these physical properties is normalized value.
 		double bandgap; ///< bandgap of the material, normalized, in[eV]
 		double electrostaticPotential; ///< potential, normalized
-		double conductionBandEnergy; ///< i.e. conduction band edge
-		double valenceBandEnergy; ///< i.e. valence band edge
+		//double conductionBandEnergy; ///< i.e. conduction band edge
+		//double valenceBandEnergy; ///< i.e. valence band edge
 		double electronAffinity; ///< electron affinity
 		double e_mass; ///< effective electron mass
 		double h_mass; ///< effective hole mass
-		double netCharge; ///< total net charge belongs to the vertex
+		//double netCharge; ///< total net charge belongs to the vertex
 		double e_mobility; ///< electron mobility
 		double e_density; ///< the electron density
 		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.

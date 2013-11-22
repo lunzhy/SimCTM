@@ -91,6 +91,10 @@ double TunnelSolver::calcDTFNtunneling()
 	double Emin = cbedgeTunnelFrom > cbedgeTunnelTo ? cbedgeTunnelFrom : cbedgeTunnelTo; // in normalized value
 	double Emax = cbEdge.front(); // in normalized value
 
+	Normalization norm = Normalization();
+	Emin = norm.PullEnergy(Emin); // in [eV]
+	Emax = norm.PullEnergy(Emax); // in [eV]
+
 	double T = this->temperature;
 	double m0 = SctmPhys::ElectronMass;
 	double pi = SctmMath::PI;
@@ -108,7 +112,7 @@ double TunnelSolver::calcDTFNtunneling()
 		TC = getTransCoeff(currEnergy);
 		supply = getSupplyFunction(currEnergy);
 		//mass is normalized using m0, E is normalized using q
-		DTFNdensity += 1/2 / pi / pi * this->effTunnelMass * m0 * q / hbar / hbar / hbar
+		DTFNdensity += 0.5 * pi / pi * this->effTunnelMass * m0 * q / hbar / hbar / hbar
 			* TC
 			* supply
 			* q * dE;
@@ -156,11 +160,12 @@ double TunnelSolver::calcThermalEmission()
 TunnelSolver::TunnelSolver(FDDomain *_domain): domain(_domain)
 {
 	this->eCurrDens = 0;
+	this->temperature = 300;
 }
 
 void TunnelSolver::SolveTunnel_Interface()
 {
-	eCurrDens_Interface.clear();
+	eCurrDens_Interface.resize(vertsTunnelStart.size());
 	//this->currentDensity = 0;
 	//calcDTFNtunneling();
 	//calcThermalEmission();
@@ -169,7 +174,8 @@ void TunnelSolver::SolveTunnel_Interface()
 	for (size_t iVert = 0; iVert != vertsTunnelStart.size(); ++iVert)
 	{
 		setSolver_Interface(vertsTunnelStart.at(iVert));
-		solve_Interface();
+		currdens = solve_Interface();
+		eCurrDens_Interface.at(iVert) = currdens;
 	}
 }
 
@@ -204,7 +210,7 @@ void SubsToGateEletronTunnel::initialize()
 	{
 		//the sequence in the vertices vector is its corresponding vertex index
 		currVert = this->domain->GetVertex(iVert);
-		if ( (currVert->IsAtContact()) && (currVert->Contact->ContactName == "Gate") )
+		if ( (currVert->IsAtContact()) && (currVert->Contact->ContactName == "Channel") )
 		{
 			vertsTunnelStart.push_back(currVert);
 		}
@@ -217,6 +223,8 @@ void SubsToGateEletronTunnel::setSolver_Interface(FDVertex *startVertex)
 {
 	//reset the vectors used in the calculation
 	cbEdge.clear();
+	elecMass.clear();
+	deltaX.clear();
 	//
 	// IMPORTANT! the parameters are in normalization values. They are converted before the calculation. (Not here) !
 	// the tunneling direction is north
@@ -263,12 +271,12 @@ void SubsToGateEletronTunnel::setSolver_Interface(FDVertex *startVertex)
 	}
 	//set the silicon band edge, because the difference is fixed
 	using namespace MaterialDB;
-	double diff = 0;
-	diff = GetMatPrpty(&MaterialDB::Silicon, MatProperty::Mat_ElectronAffinity)
+	double barrier = 0;
+	barrier = GetMatPrpty(&MaterialDB::Silicon, MatProperty::Mat_ElectronAffinity)
 		- GetMatPrpty(&MaterialDB::SiO2, MatProperty::Mat_ElectronAffinity);
-	cbedgeTunnelFrom = startVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+	cbedgeTunnelFrom = startVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - barrier;
 	//set the fermi energy of the tunneling-in vertex
-	fermiEnergyTunnelFrom = fermiAboveMap[startVertex->GetID()];
+	fermiEnergyTunnelFrom = fermiAboveMap[startVertex->GetID()] + cbedgeTunnelFrom;
 }
 
 SubsToGateEletronTunnel::SubsToGateEletronTunnel(FDDomain *_domain): TunnelSolver(_domain)
