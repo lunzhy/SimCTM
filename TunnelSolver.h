@@ -14,58 +14,60 @@
 #define _TUNNELSOLVER_H_
 
 #include <vector>
-class FDVertex;
+#include <map>
 
+class FDDomain;
+class FDVertex;
 using std::vector;
+typedef std::map<int, double> VertexMapDouble;
 class TunnelSolver
 {
 	//friend class SctmUtils::SctmDebug;
 public:
-	TunnelSolver();
-	virtual void PrepareProblem(FDVertex *startVertex) = 0;
-	void SolveTunneling();
-	double GetCurrentDensity();
+	TunnelSolver(FDDomain *_domain);
+	void ReadInput(VertexMapDouble fermi);
+	void SolveTunnel_Interface();
 
 protected:
 	virtual double getSupplyFunction(double energy);
-	double getTransmissionCoefficient(double energy);
-	void initializeSolver();
-	void calcDTFNtunneling();
-	void calcThermalEmission();
+	double getTransCoeff(double energy); //Transmission coefficient
+	
+	double calcDTFNtunneling();
+	double calcThermalEmission();
 
-	vector<double> cbegde;
-	vector<double> emass;
+	virtual void setSolver_Interface(FDVertex *startVertex) = 0;
+	double solve_Interface(); // solver the interface tunneling current for specified vertex
+
+
+protected:
+	FDDomain *domain;
+	vector<FDVertex *> vertsTunnelStart;
+	
+	vector<FDVertex *> vertsTunnelEnd_Interface;
+	VertexMapDouble fermiAboveMap; // fermi energy - conduction band 
+
+	vector<double> cbEdge;
+	vector<double> elecMass;
 	vector<double> deltaX;
+	vector<double> eCurrDens_Interface; // the sequence is the same with the vertex in verticsTunnelStart
+
 	double cbedgeTunnelFrom; ///< left electrode conduction band edge
 	double cbedgeTunnelTo;
 	double fermiEnergyTunnelFrom;
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
 	double temperature;
-	double areaFactor; ///< the area factor(cross-section) of the tunneling problem
-
-	double currentDensity; ///< the tunneling current density, in [A/cm^2]
+	double eCurrDens; ///< the tunneling current density, in [A/cm^2]
 };
 
 class SubsToGateEletronTunnel : public TunnelSolver
 {
 public:
-	void PrepareProblem(FDVertex *startVertex);
-};
-
-class TunnelTest : public TunnelSolver
-{
-public:
-	TunnelTest();
-	void PrepareProblem(FDVertex *startVertex);
-	void SolveParamterSet();
-	void SolveCalibrate();
-private:
-	double oxideEmass;
-	double siliconBandEdge;
-	double oxideThickness;
-	double gateVoltage;
-	double elecField;
+	SubsToGateEletronTunnel(FDDomain *_domain);
+protected:
+	void initialize(); ///< initialize only exists in derived class
+	double getSupplyFunction(double energy);
+	void setSolver_Interface(FDVertex *startVertex);
 };
 
 #endif

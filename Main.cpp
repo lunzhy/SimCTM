@@ -33,14 +33,6 @@ void PoissonTest()
 	//UtilsDebug.PrintDomainDetails(*aTest);
 }
 
-void TunnelSolverTest()
-{
-	UtilsMsg.PrintHeader("Testing the tunneling solver.");
-	TunnelTest *tunnelDemo = new TunnelTest();
-	tunnelDemo->SolveParamterSet();
-	tunnelDemo->SolveCalibrate();
-}
-
 void DDSolverTest()
 {
 	UtilsMsg.PrintHeader("Building a simple ONO domain.");

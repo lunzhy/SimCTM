@@ -28,25 +28,25 @@ namespace MaterialDB
 		Normalization norm = Normalization();
 
 		//Silicon = Material("Silicon");
-		Silicon.Bandgap(1.12);
+		Silicon.Bandgap(norm.PushEnergy(1.12));
 		Silicon.DielectricConstant(11.9);
-		Silicon.ElectronAffinity(4.05);
+		Silicon.ElectronAffinity(norm.PushEnergy(4.05));
 		Silicon.ElectronMass(1); // need to be revised
 		Silicon.HoleMass(1);
 		Silicon.ElectronMobility(norm.PushMobility(1350));
 
 		//SiO2 = Material("SiO2");
-		SiO2.Bandgap(9.4);
+		SiO2.Bandgap(norm.PushEnergy(9.4));
 		SiO2.DielectricConstant(3.9);
-		SiO2.ElectronAffinity(0.9);
+		SiO2.ElectronAffinity(norm.PushEnergy(0.9));
 		SiO2.ElectronMass(1); // need to be revised
 		SiO2.HoleMass(1);
 		SiO2.ElectronMobility(0);
 
 		//Si3N4 = Material("Si3N4");
-		Si3N4.Bandgap(5.0);
+		Si3N4.Bandgap(norm.PushEnergy(5.0));
 		Si3N4.DielectricConstant(7.5);
-		Si3N4.ElectronAffinity(1.9);
+		Si3N4.ElectronAffinity(norm.PushEnergy(1.9));
 		Si3N4.ElectronMass(1); // need to be revised
 		Si3N4.HoleMass(1);
 		Si3N4.ElectronMobility(norm.PushMobility(0.1));

@@ -191,6 +191,16 @@ namespace SctmUtils
 		{
 			return lineDensity * densityFactor * lengthFactor * lengthFactor;
 		}
+
+		//energy is always used with q, in [eV]
+		inline double PushEnergy(double energy)
+		{
+			return energy / potentialFactor;
+		}
+		inline double PullEnergy(double energy)
+		{
+			return energy * potentialFactor;
+		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.
 		/// 

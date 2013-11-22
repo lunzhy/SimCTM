@@ -27,7 +27,7 @@ SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
 void SolverPack::initialize()
 {
 	this->poissonSolver = new TwoDimPoissonSolver(domain);
-	this->tunnelSolver = NULL;
+	//this->tunnelSolver = new SubsToGateEletronTunnel(domain);
 	this->ddSolver = NULL;
 
 	this->retPotential.clear();
@@ -36,10 +36,10 @@ void SolverPack::initialize()
 void SolverPack::callIteration()
 {
 	poissonSolver->SolvePotential();
-	fetchPoissonResult();
+	updateWithPoissonResult();
 }
 
-void SolverPack::fetchPoissonResult()
+void SolverPack::updateWithPoissonResult()
 {
 	poissonSolver->ReturnResult(this->retPotential);
 

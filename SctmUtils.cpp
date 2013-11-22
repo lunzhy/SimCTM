@@ -139,6 +139,12 @@ namespace SctmUtils
 		case 10019:
 			msg = "[SctmPhy.h] Fail to set the physical property value that depends on other value.";
 			break;
+		case 10020:
+			msg = "[TunnelSolver.cpp] Error occurs with the match between input interface vertices and the tunneling beginning vertices.";
+			break;
+		case 10021:
+			msg = "[TunnelSolver.cpp] Emin/Emax error in tunneling solver.";
+			break;
 		default:
 			msg = "Untracked error";
 		}

@@ -17,6 +17,7 @@
 #include "SctmUtils.h"
 #include "DomainDetails.h"
 #include "FDDomain.h"
+#include "Normalization.h"
 
 namespace SctmPhys
 {
@@ -242,13 +243,21 @@ namespace SctmPhys
 
 	void SetPhysConstant()
 	{
-		double mp = GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_HoleMass);
-		double mn = GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronMass);
+		//the value returned by GetMatPrpty is normalized value
+		double mp = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_HoleMass);
+		double mn = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronMass);
 		double bandgap = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_Bandgap);
+		double affinity = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronAffinity);
+		double temp = T0;
+		using SctmUtils::Normalization;
+		Normalization norm = Normalization();
+		//CAUTION: Is reference potential related to temperature
 		//the value of reference potential is
 		//phi(electron affinity) + Eg/2 + 3/4*kT/q*ln(mp/mn)
-		SctmPhys::ReferencePotential = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronAffinity)
-										+ bandgap / 2 - 3/4 * k0 * T0 / q * SctmMath::ln( mp / mn);
+		//affinity and bandgap is in eV, so ReferencePotential is in [eV]
+		//the reference potential should be normalized.
+		SctmPhys::ReferencePotential = affinity + bandgap / 2 - 3/4 * k0 * temp / q * SctmMath::ln( mp / mn );
+		SctmPhys::ReferencePotential = norm.PushPotential(SctmPhys::ReferencePotential);
 	}
 
 }

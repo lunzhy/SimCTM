@@ -15,9 +15,13 @@
 #include "SctmMath.h"
 #include "SctmUtils.h"
 #include "SctmPhys.h"
+#include "FDDomain.h"
+#include "Normalization.h"
+#include "Material.h"
 
 using SctmPhys::PhysProperty;
 using SctmUtils::SctmFileStream;
+using SctmUtils::Normalization;
 
 double TunnelSolver::getSupplyFunction(double energy)
 {
@@ -44,7 +48,7 @@ double TunnelSolver::getSupplyFunction(double energy)
 	return supply;
 }
 
-double TunnelSolver::getTransmissionCoefficient(double energy)
+double TunnelSolver::getTransCoeff(double energy)
 {
 	double tunnelFactor = 1;
 	// The transmission coefficient is proportional to the integral used in the calculation.
@@ -56,33 +60,41 @@ double TunnelSolver::getTransmissionCoefficient(double energy)
 	double hbar = SctmPhys::hbar;
 	double cm_in_m = SctmPhys::cm_in_m;
 	double integral = 0;
+	double dX = 0;
+	double energyDiff = 0; // V(x) - E, potential energy - current energy
+	Normalization norm = Normalization();
 	//direct tunneling and Fowler-Nordheim tunneling are included.
 	//the international unit (I.U.) is used in calculating TC
 	for (vector<double>::size_type ix = 0; ix != this->deltaX.size(); ++ ix)
 	{
-		if (cbegde.at(ix) >= energy)
+		if (cbEdge.at(ix) >= energy)
 		{
-			integral += SctmMath::sqrt(2 * emass.at(ix) * m0 * q * (cbegde.at(ix) - energy)) 
-						* deltaX.at(ix) * cm_in_m;
+			dX = norm.PullLength(deltaX.at(ix));
+			energyDiff = norm.PullEnergy(cbEdge.at(ix) - energy);
+			integral += SctmMath::sqrt( 2 * elecMass.at(ix) * m0 * q * energyDiff ) 
+						* dX * cm_in_m;
 		}
 	}
-	double tc = tunnelFactor * SctmMath::exp(-2 / hbar * integral);
+	double tc = tunnelFactor * SctmMath::exp( -2 / hbar * integral );
 
 	return tc;
 }
 
-void TunnelSolver::calcDTFNtunneling()
+double TunnelSolver::calcDTFNtunneling()
 {
+	//direct tunneling and Fowler-Nordheim tunneling are included.
+	//the international unit (I.U.) is used in calculating TC
+
 	// the unit of calculated current density is [A/m^2]
 	// Emin and Emax are processed with q. (divided by q)
 	double DTFNdensity = 0; // in [A/m^2]
-	double Emin = cbedgeTunnelFrom; // in [eV]
-	double Emax = cbegde.front(); // in [eV]
+	double Emin = cbedgeTunnelFrom > cbedgeTunnelTo ? cbedgeTunnelFrom : cbedgeTunnelTo; // in normalized value
+	double Emax = cbEdge.front(); // in normalized value
 
 	double T = this->temperature;
 	double m0 = SctmPhys::ElectronMass;
 	double pi = SctmMath::PI;
-	double h = SctmPhys::h;
+	double hbar = SctmPhys::hbar;
 	double q = SctmPhys::ElementaryCharge;
 	double dE = SctmPhys::BoltzmanConstant * T / q; // dE = kT/q, here E is normalized using q
 	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
@@ -93,29 +105,33 @@ void TunnelSolver::calcDTFNtunneling()
 	double currEnergy = Emin;
 	while (currEnergy <= Emax)
 	{
-		TC = getTransmissionCoefficient(currEnergy);
+		TC = getTransCoeff(currEnergy);
 		supply = getSupplyFunction(currEnergy);
 		//mass is normalized using m0, E is normalized using q
-		DTFNdensity += 4 * pi * this->effTunnelMass * m0 * q / h / h / h
+		DTFNdensity += 1/2 / pi / pi * this->effTunnelMass * m0 * q / hbar / hbar / hbar
 			* TC
 			* supply
 			* q * dE;
 		currEnergy += dE;
 	}
 	//the unit of currentDensity is [A/cm^2]
-	this->currentDensity += DTFNdensity * per_m2_in_per_cm2;
+	this->eCurrDens = DTFNdensity * per_m2_in_per_cm2;
+	return eCurrDens;
 }
 
-void TunnelSolver::calcThermalEmission()
+double TunnelSolver::calcThermalEmission()
 {
 	double TEdensity = 0; // in [A/m^2]
-	double Emin = cbegde.front(); // in [eV]
+	double Emin = cbEdge.front(); // in [eV]
+
+	Normalization norm = Normalization();
+	Emin = norm.PullEnergy(Emin); // in [eV]
 	double Emax = Emin + 5; // only calculate the energy within 5eV large than the smallest energy to surpass the barrier
 
 	double T = this->temperature;
 	double m0 = SctmPhys::ElectronMass;
 	double pi = SctmMath::PI;
-	double h = SctmPhys::h;
+	double hbar = SctmPhys::hbar;
 	double q = SctmPhys::ElementaryCharge;
 	double dE = SctmPhys::BoltzmanConstant * T / q; // dE = kT/q, here E is normalized using q
 	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
@@ -126,230 +142,159 @@ void TunnelSolver::calcThermalEmission()
 	while (currEnergy <= Emax)
 	{
 		supply = getSupplyFunction(currEnergy);
-		TEdensity += 4 * pi * this->effTunnelMass * m0 * q / h / h / h
+		TEdensity += 1/2 / pi / pi * this->effTunnelMass * m0 * q / hbar / hbar / hbar
 			* 1  //for transmission coefficient
 			* supply
 			* q * dE;
 		currEnergy += dE;
 	}
 	//the unit of currentDensity is [A/cm^2]
-	this->currentDensity += TEdensity * per_m2_in_per_cm2;
+	this->eCurrDens = TEdensity * per_m2_in_per_cm2;
+	return eCurrDens;
 }
 
-TunnelSolver::TunnelSolver()
+TunnelSolver::TunnelSolver(FDDomain *_domain): domain(_domain)
 {
-	this->currentDensity = 0;
+	this->eCurrDens = 0;
 }
 
-double TunnelSolver::GetCurrentDensity()
+void TunnelSolver::SolveTunnel_Interface()
 {
-	return this->currentDensity;
-}
-
-void TunnelSolver::SolveTunneling()
-{
-	this->currentDensity = 0;
-	calcDTFNtunneling();
-	calcThermalEmission();
+	eCurrDens_Interface.clear();
+	//this->currentDensity = 0;
+	//calcDTFNtunneling();
+	//calcThermalEmission();
 	//SctmUtils::UtilsDebug.PrintValue(this->currentDensity);
+	double currdens = 0;
+	for (size_t iVert = 0; iVert != vertsTunnelStart.size(); ++iVert)
+	{
+		setSolver_Interface(vertsTunnelStart.at(iVert));
+		solve_Interface();
+	}
 }
 
-void SubsToGateEletronTunnel::PrepareProblem(FDVertex *startVertex)
+void TunnelSolver::ReadInput(VertexMapDouble fermi)
 {
-	// IMPORTANT! the parameters are in normalization values. They must be converted !
-	// the tunneling direction is north
+	int vertID = 0;
 	double val = 0;
-	this->areaFactor = startVertex->EastLength / 2 + startVertex->WestLength / 2;
-	FDVertex *currentVertex = startVertex;
-	while (currentVertex != NULL)
+	FDVertex *vert = NULL;
+	for (size_t iVert = 0; iVert != vertsTunnelStart.size(); ++iVert)
 	{
-		this->deltaX.push_back((currentVertex->NorthLength + currentVertex->SouthLength) / 2);
-		
-		//the method to get physical property is changed
-		//this->cbegde.push_back(currentVertex->Phys.conductionBandEnergy);
-		val = currentVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
-		this->cbegde.push_back(val);
-		//this->emass.push_back(currentVertex->Phys->electronMass);
-		val = currentVertex->Phys->GetPhysPrpty(PhysProperty::eMass);
-		this->emass.push_back(val);
-		
-		currentVertex = currentVertex->NorthVertex; // move the vertex north
+		vert = vertsTunnelStart.at(iVert);
+		vertID = vert->GetID();
+
+		SCTM_ASSERT(fermi.find(vertID) != fermi.end(), 10020);
+		val = fermi[vertID];
+		fermiAboveMap[vertID] = val;
 	}
 }
 
-TunnelTest::TunnelTest()
+double TunnelSolver::solve_Interface()
 {
-	this->oxideEmass = 0;
-	this->siliconBandEdge = 0;
+	double ret = 0;
+	ret = calcDTFNtunneling();
+	return ret;
 }
 
-void TunnelTest::PrepareProblem(FDVertex *startVertex)
+void SubsToGateEletronTunnel::initialize()
 {
-	//clear existing vectors and prepare for the following calculation
-	this->cbegde.clear();
-	this->emass.clear();
-	this->deltaX.clear();
-
-	//double oxideThickness = 3; // in [nm]
-	double oxide_thickness = this->oxideThickness;
-
-	int gridNumber = 100;
-	this->temperature = 300;
-	this->effTunnelMass = 0.5; // in m0
-
-	double bandedgeDifference = 3.15; // in [eV], Silicon and oxide band edge difference
-	
-	//double siliconBandegde = -0.112; // in [eV]
-	double silicon_bandedge = this->siliconBandEdge;
-
-	//double elecField = 12.9e6; // in [V/cm]
-	double elec_field = this->elecField;
-
-	//double gateVoltage = 4; // in [V]
-	double gate_voltage = this->gateVoltage;
-
-	this->cbedgeTunnelFrom = silicon_bandedge;
-	this->fermiEnergyTunnelFrom = 0;
-	this->fermiEnergyTunnelTo = -gate_voltage;
-
-	double deltax = 0;
-	deltax = oxide_thickness / gridNumber * SctmPhys::nm_in_cm;
-
-	double currentX = 0;
-	double val = 0;
-	for (size_t iVert = 0; iVert != gridNumber + 1; ++iVert)
+	this->vertsTunnelStart.clear();
+	FDVertex *currVert = NULL;
+	for (size_t iVert = 0; iVert != this->domain->GetVertices().size(); ++iVert)
 	{
-		currentX = iVert * deltax;
-
-		val = (iVert == 0 || iVert == gridNumber) ? deltax / 2 : deltax;
-		this->deltaX.push_back(val);
-
-		val = this->cbedgeTunnelFrom + bandedgeDifference - currentX * elec_field;
-		this->cbegde.push_back(val);
-
-		this->emass.push_back(this->oxideEmass);
-	}
-}
-
-void TunnelTest::SolveParamterSet()
-{
-	vector<vector<double>> currentMatrix;
-	vector<double> oxideEmassSet;
-	vector<double> siliconBandEdgeSet;
-
-	this->gateVoltage = 4; // [V]
-	this->elecField = 12.9e6; // [V/cm]
-	this->oxideThickness = 3; // [nm]
-
-	double val = 0;
-	for (int ix = 30; ix <= 210; ix += 10) // totally 19 values
-	{
-		val = - ix * 0.001;
-		siliconBandEdgeSet.push_back(val);
-	}
-
-	for (int ix = 38; ix <= 58; ix += 1) // totally 21 values
-	{
-		val = ix * 0.01;
-		oxideEmassSet.push_back(val);
-	}
-
-	for (size_t imass = 0 ; imass != oxideEmassSet.size(); ++imass)
-	{
-		this->oxideEmass = oxideEmassSet.at(imass);
-		vector<double> v;
-		for (size_t iband = 0 ; iband != siliconBandEdgeSet.size(); ++iband)
+		//the sequence in the vertices vector is its corresponding vertex index
+		currVert = this->domain->GetVertex(iVert);
+		if ( (currVert->IsAtContact()) && (currVert->Contact->ContactName == "Gate") )
 		{
-			this->siliconBandEdge = siliconBandEdgeSet.at(iband);
-			this->PrepareProblem(NULL);
-			this->SolveTunneling();
-			v.push_back(this->currentDensity);
+			vertsTunnelStart.push_back(currVert);
 		}
-		currentMatrix.push_back(v);
 	}
-	SctmFileStream writeFile = SctmFileStream("C:\\Users\\Lunzhy\\Desktop\\TunnelTest.txt", SctmFileStream::Write);
-	writeFile.Write2DVectorForOrigin(oxideEmassSet, siliconBandEdgeSet, currentMatrix, "Tunneling current -- x: oxide emass -- y: silicon band edge");
+	//set the effective tunneling mass
+	this->effTunnelMass = 0.5; // in m0
 }
 
-void TunnelTest::SolveCalibrate()
+void SubsToGateEletronTunnel::setSolver_Interface(FDVertex *startVertex)
 {
-	this->oxideEmass = 0.42; // [m0]
+	//reset the vectors used in the calculation
+	cbEdge.clear();
+	//
+	// IMPORTANT! the parameters are in normalization values. They are converted before the calculation. (Not here) !
+	// the tunneling direction is north
+	using SctmUtils::Normalization;
+	double dx = 0;
+	double emass = 0;
+	double cbedge = 0;
+	FDVertex *currVert = startVertex;
 
-	vector<double> tunnelCurrent;
-	vector<double> voltageSet;
-
-	vector<double> cbedges;
-	vector<double> elecFields;
-
-	for (int ix = 1; ix < 11; ++ix)
+	while(true)
 	{
-		voltageSet.push_back(ix);
-	}
+		//for boundary vertex, the south length equals to 0
+		//CAUTION: the following process is case-dependent.
+		//                 x--------x---------x
+		//            tunneling interface trapping
+		//special treatment has been considered at the interface
 
-	// read-in from the parameter file
-	SctmFileStream writeFile = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\result.txt", SctmFileStream::Write);
-	
-	//calculation of tunneling current for 2nm
-	this->oxideThickness = 2;
-	SctmFileStream readFile_2nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\2nm.txt", SctmFileStream::Read);
-	readFile_2nm.ReadTunnelParameter(cbedges, elecFields);
-	tunnelCurrent.clear();
-	for (int ix = 0; ix != 10; ++ix)
-	{
-		this->gateVoltage = ix + 1;
-		this->siliconBandEdge = cbedges.at(ix);
-		this->elecField = elecFields.at(ix) * 1e6;
-		this->PrepareProblem(NULL);
-		this->SolveTunneling();
-		tunnelCurrent.push_back(this->currentDensity);
-	}
-	writeFile.WriteVector(tunnelCurrent, "2nm current");
+		//finish the including process when the vertex is at the trapping boundary
+		if (currVert->IsAtBoundary(FDBoundary::eDensity))
+		{
+			//in terms of the conduction band edge where the electron tunneling in, use the cbedge of the second
+			//vertex instead, as an approximation
+			vertsTunnelEnd_Interface.push_back(currVert);
+			//set the conduction band edge of the interface between tunneling layer and trapping layer
+			this->cbedgeTunnelTo = currVert->NorthVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+			break;
+		}
+		
+		if (currVert->NorthVertex->IsAtBoundary(FDBoundary::eDensity))
+		{
+			dx = currVert->SouthLength / 2 + currVert->NorthLength;
+		}
+		else
+		{
+			dx = currVert->SouthLength / 2 + currVert->NorthLength / 2;
+		}
+		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
+		cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+		this->deltaX.push_back(dx);
+		this->elecMass.push_back(emass);
+		this->cbEdge.push_back(cbedge);
 
-	//calculation of tunneling current for 3nm
-	this->oxideThickness = 3;
-	SctmFileStream readFile_3nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\3nm.txt", SctmFileStream::Read);
-	readFile_3nm.ReadTunnelParameter(cbedges, elecFields);
-	tunnelCurrent.clear();
-	for (int ix = 0; ix != 10; ++ix)
-	{
-		this->gateVoltage = ix + 1;
-		this->siliconBandEdge = cbedges.at(ix);
-		this->elecField = elecFields.at(ix) * 1e6;
-		this->PrepareProblem(NULL);
-		this->SolveTunneling();
-		tunnelCurrent.push_back(this->currentDensity);
+		currVert = currVert->NorthVertex; // to run the iteration
 	}
-	writeFile.WriteVector(tunnelCurrent, "3nm current");
-	
-	//calculation of tunneling current for 4nm
-	this->oxideThickness = 4;
-	SctmFileStream readFile_4nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\4nm.txt", SctmFileStream::Read);
-	readFile_4nm.ReadTunnelParameter(cbedges, elecFields);
-	tunnelCurrent.clear();
-	for (int ix = 0; ix != 10; ++ix)
-	{
-		this->gateVoltage = ix + 1;
-		this->siliconBandEdge = cbedges.at(ix);
-		this->elecField = elecFields.at(ix) * 1e6;
-		this->PrepareProblem(NULL);
-		this->SolveTunneling();
-		tunnelCurrent.push_back(this->currentDensity);
-	}
-	writeFile.WriteVector(tunnelCurrent, "4nm current");
+	//set the silicon band edge, because the difference is fixed
+	using namespace MaterialDB;
+	double diff = 0;
+	diff = GetMatPrpty(&MaterialDB::Silicon, MatProperty::Mat_ElectronAffinity)
+		- GetMatPrpty(&MaterialDB::SiO2, MatProperty::Mat_ElectronAffinity);
+	cbedgeTunnelFrom = startVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+	//set the fermi energy of the tunneling-in vertex
+	fermiEnergyTunnelFrom = fermiAboveMap[startVertex->GetID()];
+}
 
-	//calculation of tunneling current for 5nm
-	this->oxideThickness = 5;
-	SctmFileStream readFile_5nm = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\TunnelCalibrate\\5nm.txt", SctmFileStream::Read);
-	readFile_5nm.ReadTunnelParameter(cbedges, elecFields);
-	tunnelCurrent.clear();
-	for (int ix = 0; ix != 10; ++ix)
-	{
-		this->gateVoltage = ix + 1;
-		this->siliconBandEdge = cbedges.at(ix);
-		this->elecField = elecFields.at(ix) * 1e6;
-		this->PrepareProblem(NULL);
-		this->SolveTunneling();
-		tunnelCurrent.push_back(this->currentDensity);
-	}
-	writeFile.WriteVector(tunnelCurrent, "5nm current");
+SubsToGateEletronTunnel::SubsToGateEletronTunnel(FDDomain *_domain): TunnelSolver(_domain)
+{
+	initialize();
+}
+
+double SubsToGateEletronTunnel::getSupplyFunction(double energy)
+{
+	double T = this->temperature;
+	double EfTunnelFrom = this->fermiEnergyTunnelFrom;
+
+	double kB = SctmPhys::BoltzmanConstant;
+	double q = SctmPhys::ElementaryCharge;
+	double integralTunnelFrom = 1;
+	double integralTunnelTo = 0; // assume the energy level in CB of trapping layer is always empty
+
+	double energyDiff = 0; // in [eV], energy - fermi energy tunneling from
+	Normalization norm = Normalization();
+	energyDiff = norm.PullEnergy(energy - EfTunnelFrom);
+
+	if (energy - EfTunnelFrom > 5 * kB * T / q)
+		integralTunnelFrom =  kB * T * SctmMath::exp(- q * energyDiff / kB / T);
+	else
+		integralTunnelFrom = kB * T * SctmMath::ln(1 + SctmMath::exp(- q * energyDiff / kB / T));
+
+	double supply = integralTunnelFrom - integralTunnelTo;
+	return supply;
 }
