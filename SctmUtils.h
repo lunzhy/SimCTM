@@ -169,6 +169,8 @@ namespace SctmUtils
 		void PrintDirectionVector(VectorValue &dv);
 
 		void WritePoisson(FDDomain *domain);
+		void WriteBandInfo(FDDomain *domain);
+		void WriteDensity(FDDomain *domain);
 	private:
 		bool enable;
 	};
@@ -203,22 +205,10 @@ namespace SctmUtils
 			Read
 		};
 		SctmFileStream(string _filename, FileMode _mode);
-		/// @brief Write2DVectorForOrigin is used to write 2D vector in the format of Origin input
-		/// 
-		///
-		/// 
-		/// @param vector<double> & vecX
-		/// @param vector<double> & vecY
-		/// @param vector<vector<double>> & vector2D
-		/// @param const char * title
-		/// @pre
-		/// @return void
-		/// @note this method is obsolete
-		void Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title);
-		void ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields);
 		
 		void WriteVector(vector<double> &vec, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
+		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
 	private:
 		string fileName;
 	};
@@ -234,6 +224,7 @@ namespace SctmUtils
 		void ReadTunnelParamter();
 		void WriteDDResult(vector<FDVertex *> &vertices);
 		void WritePoissonResult(vector<FDVertex *> &vertices);
+		void WriteBandInfo(vector<FDVertex *> &vertices);
 	protected:
 		string fileName;
 		string directoryName;

@@ -52,7 +52,7 @@ public:
 	void BuildDomain();
 protected:
 	std::vector<FDVertex *> vertices; ///< the vertices contained in the domain
-	std::vector<FDVertex *> vertsTrapping; ///< the vertices related to trapping layers in the domain
+	std::vector<FDVertex *> ddVerts; ///< the vertices related to trapping layers in the domain
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
 	std::vector<FDRegion *> regions; ///< the regions contained in the domain
 	std::vector<FDContact *> contacts; ///< the contacts contained in the domain
@@ -66,6 +66,14 @@ public:
 	/// @return std::vector<FDVertex *> &
 	/// @note
 	std::vector<FDVertex *> &GetVertices();
+	/// @brief GetDDVerts returns the vertices related to drift-diffusion process, for the use of DriftDiffusionSolver
+	/// 
+	///
+	/// 
+	/// @pre
+	/// @return std::vector<FDVertex *> &
+	/// @note
+	std::vector<FDVertex *> &GetDDVerts();
 	/// @brief GetVertex can get the vertex object with given id
 	/// 
 	/// This method returns the pointer of specified vertex object. In practice, a pointer with same type is
@@ -111,6 +119,7 @@ protected:
 	void setBoundaryCondition();
 	void setVertBC_Potential(FDVertex *vert);
 	void setVertBC_eDensity(FDVertex *vert);
+	void fillDDVerts();
 private:
 	static bool isValidElem(FDElement *elem);
 	static bool isNotTrappingElem(FDElement *elem);

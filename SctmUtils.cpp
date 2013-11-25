@@ -145,6 +145,9 @@ namespace SctmUtils
 		case 10021:
 			msg = "[TunnelSolver.cpp] Emin/Emax error in tunneling solver.";
 			break;
+		case 10022:
+			msg = "[DDSolver.cpp] Errors occurred when passing the boundary current density from tunneling layer to ddsolver.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -316,6 +319,18 @@ namespace SctmUtils
 		UtilsData.WritePoissonResult(domain->GetVertices());
 	}
 
+	void SctmDebug::WriteBandInfo(FDDomain *domain)
+	{
+		UtilsData.WriteBandInfo(domain->GetVertices());
+	}
+
+	void SctmDebug::WriteDensity(FDDomain *domain)
+	{
+		UtilsData.WriteDDResult(domain->GetDDVerts());
+	}
+
+
+
 	void SctmMessaging::printLine(string &line)
 	{
 		std::cout << line << std::endl;
@@ -416,24 +431,6 @@ namespace SctmUtils
 		}
 	}
 
-	void SctmFileStream::Write2DVectorForOrigin(vector<double> &vecX, vector<double> &vecY, vector<vector<double>> &vector2D, const char *title)
-	{
-		fstream tofile;
-		tofile.open(this->fileName.c_str(), std::ios::app);
-		if (!tofile) 
-			UtilsMsg.PrintFileError(this->fileName.c_str());
-		
-		tofile << title << endl;
-		for (size_t ix = 0; ix != vecX.size(); ++ix)
-		{
-			for (size_t iy = 0; iy != vecY.size(); ++iy)
-			{
-				tofile << vecX.at(ix) << '\t' << vecY.at(iy) << '\t' << vector2D.at(ix).at(iy) << endl;
-			}
-		}
-		tofile.close();
-	}
-
 	void SctmFileStream::WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title /*= "title not assigned"*/)
 	{
 		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
@@ -457,19 +454,17 @@ namespace SctmUtils
 		tofile.close();
 	}
 
-	void SctmFileStream::ReadTunnelParameter(vector<double> &cbedges, vector<double> &elecfields)
+	void SctmFileStream::WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title /*= "title not assigned"*/)
 	{
-		cbedges.clear(); elecfields.clear();
-		std::ifstream file(this->fileName.c_str());
-
-		double val = 0;
-		while (!file.eof())
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
 		{
-			file >> val; elecfields.push_back(val);
-			file >> val; cbedges.push_back(val);
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << '\t' << vec4.at(iv) << endl;
 		}
-		file.close();
+		tofile.close();
 	}
+
 
 	SctmTimeStep::SctmTimeStep()
 	{
@@ -531,7 +526,7 @@ namespace SctmUtils
 			break;
 		}
 
-		while(true)
+		while(false)
 		{
 			if (currStepNumber <= 10)
 			{
@@ -561,6 +556,7 @@ namespace SctmUtils
 			break;
 		}
 		
+		next = 1e-12;
 		return norm.PushTime(next);
 	}
 
@@ -630,6 +626,32 @@ namespace SctmUtils
 
 		ret = "_s" + step + ".txt";
 		return ret;
+	}
+
+	void SctmData::WriteBandInfo(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "\\PoissonTest\\band" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		Normalization norm = Normalization();
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecCB;
+		vector<double> vecVB;
+
+		FDVertex *currVert = NULL;
+		for (size_t iVer = 0; iVer != vertices.size(); ++iVer)
+		{
+			currVert = vertices.at(iVer);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			vecCB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy)));
+			vecVB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy)));
+		}
+
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "band structure of time [" + numStr + "] (x, y, Conduction band, Valence band)"; 
+		file.WriteVector(vecX, vecY, vecCB, vecVB, title.c_str());
 	}
 
 	string ConvertToString::Int(int num)

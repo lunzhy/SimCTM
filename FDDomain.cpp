@@ -48,6 +48,11 @@ std::vector<FDVertex *> & FDDomain::GetVertices()
 	return this->vertices;
 }
 
+std::vector<FDVertex *> & FDDomain::GetDDVerts()
+{
+	return this->ddVerts;
+}
+
 bool FDDomain::isValidElem(FDElement *elem)
 {
 	return elem != NULL;
@@ -308,13 +313,15 @@ void FDDomain::BuildDomain()
 	UtilsTimer.Set();
 	//Initialize the vectors in FDDomain
 	vertices.clear();
-	vertsTrapping.clear();
+	ddVerts.clear();
 	elements.clear();
 	regions.clear();
 	contacts.clear();
 
 	//build the data and mesh structure of simulated region, this is a pure virtual method
 	buildStructure();
+	//fill the vertices belonging to drift-diffusion process
+	fillDDVerts();
 	//set the physics value related to vertex
 	setVertexPhysics();
 	//set the boundary condition, the specific value is not considered in this class.
@@ -384,6 +391,31 @@ void FDDomain::setVertexPhysics()
 			physValue = sum / tot;
 			currVertex->Phys->SetPhysPrpty(verPrptys.at(iPrpty), physValue);
 			*/
+		}
+	}
+}
+
+void FDDomain::fillDDVerts()
+{
+	FDVertex *currVert = NULL;
+
+	bool notTrapping_NW = false;
+	bool notTrapping_NE = false;
+	bool notTrapping_SE = false;
+	bool notTrapping_SW = false;
+
+	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+
+		bool notTrapping_NW = isNotTrappingElem(currVert->NorthwestElem);
+		bool notTrapping_NE = isNotTrappingElem(currVert->NortheastElem);
+		bool notTrapping_SE = isNotTrappingElem(currVert->SoutheastElem);
+		bool notTrapping_SW = isNotTrappingElem(currVert->SouthwestElem);
+
+		if (!(notTrapping_NE && notTrapping_NW && notTrapping_SE && notTrapping_SW))
+		{
+			this->ddVerts.push_back(currVert);
 		}
 	}
 }

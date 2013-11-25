@@ -40,8 +40,8 @@ void SimpleONO::setParameters()
 	double yLengthTrap_in_nm = 10;
 	double yLengthBlock_in_nm = 9;
 	int xGridNumber = 5; //the grid number, not vertex number
-	int yGridNumberTunnel =5;
-	int yGridNumberTrap = 5;
+	int yGridNumberTunnel = 5;
+	int yGridNumberTrap = 100;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members

@@ -57,7 +57,7 @@ public:
 	/// @return void
 	/// @note
 	void SolvePotential();
-	void ReturnResult(VertexMapDouble &ret);
+	void UpdatePotential();
 private:
 	vector<FDVertex *> &vertices; ///< the vertices of the domain to be solved
 	vector<double> potential; ///< the potential of the vertices with same sequence in the vertices vector (same sequence of the equations)

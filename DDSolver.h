@@ -35,14 +35,17 @@ public:
 		DirectDiscretization,
 		UsingCurrentDensity,
 	};
-	DriftDiffusionSolver(FDDomain *domain);
+	DriftDiffusionSolver(FDDomain *_domain);
+	void ReadInputCurrentBC(VertexMapDouble &bcCurrent);
 	virtual void SolveDD();
+	void UpdateElecDens();
 	double CalculateTotalLineDensity();
 protected:
 	BCMethod bcMethod;
 	bool useCrankNicolsonMethod;
 
-	vector<FDVertex *> vertices;
+	FDDomain *domain;
+	vector<FDVertex *> ddVertices;
 	vector<FDVertex *> &totalVertices;
 
 	double temperature;
@@ -62,8 +65,9 @@ protected:
 protected:
 	void initializeSolver();
 	void prepareSolver();
-	void getDDVertices(FDDomain *domain);
+	void getDDVertices(FDDomain *domain); //not used now
 	virtual void buildVertexMap();
+	void refreshVertexMap();
 	/// @brief setBndCondCurrent is used to set the current boundary condition of the drift-diffusion area
 	/// 
 	/// Currently, this method is restricted in the simple structures.

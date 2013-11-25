@@ -179,7 +179,7 @@ void TunnelSolver::SolveTunnel_Interface()
 	}
 }
 
-void TunnelSolver::ReadInput(VertexMapDouble fermi)
+void TunnelSolver::ReadInput(VertexMapDouble &fermi)
 {
 	int vertID = 0;
 	double val = 0;
@@ -200,6 +200,20 @@ double TunnelSolver::solve_Interface()
 	double ret = 0;
 	ret = calcDTFNtunneling();
 	return ret;
+}
+
+void TunnelSolver::ReturnResult(VertexMapDouble &ret)
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double currDens = 0;
+	for (size_t iVert = 0; iVert != vertsTunnelEnd_Interface.size(); ++iVert)
+	{
+		currVert = vertsTunnelEnd_Interface.at(iVert);
+		vertID = currVert->GetID();
+		currDens = eCurrDens_Interface.at(iVert);
+		ret[vertID] = currDens;
+	}
 }
 
 void SubsToGateEletronTunnel::initialize()
@@ -234,6 +248,14 @@ void SubsToGateEletronTunnel::setSolver_Interface(FDVertex *startVertex)
 	double cbedge = 0;
 	FDVertex *currVert = startVertex;
 
+	//CAUTION this is a temporary method
+	//set the silicon band edge, because the difference is fixed
+	using namespace MaterialDB;
+	double barrier = 0;
+	barrier = GetMatPrpty(&MaterialDB::Silicon, MatProperty::Mat_ElectronAffinity)
+		- GetMatPrpty(&MaterialDB::SiO2, MatProperty::Mat_ElectronAffinity);
+	cbedgeTunnelFrom = startVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - barrier;
+	
 	while(true)
 	{
 		//for boundary vertex, the south length equals to 0
@@ -248,11 +270,9 @@ void SubsToGateEletronTunnel::setSolver_Interface(FDVertex *startVertex)
 			//in terms of the conduction band edge where the electron tunneling in, use the cbedge of the second
 			//vertex instead, as an approximation
 			vertsTunnelEnd_Interface.push_back(currVert);
-			//set the conduction band edge of the interface between tunneling layer and trapping layer
-			this->cbedgeTunnelTo = currVert->NorthVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
 			break;
 		}
-		
+
 		if (currVert->NorthVertex->IsAtBoundary(FDBoundary::eDensity))
 		{
 			dx = currVert->SouthLength / 2 + currVert->NorthLength;
@@ -269,12 +289,10 @@ void SubsToGateEletronTunnel::setSolver_Interface(FDVertex *startVertex)
 
 		currVert = currVert->NorthVertex; // to run the iteration
 	}
-	//set the silicon band edge, because the difference is fixed
-	using namespace MaterialDB;
-	double barrier = 0;
-	barrier = GetMatPrpty(&MaterialDB::Silicon, MatProperty::Mat_ElectronAffinity)
+	//set the conduction band edge in the trapping layer where the tunneling ends.
+	barrier = GetMatPrpty(&MaterialDB::Si3N4, MatProperty::Mat_ElectronAffinity)
 		- GetMatPrpty(&MaterialDB::SiO2, MatProperty::Mat_ElectronAffinity);
-	cbedgeTunnelFrom = startVertex->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - barrier;
+	cbedgeTunnelTo = (vertsTunnelEnd_Interface.back())->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - barrier;
 	//set the fermi energy of the tunneling-in vertex
 	fermiEnergyTunnelFrom = fermiAboveMap[startVertex->GetID()] + cbedgeTunnelFrom;
 }

@@ -321,7 +321,7 @@ void TwoDimPoissonSolver::fillBackPotential()
 	}
 }
 
-void TwoDimPoissonSolver::ReturnResult(VertexMapDouble &ret)
+void TwoDimPoissonSolver::UpdatePotential()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -333,6 +333,7 @@ void TwoDimPoissonSolver::ReturnResult(VertexMapDouble &ret)
 		vertID = currVert->GetID();
 		equationID = equationMap[vertID];
 		pot = potential.at(equationID); //iVert = EquationID
-		ret[vertID] = pot;
+		
+		currVert->Phys->SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
 	}
 }

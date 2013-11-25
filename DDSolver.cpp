@@ -20,7 +20,7 @@
 using namespace SctmPhys;
 using namespace SctmUtils;
 
-DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(domain->GetVertices())
+DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), totalVertices(domain->GetVertices())
 {
 	this->bcMethod = UsingCurrentDensity;
 	this->useCrankNicolsonMethod = true;
@@ -31,18 +31,27 @@ DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *domain): totalVertices(doma
 
 void DriftDiffusionSolver::SolveDD()
 {
-	
+	UtilsTimer.Set();
+	prepareSolver(); //call method from base, DriftDiffusionSolver
+
+	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
+
+	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+
+	//UpdateElecDens();
+	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+
+	//UtilsData.WriteDDResult(this->ddVertices);
 }
 
 void DriftDiffusionSolver::initializeSolver()
 {
-	int vertSize = this->vertices.size();
+	int vertSize = this->ddVertices.size();
 	this->rhsVector.resize(vertSize);
 	this->elecDensity.resize(vertSize);
 	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
 	
-	buildVertexMap(); //call the method in DDSolver (Base class), because at this time the derived class is not constructed.
-	buildCoefficientMatrix();
+	buildVertexMap(); //call the method in DriftDiffusionSolver (Base class), because at this time the derived class is not constructed.
 }
 
 void DriftDiffusionSolver::buildVertexMap()
@@ -58,9 +67,9 @@ void DriftDiffusionSolver::buildVertexMap()
 	//mobility of boundary vertex. This is now solved by introducing a new method of filling vertex physical values.
 	//this map is filled in order to obtain the vertex index from the vertex internal id. This is useful
 	//in setting up the equation, i.e. filling the matrix.
-	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (std::size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 		vertID = currVert->GetID();
 
 		//equationID = iVert; //equation index is also the vertex index in the vertices container
@@ -87,15 +96,15 @@ void DriftDiffusionSolver::setBndCondCurrent(vector<double> &in_current)
 void DriftDiffusionSolver::buildCoefficientMatrix()
 {
 	int indexEquation = 0;
-	int matrixSize = this->vertices.size();
+	int matrixSize = this->ddVertices.size();
 	matrixSolver.matrix.resize(matrixSize, matrixSize);
 	matrixSolver.matrix.reserve(Eigen::VectorXd::Constant(matrixSize, 5));
 
 	FDVertex *currVert = NULL;
 
-	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (std::size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 		indexEquation = equationMap[currVert->GetID()];
 		SCTM_ASSERT(indexEquation==iVert, 100012);
 		//boundary vertex
@@ -124,9 +133,9 @@ void DriftDiffusionSolver::buildRhsVector()
 	int equationID = 0;
 
 	double rhsVal = 0;
-	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 		vertID = currVert->GetID();
 		equationID = equationMap[vertID];
 
@@ -168,9 +177,9 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 	else
 		coeffToAdd = -1 / timeStep - ( -1 / lastTimeStep );
 	
-	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (std::size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 
 		//there is no need refreshing coefficient related to boundary condition for this reason
 		//this is true for two method of differentiating boundary equation
@@ -210,7 +219,7 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 
 		if (!(notTrapping_NE && notTrapping_NW && notTrapping_SE && notTrapping_SW))
 		{
-			this->vertices.push_back(currVert);
+			this->ddVertices.push_back(currVert);
 		}
 	}
 }
@@ -220,20 +229,39 @@ void DriftDiffusionSolver::setTimeStep()
  	timeStep = UtilsTimeStep.TimeStep();
 }
 
+void DriftDiffusionSolver::UpdateElecDens()
+{
+	FDVertex *currVert = NULL;
+	int equationID = 0;
+	double edens = 0;
+	int VertID = 0;
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
+	{
+		currVert = this->ddVertices.at(iVert);
+		VertID = currVert->GetID();
+		equationID = equationMap[VertID];
+		edens = this->elecDensity.at(equationID);
+		currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
+		
+		//It is also essential to refresh property map. this is done at the preparation of the solver.
+		//lastElecDensMap[VertID] = edens;
+	}
+}
+
 void DriftDiffusionSolver::fillBackElecDens()
 {
 	FDVertex *currVert = NULL;
 	int equationID = 0;
 	double edens = 0;
 	int VertID = 0;
-	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 		VertID = currVert->GetID();
 		equationID = equationMap[VertID];
 		edens = this->elecDensity.at(equationID);
 		currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
-		//It is also essential to refresh property map
+		//It is also essential to refresh property map.
 		lastElecDensMap[VertID] = edens;
 	}
 }
@@ -451,19 +479,20 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 void DriftDiffusionSolver::prepareSolver()
 {
 	setTimeStep();
-	refreshBoundary();
+	//refreshBoundary();// call this method when testing ddsolver
 
-	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
-	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	refreshVertexMap();
+
+	buildCoefficientMatrix();
 	refreshCoefficientMatrix();
-	//UtilsDebug.PrintSparseMatrixRow(matrixSolver.matrix, 0);
-	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	
+	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 
 	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
 	//different due to the difference in last time electron density
 	buildRhsVector();
-	UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
-	//refreshRhsWithBC();
+
+	//UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
 }
 
 void DriftDiffusionSolver::refreshBoundary()
@@ -859,9 +888,9 @@ double DriftDiffusionSolver::CalculateTotalLineDensity()
 
 	Normalization norm = Normalization();
 
-	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		vert = this->vertices.at(iVert);
+		vert = this->ddVertices.at(iVert);
 		ret += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
 			* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 	}
@@ -905,6 +934,44 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 	SCTM_ASSERT(dx!=0 && dy!=0, 10015);
 }
 
+void DriftDiffusionSolver::ReadInputCurrentBC(VertexMapDouble &bcCurrent)
+{
+	FDVertex *currVert = NULL;
+	Normalization norm = Normalization();
+	int vertID = 0;
+	double currDens = 0;
+	for (VertexMapDouble::iterator it = bcCurrent.begin(); it != bcCurrent.end(); ++it)
+	{
+		vertID = it->first;
+		currVert = domain->GetVertex(vertID);
+		
+		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
+		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
+
+		currDens = norm.PushCurrDens(it->second);
+		currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, currDens);
+	}
+}
+
+void DriftDiffusionSolver::refreshVertexMap()
+{
+	int vertID = 0;
+	FDVertex *currVert = NULL;
+	double density = 0;
+	double pot = 0;
+	for (VertexMapInt::iterator it = equationMap.begin(); it != equationMap.end(); ++it)
+	{
+		vertID = it->first;
+		currVert = this->domain->GetVertex(vertID);
+
+		density = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		lastElecDensMap[vertID] = density;
+
+		pot = currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		potentialMap[vertID] = pot;
+	}
+}
+
 DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
 {
 	
@@ -930,9 +997,9 @@ void DDTest::buildVertexMap()
 	//in setting up the equation, i.e. filling the matrix.
 	Normalization norm = Normalization();
 	double lastDensity = norm.PushDensity(1e12);
-	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (std::size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 		vertID = currVert->GetID();
 
 		equationID = iVert; //equation index is also the vertex index in the vertices container
@@ -969,9 +1036,9 @@ void DDTest::setBndCurrent()
 	bool inNorthWest = false; bool inNorthEast = false;
 	bool inSouthWest = true; bool inSouthEast = true;
 
-	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 		//for the current tunneling from tunneling oxide
 
 		bool notTrapping_NW = FDDomain::isNotTrappingElem(currVert->NorthwestElem);
@@ -1114,12 +1181,10 @@ void DDTest::SolveDD()
 	//UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
 	//UtilsDebug.PrintVector(this->elecDensity, "electron density");
 	
-	fillBackElecDens();
+	UpdateElecDens();
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 
-	UtilsData.WriteDDResult(this->vertices);
-	//SctmFileStream write = SctmFileStream("E:\\PhD Study\\SimCTM\\SctmTest\\DDTest\\eDensity.txt", SctmFileStream::Write);
-	//write.WriteDDResult(this->vertices, "electron density");
+	UtilsData.WriteDDResult(this->ddVertices);
 }
 
 void DDTest::setBndDensity()
@@ -1141,9 +1206,9 @@ void DDTest::setBndDensity()
 	valEast = norm.PushDensity(valEast);
 	valWest = norm.PushDensity(valWest);
 
-	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		currVert = this->vertices.at(iVert);
+		currVert = this->ddVertices.at(iVert);
 		//for the current tunneling from tunneling oxide
 
 		bool notTrapping_NW = FDDomain::isNotTrappingElem(currVert->NorthwestElem);
@@ -1195,9 +1260,9 @@ void DDTest::refreshCoeffMatrixDueToBC()
 {
 	FDVertex *vert = NULL;
 	int equID = 0;
-	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
-		vert = this->vertices.at(iVert);
+		vert = this->ddVertices.at(iVert);
 		
 		if (vert->IsAtBoundary(FDBoundary::eDensity))
 		{

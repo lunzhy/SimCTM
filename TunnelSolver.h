@@ -19,14 +19,15 @@
 class FDDomain;
 class FDVertex;
 using std::vector;
-typedef std::map<int, double> VertexMapDouble;
+typedef std::map<int, double> VertexMapDouble; // <vertID, value>, map of vertex physical value
 class TunnelSolver
 {
 	//friend class SctmUtils::SctmDebug;
 public:
 	TunnelSolver(FDDomain *_domain);
-	void ReadInput(VertexMapDouble fermi);
+	void ReadInput(VertexMapDouble &fermi);
 	void SolveTunnel_Interface();
+	void ReturnResult(VertexMapDouble &ret);
 
 protected:
 	virtual double getSupplyFunction(double energy);

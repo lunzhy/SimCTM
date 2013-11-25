@@ -31,42 +31,39 @@ void SolverPack::initialize()
 {
 	this->poissonSolver = new TwoDimPoissonSolver(domain);
 	this->tunnelSolver = new SubsToGateEletronTunnel(domain);
-	this->ddSolver = NULL;
+	this->ddSolver = new DriftDiffusionSolver(domain);
 
-	this->retPotential.clear();
+	this->mapPotential.clear();
 }
 
 void SolverPack::callIteration()
 {
+	UtilsTimeStep.GenerateNext();
+
 	poissonSolver->SolvePotential();
-	updateWithPoissonResult();
+	fetchPoissonResult();
 
 	tunnelSolver->ReadInput(siFermiAboveCBedge);
 	tunnelSolver->SolveTunnel_Interface();
+	fetchTunnelResult();
+	
+	ddSolver->ReadInputCurrentBC(mapCurrDensFromTunnelLayer);
+	ddSolver->SolveDD();
+	fetchDDResult();
+
 }
 
-void SolverPack::updateWithPoissonResult()
+void SolverPack::fetchPoissonResult()
 {
-	poissonSolver->ReturnResult(this->retPotential);
-
-	using SctmPhys::PhysProperty;
-	FDVertex *vert = NULL;
-	int vertID = 0;
-	double val = 0;
-	
-	for (VertexMapDouble::iterator it = retPotential.begin(); it != retPotential.end(); ++it )
-	{
-		vertID = it->first;
-		val = it->second;
-		vert = domain->GetVertex(vertID);
-		vert->Phys->UpdateValue(PhysProperty::ElectrostaticPotential, val);
-	}
+	poissonSolver->UpdatePotential();
 }
 
 void SolverPack::Run()
 {
 	callIteration();
 	UtilsDebug.WritePoisson(domain);
+	UtilsDebug.WriteBandInfo(domain);
+	UtilsDebug.WriteDensity(domain);
 }
 
 void SolverPack::fakeFermiEnergy()
@@ -75,8 +72,8 @@ void SolverPack::fakeFermiEnergy()
 	Normalization norm = Normalization();
 	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double val = 0.2;
-	val = norm.PushEnergy(0.2);
+	double val = 0.1;
+	val = norm.PushEnergy(val);
 	for (size_t iVert = 0; iVert != domain->GetVertices().size(); ++iVert)
 	{
 		currVert = domain->GetVertices().at(iVert);
@@ -86,4 +83,15 @@ void SolverPack::fakeFermiEnergy()
 			siFermiAboveCBedge[vertID] = val;
 		}
 	}
+}
+
+void SolverPack::fetchTunnelResult()
+{
+	this->mapCurrDensFromTunnelLayer.clear();
+	tunnelSolver->ReturnResult(mapCurrDensFromTunnelLayer);
+}
+
+void SolverPack::fetchDDResult()
+{
+	ddSolver->UpdateElecDens();
 }

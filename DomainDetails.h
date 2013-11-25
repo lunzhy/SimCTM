@@ -133,8 +133,7 @@ protected:
 	map<BCName, bool> bc_valid; ///< the validity of the boundary condition with given boundary condition name
 	//Finding the value of non-existed key will return false.
 	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
-	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions, the west-east value in case of two values
-	map<BCName, double> bc_values_second; ///< the second value to store boundary condition values, the south-north value in case of two values
+	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions. When BC is a vector value, this is the magnitude of the vector
 	map<BCName, VectorValue> bc_normVector; ///< the map to store normal vector of the boundary
 };
 

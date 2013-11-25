@@ -35,14 +35,13 @@ protected:
 	void initialize();
 	void callIteration();
 	
-	void updateWithPoissonResult();
+	void fetchPoissonResult();
 	void fetchTunnelResult();
 	void fetchDDResult();
-
-	void updateWithPotential();
 
 	void fakeFermiEnergy();
 private:
 	VertexMapDouble siFermiAboveCBedge; // for input in the tunneling solver silicon fermi energy - silicon conduction band edge
-	VertexMapDouble retPotential;
+	VertexMapDouble mapPotential;
+	VertexMapDouble mapCurrDensFromTunnelLayer;
 };
