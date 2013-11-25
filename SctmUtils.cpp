@@ -316,7 +316,7 @@ namespace SctmUtils
 
 	void SctmDebug::WritePoisson(FDDomain *domain)
 	{
-		UtilsData.WritePoissonResult(domain->GetVertices());
+		UtilsData.WritePotential(domain->GetVertices());
 	}
 
 	void SctmDebug::WriteBandInfo(FDDomain *domain)
@@ -326,7 +326,7 @@ namespace SctmUtils
 
 	void SctmDebug::WriteDensity(FDDomain *domain)
 	{
-		UtilsData.WriteDDResult(domain->GetDDVerts());
+		UtilsData.WriteElecDens(domain->GetDDVerts());
 	}
 
 
@@ -465,6 +465,18 @@ namespace SctmUtils
 		tofile.close();
 	}
 
+	void SctmFileStream::WriteVector(vector<double> &vec1, vector<double> &vec2, const char *title /*= "title not assigned"*/)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
+		{
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << endl;
+		}
+		tofile.close();
+	}
+
+
 
 	SctmTimeStep::SctmTimeStep()
 	{
@@ -474,7 +486,7 @@ namespace SctmUtils
 
 	void SctmTimeStep::GenerateNext()
 	{
-		currStepNumber += 1;
+		currStepNumber += 1; // step number starts with 1
 		this->currTimeStep = getTimeStep();
 		this->currElapsedTime += this->currTimeStep;
 	}
@@ -567,13 +579,13 @@ namespace SctmUtils
 
 	SctmData::SctmData()
 	{
-		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest";
+		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest\\";
 	}
 
 
-	void SctmData::WriteDDResult(vector<FDVertex *> &vertices)
+	void SctmData::WriteElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\DDTest\\TempData\\eDensity" + generateFileSuffix();
+		fileName = directoryName + "eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -595,9 +607,9 @@ namespace SctmUtils
 		file.WriteVector(vecX, vecY, vecDen, title.c_str());
 	}
 
-	void SctmData::WritePoissonResult(vector<FDVertex *> &vertices)
+	void SctmData::WritePotential(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\PoissonTest\\potential" + generateFileSuffix();
+		fileName = directoryName + "potential" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -630,7 +642,7 @@ namespace SctmUtils
 
 	void SctmData::WriteBandInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\PoissonTest\\band" + generateFileSuffix();
+		fileName = directoryName + "band" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -653,6 +665,32 @@ namespace SctmUtils
 		string title = "band structure of time [" + numStr + "] (x, y, Conduction band, Valence band)"; 
 		file.WriteVector(vecX, vecY, vecCB, vecVB, title.c_str());
 	}
+
+	void SctmData::WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity)
+	{
+		fileName = directoryName + "subsCurrent" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+		
+		int vertID = 0;
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> currDens;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		for (VertexMapDouble::iterator it = currDensity.begin(); it != currDensity.end(); ++it)
+		{
+			vertID = it->first;
+			currVert = domain->GetVertex(vertID);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			currDens.push_back(norm.PullCurrDens(it->second));
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "band structure of time [" + numStr + "] (x, y, tunneling current density)";
+		file.WriteVector(vecX, vecY, currDens, title.c_str());
+	}
+
 
 	string ConvertToString::Int(int num)
 	{

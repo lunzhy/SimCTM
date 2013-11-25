@@ -38,19 +38,25 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	UtilsTimeStep.GenerateNext();
+	for (size_t it = 0; it != 5; ++it)
+	{
+		UtilsTimeStep.GenerateNext();
 
-	poissonSolver->SolvePotential();
-	fetchPoissonResult();
+		poissonSolver->SolvePotential();
+		fetchPoissonResult();
+		UtilsData.WritePotential(domain->GetVertices());
+		UtilsData.WriteBandInfo(domain->GetVertices());
 
-	tunnelSolver->ReadInput(siFermiAboveCBedge);
-	tunnelSolver->SolveTunnel_Interface();
-	fetchTunnelResult();
-	
-	ddSolver->ReadInputCurrentBC(mapCurrDensFromTunnelLayer);
-	ddSolver->SolveDD();
-	fetchDDResult();
+		tunnelSolver->ReadInput(siFermiAboveCBedge);
+		tunnelSolver->SolveTunnel_Interface();
+		fetchTunnelResult();
+		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
 
+		ddSolver->ReadInputCurrentBC(mapCurrDensFromTunnelLayer);
+		ddSolver->SolveDD();
+		fetchDDResult();
+		UtilsData.WriteElecDens(domain->GetDDVerts());
+	}
 }
 
 void SolverPack::fetchPoissonResult()
@@ -61,9 +67,10 @@ void SolverPack::fetchPoissonResult()
 void SolverPack::Run()
 {
 	callIteration();
-	UtilsDebug.WritePoisson(domain);
-	UtilsDebug.WriteBandInfo(domain);
-	UtilsDebug.WriteDensity(domain);
+
+	//UtilsDebug.WritePoisson(domain);
+	//UtilsDebug.WriteBandInfo(domain);
+	//UtilsDebug.WriteDensity(domain);
 }
 
 void SolverPack::fakeFermiEnergy()

@@ -35,7 +35,7 @@ void TwoDimPoissonSolver::initializeSolver()
 
 	buildVertexMap();
 	buildCoefficientMatrix();
-	buildRhsVector();
+	//buildRhsVector();
 	//the structure does not change, so the final coefficient matrix after refreshing does not change either
 	refreshCoefficientMatrix();
 }
@@ -239,6 +239,7 @@ void TwoDimPoissonSolver::refreshRhs()
 		equationID = equationMap[currVert->GetID()];
 		if (currVert->IsAtBoundary(FDBoundary::Potential))
 		{
+			//vertex at boundary
 			switch (currVert->BndCond.GetBCType(FDBoundary::Potential))
 			{
 				case FDBoundary::BC_Dirichlet:
@@ -258,15 +259,15 @@ void TwoDimPoissonSolver::refreshRhs()
 					{
 						eps_dot_dL = (currVert->NorthwestElem == NULL) ? 0 :
 							0.5 * currVert->NorthLength * GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					eps_dot_dL += (currVert->SouthwestElem == NULL) ? 0 :
-						0.5 * currVert->SouthLength * GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+						eps_dot_dL += (currVert->SouthwestElem == NULL) ? 0 :
+							0.5 * currVert->SouthLength * GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					} 
 					else if (norm_alpha < 0)
 					{
 						eps_dot_dL = (currVert->NortheastElem == NULL) ? 0 :
 							0.5 * currVert->NorthLength * GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					eps_dot_dL += (currVert->SoutheastElem == NULL) ? 0 :
-						0.5 * currVert->SouthLength * GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+						eps_dot_dL += (currVert->SoutheastElem == NULL) ? 0 :
+							0.5 * currVert->SouthLength * GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					}
 					deltaRhs = bcVal * norm_alpha * eps_dot_dL;
 
@@ -274,22 +275,21 @@ void TwoDimPoissonSolver::refreshRhs()
 					{
 						eps_dot_dL = (currVert->SouthwestElem == NULL) ? 0 :
 							0.5 * currVert->WestLength * GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					eps_dot_dL = (currVert->SoutheastElem == NULL) ? 0 :
-						0.5 * currVert->EastLength * GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+						eps_dot_dL = (currVert->SoutheastElem == NULL) ? 0 :
+							0.5 * currVert->EastLength * GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					}
 					else if (norm_beta < 0)
 					{
 						eps_dot_dL = (currVert->NorthwestElem == NULL) ? 0 :
 							0.5 * currVert->WestLength * GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
-					eps_dot_dL = (currVert->NortheastElem == NULL) ? 0 :
-						0.5 * currVert->EastLength * GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+						eps_dot_dL = (currVert->NortheastElem == NULL) ? 0 :
+							0.5 * currVert->EastLength * GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
 					}
 					deltaRhs += bcVal * norm_beta * eps_dot_dL;
 
 					rhsVector.at(equationID) += deltaRhs;
 					break;
 				}
-				
 			}
 		}
 	}
@@ -299,6 +299,7 @@ void TwoDimPoissonSolver::SolvePotential()
 {
 	SctmUtils::UtilsTimer.Set();
 	//the density of different kinds of charge is updated
+	buildRhsVector();
 	refreshRhs();
 	//SctmUtils::UtilsDebug.PrintSparseMatrix(this->matrix);
 	//SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");

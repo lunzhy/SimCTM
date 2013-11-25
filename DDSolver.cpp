@@ -39,11 +39,7 @@ void DriftDiffusionSolver::SolveDD()
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 
 	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-
-	//UpdateElecDens();
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
-
-	//UtilsData.WriteDDResult(this->ddVertices);
 }
 
 void DriftDiffusionSolver::initializeSolver()
@@ -174,11 +170,12 @@ void DriftDiffusionSolver::refreshCoefficientMatrix()
 	int indexCoefficient = 0;
 
 	double coeffToAdd = 0; // coefficient for center vertex
-	if ( lastTimeStep == 0 )
-		coeffToAdd = -1 / timeStep; // from p_n/p_t, p=partial differential
-	else
-		coeffToAdd = -1 / timeStep - ( -1 / lastTimeStep );
-	
+	//if ( lastTimeStep == 0 )
+	//	coeffToAdd = -1 / timeStep; // from p_n/p_t, p=partial differential
+	//else
+	//	coeffToAdd = -1 / timeStep - ( -1 / lastTimeStep );
+	coeffToAdd = -1 / timeStep;
+
 	for (std::size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
 		currVert = this->ddVertices.at(iVert);
@@ -1121,7 +1118,7 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 void DriftDiffusionSolver::ReadInputCurrentBC(VertexMapDouble &bcCurrent)
 {
 	FDVertex *currVert = NULL;
-	Normalization norm = Normalization();
+
 	int vertID = 0;
 	double currDens = 0;
 	for (VertexMapDouble::iterator it = bcCurrent.begin(); it != bcCurrent.end(); ++it)
@@ -1132,7 +1129,7 @@ void DriftDiffusionSolver::ReadInputCurrentBC(VertexMapDouble &bcCurrent)
 		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
 		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
-		currDens = norm.PushCurrDens(it->second);
+		currDens = it->second;
 		currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, currDens);
 	}
 }
@@ -1368,7 +1365,7 @@ void DDTest::SolveDD()
 	UpdateElecDens();
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 
-	UtilsData.WriteDDResult(this->ddVertices);
+	UtilsData.WriteElecDens(this->ddVertices);
 }
 
 void DDTest::setBndDensity()

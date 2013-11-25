@@ -166,6 +166,7 @@ TunnelSolver::TunnelSolver(FDDomain *_domain): domain(_domain)
 void TunnelSolver::SolveTunnel_Interface()
 {
 	eCurrDens_Interface.resize(vertsTunnelStart.size());
+	vertsTunnelEnd_Interface.clear();
 	//this->currentDensity = 0;
 	//calcDTFNtunneling();
 	//calcThermalEmission();
@@ -207,12 +208,13 @@ void TunnelSolver::ReturnResult(VertexMapDouble &ret)
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	double currDens = 0;
+	Normalization norm = Normalization();
 	for (size_t iVert = 0; iVert != vertsTunnelEnd_Interface.size(); ++iVert)
 	{
 		currVert = vertsTunnelEnd_Interface.at(iVert);
 		vertID = currVert->GetID();
 		currDens = eCurrDens_Interface.at(iVert);
-		ret[vertID] = currDens;
+		ret[vertID] = norm.PushCurrDens(currDens);
 	}
 }
 

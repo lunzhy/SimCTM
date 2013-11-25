@@ -110,7 +110,7 @@ protected:
 	/// @return void
 	/// @note
 	void refreshCoefficientMatrix();
-	/// @brief refreshRhs is used to refresh the right-hand side vector of the matrix equation.
+	/// @brief refreshRhs is used to refresh the right-hand side vector of the matrix equation due to boundary condition
 	/// 
 	/// The method to refresh right-hand side of the equation with BC_Neumann and BC_Artificial is a little complicated.
 	/// When considering one element of the specific vertex, the revision of the right-hand side has to be done with the consideration

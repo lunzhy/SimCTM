@@ -23,6 +23,7 @@
 #include <Eigen/Sparse>
 #include <fstream>
 #include "SctmMath.h"
+#include <map>
 using SctmMath::VectorValue;
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
@@ -42,6 +43,8 @@ using std::endl;
 using std::fstream;
 
 class FDDomain;
+
+typedef std::map<int, double> VertexMapDouble; // <vertID, phyValue>
 
 namespace SctmUtils
 {
@@ -119,7 +122,7 @@ namespace SctmUtils
 		double TimeStep() const;
 	protected:
 		double currElapsedTime; /// current time of the simulation
-		int currStepNumber; /// current step of the simulation
+		int currStepNumber; /// current step of the simulation, starting with 1
 		double currTimeStep; /// current simulation time step
 		double getTimeStep();
 	};
@@ -207,6 +210,7 @@ namespace SctmUtils
 		SctmFileStream(string _filename, FileMode _mode);
 		
 		void WriteVector(vector<double> &vec, const char *title = "title not assigned");
+		void WriteVector(vector<double> &vec1, vector<double> &vec2, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
 	private:
@@ -222,9 +226,10 @@ namespace SctmUtils
 	public:
 		SctmData();
 		void ReadTunnelParamter();
-		void WriteDDResult(vector<FDVertex *> &vertices);
-		void WritePoissonResult(vector<FDVertex *> &vertices);
+		void WriteElecDens(vector<FDVertex *> &vertices);
+		void WritePotential(vector<FDVertex *> &vertices);
 		void WriteBandInfo(vector<FDVertex *> &vertices);
+		void WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity);
 	protected:
 		string fileName;
 		string directoryName;
