@@ -42,6 +42,7 @@ public:
 protected:
 	BCMethod bcMethod;
 	bool useCrankNicolsonMethod;
+	bool useScharfetterGummelMethod;
 
 	vector<FDVertex *> vertices;
 	vector<FDVertex *> &totalVertices;
