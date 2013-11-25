@@ -38,6 +38,7 @@ namespace SctmMath
 	inline double sqrt(double val);
 	inline double ln(double val);
 	inline double exp(double val);
+	double Bernoulli_Potential(double potVal);
 
 	// =====================================================================================
 	// IMPLEMENTATIONS

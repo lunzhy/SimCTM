@@ -43,6 +43,7 @@ public:
 protected:
 	BCMethod bcMethod;
 	bool useCrankNicolsonMethod;
+	bool useScharfetterGummelMethod;
 
 	FDDomain *domain;
 	vector<FDVertex *> ddVertices;

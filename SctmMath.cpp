@@ -13,6 +13,8 @@
 
 #include "SctmMath.h"
 #include "SctmUtils.h"
+#include "SctmPhys.h"
+#include "Normalization.h"
 
 namespace SctmMath
 {
@@ -87,6 +89,30 @@ namespace SctmMath
 	double VectorValue::Y() const
 	{
 		return this->vY;
+	}
+
+	double Bernoulli_Potential(double potVal)
+	{
+		double ret = 0;
+		//TODO: read the temperature from user input
+		double temperature = 300;
+		double kT_div_q = SctmPhys::k0 * temperature / SctmPhys::q;
+		
+		using SctmUtils::Normalization;
+		Normalization norm = Normalization();
+		
+		double val = norm.PullPotential(potVal) / kT_div_q;
+		double deno = exp(val) - 1; // denominator
+
+		if (deno == 0)
+		{
+			ret = 1;
+		}
+		else
+		{
+			ret = val / deno;
+		}
+		return ret;
 	}
 
 }
