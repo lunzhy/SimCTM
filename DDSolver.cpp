@@ -594,20 +594,20 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			{
 				mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->WestVertex->GetID()];
-			if (useScharfetterGummelMethod)
-			{
-				coeff_adjacent = mobility / vert->WestLength / deltaX * 
-					SctmMath::Bernoulli_Potential(potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]);
-				coeff_center += - mobility / vert->WestLength / deltaX *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()]);
-			}
-			else
-			{
-				coeff_adjacent = - mobility / vert->WestLength / deltaX *
-					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-				coeff_center += - mobility / vert->WestLength / deltaX *
-					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-			}
+				if (useScharfetterGummelMethod)
+				{
+					coeff_adjacent = mobility / vert->WestLength / deltaX * 
+						SctmMath::Bernoulli_Potential(potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]);
+					coeff_center += - mobility / vert->WestLength / deltaX *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()]);
+				}
+				else
+				{
+					coeff_adjacent = - mobility / vert->WestLength / deltaX *
+						( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+					coeff_center += - mobility / vert->WestLength / deltaX *
+						( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+				}
 
 				if (useCrankNicolsonMethod)
 				{
@@ -625,20 +625,20 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			{
 				mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->EastVertex->GetID()];
-			if (useScharfetterGummelMethod)
-			{
-				coeff_adjacent = mobility / vert->EastLength / deltaX * 
-					SctmMath::Bernoulli_Potential(potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]);
-				coeff_center += - mobility / vert->EastLength / deltaX *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()]);
-			}
-			else
-			{
-				coeff_adjacent = - mobility / vert->EastLength / deltaX *
-					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-				coeff_center += - mobility / vert->EastLength / deltaX *
-					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-			}
+				if (useScharfetterGummelMethod)
+				{
+					coeff_adjacent = mobility / vert->EastLength / deltaX * 
+						SctmMath::Bernoulli_Potential(potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]);
+					coeff_center += - mobility / vert->EastLength / deltaX *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()]);
+				}
+				else
+				{
+					coeff_adjacent = - mobility / vert->EastLength / deltaX *
+						( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+					coeff_center += - mobility / vert->EastLength / deltaX *
+						( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+				}
 
 				if (useCrankNicolsonMethod)
 				{
@@ -655,20 +655,20 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			{
 				mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->SouthVertex->GetID()];
-			if (useScharfetterGummelMethod)
-			{
-				coeff_adjacent = mobility / vert->SouthLength / deltaY * 
-					SctmMath::Bernoulli_Potential(potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]);
-				coeff_center += - mobility / vert->SouthLength  / deltaY *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()]);
-			}
-			else
-			{
-				coeff_adjacent = - mobility / vert->SouthLength / deltaY *
-					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-				coeff_center += - mobility / vert->SouthLength / deltaY *
-					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-			}
+				if (useScharfetterGummelMethod)
+				{
+					coeff_adjacent = mobility / vert->SouthLength / deltaY * 
+						SctmMath::Bernoulli_Potential(potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]);
+					coeff_center += - mobility / vert->SouthLength  / deltaY *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()]);
+				}
+				else
+				{
+					coeff_adjacent = - mobility / vert->SouthLength / deltaY *
+						( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+					coeff_center += - mobility / vert->SouthLength / deltaY *
+						( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+				}
 
 				if (useCrankNicolsonMethod)
 				{
@@ -685,20 +685,20 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 			{
 				mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->NorthVertex->GetID()];
-			if (useScharfetterGummelMethod)
-			{
-				coeff_adjacent = mobility / vert->NorthLength / deltaY * 
-					SctmMath::Bernoulli_Potential(potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]);
-				coeff_center += - mobility / vert->NorthLength / deltaY *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->NorthVertex->GetID()]);
-			}
-			else
-			{
-				coeff_adjacent = - mobility / vert->NorthLength / deltaY *
-					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
-				coeff_center += - mobility / vert->NorthLength / deltaY *
-					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
-			}
+				if (useScharfetterGummelMethod)
+				{
+					coeff_adjacent = mobility / vert->NorthLength / deltaY * 
+						SctmMath::Bernoulli_Potential(potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]);
+					coeff_center += - mobility / vert->NorthLength / deltaY *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->NorthVertex->GetID()]);
+				}
+				else
+				{
+					coeff_adjacent = - mobility / vert->NorthLength / deltaY *
+						( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 );
+					coeff_center += - mobility / vert->NorthLength / deltaY *
+						( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 );
+				}
 
 				if (useCrankNicolsonMethod)
 				{
@@ -915,101 +915,101 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 			if (!(notTrapping_NW && notTrapping_SW))
 			{
 				mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			if (useScharfetterGummelMethod)
-			{
-				west = - mobility / vert->WestLength / deltaX *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()]) *
-					lastElecDensMap[vert->GetID()];
+				if (useScharfetterGummelMethod)
+				{
+					west = - mobility / vert->WestLength / deltaX *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()]) *
+						lastElecDensMap[vert->GetID()];
 
-				west += mobility / vert->WestLength / deltaX *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) *
-					lastElecDensMap[vert->WestVertex->GetID()];
-			}
-			else
-			{
-				west += - mobility / vert->WestLength / deltaX *
-					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 ) *
-					lastElecDensMap[vert->WestVertex->GetID()];
+					west += mobility / vert->WestLength / deltaX *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) *
+						lastElecDensMap[vert->WestVertex->GetID()];
+				}
+				else
+				{
+					west += - mobility / vert->WestLength / deltaX *
+						( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 ) *
+						lastElecDensMap[vert->WestVertex->GetID()];
 
-				west += - mobility / vert->WestLength / deltaX *
-					( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 ) *
-					lastElecDensMap[vert->GetID()];
+					west += - mobility / vert->WestLength / deltaX *
+						( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 ) *
+						lastElecDensMap[vert->GetID()];
+				}
 			}
-		}
 			//East
 			if (!(notTrapping_NE && notTrapping_SE))
 			{
 				mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			if (useScharfetterGummelMethod)
-			{
-				east = - mobility / vert->EastLength / deltaX *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()]) *
-					lastElecDensMap[vert->GetID()];
+				if (useScharfetterGummelMethod)
+				{
+					east = - mobility / vert->EastLength / deltaX *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()]) *
+						lastElecDensMap[vert->GetID()];
 
-				east += mobility / vert->EastLength / deltaX *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) * 
-					lastElecDensMap[vert->EastVertex->GetID()];
-			}
-			else
-			{
-				east += - mobility / vert->EastLength / deltaX *
-					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-					lastElecDensMap[vert->EastVertex->GetID()];
+					east += mobility / vert->EastLength / deltaX *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) * 
+						lastElecDensMap[vert->EastVertex->GetID()];
+				}
+				else
+				{
+					east += - mobility / vert->EastLength / deltaX *
+						( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+						lastElecDensMap[vert->EastVertex->GetID()];
 
-				east += - mobility / vert->EastLength / deltaX *
-					( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-					lastElecDensMap[vert->GetID()];
+					east += - mobility / vert->EastLength / deltaX *
+						( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+						lastElecDensMap[vert->GetID()];
+				}
 			}
-		}
 			//South
 			if (!(notTrapping_SE && notTrapping_SW))
 			{
 				mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			if (useScharfetterGummelMethod)
-			{
-				south = - mobility / vert->SouthLength / deltaY *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()]) *
-					lastElecDensMap[vert->GetID()];
+				if (useScharfetterGummelMethod)
+				{
+					south = - mobility / vert->SouthLength / deltaY *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()]) *
+						lastElecDensMap[vert->GetID()];
 
-				south += mobility / vert->SouthLength / deltaY *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) *
-					lastElecDensMap[vert->SouthVertex->GetID()];
-			}
-			else
-			{
-				south += - mobility / vert->SouthLength / deltaY *
-					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-					lastElecDensMap[vert->SouthVertex->GetID()];
+					south += mobility / vert->SouthLength / deltaY *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) *
+						lastElecDensMap[vert->SouthVertex->GetID()];
+				}
+				else
+				{
+					south += - mobility / vert->SouthLength / deltaY *
+						( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+						lastElecDensMap[vert->SouthVertex->GetID()];
 
-				south += - mobility / vert->SouthLength / deltaY *
-					( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-					lastElecDensMap[vert->GetID()];
+					south += - mobility / vert->SouthLength / deltaY *
+						( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+						lastElecDensMap[vert->GetID()];
+				}
 			}
-		}
 			//North
 			if (!(notTrapping_NE && notTrapping_NW))
 			{
 				mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
-			if (useScharfetterGummelMethod)
-			{
-				north = - mobility / vert->NorthLength / deltaY *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->NorthVertex->GetID()]) *
-					lastElecDensMap[vert->GetID()];
+				if (useScharfetterGummelMethod)
+				{
+					north = - mobility / vert->NorthLength / deltaY *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->NorthVertex->GetID()]) *
+						lastElecDensMap[vert->GetID()];
 
-				north += mobility / vert->NorthLength / deltaY *
-					SctmMath::Bernoulli_Potential(potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) *
-					lastElecDensMap[vert->NorthVertex->GetID()];
-			}
-			else
-			{
-				north += - mobility / vert->NorthLength / deltaY *
-					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-					lastElecDensMap[vert->NorthVertex->GetID()];
+					north += mobility / vert->NorthLength / deltaY *
+						SctmMath::Bernoulli_Potential(potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) *
+						lastElecDensMap[vert->NorthVertex->GetID()];
+				}
+				else
+				{
+					north += - mobility / vert->NorthLength / deltaY *
+						( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
+						lastElecDensMap[vert->NorthVertex->GetID()];
 
-				north += - mobility / vert->NorthLength / deltaY *
-					( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-					lastElecDensMap[vert->GetID()];
-			}
+					north += - mobility / vert->NorthLength / deltaY *
+						( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
+						lastElecDensMap[vert->GetID()];
+				}
 			}
 
 			double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
