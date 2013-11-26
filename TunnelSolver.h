@@ -26,8 +26,8 @@ class TunnelSolver
 public:
 	TunnelSolver(FDDomain *_domain);
 	void ReadInput(VertexMapDouble &fermi);
-	void SolveTunnel_Interface();
-	void ReturnResult(VertexMapDouble &ret);
+	virtual void SolveTunnel() = 0;
+	virtual void ReturnResult(VertexMapDouble &ret) = 0;
 
 protected:
 	virtual double getSupplyFunction(double energy);
@@ -36,21 +36,23 @@ protected:
 	double calcDTFNtunneling();
 	double calcThermalEmission();
 
-	virtual void setSolver_Interface(FDVertex *startVertex) = 0;
-	double solve_Interface(); // solver the interface tunneling current for specified vertex
-
+	virtual void setSolver_Tunnel(FDVertex *startOrEndVertex) = 0;
+	double solveCurrDens_Tunnel(); //solver the tunneling current when solver is ready
 
 protected:
 	FDDomain *domain;
-	vector<FDVertex *> vertsTunnelStart;
-	
-	vector<FDVertex *> vertsTunnelEnd_Interface;
+	vector<FDVertex *> vertsStart_Tunnel;
+	vector<FDVertex *> vertsEnd_Tunnel;
+
+	vector<FDVertex *> vertsStart_Trap;
+	vector<FDVertex *> vertsEnd_Trap;
+
 	VertexMapDouble fermiAboveMap; // fermi energy - conduction band 
 
 	vector<double> cbEdge;
 	vector<double> elecMass;
 	vector<double> deltaX;
-	vector<double> eCurrDens_Interface; // the sequence is the same with the vertex in verticsTunnelStart
+	vector<double> eCurrDens_Tunnel; // the sequence is the same with the vertex in verticsTunnelStart
 
 	double cbedgeTunnelFrom; ///< left electrode conduction band edge
 	double cbedgeTunnelTo;
@@ -61,14 +63,28 @@ protected:
 	double eCurrDens; ///< the tunneling current density, in [A/cm^2]
 };
 
-class SubsToGateEletronTunnel : public TunnelSolver
+class SubsToTrapElecTunnel : public TunnelSolver
 {
 public:
-	SubsToGateEletronTunnel(FDDomain *_domain);
+	SubsToTrapElecTunnel(FDDomain *_domain);
+	void SolveTunnel();
+	void ReturnResult(VertexMapDouble &ret);
 protected:
 	void initialize(); ///< initialize only exists in derived class
 	double getSupplyFunction(double energy);
-	void setSolver_Interface(FDVertex *startVertex);
+	void setSolver_Tunnel(FDVertex *startVertex);
+};
+
+class TrapToGateElecTunnel : public TunnelSolver
+{
+public:
+	TrapToGateElecTunnel(FDDomain *_domain);
+	void SolveTunnel();
+	void ReturnResult(VertexMapDouble &ret);
+protected:
+	void initialize();
+	double getSupplyFunction(double energy);
+	void setSolver_Tunnel(FDVertex *endVertex);
 };
 
 #endif

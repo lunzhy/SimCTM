@@ -41,7 +41,7 @@ void SimpleONO::setParameters()
 	double yLengthBlock_in_nm = 9;
 	int xGridNumber = 5; //the grid number, not vertex number
 	int yGridNumberTunnel = 5;
-	int yGridNumberTrap = 100;
+	int yGridNumberTrap = 5;
 	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
@@ -68,7 +68,7 @@ void SimpleONO::setParameters()
 	//Currently, the gate voltage is not considered in the structure.
 	/////////////////////////////////////////////////////////////////////////////
 	this->gatePotential = 16.526;
-	this->channelPotential = 0.634;
+	this->channelPotential = 0.599;
 
 	//this->gatePotential = 5;
 	//this->channelPotential = 0;

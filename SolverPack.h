@@ -28,7 +28,8 @@ public:
 protected:
 	FDDomain *domain;
 	TwoDimPoissonSolver *poissonSolver;
-	TunnelSolver *tunnelSolver;
+	TunnelSolver *TunnelOxideSolver;
+	TunnelSolver *BlockOxideSolver;
 	DriftDiffusionSolver *ddSolver;
 
 protected:
@@ -36,12 +37,14 @@ protected:
 	void callIteration();
 	
 	void fetchPoissonResult();
-	void fetchTunnelResult();
+	void fetchTunnelOxideResult();
+	void fetchBlockOxideResult();
 	void fetchDDResult();
 
 	void fakeFermiEnergy();
 private:
-	VertexMapDouble siFermiAboveCBedge; // for input in the tunneling solver silicon fermi energy - silicon conduction band edge
+	VertexMapDouble mapSiFermiAboveCBedge; // for input in the tunneling solver silicon fermi energy - silicon conduction band edge
 	VertexMapDouble mapPotential;
 	VertexMapDouble mapCurrDensFromTunnelLayer;
+	VertexMapDouble mapCurrDensCoeff; // the coefficient to calculate current density for dd solver, in [A*cm]
 };

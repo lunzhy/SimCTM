@@ -29,11 +29,14 @@ SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
 
 void SolverPack::initialize()
 {
-	this->poissonSolver = new TwoDimPoissonSolver(domain);
-	this->tunnelSolver = new SubsToGateEletronTunnel(domain);
-	this->ddSolver = new DriftDiffusionSolver(domain);
+	poissonSolver = new TwoDimPoissonSolver(domain);
+	TunnelOxideSolver = new SubsToTrapElecTunnel(domain);
+	BlockOxideSolver = new TrapToGateElecTunnel(domain);
+	ddSolver = new DriftDiffusionSolver(domain);
 
-	this->mapPotential.clear();
+	mapPotential.clear();
+	mapCurrDensFromTunnelLayer.clear();
+	mapSiFermiAboveCBedge.clear();
 }
 
 void SolverPack::callIteration()
@@ -47,10 +50,13 @@ void SolverPack::callIteration()
 		UtilsData.WritePotential(domain->GetVertices());
 		UtilsData.WriteBandInfo(domain->GetVertices());
 
-		tunnelSolver->ReadInput(siFermiAboveCBedge);
-		tunnelSolver->SolveTunnel_Interface();
-		fetchTunnelResult();
+		TunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
+		TunnelOxideSolver->SolveTunnel();
+		fetchTunnelOxideResult();
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
+
+		BlockOxideSolver->SolveTunnel();
+		fetchBlockOxideResult(); mapCurrDensCoeff;
 
 		ddSolver->ReadInputCurrentBC(mapCurrDensFromTunnelLayer);
 		ddSolver->SolveDD();
@@ -75,11 +81,11 @@ void SolverPack::Run()
 
 void SolverPack::fakeFermiEnergy()
 {
-	siFermiAboveCBedge.clear();
+	mapSiFermiAboveCBedge.clear();
 	Normalization norm = Normalization();
 	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double val = 0.1;
+	double val = 0.05;
 	val = norm.PushEnergy(val);
 	for (size_t iVert = 0; iVert != domain->GetVertices().size(); ++iVert)
 	{
@@ -87,18 +93,24 @@ void SolverPack::fakeFermiEnergy()
 		if (currVert->IsAtContact() && currVert->Contact->ContactName == "Channel")
 		{
 			vertID = currVert->GetID();
-			siFermiAboveCBedge[vertID] = val;
+			mapSiFermiAboveCBedge[vertID] = val;
 		}
 	}
 }
 
-void SolverPack::fetchTunnelResult()
+void SolverPack::fetchTunnelOxideResult()
 {
 	this->mapCurrDensFromTunnelLayer.clear();
-	tunnelSolver->ReturnResult(mapCurrDensFromTunnelLayer);
+	TunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
 }
 
 void SolverPack::fetchDDResult()
 {
 	ddSolver->UpdateElecDens();
+}
+
+void SolverPack::fetchBlockOxideResult()
+{
+	this->mapCurrDensCoeff.clear();
+	BlockOxideSolver->ReturnResult(mapCurrDensCoeff);
 }
