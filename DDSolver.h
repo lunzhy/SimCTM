@@ -36,7 +36,8 @@ public:
 		UsingCurrentDensity,
 	};
 	DriftDiffusionSolver(FDDomain *_domain);
-	void ReadInputCurrentBC(VertexMapDouble &bcCurrent);
+	void ReadCurrDensBC_in(VertexMapDouble &bcCurrent);
+	void ReadCurrDensBC_out(VertexMapDouble &bc);
 	virtual void SolveDD();
 	void UpdateElecDens();
 	double CalculateTotalLineDensity();

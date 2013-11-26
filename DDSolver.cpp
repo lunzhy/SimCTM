@@ -37,7 +37,7 @@ void DriftDiffusionSolver::SolveDD()
 	prepareSolver(); //call method from base, DriftDiffusionSolver
 
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
-
+	fillBackElecDens();
 	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
@@ -259,7 +259,7 @@ void DriftDiffusionSolver::fillBackElecDens()
 		VertID = currVert->GetID();
 		equationID = equationMap[VertID];
 		edens = this->elecDensity.at(equationID);
-		currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
+		//currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
 		//It is also essential to refresh property map.
 		lastElecDensMap[VertID] = edens;
 	}
@@ -1115,10 +1115,9 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 	SCTM_ASSERT(dx!=0 && dy!=0, 10015);
 }
 
-void DriftDiffusionSolver::ReadInputCurrentBC(VertexMapDouble &bcCurrent)
+void DriftDiffusionSolver::ReadCurrDensBC_in(VertexMapDouble &bcCurrent)
 {
 	FDVertex *currVert = NULL;
-
 	int vertID = 0;
 	double currDens = 0;
 	for (VertexMapDouble::iterator it = bcCurrent.begin(); it != bcCurrent.end(); ++it)
@@ -1150,6 +1149,28 @@ void DriftDiffusionSolver::refreshVertexMap()
 
 		pot = currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
 		potentialMap[vertID] = pot;
+	}
+}
+
+void DriftDiffusionSolver::ReadCurrDensBC_out(VertexMapDouble &bc)
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double eDens = 0;
+	double currDens = 0;
+	Normalization norm = Normalization();
+	for (VertexMapDouble::iterator it = bc.begin(); it != bc.end(); ++it)
+	{
+		vertID = it->first;
+		currVert = domain->GetVertex(vertID);
+
+		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
+		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
+
+		eDens = norm.PullDensity(lastElecDensMap[vertID]);
+		currDens = - it->second * eDens; // in [A/cm^2]
+		currDens = norm.PushCurrDens(currDens);
+		currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, currDens);
 	}
 }
 

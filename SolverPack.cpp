@@ -56,9 +56,10 @@ void SolverPack::callIteration()
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
 
 		BlockOxideSolver->SolveTunnel();
-		fetchBlockOxideResult(); mapCurrDensCoeff;
+		fetchBlockOxideResult();
 
-		ddSolver->ReadInputCurrentBC(mapCurrDensFromTunnelLayer);
+		ddSolver->ReadCurrDensBC_in(mapCurrDensFromTunnelLayer);
+		ddSolver->ReadCurrDensBC_out(mapCurrDensCoeff);
 		ddSolver->SolveDD();
 		fetchDDResult();
 		UtilsData.WriteElecDens(domain->GetDDVerts());

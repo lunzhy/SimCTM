@@ -354,7 +354,7 @@ double TrapToGateElecTunnel::getSupplyFunction(double energy)
 	// prefactor A in f(E) = A*exp(-E/KT)
 	static double prefactor = h * h * h / 4 / pi / (SctmMath::sqrt(pi)/2) /
 								(kB*T) / SctmMath::sqrt(kB * T) / 
-								SctmMath::sqrt(2*effTunnelMass*m0*effTunnelMass*m0);
+								SctmMath::sqrt(2*effTunnelMass*m0*effTunnelMass*m0*effTunnelMass*m0);
 
 	
 	ret = prefactor * kB * T * SctmMath::exp(- q * (energy - cbedgeTunnelFrom) / kB / T);
@@ -474,7 +474,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 	Normalization norm = Normalization();
 	for (size_t iVert = 0; iVert != vertsEnd_Tunnel.size(); ++iVert)
 	{
-		currVert = vertsEnd_Tunnel.at(iVert);
+		currVert = vertsStart_Tunnel.at(iVert);
 		vertID = currVert->GetID();
 		//currently the eCurrDens_Tunnel the coefficient to calculate current density
 		//value[A*cm] * eDensity[cm^-3] = current density[A/cm^2]
