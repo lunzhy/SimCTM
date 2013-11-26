@@ -113,7 +113,7 @@ namespace SctmPhys
 			break;
 		case NetCharge:
 			//there should be four parts
-			ret = e_density;
+			ret = - e_density;
 			break;
 		case eMobility:
 			ret = e_mobility;
@@ -229,6 +229,7 @@ namespace SctmPhys
 		{
 			area += 0.25 * currElem->Area;
 		}
+		//for vertex not related to trapping layer, the density control area is 0
 		this->controlArea = area;
 	}
 

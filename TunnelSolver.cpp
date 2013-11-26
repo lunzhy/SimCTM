@@ -232,6 +232,7 @@ void SubsToGateEletronTunnel::initialize()
 		}
 	}
 	//set the effective tunneling mass
+	//TODO: this should be obtained from user input
 	this->effTunnelMass = 0.5; // in m0
 }
 

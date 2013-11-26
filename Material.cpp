@@ -39,7 +39,7 @@ namespace MaterialDB
 		SiO2.Bandgap(norm.PushEnergy(9.4));
 		SiO2.DielectricConstant(3.9);
 		SiO2.ElectronAffinity(norm.PushEnergy(0.9));
-		SiO2.ElectronMass(1); // need to be revised
+		SiO2.ElectronMass(0.42); // need to be revised
 		SiO2.HoleMass(1);
 		SiO2.ElectronMobility(0);
 

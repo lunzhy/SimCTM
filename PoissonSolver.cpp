@@ -190,6 +190,7 @@ void TwoDimPoissonSolver::buildRhsVector()
 {
 	FDVertex *currVert = NULL;
 	double charge = 0;
+	double controlArea = 0;
 	int equationID = 0;
 	for (size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
 	{
@@ -197,7 +198,8 @@ void TwoDimPoissonSolver::buildRhsVector()
 		equationID = equationMap[currVert->GetID()];
 		SCTM_ASSERT(equationID==iVert, 10008);
 		charge = currVert->Phys->GetPhysPrpty(PhysProperty::NetCharge);
-		this->rhsVector.at(equationID) = charge;
+		controlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+		this->rhsVector.at(equationID) = - charge * controlArea;
 	}
 }
 

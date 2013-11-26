@@ -24,7 +24,7 @@ using namespace SctmUtils;
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), totalVertices(domain->GetVertices())
 {
 	this->bcMethod = UsingCurrentDensity;
-	this->useCrankNicolsonMethod = true;
+	this->useCrankNicolsonMethod = false;
 	this->useScharfetterGummelMethod = true;
 	this->lastTimeStep = 0;
 	getDDVertices(domain);
@@ -77,11 +77,11 @@ void DriftDiffusionSolver::buildVertexMap()
 		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
-		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
+		//insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
+		//SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
-		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
+		//insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
+		//SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
 		equationID += 1;
 	}
