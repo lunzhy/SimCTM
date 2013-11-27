@@ -64,6 +64,7 @@ protected:
 	vector<double> elecDensity;
 
 	SctmSparseMatrixSolver matrixSolver;
+
 protected:
 	void initializeSolver();
 	void prepareSolver();
@@ -122,6 +123,8 @@ protected:
 	void fillBackElecDens();
 	virtual void refreshBoundary();
 	void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
+	void RefreshTunOutCurrDens_UseLastTime(VertexMapDouble &bc);
+	void RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc);
 };
 
 class DDTest : public DriftDiffusionSolver

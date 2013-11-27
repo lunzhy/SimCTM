@@ -468,7 +468,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double currDens = 0;
+	double tunCoeff = 0;
 	double cm_in_m = SctmPhys::cm_in_m;
 
 	Normalization norm = Normalization();
@@ -478,7 +478,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 		vertID = currVert->GetID();
 		//currently the eCurrDens_Tunnel the coefficient to calculate current density
 		//value[A*cm] * eDensity[cm^-3] = current density[A/cm^2]
-		currDens = eCurrDens_Tunnel.at(iVert) / cm_in_m;
-		ret[vertID] = currDens;
+		tunCoeff = eCurrDens_Tunnel.at(iVert) / cm_in_m;
+		ret[vertID] = norm.PushTunCoeff(tunCoeff);
 	}
 }

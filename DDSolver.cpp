@@ -1154,11 +1154,17 @@ void DriftDiffusionSolver::refreshVertexMap()
 
 void DriftDiffusionSolver::ReadCurrDensBC_out(VertexMapDouble &bc)
 {
+	//RefreshTunOutCurrDens_UseLastTime(bc);
+	RefreshTunOutCurrDens_UseThisTime(bc);
+}
+
+void DriftDiffusionSolver::RefreshTunOutCurrDens_UseLastTime(VertexMapDouble &bc)
+{
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	double eDens = 0;
 	double currDens = 0;
-	Normalization norm = Normalization();
+
 	for (VertexMapDouble::iterator it = bc.begin(); it != bc.end(); ++it)
 	{
 		vertID = it->first;
@@ -1167,10 +1173,62 @@ void DriftDiffusionSolver::ReadCurrDensBC_out(VertexMapDouble &bc)
 		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
 		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
-		eDens = norm.PullDensity(lastElecDensMap[vertID]);
-		currDens = - it->second * eDens; // in [A/cm^2]
-		currDens = norm.PushCurrDens(currDens);
+		eDens = lastElecDensMap[vertID];
+		//the current(or tunnCoeff) should be same with the direction of the boundary condition
+		//so, reversed value is used to calculate current density
+		currDens = - it->second * eDens; // in normalized value, in [A/cm^2]
 		currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, currDens);
+	}
+}
+
+void DriftDiffusionSolver::RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc)
+{
+	//the value of input bc is in [A*cm]
+	FDVertex *currVert = NULL;
+	double tunCoeff = 0;
+	int vertID = 0;
+	int equID = 0;
+	double deltaX = 0;
+	double deltaY = 0;
+	double norm_alpha = 0;
+	double norm_beta = 0;
+	double coeffToAdd = 0;
+	for (VertexMapDouble::iterator it = bc.begin(); it != bc.end(); ++it)
+	{
+		vertID = it->first;
+		tunCoeff = - it->second;
+		currVert = domain->GetVertex(vertID);
+
+		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
+		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
+
+		equID = equationMap[vertID];
+		getDeltaXYAtVertex(currVert, deltaX, deltaY);
+
+		norm_alpha =  currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
+		norm_beta = currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
+
+		//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
+		//the current(or tunnCoeff) should be same with the direction of the boundary condition
+		if (norm_alpha > 0) //lack of east part of the above equation
+		{
+			coeffToAdd +=  tunCoeff * norm_alpha / deltaX;
+		}
+		else if (norm_alpha < 0) //lack of west part of the above equation
+		{
+			coeffToAdd += - tunCoeff * norm_alpha / deltaX;
+		}
+
+		if (norm_beta > 0) // lack of north part of the above equation
+		{
+			coeffToAdd += tunCoeff * norm_beta / deltaY;
+		}
+		else if (norm_beta < 0) //  lack of south part of the above equation
+		{
+			coeffToAdd += - tunCoeff * norm_beta / deltaY;
+		}
+
+		this->matrixSolver.RefreshMatrixValue(equID, equID, coeffToAdd, SctmSparseMatrixSolver::Add);
 	}
 }
 

@@ -41,7 +41,7 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	for (size_t it = 0; it != 5; ++it)
+	for (size_t it = 0; it != 10; ++it)
 	{
 		UtilsTimeStep.GenerateNext();
 

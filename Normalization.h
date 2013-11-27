@@ -201,6 +201,17 @@ namespace SctmUtils
 		{
 			return energy * potentialFactor;
 		}
+
+		//tunneling probability, the coefficient for density to calculate current density.
+		//J = P * n
+		inline double PushTunCoeff(double coeff)
+		{
+			return coeff / (currDensFactor / densityFactor);
+		}
+		inline double PullTunCoeff(double coeff)
+		{
+			return coeff * (currDensFactor * densityFactor);
+		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.
 		/// 
