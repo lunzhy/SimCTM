@@ -148,6 +148,9 @@ namespace SctmUtils
 		case 10022:
 			msg = "[DDSolver.cpp] Errors occurred when passing the boundary current density from tunneling layer to ddsolver.";
 			break;
+		case 10023:
+			msg = "[DomainDetails.cpp] Invalid boundary direction.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -171,9 +174,9 @@ namespace SctmUtils
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
 			//if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
 			PrintValue(currVert->IsAtBoundary(FDBoundary::Potential));
-			PrintValue(currVert->BndCond.Valid(FDBoundary::Potential));
 			if (currVert->IsAtBoundary(FDBoundary::Potential))
 			{
+				PrintDirectionVector(currVert->BndCond.GetBndDirection(FDBoundary::Potential));
 				PrintBCType(currVert->BndCond.GetBCType(FDBoundary::Potential));
 				if (currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet)
 				{
@@ -189,6 +192,7 @@ namespace SctmUtils
 			PrintValue(currVert->IsAtBoundary(FDBoundary::eDensity));
 			if (currVert->IsAtBoundary(FDBoundary::eDensity))
 			{
+				PrintDirectionVector(currVert->BndCond.GetBndDirection(FDBoundary::eDensity));
 				PrintBCType(currVert->BndCond.GetBCType(FDBoundary::eDensity));
 				if (currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Dirichlet)
 				{
@@ -220,7 +224,7 @@ namespace SctmUtils
 			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
 			cout << " -- ";
-			PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea));
+			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea));
 			cout << " -- ";
 			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::eMobility));
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));

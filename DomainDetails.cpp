@@ -43,20 +43,26 @@ FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
 	Phys = new PhysProperty();
 }
 
-void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
+void FDBoundary::SetBnd(BCName bcName, BCType bcType, VectorValue bndVec, double bcValue /*= 0*/)
 {
-	SCTM_ASSERT( this->bc_valid.find(bcName) == this->bc_valid.end(), 10017 ); //make sure bcName not exists
-	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 ); //make sure a valid BC is set
+	SCTM_ASSERT( this->bnd_valid.find(bcName) == this->bnd_valid.end(), 10017 ); //make sure bcName not exists
 
-	//bc_valid.insert(map<BCName, bool>::value_type(bcName, true));
-	this->bc_valid[bcName] = true;
-	this->bc_types[bcName] = bcType;
-	this->bc_values[bcName] = bcValue;
-	if (bcNormVec.DirectionValid())
+	if (bndVec.DirectionValid())
 	{
-		bcNormVec.Normalize();
+		bnd_valid[bcName] = true;
+		
+		bndVec.Normalize();
+		//by default, the bc direction is the same with boundary direction
+		bnd_normVec[bcName] = bndVec;
+		bc_normVec[bcName] = bndVec;
+		
+		bc_types[bcName] = bcType;
+		bc_values[bcName] = bcValue;
 	}
-	this->bc_normVec[bcName] = bcNormVec;
+	else
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10023);
+	}
 }
 
 FDBoundary::BCType FDBoundary::GetBCType(BCName bcName)
@@ -85,23 +91,23 @@ double FDBoundary::GetBCValue(BCName bcName)
 
 bool FDBoundary::Valid(BCName bcName)
 {
-	return bc_valid[bcName];
+	return bnd_valid[bcName];
 	//map<BCName, bool>::iterator iter;
 	//iter = this->bc_valid.find(bcName);
 	//SCTM_ASSERT(iter!=this->bc_valid.end(), 10010);
 	//return iter->second;
 }
 
-void FDBoundary::RefreshBndCond(BCName bcName, double newValue)
+void FDBoundary::RefreshBndCond(BCName bcName, double newValue, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
-	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //make sure bcName exists
+	SCTM_ASSERT(bnd_valid.find(bcName)!=bnd_valid.end(), 10014); //make sure bcName exists
 
 	bc_values[bcName] = newValue;
 }
 
-void FDBoundary::RefreshBndCond(BCName bcName, BCType bcType, double bcVal, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
+void FDBoundary::RefreshBndCond(BCName bcName, BCType bcType, double bcVal /*= 0*/, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
-	SCTM_ASSERT(bc_valid.find(bcName)!=bc_valid.end(), 10014); //make sure bcName exists
+	SCTM_ASSERT(bnd_valid.find(bcName)!=bnd_valid.end(), 10014); //make sure bcName exists
 	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
 
 	bc_types[bcName] = bcType;
@@ -113,10 +119,28 @@ void FDBoundary::RefreshBndCond(BCName bcName, BCType bcType, double bcVal, Vect
 	bc_normVec[bcName] = bcNormVec;
 }
 
+void FDBoundary::RefreshBndCond(BCName bcName, VectorValue bcNormVec)
+{
+	SCTM_ASSERT(bnd_valid.find(bcName)!=bnd_valid.end(), 10014); //make sure bcName exists
+	SCTM_ASSERT( bc_types[bcName] == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
+
+	if (bcNormVec.DirectionValid())
+	{
+		bcNormVec.Normalize();
+	}
+	bc_normVec[bcName] = bcNormVec;
+}
+
 VectorValue & FDBoundary::GetBCNormVector(BCName bcName)
 {
 	SCTM_ASSERT(bc_normVec.find(bcName)!=bc_normVec.end(), 10010);
 	return bc_normVec[bcName];
+}
+
+VectorValue & FDBoundary::GetBndDirection(BCName bcName)
+{
+	SCTM_ASSERT(bnd_normVec.find(bcName)!=bnd_normVec.end(), 10010);
+	return bnd_normVec[bcName];
 }
 
 FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)

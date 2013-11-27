@@ -116,9 +116,12 @@ protected:
 	void virtual buildStructure() = 0;
 	void virtual postProcessOfDomain() = 0;
 	void setVertexPhysics();
-	void setBoundaryCondition();
-	void setVertBC_Potential(FDVertex *vert);
-	void setVertBC_eDensity(FDVertex *vert);
+	void setBoundary();
+	void setBndVert_Potential(FDVertex *vert);
+	void setBndVert_eDensity(FDVertex *vert);
+	void updateBndCond();
+	void updateBCVert_Potential(FDVertex *vert);
+	void updateBCVert_eDensity(FDVertex *vert);
 	void fillDDVerts();
 private:
 	static bool isValidElem(FDElement *elem);

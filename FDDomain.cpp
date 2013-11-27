@@ -68,49 +68,34 @@ bool FDDomain::isNotTrappingElem(FDElement *elem)
 	}
 }
 
-void FDDomain::setBoundaryCondition()
+void FDDomain::setBoundary()
 {
 	FDVertex *currVertex;
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
 	{
-		currVertex = GetVertex(iVer);
-		setVertBC_Potential(currVertex);
-		setVertBC_eDensity(currVertex);
+		currVertex = GetVertex(iVer);//in FDDomain, the index of vertex in the vertices vector in the vertexID.
+		setBndVert_Potential(currVertex);
+		setBndVert_eDensity(currVertex);
 	}
 }
 
-void FDDomain::setVertBC_Potential(FDVertex *vert)
+void FDDomain::setBndVert_Potential(FDVertex *vert)
 {
 	bool isValid_NW = isValidElem(vert->NorthwestElem);
 	bool isValid_NE = isValidElem(vert->NortheastElem);
 	bool isValid_SE = isValidElem(vert->SoutheastElem);
 	bool isValid_SW = isValidElem(vert->SouthwestElem);
 
-	//firstly, to decide if the vertex is at a contact.
-	if ( vert->IsAtContact() )
-	{
-		//the gate name is in accordance with the name specified in setting domain details
-		if (vert->Contact->ContactName == "Gate")
-		{
-			//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
-			vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, 0);
-			return;
-		}
-		else if (vert->Contact->ContactName == "Channel")
-		{
-			//the second value has the default value of 0 in setting BC_Dirichlet boundary condition.
-			vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, 0);
-			return;
-		}
-	}
-
+	static FDBoundary::BCName bcToSet = FDBoundary::Potential;
+	static FDBoundary::BCType defaultBCType = FDBoundary::BC_Neumann;
 	//for vertex that is not correlated to a contact. The value of 0 indicated an artificial boundary there.
 	//Northwest corner
 	if ( !isValid_NW && !isValid_NE &&
 		!isValid_SW && isValid_SE )
 	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-vert->EastLength, vert->SouthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-vert->EastLength, vert->SouthLength));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(-vert->EastLength, vert->SouthLength));
 		return;
 	}
 
@@ -118,8 +103,9 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 	if ( !isValid_NW && !isValid_NE && 
 		isValid_SW && !isValid_SE )
 	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(vert->WestLength, vert->SouthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the the boundary direction is considered to be along the diagonal
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(vert->WestLength, vert->SouthLength));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(vert->WestLength, vert->SouthLength));
 		return;
 	}
 
@@ -127,8 +113,9 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 	if ( isValid_NW && !isValid_NE && 
 		!isValid_SW && !isValid_SE )
 	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(vert->WestLength, -vert->NorthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the the boundary direction is considered to be along the diagonal
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(vert->WestLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(vert->WestLength, -vert->NorthLength));
 		return;
 	}
 
@@ -136,8 +123,9 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 	if ( !isValid_NW && isValid_NE && 
 		!isValid_SW && !isValid_SE)
 	{
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-vert->EastLength, -vert->NorthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the the boundary direction is considered to be along the diagonal
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-vert->EastLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(-vert->EastLength, -vert->NorthLength));
 		return;
 	}
 
@@ -145,7 +133,8 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 	if ( !isValid_NW && !isValid_NE && 
 		isValid_SW && isValid_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(0, 1));
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(0, 1));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(0, 1));
 		return;
 	}
 
@@ -153,7 +142,8 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 	if ( isValid_NW && !isValid_NE && 
 		isValid_SW && !isValid_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(1, 0));
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(1, 0));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(1, 0));
 		return;
 	}
 
@@ -161,7 +151,8 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 	if ( isValid_NW && isValid_NE && 
 		!isValid_SW && !isValid_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(0, -1));
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(0, -1));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(0, -1));
 		return;
 	}
 
@@ -169,12 +160,13 @@ void FDDomain::setVertBC_Potential(FDVertex *vert)
 	if ( !isValid_NW && isValid_NE && 
 		!isValid_SW && isValid_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-1, 0));
+		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-1, 0));
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(-1, 0));
 		return;
 	}
 }
 
-void FDDomain::setVertBC_eDensity(FDVertex *vert)
+void FDDomain::setBndVert_eDensity(FDVertex *vert)
 {
 	bool notTrapping_NW = isNotTrappingElem(vert->NorthwestElem);
 	bool notTrapping_NE = isNotTrappingElem(vert->NortheastElem);
@@ -186,28 +178,16 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	bool valid_SE = isValidElem(vert->SoutheastElem);
 	bool valid_SW = isValidElem(vert->SouthwestElem);
 
-	//When dealing with the normal direction of the boundary condition in terms eDensity problem, actually, the vector value
-	//of the boundary condition is not the real normal vector value of the trapping region. For, example, to a corner vertex
-	//of the trapping region, the normal vector is determined considering if its adjacent element is valid.
+	static FDBoundary::BCName bcToSet = FDBoundary::eDensity;
+	static FDBoundary::BCType defaultTCType = FDBoundary::BC_Cauchy;
 
-	//Northwest corner
+	//currently the boundary condition direction is the same with boundary direction
+    //Northwest corner
 	if ( notTrapping_NW && notTrapping_NE &&
 		notTrapping_SW && !notTrapping_SE )
 	{
-		if (              valid_NE &&
-			!valid_SW )
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, 1));
-			return;
-		}
-		if (              !valid_NE &&
-			valid_SW )
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-1, 0));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-vert->EastLength, vert->SouthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-vert->EastLength, vert->SouthLength));
 		return;
 	}
 
@@ -215,20 +195,8 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && notTrapping_NE && 
 		!notTrapping_SW && notTrapping_SE )
 	{
-		if ( valid_NW &&
-			!valid_SE)
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0 ,1));
-			return;
-		}
-		if ( !valid_NW &&
-			valid_SE)
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(vert->WestLength, vert->SouthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(vert->WestLength, vert->SouthLength));
 		return;
 	}
 
@@ -236,20 +204,8 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	if ( !notTrapping_NW && notTrapping_NE && 
 		notTrapping_SW && notTrapping_SE )
 	{
-		if (			!valid_NE &&
-			valid_SW)
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, -1));
-			return;
-		}
-		if (			valid_NE &&
-			!valid_SW)
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(vert->WestLength, -vert->NorthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(vert->WestLength, -vert->NorthLength));
 		return;
 	}
 
@@ -257,20 +213,8 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && !notTrapping_NE && 
 		notTrapping_SW && notTrapping_SE)
 	{
-		if ( valid_NW &&
-			!valid_SE )
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-1, 0));
-			return;
-		}
-		if ( !valid_NW &&
-			valid_SE )
-		{
-			vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, -1));
-			return;
-		}
-		//when the two adjacent neighbors are both valid (other region) or invalid, the current density is considered to be along the diagonal
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-vert->EastLength, -vert->NorthLength));
+		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-vert->EastLength, -vert->NorthLength));
 		return;
 	}
 
@@ -278,7 +222,7 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && notTrapping_NE && 
 		!notTrapping_SW && !notTrapping_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, 1));
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(0, 1));
 		return;
 	}
 
@@ -286,7 +230,7 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	if ( !notTrapping_NW && notTrapping_NE && 
 		!notTrapping_SW && notTrapping_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(1, 0));
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(1, 0));
 		return;
 	}
 
@@ -294,7 +238,7 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	if ( !notTrapping_NW && !notTrapping_NE && 
 		notTrapping_SW && notTrapping_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(0, -1));
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(0, -1));
 		return;
 	}
 
@@ -302,7 +246,7 @@ void FDDomain::setVertBC_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && !notTrapping_NE && 
 		notTrapping_SW && !notTrapping_SE)
 	{
-		vert->BndCond.SetBndCond(FDBoundary::eDensity, FDBoundary::BC_Cauchy, 0, VectorValue(-1, 0));
+		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-1, 0));
 		return;
 	}
 
@@ -325,7 +269,8 @@ void FDDomain::BuildDomain()
 	//set the physics value related to vertex
 	setVertexPhysics();
 	//set the boundary condition, the specific value is not considered in this class.
-	setBoundaryCondition();
+	setBoundary();
+	updateBndCond();
 	//in case the specific domain has some special post-process
 	postProcessOfDomain();
 
@@ -416,6 +361,133 @@ void FDDomain::fillDDVerts()
 		if (!(notTrapping_NE && notTrapping_NW && notTrapping_SE && notTrapping_SW))
 		{
 			this->ddVerts.push_back(currVert);
+		}
+	}
+}
+
+void FDDomain::updateBndCond()
+{
+	FDVertex *currVertex;
+	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
+	{
+		currVertex = GetVertex(iVer);//in FDDomain, the index of vertex in the vertices vector in the vertexID.
+		if (currVertex->IsAtBoundary(FDBoundary::Potential))
+		{
+			updateBCVert_Potential(currVertex);
+		}
+		if (currVertex->IsAtBoundary(FDBoundary::eDensity))
+		{
+			updateBCVert_eDensity(currVertex);
+		}
+	}
+}
+
+void FDDomain::updateBCVert_Potential(FDVertex *vert)
+{
+	//to decide if the vertex is at a contact.
+	if ( vert->IsAtContact() )
+	{
+		//the gate name is in accordance with the name specified in setting domain details
+		if (vert->Contact->ContactName == "Gate")
+		{
+			//change the boundary condition type to BC_Dirichlet, not care about the value
+			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet);
+			return;
+		}
+		else if (vert->Contact->ContactName == "Channel")
+		{
+			//change the boundary condition type to BC_Dirichlet, not care about the value
+			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet);
+			return;
+		}
+	}
+}
+
+void FDDomain::updateBCVert_eDensity(FDVertex *vert)
+{
+	//When dealing with the normal direction of the boundary condition in terms eDensity problem, actually, the vector value
+	//of the boundary condition is not the real normal vector of the boundary direction. For, example, to a corner vertex
+	//of the trapping region, the normal vector is determined considering if its adjacent element is valid.
+
+	bool notTrapping_NW = isNotTrappingElem(vert->NorthwestElem);
+	bool notTrapping_NE = isNotTrappingElem(vert->NortheastElem);
+	bool notTrapping_SE = isNotTrappingElem(vert->SoutheastElem);
+	bool notTrapping_SW = isNotTrappingElem(vert->SouthwestElem);
+
+	bool valid_NW = isValidElem(vert->NorthwestElem);
+	bool valid_NE = isValidElem(vert->NortheastElem);
+	bool valid_SE = isValidElem(vert->SoutheastElem);
+	bool valid_SW = isValidElem(vert->SouthwestElem);
+
+	//Northwest corner
+	if ( notTrapping_NW && notTrapping_NE &&
+		notTrapping_SW && !notTrapping_SE )
+	{
+		if (              valid_NE &&
+			!valid_SW )
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, 1));
+			return;
+		}
+		if (              !valid_NE &&
+			valid_SW )
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(-1, 0));
+			return;
+		}
+	}
+
+	//Northeast corner
+	if ( notTrapping_NW && notTrapping_NE && 
+		!notTrapping_SW && notTrapping_SE )
+	{
+		if ( valid_NW &&
+			!valid_SE)
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, 1));
+			return;
+		}
+		if ( !valid_NW &&
+			valid_SE)
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(1, 0));
+			return;
+		}
+	}
+
+	//Southeast corner
+	if ( !notTrapping_NW && notTrapping_NE && 
+		notTrapping_SW && notTrapping_SE )
+	{
+		if (			!valid_NE &&
+			valid_SW)
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, -1));
+			return;
+		}
+		if (			valid_NE &&
+			!valid_SW)
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(1, 0));
+			return;
+		}
+	}
+
+	//Southwest corner
+	if ( notTrapping_NW && !notTrapping_NE && 
+		notTrapping_SW && notTrapping_SE)
+	{
+		if ( valid_NW &&
+			!valid_SE )
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(-1, 0));
+			return;
+		}
+		if ( !valid_NW &&
+			valid_SE )
+		{
+			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, -1));
+			return;
 		}
 	}
 }

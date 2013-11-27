@@ -81,24 +81,23 @@ public:
 	/// @pre
 	/// @return void
 	/// @note
-	void RefreshBndCond(BCName bcName, double newValue);
-	void RefreshBndCond(BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
-	/// @brief SetBndCond is called to set the boundary condition of the specific vertex
+	void RefreshBndCond(BCName bcName, VectorValue bcNormVec);
+	void RefreshBndCond(BCName bcName, double newValue, VectorValue bcNormVec = VectorValue(0, 0));
+	void RefreshBndCond(BCName bcName, BCType bcType, double bcValue = 0, VectorValue bcNormVec = VectorValue(0, 0));
+	/// @brief SetBnd is used to set the boundary type and its direction.
 	/// 
-	/// For boundary condition type of BC_Dirichlet, only bcValue1 is used.
-	/// For boundary condition type of BC_Neumann and BC_Artificial, bcValue1 and bcValue2 represent the derivatives of
-	/// the boundary value in direction from west to east and south to north, respectively.
-	/// The default value of the boundary condition exists, so one can set the Dirichlet BC first in building the domain
-	/// and determine its value afterwards.
+	/// In this method, the boundary condition direction is set with the same direction as the boundary direction
+	/// In some cases, for example, the current density boundary condition, the bc direction may be different with
+	/// the boundary direction.
 	/// 
 	/// @param BCName bcName
 	/// @param BCType bcType
-	/// @param double bcValue1
-	/// @param double bcValue2
+	/// @param VectorValue bndVec
+	/// @param double bcValue
 	/// @pre
 	/// @return void
 	/// @note
-	void SetBndCond(BCName bcName, BCType bcType, double bcValue, VectorValue bcNormVec = VectorValue(0, 0));
+	void SetBnd(BCName bcName, BCType bcType, VectorValue bndVec, double bcValue = 0);
 	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
 	/// Both non-existent boundary condition and boundary condition with false validity will return false.
@@ -126,16 +125,17 @@ public:
 	/// @return double
 	/// @note
 	double GetBCValue(BCName bcName);
+	VectorValue &GetBndDirection(BCName bcName);
 	VectorValue &GetBCNormVector(BCName bcName);
 protected:
 	//bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex
-	map<BCName, bool> bc_valid; ///< the validity of the boundary condition with given boundary condition name
+	map<BCName, bool> bnd_valid; ///< the validity of the boundary condition with given boundary condition name
+	map<BCName, VectorValue> bnd_normVec; ///< the map to store normal vector of the boundary (not boundary condition)
 	//Finding the value of non-existed key will return false.
 	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
 	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions.
 	//When BC is a vector value, if the BC has the same direction with the normal vector, this value is positive. reversed direction, negative 
 	map<BCName, VectorValue> bc_normVec; ///< the map to store normal vector of the boundary condition
-	map<BCName, VectorValue> bnd_normVec; ///< the map to store normal vector of the boundary (not boundary condition)
 };
 
 
