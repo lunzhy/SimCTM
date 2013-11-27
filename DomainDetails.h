@@ -43,7 +43,6 @@ public:
 	enum BCName
 	{
 		Potential, ///< potential boundary condition, note that BC_Neumann and BC_Artificial for potential is electric field.
-		eCurrentDensity, ///< electron current density. In this BC, only BC_Dirichlet is used. It is also the third type of BC of carrier density.
 		eDensity ///< electron density boundary condition. The BC_Cauchy of eDensity describes the electron current at the boundary.
 	};
 
@@ -133,8 +132,10 @@ protected:
 	map<BCName, bool> bc_valid; ///< the validity of the boundary condition with given boundary condition name
 	//Finding the value of non-existed key will return false.
 	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
-	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions. When BC is a vector value, this is the magnitude of the vector
-	map<BCName, VectorValue> bc_normVector; ///< the map to store normal vector of the boundary
+	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions.
+	//When BC is a vector value, if the BC has the same direction with the normal vector, this value is positive. reversed direction, negative 
+	map<BCName, VectorValue> bc_normVec; ///< the map to store normal vector of the boundary condition
+	map<BCName, VectorValue> bnd_normVec; ///< the map to store normal vector of the boundary (not boundary condition)
 };
 
 

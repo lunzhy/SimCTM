@@ -56,7 +56,7 @@ void FDBoundary::SetBndCond(BCName bcName, BCType bcType, double bcValue, Vector
 	{
 		bcNormVec.Normalize();
 	}
-	this->bc_normVector[bcName] = bcNormVec;
+	this->bc_normVec[bcName] = bcNormVec;
 }
 
 FDBoundary::BCType FDBoundary::GetBCType(BCName bcName)
@@ -110,13 +110,13 @@ void FDBoundary::RefreshBndCond(BCName bcName, BCType bcType, double bcVal, Vect
 	{
 		bcNormVec.Normalize();
 	}
-	bc_normVector[bcName] = bcNormVec;
+	bc_normVec[bcName] = bcNormVec;
 }
 
 VectorValue & FDBoundary::GetBCNormVector(BCName bcName)
 {
-	SCTM_ASSERT(bc_normVector.find(bcName)!=bc_normVector.end(), 10010);
-	return bc_normVector[bcName];
+	SCTM_ASSERT(bc_normVec.find(bcName)!=bc_normVec.end(), 10010);
+	return bc_normVec[bcName];
 }
 
 FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)

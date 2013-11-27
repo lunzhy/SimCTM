@@ -568,7 +568,7 @@ namespace SctmUtils
 			break;
 		}
 		
-		next = 1.3e-13;
+		next = 2e-13;
 		return norm.PushTime(next);
 	}
 
