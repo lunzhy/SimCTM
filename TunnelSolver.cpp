@@ -230,6 +230,7 @@ void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
 			vertsEnd_Tunnel.push_back(currVert);
+			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
 			break;
 		}
 
@@ -410,6 +411,7 @@ void TrapToGateElecTunnel::setSolver_Tunnel(FDVertex *endVertex)
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
 			vertsStart_Tunnel.push_back(currVert);
+			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
 			break;
 		}
 

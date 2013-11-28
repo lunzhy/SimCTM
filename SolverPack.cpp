@@ -131,6 +131,8 @@ void SolverPack::fetchBlockOxideResult()
 		it->second = - it->second;
 		vertID = it->first;
 		currVert = domain->GetVertex(vertID);
+		//save the tunneling-out coefficient in this physics property, to be used in calculating the tunneling out current
+		//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
 		currVert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
 	}
 }

@@ -157,6 +157,9 @@ namespace SctmUtils
 		case 10025:
 			msg = "[SctmPhys.cpp] Calculating electric field or current density meets non-existent vertex. The corresponding grid number should be larger than 3.";
 			break;
+		case 10026:
+			msg = "[DomainDetails.cpp] Can not set or get tunneling tag to this vertex.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -595,7 +598,7 @@ namespace SctmUtils
 
 	void SctmData::WriteElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "eDensity" + generateFileSuffix();
+		fileName = directoryName + "Density\\eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -619,7 +622,7 @@ namespace SctmUtils
 
 	void SctmData::WritePotential(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "potential" + generateFileSuffix();
+		fileName = directoryName + "Potential\\potential" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -652,7 +655,7 @@ namespace SctmUtils
 
 	void SctmData::WriteBandInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "band" + generateFileSuffix();
+		fileName = directoryName + "Band\\band" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -678,7 +681,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity)
 	{
-		fileName = directoryName + "subsCurrent" + generateFileSuffix();
+		fileName = directoryName + "Current\\subsCurrent" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 		
 		int vertID = 0;
@@ -703,7 +706,7 @@ namespace SctmUtils
 
 	void SctmData::WriteElecCurrDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "eCurrDens" + generateFileSuffix();
+		fileName = directoryName + "Current\\eCurrDens" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -726,7 +729,7 @@ namespace SctmUtils
 
 	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "electricField" + generateFileSuffix();
+		fileName = directoryName + "ElecField\\elecField" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;

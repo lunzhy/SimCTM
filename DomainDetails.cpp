@@ -143,6 +143,26 @@ VectorValue & FDBoundary::GetBndDirection(BCName bcName)
 	return bnd_normVec[bcName];
 }
 
+void FDBoundary::SetTunnelTag(TunnelTag tag)
+{
+	SCTM_ASSERT(bnd_valid[eDensity], 10026);
+	SCTM_ASSERT(bc_types[eDensity]==BC_Cauchy || bc_types[eDensity]==BC_Neumann, 10026);
+
+	tunTag = tag;
+}
+
+FDBoundary::TunnelTag FDBoundary::GetBCTunnelTag()
+{
+	SCTM_ASSERT(bnd_valid[eDensity], 10026);
+	SCTM_ASSERT(bc_types[eDensity]==BC_Cauchy || bc_types[eDensity]==BC_Neumann, 10026);
+	return tunTag;
+}
+
+FDBoundary::FDBoundary()
+{
+	tunTag = noTunnel;
+}
+
 FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)
 	:id(_id), SouthwestVertex(_swVertex), SoutheastVertex(_seVertex), NortheastVertex(_neVertex), NorthwestVertex(_nwVertex)
 {

@@ -58,6 +58,16 @@ public:
 		///information of the boundary condition.
 		BC_Artificial ///< a special Neumann boundary condition, used when the vertex is at the artificial boundary of the domain.
 	};
+
+	/// @brief CurrentTag is the token to distinguish the tunneling-in and tunneling-out boundary
+	enum TunnelTag
+	{
+		noTunnel,
+		eTunnelOut,
+		eTunnelIn,
+		hTunnelIn,
+		hTunnelOut
+	};
 	/// @brief FDBoundary is the construction method of this class
 	/// 
 	/// The object of BndCond is constructed with the construction of the specified vertex, because it is a member of the 
@@ -69,7 +79,7 @@ public:
 	/// @pre
 	/// @return 
 	/// @note
-	FDBoundary(){}
+	FDBoundary();
 	/// @brief RefreshBndCondValue is called to refresh the boundary condition value with given boundary condition name.
 	/// 
 	/// Both values of the boundary condition must be given in this method, otherwise the value of 0 is applied 
@@ -98,6 +108,7 @@ public:
 	/// @return void
 	/// @note
 	void SetBnd(BCName bcName, BCType bcType, VectorValue bndVec, double bcValue = 0);
+	void SetTunnelTag(TunnelTag tag);
 	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
 	/// Both non-existent boundary condition and boundary condition with false validity will return false.
@@ -125,6 +136,7 @@ public:
 	/// @return double
 	/// @note
 	double GetBCValue(BCName bcName);
+	TunnelTag GetBCTunnelTag();
 	VectorValue &GetBndDirection(BCName bcName);
 	VectorValue &GetBCNormVector(BCName bcName);
 protected:
@@ -137,6 +149,7 @@ protected:
 	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions.
 	//When BC is a vector value, if the BC has the same direction with the normal vector, this value is positive. reversed direction, negative 
 	map<BCName, VectorValue> bc_normVec; ///< the map to store normal vector of the boundary condition
+	TunnelTag tunTag; ///< the map to store the tunneling tag for the boundary
 };
 
 

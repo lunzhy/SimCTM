@@ -162,7 +162,7 @@ namespace SctmPhys
 				//bnd_normX < 0, west boundary
 				//bnd_normX > 0, east boundary
 				//bnd_normX = 0, inner vertex or vertex at boundary but inside in x direction
-				if ( bndNormX = 0 )
+				if ( bndNormX == 0 )
 				{
 					// for boundary vertex in terms of X direction
 					double hw = vertSelf->WestLength;
@@ -274,25 +274,27 @@ namespace SctmPhys
 					double mobility = GetPhysPrpty(eMobility);
 
 					// J = -n( u * p_phi/p_x + p_n / p_x )
-					ret = nc * ( mobility * elecFieldX - pn_div_px);
+					ret = mobility * ( nc * elecFieldX - pn_div_px);
 				}
 				else
 				{
-					double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 					double bcNormX = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).X();
 
-					if ( bcValue != 0)
+					if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn )
 					{
-						// electron tunnel in through boundary, notice the current direction is reverse to the flow direction of electrons
+						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 						double currDens = bcValue * bcNormX;
 						ret = currDens;
 					}
-					else
+					else if (  vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
 					{
-						// tunnel out, the current density is related to electron density and the tunneling coefficient of the vertex
 						double tunCoeff = GetPhysPrpty(TunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);
 						ret = tunCoeff * dens * bcNormX;
+					}
+					else
+					{
+						ret = 0;
 					}
 				}
 				break;
@@ -324,24 +326,23 @@ namespace SctmPhys
 				}
 				else
 				{
-					// it's a little tricky here, because the bcValue is the boundary current density along the bc direction.
-					// When the bcValue is positive, the current direction is the same with boundary condition, i.e. the current
-					// direction is out of the trapping layer, but the electron flow direction is inside the trapping layer.
-					double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 					double bcNormY = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
 
-					if ( bcValue != 0)
+					if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn )
 					{
-						// electron tunnel in through boundary, notice the current direction is reverse to the flow direction of electrons
+						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 						double currDens = bcValue * bcNormY;
 						ret = currDens;
 					}
-					else
+					else if (  vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
 					{
-						// tunnel out, the current density is related to electron density and the tunneling coefficient of the vertex
 						double tunCoeff = GetPhysPrpty(TunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);
 						ret = tunCoeff * dens * bcNormY;
+					}
+					else
+					{
+						ret = 0;
 					}
 				}
 				break;
