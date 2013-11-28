@@ -41,7 +41,7 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	for (size_t it = 0; it != 5; ++it)
+	for (size_t it = 0; it != 2; ++it)
 	{
 		UtilsTimeStep.GenerateNext();
 
@@ -54,6 +54,7 @@ void SolverPack::callIteration()
 		TunnelOxideSolver->SolveTunnel();
 		fetchTunnelOxideResult();
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
+		UtilsData.WriteElecField(domain->GetVertices());
 
 		BlockOxideSolver->SolveTunnel();
 		fetchBlockOxideResult();
@@ -63,6 +64,7 @@ void SolverPack::callIteration()
 		ddSolver->SolveDD();
 		fetchDDResult();
 		UtilsData.WriteElecDens(domain->GetDDVerts());
+		UtilsData.WriteElecCurrDens(domain->GetDDVerts());
 	}
 }
 
@@ -122,8 +124,13 @@ void SolverPack::fetchBlockOxideResult()
 	BlockOxideSolver->ReturnResult(mapCurrDensCoeff);
 	//the current(or tunnCoeff) should be same with the direction of the boundary condition
 	//so, reversed value is used to calculate current density
+	FDVertex *currVert = NULL;
+	int vertID = 0;
 	for (VertexMapDouble::iterator it = mapCurrDensCoeff.begin(); it != mapCurrDensCoeff.end(); ++it)
 	{
 		it->second = - it->second;
+		vertID = it->first;
+		currVert = domain->GetVertex(vertID);
+		currVert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
 	}
 }

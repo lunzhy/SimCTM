@@ -90,6 +90,8 @@ namespace SctmPhys
 			eCurrentDensity_X, ///< electron current density in X direction
 			eCurrentDensity_Y, ///< electron current density in Y direction
 			eCurrentDensity, ///< the magnitude of electron current density
+			//CAUTION: currently, the tunneling coefficient stores tunneling-out coefficient of the boundary vertex.
+			TunnelCoeff, ///< the tunneling coefficient of this vertex
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -152,6 +154,7 @@ namespace SctmPhys
 		double e_mobility; ///< electron mobility
 		double e_density; ///< the electron density
 		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
+		double tunnelCoeff; ///< the tunneling coefficient of this vertex
 	};
 }
 

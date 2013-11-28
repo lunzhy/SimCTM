@@ -83,7 +83,7 @@ namespace SctmUtils
 		switch (err_code)
 		{
 		case 10001:
-			msg = "[SctmPhys.cpp] Non-existed physical property.";
+			msg = "[SctmPhys.cpp] Can not get the specified physical property";
 			break;
 		case 10002:
 			msg = "[Material.cpp] Non-existed material property.";
@@ -699,6 +699,52 @@ namespace SctmUtils
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
 		string title = "band structure of time [" + numStr + "] (x, y, tunneling current density)";
 		file.WriteVector(vecX, vecY, currDens, title.c_str());
+	}
+
+	void SctmData::WriteElecCurrDens(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "eCurrDens" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> eCurrDens;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
+		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
+	}
+
+	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "electricField" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> eCurrDens;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "electron current density of time [" + numStr + "] (x, y, electric field)"; 
+		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
 
 

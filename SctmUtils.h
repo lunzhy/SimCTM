@@ -226,9 +226,11 @@ namespace SctmUtils
 	public:
 		SctmData();
 		void ReadTunnelParamter();
+		void WriteElecCurrDens(vector<FDVertex *> &vertices);
 		void WriteElecDens(vector<FDVertex *> &vertices);
 		void WritePotential(vector<FDVertex *> &vertices);
 		void WriteBandInfo(vector<FDVertex *> &vertices);
+		void WriteElecField(vector<FDVertex *> &vertices);
 		void WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity);
 	protected:
 		string fileName;

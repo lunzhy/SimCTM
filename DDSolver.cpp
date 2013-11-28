@@ -869,10 +869,8 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 	double deltaX = 0;
 	double deltaY = 0;
 
-	bool notTrapping_NW = false;
-	bool notTrapping_NE = false;
-	bool notTrapping_SE = false;
-	bool notTrapping_SW = false;
+	double bndNorm_alpha = 0;
+	double bndNorm_beta = 0;
 
 	double mobility = 0;
 	double east = 0;
@@ -897,15 +895,13 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 			//calculation of the addend related current simulation time step
 			rhsTime= -1 * lastElecDensMap[vert->GetID()] / timeStep;
 
-			notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
-			notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
-			notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
-			notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
+			bndNorm_alpha = vert->BndCond.GetBndDirection(FDBoundary::eDensity).X();
+			bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
 
 			getDeltaXYAtVertex(vert, deltaX, deltaY);
 
-			//West
-			if (!(notTrapping_NW && notTrapping_SW))
+			//has west vertex
+			if ( bndNorm_alpha >= 0 )
 			{
 				mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				if (useScharfetterGummelMethod)
@@ -929,8 +925,9 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 						lastElecDensMap[vert->GetID()];
 				}
 			}
-			//East
-			if (!(notTrapping_NE && notTrapping_SE))
+
+			//has east vertex
+			if ( bndNorm_alpha <= 0 )
 			{
 				mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				if (useScharfetterGummelMethod)
@@ -954,8 +951,9 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 						lastElecDensMap[vert->GetID()];
 				}
 			}
-			//South
-			if (!(notTrapping_SE && notTrapping_SW))
+
+			//has south vertex
+			if ( bndNorm_beta >= 0 )
 			{
 				mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				if (useScharfetterGummelMethod)
@@ -979,8 +977,9 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 						lastElecDensMap[vert->GetID()];
 				}
 			}
-			//North
-			if (!(notTrapping_NE && notTrapping_NW))
+
+			//has north vertex
+			if ( bndNorm_beta <= 0 )
 			{
 				mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				if (useScharfetterGummelMethod)
@@ -1196,6 +1195,8 @@ void DriftDiffusionSolver::RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc
 
 		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
 		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
+
+		//currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, tunCoeff);
 
 		equID = equationMap[vertID];
 		getDeltaXYAtVertex(currVert, deltaX, deltaY);
