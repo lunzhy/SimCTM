@@ -40,7 +40,7 @@ FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
 	SoutheastElem = NULL;
 	SouthwestElem = NULL;
 	Contact = NULL;
-	Phys = new PhysProperty();
+	Phys = new PhysProperty(this);
 }
 
 void FDBoundary::SetBnd(BCName bcName, BCType bcType, VectorValue bndVec, double bcValue /*= 0*/)

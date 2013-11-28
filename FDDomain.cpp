@@ -308,13 +308,13 @@ void FDDomain::setVertexPhysics()
 			//electron mobility is only valid in the trapping region
 			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility)
 			{
-				currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty), FDRegion::Trapping);
+				currVertex->Phys->FillVertexPhysUsingMatPropty(verPrptys.at(iPrpty), matPrptys.at(iPrpty), FDRegion::Trapping);
 			}
 			else
 			{
-				currVertex->Phys->FillVertexPhysUsingMatPropty(currVertex, verPrptys.at(iPrpty), matPrptys.at(iPrpty));
+				currVertex->Phys->FillVertexPhysUsingMatPropty(verPrptys.at(iPrpty), matPrptys.at(iPrpty));
 			}
-			currVertex->Phys->CalculateDensityControlArea(currVertex);
+			currVertex->Phys->CalculateDensityControlArea();
 			/*
 			tot = 0; sum = 0;
 			currElem = currVertex->SouthwestElem;

@@ -146,10 +146,16 @@ namespace SctmUtils
 			msg = "[TunnelSolver.cpp] Emin/Emax error in tunneling solver.";
 			break;
 		case 10022:
-			msg = "[DDSolver.cpp] Errors occurred when passing the boundary current density from tunneling layer to ddsolver.";
+			msg = "[DDSolver.cpp] Errors occurred when passing the boundary current density from tunneling layer to drift-diffusion solver.";
 			break;
 		case 10023:
 			msg = "[DomainDetails.cpp] Invalid boundary direction.";
+			break;
+		case 10024:
+			msg = "[SctmPhys.cpp] Error occurs in calculating electric field or current density. Zero value of length is obtained.";
+			break;
+		case 10025:
+			msg = "[SctmPhys.cpp] Calculating electric field or current density meets non-existent vertex. The corresponding grid number should be larger than 3.";
 			break;
 		default:
 			msg = "Untracked error";

@@ -18,6 +18,7 @@
 #include "DomainDetails.h"
 #include "FDDomain.h"
 #include "Normalization.h"
+#include "SctmMath.h"
 
 namespace SctmPhys
 {
@@ -30,8 +31,9 @@ namespace SctmPhys
 	
 	double ReferencePotential;
 
-	PhysProperty::PhysProperty()
+	PhysProperty::PhysProperty(FDVertex *_vert)
 	{
+		vertSelf = _vert;
 		bandgap = 0;
 		electrostaticPotential = 0;
 		//conductionBandEnergy = 0;
@@ -41,6 +43,7 @@ namespace SctmPhys
 		h_mass = 0;
 		//netCharge = 0;
 		e_density = 0;
+		e_mobility = 0;
 		controlArea = 0;
 	}
 
@@ -146,8 +149,177 @@ namespace SctmPhys
 				ret = controlArea;
 				break;
 			}
+			case ElectricField_X:
+			{
+				if ( !vertSelf->IsAtBoundary(FDBoundary::Potential) )
+				{
+					//for inner vertex
+					double hw = vertSelf->WestLength;
+					double he = vertSelf->EastLength;
+					double fw = vertSelf->WestVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fe = vertSelf->EastVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fc = GetPhysPrpty(ElectrostaticPotential);
+					SCTM_ASSERT(hw!=0 && he!=0, 10024);
+					ret = ( -he*he * fw + (he*he - hw*hw) * fc + hw*hw * fe ) / ( he*hw*(he + hw) );
+				}
+				else //for boundary vertex
+				{
+					double bndNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::Potential).X();
+					//bnd_normX < 0, west boundary
+					//bnd_normX > 0, east boundary
+					//bnd_normX = 0, inner vertex
+					if (bndNormX < 0)
+					{
+						SCTM_ASSERT(vertSelf->EastVertex->EastVertex!=NULL, 10025);
+						double he = vertSelf->EastLength;
+						double hee = vertSelf->EastVertex->EastLength;
+						double fe = vertSelf->EastVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fee = vertSelf->EastVertex->EastVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fc = GetPhysPrpty(ElectrostaticPotential);
+						SCTM_ASSERT(hee!=0 && he!=0, 10024);
+						ret = ( -hee*(2*he + hee) * fc + (he + hee)*(he + hee) * fe - he*he * fee ) / ( he*hee*(he + hee) );
+					}
+					else if (bndNormX > 0)
+					{
+						SCTM_ASSERT(vertSelf->WestVertex->WestVertex!=NULL, 10025);
+						double hw = vertSelf->WestLength;
+						double hww = vertSelf->WestVertex->WestLength;
+						double fw = vertSelf->WestVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fww = vertSelf->WestVertex->WestVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fc = GetPhysPrpty(ElectrostaticPotential);
+						SCTM_ASSERT(hw!=0 && hww!=0, 10024);
+						ret = ( hw*hw * fww - (hw + hww)*(hw + hww) * fw + hww*(2*hw + hww) * fc ) / ( hw*hww*(hw + hww) );
+					}
+				}
+				break;
+			}
+			case ElectricField_Y:
+			{
+				if ( !vertSelf->IsAtBoundary(FDBoundary::Potential) )
+				{
+					//for inner vertex
+					double hs = vertSelf->SouthLength;
+					double hn = vertSelf->NorthLength;
+					double fs = vertSelf->SouthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fn = vertSelf->NorthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fc = GetPhysPrpty(ElectrostaticPotential);
+					SCTM_ASSERT(hs!=0 && hn!=0, 10024);
+					ret = ( -hn*hn * fs + (hn*hn - hs*hs) * fc + hs*hs * fn ) / ( hn*hs*(hn + hs) );
+				}
+				else //for boundary vertex
+				{
+					double bndNormY = vertSelf->BndCond.GetBndDirection(FDBoundary::Potential).Y();
+					//bnd_normY < 0, south boundary
+					//bnd_normY > 0, north boundary
+					//bnd_normY = 0, inner vertex
+					if (bndNormY < 0)
+					{
+						SCTM_ASSERT(vertSelf->NorthVertex->NorthVertex!=NULL, 10025);
+						double hn = vertSelf->NorthLength;
+						double hnn = vertSelf->NorthVertex->NorthLength;
+						double fn = vertSelf->NorthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fnn = vertSelf->NorthVertex->NorthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fc = GetPhysPrpty(ElectrostaticPotential);
+						SCTM_ASSERT(hnn!=0 && hn!=0, 10024);
+						ret = ( -hnn*(2*hn + hnn) * fc + (hn + hnn)*(hn + hnn) * fn - hn*hn * fnn ) / ( hn*hnn*(hn + hnn) );
+					}
+					else if (bndNormY > 0)
+					{
+						SCTM_ASSERT(vertSelf->SouthVertex->SouthVertex!=NULL, 10025);
+						double hs = vertSelf->SouthLength;
+						double hss = vertSelf->SouthVertex->SouthLength;
+						double fs = vertSelf->SouthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fss = vertSelf->SouthVertex->SouthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+						double fc = GetPhysPrpty(ElectrostaticPotential);
+						SCTM_ASSERT(hs!=0 && hss!=0, 10024);
+						ret = ( hs*hs * fss - (hs + hss)*(hs + hss) * fs + hss*(2*hs + hss) * fc ) / ( hs*hss*(hs + hss) );
+					}
+				}
+				break;
+			}
+			case ElectricField:
+			{
+				double elecFieldX = GetPhysPrpty(ElectricField_X);
+				double elecFieldY = GetPhysPrpty(ElectricField_Y);
+				ret = SctmMath::sqrt( elecFieldX * elecFieldX + elecFieldY * elecFieldY );
+				break;
+			}
 			case eCurrentDensity_X:
 			{
+				if ( !vertSelf->IsAtBoundary(FDBoundary::eDensity) ) //for inner vertex
+				{
+					double elecFieldX = GetPhysPrpty(ElectricField_X);
+
+					double hw = vertSelf->WestLength;
+					double he = vertSelf->EastLength;
+					double nw = vertSelf->WestVertex->Phys->GetPhysPrpty(eDensity);
+					double ne = vertSelf->EastVertex->Phys->GetPhysPrpty(eDensity);
+					double nc = GetPhysPrpty(eDensity);
+					SCTM_ASSERT(hw!=0 && he!=0, 10024);
+					double pn_div_px = ( -he*he * nw + (he*he - hw*hw) * nc + hw*hw * ne ) / ( he*hw*(he + hw) );
+					double mobility = GetPhysPrpty(eMobility);
+
+					// J = -n( u * p_phi/p_x + p_n / p_x )
+					ret = nc * ( mobility * elecFieldX - pn_div_px);
+				}
+				else // for boundary condition
+				{
+					double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
+					double bcNormX = SctmMath::abs( vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).X() );
+					if ( (bcValue > 0) || (bcValue = 0) ) // in boundary, notice the current direction is reverse to direction of electron flow
+					{
+						double currDens = bcValue * bcNormX;
+						ret = bcValue;
+					}
+					else // bcValue < 0, out boundary
+					{
+						double tunCoeff = bcValue * bcNormX;
+						double dens = GetPhysPrpty(eDensity);
+						ret = tunCoeff * dens;
+					}
+				}
+				break;
+			}
+			case eCurrentDensity_Y:
+			{
+				if ( !vertSelf->IsAtBoundary(FDBoundary::eDensity) ) // for inner vertex
+				{
+					double elecFieldY = GetPhysPrpty(ElectricField_Y);
+
+					double hs = vertSelf->SouthLength;
+					double hn = vertSelf->NorthLength;
+					double ns = vertSelf->SouthVertex->Phys->GetPhysPrpty(eDensity);
+					double nn = vertSelf->NorthVertex->Phys->GetPhysPrpty(eDensity);
+					double nc = GetPhysPrpty(eDensity);
+					SCTM_ASSERT(hs!=0 && hn!=0, 10024);
+					double pn_div_py = ( -hn*hn * ns + (hn*hn - hs*hs) * nc + hs*hs * nn ) / ( hn*hs*(hn + hs) );
+					double mobility = GetPhysPrpty(eMobility);
+
+					ret = nc * ( mobility * elecFieldY - pn_div_py );
+				} 
+				else // for boundary vertex
+				{
+					double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
+					double bcNormY = SctmMath::abs( vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).Y() );
+					if ( (bcValue > 0) || (bcValue = 0) ) // in boundary, notice the current direction is reverse to direction of electron flow
+					{
+						double currDens = bcValue * bcNormY;
+						ret = bcValue;
+					}
+					else // bcValue < 0, out boundary
+					{
+						double tunCoeff = bcValue * bcNormY;
+						double dens = GetPhysPrpty(eDensity);
+						ret = tunCoeff * dens;
+					}
+				}
+				break;
+			}
+			case eCurrentDensity:
+			{
+				double eCurrDensX = GetPhysPrpty(eCurrentDensity_X);
+				double eCurrDensY = GetPhysPrpty(eCurrentDensity_Y);
+				ret = SctmMath::sqrt( eCurrDensX * eCurrDensX + eCurrDensY * eCurrDensY );
 				break;
 			}
 			default:
@@ -160,7 +332,7 @@ namespace SctmPhys
 		return ret;
 	}
 
-	void PhysProperty::FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
+	void PhysProperty::FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
 		MaterialDB::MatProperty::Name matPrpty)
 	{
 		//TODO : need to solve the problem of mutual including.
@@ -171,29 +343,29 @@ namespace SctmPhys
 
 		using MaterialDB::GetMatPrpty;
 		FDElement *currElem = NULL;
-		currElem = vertex->NortheastElem;
+		currElem = vertSelf->NortheastElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
 		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertex->NorthwestElem;
+		currElem = vertSelf->NorthwestElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
 		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertex->SoutheastElem;
+		currElem = vertSelf->SoutheastElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
 		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertex->SouthwestElem;
+		currElem = vertSelf->SouthwestElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
 		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
 		SCTM_ASSERT(tot>=0, 10004);
 		physValue = sum / tot;
 
-		vertex->Phys->SetPhysPrpty(vertexPhys, physValue);
+		vertSelf->Phys->SetPhysPrpty(vertexPhys, physValue);
 	}		
 
-	void PhysProperty::FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys, 
+	void PhysProperty::FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys, 
 		MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType)
 	{
 		//TODO : need to solve the problem of mutual including.
@@ -204,19 +376,19 @@ namespace SctmPhys
 
 		using MaterialDB::GetMatPrpty;
 		FDElement *currElem = NULL;
-		currElem = vertex->NortheastElem;
+		currElem = vertSelf->NortheastElem;
 		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
 		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertex->NorthwestElem;
+		currElem = vertSelf->NorthwestElem;
 		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
 		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertex->SoutheastElem;
+		currElem = vertSelf->SoutheastElem;
 		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
 		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertex->SouthwestElem;
+		currElem = vertSelf->SouthwestElem;
 		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
 		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
@@ -229,30 +401,30 @@ namespace SctmPhys
 			physValue = sum / tot;
 		}
 		//SCTM_ASSERT(tot>=0, 10004);
-		vertex->Phys->SetPhysPrpty(vertexPhys, physValue);
+		vertSelf->Phys->SetPhysPrpty(vertexPhys, physValue);
 	}
 
-	void PhysProperty::CalculateDensityControlArea(FDVertex *vertex)
+	void PhysProperty::CalculateDensityControlArea()
 	{
 		double area = 0;
 		FDElement *currElem = NULL;
 
-		currElem = vertex->NorthwestElem;
+		currElem = vertSelf->NorthwestElem;
 		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
 		{
 			area += 0.25 * currElem->Area;
 		}
-		currElem = vertex->NortheastElem;
+		currElem = vertSelf->NortheastElem;
 		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
 		{
 			area += 0.25 * currElem->Area;
 		}
-		currElem = vertex->SouthwestElem;
+		currElem = vertSelf->SouthwestElem;
 		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
 		{
 			area += 0.25 * currElem->Area;
 		}
-		currElem = vertex->SoutheastElem;
+		currElem = vertSelf->SoutheastElem;
 		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
 		{
 			area += 0.25 * currElem->Area;
