@@ -103,6 +103,12 @@ void SolverPack::fetchTunnelOxideResult()
 {
 	this->mapCurrDensFromTunnelLayer.clear();
 	TunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
+	//set the sign of boundary current for dd solver.
+	for (VertexMapDouble::iterator it = mapCurrDensFromTunnelLayer.begin(); it != mapCurrDensFromTunnelLayer.end(); ++it)
+	{
+		//does not need to change
+		//it->second = it->second;
+	}
 }
 
 void SolverPack::fetchDDResult()
@@ -114,4 +120,10 @@ void SolverPack::fetchBlockOxideResult()
 {
 	this->mapCurrDensCoeff.clear();
 	BlockOxideSolver->ReturnResult(mapCurrDensCoeff);
+	//the current(or tunnCoeff) should be same with the direction of the boundary condition
+	//so, reversed value is used to calculate current density
+	for (VertexMapDouble::iterator it = mapCurrDensCoeff.begin(); it != mapCurrDensCoeff.end(); ++it)
+	{
+		it->second = - it->second;
+	}
 }

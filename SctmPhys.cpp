@@ -85,48 +85,76 @@ namespace SctmPhys
 
 		switch (prptyName)
 		{
-		case ElectrostaticPotential:
-			ret = electrostaticPotential;
-			break;
-		case ConductionBandEnergy:
-			//Ec = -X-q(phi-phiRef)
-			pot = this->electrostaticPotential;
-			affinity = this->electronAffinity;
-			energy = -affinity - (pot-RefPotential);
-			ret = energy;
-			break;
-		case ValenceBandEnergy:
-			//Ev = Ev-Eg = -X-q(phi-phiRef)-Eg
-			ret =  GetPhysPrpty(ConductionBandEnergy) - bandgap;
-			break;
-		case eMass:
-			ret = e_mass;
-			break;
-		case hMass:
-			ret = h_mass;
-			break;
-		case ElectronAffinity:
-			ret = electronAffinity;
-			break;
-		case Bandgap:
-			ret = bandgap;
-			break;
-		case NetCharge:
-			//there should be four parts
-			ret = - e_density;
-			break;
-		case eMobility:
-			ret = e_mobility;
-			break;
-		case eDensity:
-			ret = e_density;
-			break;
-		case DensityControlArea:
-			ret = controlArea;
-			break;
-		default:
-			// use SCTM_ASSERT for non-existed property
-			SCTM_ASSERT(SCTM_ERROR, 10001);
+			case ElectrostaticPotential:
+			{
+				ret = electrostaticPotential;
+				break;
+			}
+			case ConductionBandEnergy:
+			{
+				//Ec = -X-q(phi-phiRef)
+				pot = this->electrostaticPotential;
+				affinity = this->electronAffinity;
+				energy = -affinity - (pot-RefPotential);
+				ret = energy;
+				break;
+			}
+			case ValenceBandEnergy:
+			{
+				//Ev = Ev-Eg = -X-q(phi-phiRef)-Eg
+				ret =  GetPhysPrpty(ConductionBandEnergy) - bandgap;
+				break;
+			}
+			case eMass:
+			{
+				ret = e_mass;
+				break;
+			}
+			case hMass:
+			{
+				ret = h_mass;
+				break;
+			}	
+			case ElectronAffinity:
+			{
+				ret = electronAffinity;
+				break;
+			}
+			case Bandgap:
+			{
+				ret = bandgap;
+				break;
+			}
+			case NetCharge:
+			{
+				//there should be four parts
+				ret = - e_density;
+				break;
+			}	
+			case eMobility:
+			{
+				ret = e_mobility;
+				break;
+			}
+			case eDensity:
+			{
+				ret = e_density;
+				break;
+			}
+			case DensityControlArea:
+			{
+				ret = controlArea;
+				break;
+			}
+			case eCurrentDensity_X:
+			{
+				break;
+			}
+			default:
+			{
+				// use SCTM_ASSERT for non-existed property
+				SCTM_ASSERT(SCTM_ERROR, 10001);
+			}
 		}
 
 		return ret;

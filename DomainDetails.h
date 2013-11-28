@@ -130,8 +130,9 @@ public:
 protected:
 	//bool valid; ///< the validity of the boundary condition. It is a token to indicate a boundary vertex
 	map<BCName, bool> bnd_valid; ///< the validity of the boundary condition with given boundary condition name
-	map<BCName, VectorValue> bnd_normVec; ///< the map to store normal vector of the boundary (not boundary condition)
 	//Finding the value of non-existed key will return false.
+	map<BCName, VectorValue> bnd_normVec; ///< the map to store normal vector of the boundary (not boundary condition)
+	//boundary direction is used to determine whether the corresponding vertex exists.
 	map<BCName, BCType> bc_types; ///< the map to store the types of different boundary conditions
 	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions.
 	//When BC is a vector value, if the BC has the same direction with the normal vector, this value is positive. reversed direction, negative 

@@ -84,6 +84,9 @@ namespace SctmPhys
 			eMobility, ///< the electron mobility
 			eDensity, ///< the electron density
 			DensityControlArea, ///< density control area of trapping layer
+			eCurrentDensity_X, ///< electron current density of X direction
+			eCurrentDensity_Y, ///< electron current density of Y direction
+			eCurrentDensity, ///< the magnitude of electron current density
 		};
 
 		/// @brief PhysProperty is the construction method for this class

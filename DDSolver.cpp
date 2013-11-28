@@ -551,10 +551,8 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 	double deltaX = 0; // dJ/dx
 	double deltaY = 0; // dJ/dy
 
-	bool notTrapping_NW = false;
-	bool notTrapping_NE = false;
-	bool notTrapping_SE = false;
-	bool notTrapping_SW = false;
+	double bndNorm_alpha = 0;
+	double bndNorm_beta = 0;
 
 	//Notice. can not set the row of matrix according to the boundary normal direction, this is because the boundary condition
 	//at the corner has been specially treated, which can not be applied to setting the matrix.
@@ -579,15 +577,13 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 		{
 			indexEquation = equationMap[vert->GetID()];
 
-			notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
-			notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
-			notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
-			notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
+			bndNorm_alpha = vert->BndCond.GetBndDirection(FDBoundary::eDensity).X();
+			bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
 
 			getDeltaXYAtVertex(vert, deltaX, deltaY);
 
-			//West vertex
-			if (!(notTrapping_NW && notTrapping_SW))
+			//has west vertex
+			if ( bndNorm_alpha >= 0 )
 			{
 				mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->WestVertex->GetID()];
@@ -617,8 +613,8 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 
 			}
 
-			//East vertex
-			if (!(notTrapping_NE && notTrapping_SE))
+			//has east vertex
+			if ( bndNorm_alpha <= 0 )
 			{
 				mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->EastVertex->GetID()];
@@ -647,8 +643,8 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 				}
 			}
 
-			//South vertex
-			if (!(notTrapping_SE && notTrapping_SW))
+			//has south vertex
+			if ( bndNorm_beta >= 0 )
 			{
 				mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->SouthVertex->GetID()];
@@ -677,8 +673,8 @@ void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
 				}
 			}
 
-			//North vertex
-			if (!(notTrapping_NE && notTrapping_NW))
+			//has north vertex
+			if ( bndNorm_beta <= 0 )
 			{
 				mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 				indexCoefficient = equationMap[vert->NorthVertex->GetID()];
@@ -1174,9 +1170,8 @@ void DriftDiffusionSolver::RefreshTunOutCurrDens_UseLastTime(VertexMapDouble &bc
 		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
 		eDens = lastElecDensMap[vertID];
-		//the current(or tunnCoeff) should be same with the direction of the boundary condition
-		//so, reversed value is used to calculate current density
-		currDens = - it->second * eDens; // in normalized value, in [A/cm^2]
+		
+		currDens = it->second * eDens; // in normalized value, in [A/cm^2]
 		currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, currDens);
 	}
 }
@@ -1196,7 +1191,7 @@ void DriftDiffusionSolver::RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc
 	for (VertexMapDouble::iterator it = bc.begin(); it != bc.end(); ++it)
 	{
 		vertID = it->first;
-		tunCoeff = - it->second;
+		tunCoeff = it->second;
 		currVert = domain->GetVertex(vertID);
 
 		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
@@ -1205,17 +1200,20 @@ void DriftDiffusionSolver::RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc
 		equID = equationMap[vertID];
 		getDeltaXYAtVertex(currVert, deltaX, deltaY);
 
+		//use the boundary condition direction, not the boundary direction
 		norm_alpha =  currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 		norm_beta = currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
 
 		//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
-		//the current(or tunnCoeff) should be same with the direction of the boundary condition
+		//for positive value, coeffToAdd = tunCoeff * norm_alpha (beta)
+		//for negative value, coeffToAdd = (-tunCoeff) * (-norm_alpha)
 		if (norm_alpha > 0) //lack of east part of the above equation
 		{
 			coeffToAdd +=  tunCoeff * norm_alpha / deltaX;
 		}
 		else if (norm_alpha < 0) //lack of west part of the above equation
 		{
+			//this sign is derived from (-Js)
 			coeffToAdd += - tunCoeff * norm_alpha / deltaX;
 		}
 
