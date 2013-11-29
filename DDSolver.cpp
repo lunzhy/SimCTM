@@ -1007,7 +1007,7 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 			double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
 			double norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 			double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
-			//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
+			//p_J / p_x + p_J / p_y = (Je - Jw) / dx + (Jn - Js) / dy
 			if (norm_alpha > 0) //lack of east part
 			{
 				rhsBoundary += bcVal * norm_alpha / deltaX;
@@ -1052,15 +1052,8 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 double DriftDiffusionSolver::CalculateTotalLineDensity()
 {
 	double ret = 0;
-	
-	bool notTrapping_NW = false;
-	bool notTrapping_NE = false;
-	bool notTrapping_SE = false;
-	bool notTrapping_SW = false;
 
 	FDVertex *vert = NULL;
-	double dens = 0;
-	double area = 0;
 
 	Normalization norm = Normalization();
 
@@ -1087,26 +1080,36 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 	notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
 	notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
 
-	//West
-	if (!(notTrapping_NW && notTrapping_SW))
+	double bndNorm_alpha = 0;
+	double bndNorm_beta = 0;
+	if ( vert->IsAtBoundary(FDBoundary::eDensity) )
+	{
+		double bndNorm_alpha = vert->BndCond.GetBndDirection(FDBoundary::eDensity).X();
+		double bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
+	}
+	//so for inner vertex, bndNorm_alpha = 0, bndNorm_beta = 0
+
+	//has west vertex
+	if ( bndNorm_alpha >= 0 )
 	{
 		dx += vert->WestLength / 2;
 	}
-	//East
-	if (!(notTrapping_NE && notTrapping_SE))
+	//has east vertex
+	if ( bndNorm_alpha <= 0)
 	{
 		dx += vert->EastLength / 2;
 	}
-	//South
-	if (!(notTrapping_SE && notTrapping_SW))
+	//has south vertex
+	if ( bndNorm_beta >=0 )
 	{
 		dy += vert->SouthLength / 2;
 	}
-	//North
-	if (!(notTrapping_NE && notTrapping_NW))
+	//has north vertex
+	if ( bndNorm_beta <= 0 )
 	{
 		dy += vert->NorthLength / 2;
 	}
+	
 	SCTM_ASSERT(dx!=0 && dy!=0, 10015);
 }
 
@@ -1205,7 +1208,9 @@ void DriftDiffusionSolver::RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc
 		norm_alpha =  currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 		norm_beta = currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
 
-		//p_J / p_x = (Je - Jw) / dx + (Jn - Js) / dy
+		//p_J / p_x = (Je - Jw) / dx 
+		//p_J / p_y = (Jn - Js) / dy
+		//here, the vector value of the tunneling-out current density is tunCoeff*(norm_alpha, norm_beta) with negative tunCoeff
 		//for positive value, coeffToAdd = tunCoeff * norm_alpha (beta)
 		//for negative value, coeffToAdd = (-tunCoeff) * (-norm_alpha)
 		if (norm_alpha > 0) //lack of east part of the above equation

@@ -154,7 +154,7 @@ namespace SctmPhys
 			}
 			case ElectricField_X:
 			{
-				double bndNormX = 0;
+				double bndNormX = 0; // inner vertex
 				if (vertSelf->IsAtBoundary(FDBoundary::Potential))
 				{
 					bndNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::Potential).X();
@@ -173,6 +173,7 @@ namespace SctmPhys
 					SCTM_ASSERT(hw!=0 && he!=0, 10024);
 					//Ex = - p_phi / p_x
 					ret = - ( -he*he * fw + (he*he - hw*hw) * fc + hw*hw * fe ) / ( he*hw*(he + hw) );
+					//ret = - ( fe - fw ) / ( he + hw );
 				}
 				else if (bndNormX < 0)
 				{
@@ -334,7 +335,7 @@ namespace SctmPhys
 						double currDens = bcValue * bcNormY;
 						ret = currDens;
 					}
-					else if (  vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
+					else if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
 					{
 						double tunCoeff = GetPhysPrpty(TunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);

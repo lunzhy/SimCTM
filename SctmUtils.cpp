@@ -344,6 +344,7 @@ namespace SctmUtils
 
 
 
+
 	void SctmMessaging::printLine(string &line)
 	{
 		std::cout << line << std::endl;
@@ -433,6 +434,25 @@ namespace SctmUtils
 				file.open(this->fileName.c_str(), std::ios::out | std::ios::trunc);
 				file.close();
 			}
+			return;
+		}
+		if (_mode == Append)
+		{
+			file.open(this->fileName.c_str(), std::ios::in);
+			if (!file)
+			{
+				//if the file doesn't exist, create it.
+				file.open(this->fileName.c_str(), std::ios::out);
+				if (!file)
+					UtilsMsg.PrintDirectoryError();
+				else
+					file.close();
+			}
+			else
+			{
+				file.close();//this is important because the existed file has been opened already.
+			}
+			return;
 		}
 		if (_mode == Read)
 		{
@@ -441,6 +461,7 @@ namespace SctmUtils
 				UtilsMsg.PrintFileError(_filename.c_str());
 			else
 				file.close();
+			return;
 		}
 	}
 
@@ -489,6 +510,14 @@ namespace SctmUtils
 		tofile.close();
 	}
 
+	void SctmFileStream::WriteLine(string &line)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << line << '\n';
+		tofile.close();
+	}
+
+
 
 
 	SctmTimeStep::SctmTimeStep()
@@ -521,31 +550,31 @@ namespace SctmUtils
 		Normalization norm = Normalization();
 		double next = 0; // in [s]
 
-		while(false)
+		while(true)
 		{
 			if (currStepNumber <= 10)
 			{
-				next = 1e-15;
+				next = 1e-10;
 				break;
 			}
 			if (currStepNumber <= 19)
 			{
-				next = 1e-14;
+				next = 1e-8;
 				break;
 			}
 			if (currStepNumber <= 28 )
 			{
-				next = 1e-13;
+				next = 1e-4;
 				break;
 			}
 			if (currStepNumber <= 37)
 			{
-				next = 1e-12;
+				next = 1e-3;
 				break;
 			}
-			if (currStepNumber <= 46)
+			if (currStepNumber <= 500)
 			{
-				next = 1e-11;
+				next = 0.1;
 				break;
 			}
 			break;
@@ -581,7 +610,7 @@ namespace SctmUtils
 			break;
 		}
 		
-		next = 2e-13;
+		//next = 2e-6;
 		return norm.PushTime(next);
 	}
 
@@ -700,7 +729,7 @@ namespace SctmUtils
 			currDens.push_back(norm.PullCurrDens(it->second));
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		string title = "band structure of time [" + numStr + "] (x, y, tunneling current density)";
+		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density)";
 		file.WriteVector(vecX, vecY, currDens, title.c_str());
 	}
 
@@ -720,7 +749,7 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
+			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_Y)));
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
 		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
@@ -743,12 +772,53 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
+			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_X)));
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		string title = "electron current density of time [" + numStr + "] (x, y, electric field)"; 
+		string title = "electric field of time [" + numStr + "] (x, y, electric field)"; 
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
+
+	void SctmData::WriteTotalElecDens(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "Debug\\TotalDensity.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		double lineDens = 0;
+		Normalization norm = Normalization();
+		FDVertex *vert = NULL;
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			vert = vertices.at(iVert);
+			lineDens += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
+				* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string valStr = ConvertToString::Double(norm.PullLineDensity(lineDens));
+		string line = numStr + "\t\t" + valStr;
+		file.WriteLine(line);
+	}
+
+	void SctmData::WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff)
+	{
+		fileName = directoryName + "Debug\\tunCoeff.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		int vertID = 0;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		VertexMapDouble::iterator it = inCurrDens.begin(); 
+		string currDens = ConvertToString::Double(norm.PullCurrDens(it->second));
+		it = outCurrCoeff.begin();
+		string tunCoeff = ConvertToString::Double(norm.PullTunCoeff(it->second));
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+
+		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
+		file.WriteLine(line);
+	}
+
+
 
 
 	string ConvertToString::Int(int num)

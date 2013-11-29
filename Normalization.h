@@ -210,7 +210,7 @@ namespace SctmUtils
 		}
 		inline double PullTunCoeff(double coeff)
 		{
-			return coeff * (currDensFactor * densityFactor);
+			return coeff * (currDensFactor / densityFactor);
 		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.

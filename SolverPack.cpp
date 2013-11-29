@@ -41,7 +41,7 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	for (size_t it = 0; it != 2; ++it)
+	for (size_t it = 0; it != 200; ++it)
 	{
 		UtilsTimeStep.GenerateNext();
 
@@ -55,6 +55,7 @@ void SolverPack::callIteration()
 		fetchTunnelOxideResult();
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
 		UtilsData.WriteElecField(domain->GetVertices());
+		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
 
 		BlockOxideSolver->SolveTunnel();
 		fetchBlockOxideResult();
@@ -63,6 +64,7 @@ void SolverPack::callIteration()
 		ddSolver->ReadCurrDensBC_out(mapCurrDensCoeff);
 		ddSolver->SolveDD();
 		fetchDDResult();
+		UtilsData.WriteTunnelCoeff(domain, mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		UtilsData.WriteElecDens(domain->GetDDVerts());
 		UtilsData.WriteElecCurrDens(domain->GetDDVerts());
 	}

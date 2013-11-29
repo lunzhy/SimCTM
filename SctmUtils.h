@@ -24,6 +24,7 @@
 #include <fstream>
 #include "SctmMath.h"
 #include <map>
+#include <vector>
 using SctmMath::VectorValue;
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
@@ -205,7 +206,8 @@ namespace SctmUtils
 		enum FileMode
 		{
 			Write,
-			Read
+			Read,
+			Append,
 		};
 		SctmFileStream(string _filename, FileMode _mode);
 		
@@ -213,6 +215,8 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
+
+		void WriteLine(string &line);
 	private:
 		string fileName;
 	};
@@ -232,6 +236,8 @@ namespace SctmUtils
 		void WriteBandInfo(vector<FDVertex *> &vertices);
 		void WriteElecField(vector<FDVertex *> &vertices);
 		void WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity);
+		void WriteTotalElecDens(vector<FDVertex *> &vertices);
+		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
 	protected:
 		string fileName;
 		string directoryName;
