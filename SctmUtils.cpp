@@ -160,6 +160,9 @@ namespace SctmUtils
 		case 10026:
 			msg = "[DomainDetails.cpp] Can not set or get tunneling tag to this vertex.";
 			break;
+		case 10027:
+			msg = "[DDSolver] Error occurred when reading tunneling current for boundary condition";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -554,27 +557,32 @@ namespace SctmUtils
 		{
 			if (currStepNumber <= 10)
 			{
-				next = 1e-10;
+				next = 1e-15;
 				break;
 			}
 			if (currStepNumber <= 19)
 			{
-				next = 1e-8;
+				next = 1e-14;
 				break;
 			}
 			if (currStepNumber <= 28 )
 			{
-				next = 1e-4;
+				next = 1e-13;
 				break;
 			}
 			if (currStepNumber <= 37)
 			{
-				next = 1e-3;
+				next = 1e-12;
+				break;
+			}
+			if (currStepNumber <= 46)
+			{
+				next = 1e-11;
 				break;
 			}
 			if (currStepNumber <= 500)
 			{
-				next = 0.1;
+				next = 1e-10;
 				break;
 			}
 			break;

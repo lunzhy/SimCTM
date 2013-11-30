@@ -36,9 +36,8 @@ public:
 		UsingCurrentDensity,
 	};
 	DriftDiffusionSolver(FDDomain *_domain);
-	void ReadCurrDensBC_in(VertexMapDouble &bcCurrent);
-	void ReadCurrDensBC_out(VertexMapDouble &bc);
-	virtual void SolveDD();
+	virtual void SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2);
+	
 	void UpdateElecDens();
 	double CalculateTotalLineDensity();
 protected:
@@ -67,7 +66,6 @@ protected:
 
 protected:
 	void initializeSolver();
-	void prepareSolver();
 	void getDDVertices(FDDomain *domain); //not used now
 	virtual void buildVertexMap();
 	void refreshVertexMap();
@@ -121,10 +119,12 @@ protected:
 	double getRhsInnerVertex(FDVertex *vert);
 	void setTimeStep();
 	void fillBackElecDens();
-	virtual void refreshBoundary();
+	virtual void processBndCond();
 	void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
-	void RefreshTunOutCurrDens_UseLastTime(VertexMapDouble &bc);
-	void RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc);
+
+	void handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2);
+	void readCurrDensBC_in(FDVertex *vert, double currdens);
+	void readCurrDensBC_out(FDVertex *vert, double tunCoeff);
 };
 
 class DDTest : public DriftDiffusionSolver
@@ -134,7 +134,7 @@ public:
 	void SolveDD();
 protected:
 	void buildVertexMap();
-	void refreshBoundary();
+	void processBndCond();
 	void setBndCurrent();
 	void setBndDensity();
 	void refreshCoeffMatrixDueToBC();

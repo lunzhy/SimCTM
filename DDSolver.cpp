@@ -31,13 +31,31 @@ DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), 
 	initializeSolver();
 }
 
-void DriftDiffusionSolver::SolveDD()
+void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 {
 	UtilsTimer.Set();
-	prepareSolver(); //call method from base, DriftDiffusionSolver
+
+	//set the simulation time step
+	setTimeStep();
+	//refresh the vertex map for building Coefficient matrix
+	refreshVertexMap();
+	//build and refresh the coefficient matrix
+
+	buildCoefficientMatrix();
+	refreshCoefficientMatrix();
+	
+	//handle the tunneling current. Update the coefficient matrix or refreshing BndCond value for building Rhs vector
+	handleBndTunnelCurrDens(bc1, bc2);
+	
+	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
+	//different due to the difference in last time electron density
+	buildRhsVector();
 
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
+	
+	//fill back electron density to last time density, this is also done in refreshing vertex map
 	fillBackElecDens();
+
 	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
@@ -515,26 +533,7 @@ void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
 	
 }
 
-void DriftDiffusionSolver::prepareSolver()
-{
-	setTimeStep();
-	//refreshBoundary();// call this method when testing ddsolver
-
-	refreshVertexMap();
-
-	buildCoefficientMatrix();
-	refreshCoefficientMatrix();
-	
-	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-
-	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
-	//different due to the difference in last time electron density
-	buildRhsVector();
-
-	//UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
-}
-
-void DriftDiffusionSolver::refreshBoundary()
+void DriftDiffusionSolver::processBndCond()
 {
 	//current nothing is done here.
 }
@@ -1113,22 +1112,17 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 	SCTM_ASSERT(dx!=0 && dy!=0, 10015);
 }
 
-void DriftDiffusionSolver::ReadCurrDensBC_in(VertexMapDouble &bcCurrent)
+void DriftDiffusionSolver::readCurrDensBC_in(FDVertex *vert, double currdens)
 {
-	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double currDens = 0;
-	for (VertexMapDouble::iterator it = bcCurrent.begin(); it != bcCurrent.end(); ++it)
-	{
-		vertID = it->first;
-		currVert = domain->GetVertex(vertID);
-		
-		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
-		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
-		currDens = it->second;
-		currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, currDens);
-	}
+	SCTM_ASSERT(vert->IsAtBoundary(FDBoundary::eDensity), 10022);
+	SCTM_ASSERT(vert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
+
+	vert->BndCond.RefreshBndCond(FDBoundary::eDensity, currdens);
+	//for tunneling-in electron current, the current density direction is the same with the boundary condition.
+	//so currDens should be positive value.
+	//and the method for building Rhs vector will handle the in-tunneling current density
 }
 
 void DriftDiffusionSolver::refreshVertexMap()
@@ -1150,39 +1144,10 @@ void DriftDiffusionSolver::refreshVertexMap()
 	}
 }
 
-void DriftDiffusionSolver::ReadCurrDensBC_out(VertexMapDouble &bc)
+void DriftDiffusionSolver::readCurrDensBC_out(FDVertex *vert, double tunCoeff)
 {
-	//RefreshTunOutCurrDens_UseLastTime(bc);
-	RefreshTunOutCurrDens_UseThisTime(bc);
-}
+	//the value of tunneling coefficient is in [A*cm]
 
-void DriftDiffusionSolver::RefreshTunOutCurrDens_UseLastTime(VertexMapDouble &bc)
-{
-	FDVertex *currVert = NULL;
-	int vertID = 0;
-	double eDens = 0;
-	double currDens = 0;
-
-	for (VertexMapDouble::iterator it = bc.begin(); it != bc.end(); ++it)
-	{
-		vertID = it->first;
-		currVert = domain->GetVertex(vertID);
-
-		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
-		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
-
-		eDens = lastElecDensMap[vertID];
-		
-		currDens = it->second * eDens; // in normalized value, in [A/cm^2]
-		currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, currDens);
-	}
-}
-
-void DriftDiffusionSolver::RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc)
-{
-	//the value of input bc is in [A*cm]
-	FDVertex *currVert = NULL;
-	double tunCoeff = 0;
 	int vertID = 0;
 	int equID = 0;
 	double deltaX = 0;
@@ -1190,49 +1155,75 @@ void DriftDiffusionSolver::RefreshTunOutCurrDens_UseThisTime(VertexMapDouble &bc
 	double norm_alpha = 0;
 	double norm_beta = 0;
 	double coeffToAdd = 0;
-	for (VertexMapDouble::iterator it = bc.begin(); it != bc.end(); ++it)
+
+
+	SCTM_ASSERT(vert->IsAtBoundary(FDBoundary::eDensity), 10022);
+	SCTM_ASSERT(vert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
+
+	//currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, tunCoeff);
+
+	equID = equationMap[vertID];
+	getDeltaXYAtVertex(vert, deltaX, deltaY);
+
+	//use the boundary condition direction, not the boundary direction
+	norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
+	norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
+
+	//p_J / p_x = (Je - Jw) / dx 
+	//p_J / p_y = (Jn - Js) / dy
+	//here, the vector value of the tunneling-out current density is tunCoeff*(norm_alpha, norm_beta) with negative tunCoeff
+	//for positive value, coeffToAdd = tunCoeff * norm_alpha (beta)
+	//for negative value, coeffToAdd = (-tunCoeff) * (-norm_alpha)
+	if (norm_alpha > 0) //lack of east part of the above equation
+	{
+		coeffToAdd +=  tunCoeff * norm_alpha / deltaX;
+	}
+	else if (norm_alpha < 0) //lack of west part of the above equation
+	{
+		//this sign is derived from (-Js)
+		coeffToAdd += - tunCoeff * norm_alpha / deltaX;
+	}
+
+	if (norm_beta > 0) // lack of north part of the above equation
+	{
+		coeffToAdd += tunCoeff * norm_beta / deltaY;
+	}
+	else if (norm_beta < 0) //  lack of south part of the above equation
+	{
+		coeffToAdd += - tunCoeff * norm_beta / deltaY;
+	}
+
+	this->matrixSolver.RefreshMatrixValue(equID, equID, coeffToAdd, SctmSparseMatrixSolver::Add);
+}
+
+void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2)
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	VertexMapDouble bcMap;
+	bcMap.insert(bc1.begin(), bc1.end());
+	bcMap.insert(bc2.begin(), bc2.end());
+	for (VertexMapDouble::iterator it = bcMap.begin(); it != bcMap.end(); ++it)
 	{
 		vertID = it->first;
-		tunCoeff = it->second;
 		currVert = domain->GetVertex(vertID);
+		FDBoundary::TunnelTag tunTag = currVert->BndCond.GetBCTunnelTag();
+		SCTM_ASSERT(tunTag!=FDBoundary::noTunnel, 10027);
 
-		SCTM_ASSERT(currVert->IsAtBoundary(FDBoundary::eDensity), 10022);
-		SCTM_ASSERT(currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
-
-		//currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, tunCoeff);
-
-		equID = equationMap[vertID];
-		getDeltaXYAtVertex(currVert, deltaX, deltaY);
-
-		//use the boundary condition direction, not the boundary direction
-		norm_alpha =  currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
-		norm_beta = currVert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
-
-		//p_J / p_x = (Je - Jw) / dx 
-		//p_J / p_y = (Jn - Js) / dy
-		//here, the vector value of the tunneling-out current density is tunCoeff*(norm_alpha, norm_beta) with negative tunCoeff
-		//for positive value, coeffToAdd = tunCoeff * norm_alpha (beta)
-		//for negative value, coeffToAdd = (-tunCoeff) * (-norm_alpha)
-		if (norm_alpha > 0) //lack of east part of the above equation
+		switch (tunTag)
 		{
-			coeffToAdd +=  tunCoeff * norm_alpha / deltaX;
-		}
-		else if (norm_alpha < 0) //lack of west part of the above equation
-		{
-			//this sign is derived from (-Js)
-			coeffToAdd += - tunCoeff * norm_alpha / deltaX;
-		}
+			case FDBoundary::eTunnelIn:
+			{
+				readCurrDensBC_in(currVert, it->second);
+				break;
+			}
+			case FDBoundary::eTunnelOut:
+			{
+				readCurrDensBC_out(currVert, it->second);
+				break;
+			}
 
-		if (norm_beta > 0) // lack of north part of the above equation
-		{
-			coeffToAdd += tunCoeff * norm_beta / deltaY;
 		}
-		else if (norm_beta < 0) //  lack of south part of the above equation
-		{
-			coeffToAdd += - tunCoeff * norm_beta / deltaY;
-		}
-
-		this->matrixSolver.RefreshMatrixValue(equID, equID, coeffToAdd, SctmSparseMatrixSolver::Add);
 	}
 }
 
@@ -1437,7 +1428,7 @@ void DDTest::setBndCurrent()
 void DDTest::SolveDD()
 {
 	UtilsTimer.Set();
-	prepareSolver(); //call method from base, DriftDiffusionSolver
+	//prepareSolver(); //call method from base, DriftDiffusionSolver
 	refreshCoeffMatrixDueToBC();
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
@@ -1514,7 +1505,7 @@ void DDTest::setBndDensity()
 	}
 }
 
-void DDTest::refreshBoundary()
+void DDTest::processBndCond()
 {
 	//setBndDensity();
 	setBndCurrent();
