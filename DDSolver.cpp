@@ -42,15 +42,17 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//build and refresh the coefficient matrix
 
 	buildCoefficientMatrix();
+	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	refreshCoefficientMatrix();
-	
+	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+
 	//handle the tunneling current. Update the coefficient matrix or refreshing BndCond value for building Rhs vector
 	handleBndTunnelCurrDens(bc1, bc2);
-	
+	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
 	//different due to the difference in last time electron density
 	buildRhsVector();
-
+	UtilsDebug.PrintVector(rhsVector, "rhs vector");
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
 	//fill back electron density to last time density, this is also done in refreshing vertex map
@@ -1069,22 +1071,15 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 {
 	//in the trapping boundary, the length of one or two direction may be zero
 	//however, this vertex may not be a real boundary vertex, i.e. the corresponding length may not be zero
-	bool notTrapping_NW = false;
-	bool notTrapping_NE = false;
-	bool notTrapping_SE = false;
-	bool notTrapping_SW = false;
-
-	notTrapping_NW = FDDomain::isNotTrappingElem(vert->NorthwestElem);
-	notTrapping_NE = FDDomain::isNotTrappingElem(vert->NortheastElem);
-	notTrapping_SE = FDDomain::isNotTrappingElem(vert->SoutheastElem);
-	notTrapping_SW = FDDomain::isNotTrappingElem(vert->SouthwestElem);
+	dx = 0;
+	dy = 0;
 
 	double bndNorm_alpha = 0;
 	double bndNorm_beta = 0;
 	if ( vert->IsAtBoundary(FDBoundary::eDensity) )
 	{
-		double bndNorm_alpha = vert->BndCond.GetBndDirection(FDBoundary::eDensity).X();
-		double bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
+		bndNorm_alpha = vert->BndCond.GetBndDirection(FDBoundary::eDensity).X();
+		bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
 	}
 	//so for inner vertex, bndNorm_alpha = 0, bndNorm_beta = 0
 
@@ -1161,7 +1156,7 @@ void DriftDiffusionSolver::readCurrDensBC_out(FDVertex *vert, double tunCoeff)
 	SCTM_ASSERT(vert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
 	//currVert->BndCond.RefreshBndCond(FDBoundary::eDensity, tunCoeff);
-
+	vertID = vert->GetID();
 	equID = equationMap[vertID];
 	getDeltaXYAtVertex(vert, deltaX, deltaY);
 

@@ -557,32 +557,32 @@ namespace SctmUtils
 		{
 			if (currStepNumber <= 10)
 			{
-				next = 1e-15;
+				next = 1e-10;
 				break;
 			}
 			if (currStepNumber <= 19)
 			{
-				next = 1e-14;
+				next = 1e-9;
 				break;
 			}
 			if (currStepNumber <= 28 )
 			{
-				next = 1e-13;
+				next = 1e-8;
 				break;
 			}
 			if (currStepNumber <= 37)
 			{
-				next = 1e-12;
+				next = 1e-5;
 				break;
 			}
 			if (currStepNumber <= 46)
 			{
-				next = 1e-11;
+				next = 1e-3;
 				break;
 			}
-			if (currStepNumber <= 500)
+			if (currStepNumber <= 55)
 			{
-				next = 1e-10;
+				next = 1e-2;
 				break;
 			}
 			break;
@@ -780,7 +780,7 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_X)));
+			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y)));
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
 		string title = "electric field of time [" + numStr + "] (x, y, electric field)"; 
