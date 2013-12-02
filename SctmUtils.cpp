@@ -527,13 +527,15 @@ namespace SctmUtils
 	{
 		this->currStepNumber = 0;
 		this->currElapsedTime = 0;
+		generateTimeSequence();
 	}
 
 	void SctmTimeStep::GenerateNext()
 	{
 		currStepNumber += 1; // step number starts with 1
+		//this->currTimeStep = getTimeStep_old();
 		this->currTimeStep = getTimeStep();
-		this->currElapsedTime += this->currTimeStep;
+		this->currElapsedTime = timeSequence.at(currStepNumber);
 	}
 
 	double SctmTimeStep::TimeStep() const
@@ -547,7 +549,7 @@ namespace SctmUtils
 		return norm.PullTime(currElapsedTime);
 	}
 
-	double SctmTimeStep::getTimeStep()
+	double SctmTimeStep::getTimeStep_old()
 	{
 		//TODO: currently, constant time step is used in the simulation
 		Normalization norm = Normalization();
@@ -626,6 +628,55 @@ namespace SctmUtils
 	{
 		return currStepNumber;
 	}
+
+	void SctmTimeStep::generateTimeSequence()
+	{
+		////////// time sequence parameter //////////
+		double startTimeDefault = 1e-15;
+		double endTime = 1e-8;
+		double stepPerDecade = 5;
+		/////////////////////////////////////////////
+
+		Normalization norm  = Normalization();
+		double time = 0;
+		double increase = 0;
+		
+		time = startTimeDefault;
+		increase = SctmMath::exp10(1/stepPerDecade);
+		timeSequence.push_back(0);
+		timeSequence.push_back(norm.PushTime(startTimeDefault));
+		while (!isEndTime(time, endTime))
+		{
+			time = time * increase;
+			timeSequence.push_back(norm.PushTime(time));
+		}
+	}
+
+	bool SctmTimeStep::isEndTime(double time, double endTime)
+	{
+		double roundingError = 0.001;
+		bool ret = false;
+		ret = ( SctmMath::abs((time-endTime) / endTime) < roundingError ) || ( time > endTime);
+		return ret;
+	}
+
+	double SctmTimeStep::getTimeStep()
+	{
+		Normalization norm = Normalization();
+		double next = 0;
+		next = timeSequence.at(currStepNumber) - timeSequence.at(currStepNumber - 1);
+		return next;
+	}
+
+	bool SctmTimeStep::End() const
+	{
+		static int totalEffectiveStep = timeSequence.size() - 1;
+		return (currStepNumber == totalEffectiveStep);
+	}
+
+
+
+
 
 	SctmData::SctmData()
 	{

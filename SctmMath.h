@@ -48,6 +48,7 @@ namespace SctmMath
 	inline double sqrt(double val)  { return std::sqrt(val); }
 	inline double ln(double val) { return std::log(val); }
 	inline double exp(double val) { return std::exp(val); }
+	inline double exp10(double val) { return std::pow(10, val); }
 
 	class VectorValue
 	{

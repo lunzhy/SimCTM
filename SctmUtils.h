@@ -121,11 +121,19 @@ namespace SctmUtils
 		double ElapsedTime() const;
 		int StepNumber() const;
 		double TimeStep() const;
+		bool End() const;
 	protected:
 		double currElapsedTime; /// current time of the simulation
 		int currStepNumber; /// current step of the simulation, starting with 1
 		double currTimeStep; /// current simulation time step
+		
+		vector<double> timeSequence;
+	protected:
 		double getTimeStep();
+		double getTimeStep_old();
+
+		void generateTimeSequence();
+		bool isEndTime(double time, double endTime);
 	};
 
 
@@ -169,6 +177,7 @@ namespace SctmUtils
 		void PrintValue(double d) { std::cout << d << " "; }
 		void PrintValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
 		void PrintValue(std::string &s) { std::cout << s << " ";}
+		void PrintNewLine() { std::cout << std::endl; }
 		void PrintBCType(FDBoundary::BCType bcType);
 		void PrintDirectionVector(VectorValue &dv);
 

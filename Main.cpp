@@ -6,6 +6,7 @@
 #include "DDSolver.h"
 #include "SctmPhys.h"
 #include "SolverPack.h"
+#include "Normalization.h"
 
 using namespace SctmUtils;
 
@@ -76,11 +77,25 @@ void SolverPackTest()
 	aPack.Run();
 }
 
+void TimeStepTest()
+{
+	Normalization norm = Normalization();
+	while (!UtilsTimeStep.End())
+	{
+		UtilsTimeStep.GenerateNext();
+		UtilsDebug.PrintValue(UtilsTimeStep.StepNumber());
+		UtilsDebug.PrintValue(norm.PullTime(UtilsTimeStep.TimeStep()));
+		UtilsDebug.PrintValue(norm.PullTime(UtilsTimeStep.ElapsedTime()));
+		UtilsDebug.PrintNewLine();
+	}
+}
+
 int main()
 {
 	initialize();
 	//DomainTest();
 	SolverPackTest();
+	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();
 	//PoissonTest();
