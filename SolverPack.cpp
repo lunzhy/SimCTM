@@ -41,7 +41,7 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	for (size_t it = 0; it != 5; ++it)
+	for (size_t it = 0; it != 50; ++it)
 	{
 		UtilsTimeStep.GenerateNext();
 
@@ -54,15 +54,17 @@ void SolverPack::callIteration()
 		TunnelOxideSolver->SolveTunnel();
 		fetchTunnelOxideResult();
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
+		UtilsData.WriteElecField(domain->GetVertices());
+		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
 
 		BlockOxideSolver->SolveTunnel();
 		fetchBlockOxideResult();
 
-		ddSolver->ReadCurrDensBC_in(mapCurrDensFromTunnelLayer);
-		ddSolver->ReadCurrDensBC_out(mapCurrDensCoeff);
-		ddSolver->SolveDD();
+		ddSolver->SolveDD(mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		fetchDDResult();
+		UtilsData.WriteTunnelCoeff(domain, mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		UtilsData.WriteElecDens(domain->GetDDVerts());
+		UtilsData.WriteElecCurrDens(domain->GetDDVerts());
 	}
 }
 
@@ -103,6 +105,12 @@ void SolverPack::fetchTunnelOxideResult()
 {
 	this->mapCurrDensFromTunnelLayer.clear();
 	TunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
+	//set the sign of boundary current for dd solver.
+	for (VertexMapDouble::iterator it = mapCurrDensFromTunnelLayer.begin(); it != mapCurrDensFromTunnelLayer.end(); ++it)
+	{
+		//does not need to change
+		//it->second = it->second;
+	}
 }
 
 void SolverPack::fetchDDResult()
@@ -114,4 +122,17 @@ void SolverPack::fetchBlockOxideResult()
 {
 	this->mapCurrDensCoeff.clear();
 	BlockOxideSolver->ReturnResult(mapCurrDensCoeff);
+	//the current(or tunnCoeff) should be same with the direction of the boundary condition
+	//so, reversed value is used to calculate current density
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	for (VertexMapDouble::iterator it = mapCurrDensCoeff.begin(); it != mapCurrDensCoeff.end(); ++it)
+	{
+		it->second = - it->second;
+		vertID = it->first;
+		currVert = domain->GetVertex(vertID);
+		//save the tunneling-out coefficient in this physics property, to be used in calculating the tunneling out current
+		//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
+		currVert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
+	}
 }

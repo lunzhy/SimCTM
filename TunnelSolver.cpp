@@ -230,6 +230,7 @@ void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
 			vertsEnd_Tunnel.push_back(currVert);
+			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
 			break;
 		}
 
@@ -351,12 +352,14 @@ double TrapToGateElecTunnel::getSupplyFunction(double energy)
 	double pi = SctmMath::PI;
 	double m0 = SctmPhys::ElectronMass;
 
-	// prefactor A in f(E) = A*exp(-E/KT)
+	// prefactor A in f(E) = A*exp(-E/KT), and A is a dimensionless value
+	// here, the prefactor lacks n (density), the dimension is m^3
 	static double prefactor = h * h * h / 4 / pi / (SctmMath::sqrt(pi)/2) /
 								(kB*T) / SctmMath::sqrt(kB * T) / 
 								SctmMath::sqrt(2*effTunnelMass*m0*effTunnelMass*m0*effTunnelMass*m0);
 
 	
+	//the supply function has a dimension of m^3 * J
 	ret = prefactor * kB * T * SctmMath::exp(- q * (energy - cbedgeTunnelFrom) / kB / T);
 	return ret;
 }
@@ -408,6 +411,7 @@ void TrapToGateElecTunnel::setSolver_Tunnel(FDVertex *endVertex)
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
 			vertsStart_Tunnel.push_back(currVert);
+			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
 			break;
 		}
 
@@ -476,7 +480,8 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 	{
 		currVert = vertsStart_Tunnel.at(iVert);
 		vertID = currVert->GetID();
-		//currently the eCurrDens_Tunnel the coefficient to calculate current density
+		//currently the eCurrDens_Tunnel stores the coefficient to calculate current density
+		//the calculated coefficient has a dimension of A*m, and should be converted to A*cm
 		//value[A*cm] * eDensity[cm^-3] = current density[A/cm^2]
 		tunCoeff = eCurrDens_Tunnel.at(iVert) / cm_in_m;
 		ret[vertID] = norm.PushTunCoeff(tunCoeff);

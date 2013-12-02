@@ -84,6 +84,14 @@ namespace SctmPhys
 			eMobility, ///< the electron mobility
 			eDensity, ///< the electron density
 			DensityControlArea, ///< density control area of trapping layer
+			ElectricField, ///< the magnitude of electric field
+			ElectricField_X, ///< electric field in X direction
+			ElectricField_Y, ///< electric field in Y direction
+			eCurrentDensity_X, ///< electron current density in X direction
+			eCurrentDensity_Y, ///< electron current density in Y direction
+			eCurrentDensity, ///< the magnitude of electron current density
+			//CAUTION: currently, the tunneling coefficient stores tunneling-out coefficient of the boundary vertex.
+			TunnelCoeff, ///< the tunneling coefficient of this vertex
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -93,7 +101,7 @@ namespace SctmPhys
 		/// @pre
 		/// @return 
 		/// @note
-		PhysProperty();
+		PhysProperty(FDVertex *_vert);
 		/// @brief SetPhyPrpty is used to set the value of physical property related to each vertex
 		/// 
 		/// The name of the specified property is given in enum name. 
@@ -125,13 +133,14 @@ namespace SctmPhys
 		/// @pre
 		/// @return void
 		/// @note This method is not checked until now. || Used.
-		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
+		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty);
-		void FillVertexPhysUsingMatPropty(FDVertex *vertex, PhysProperty::Name vertexPhys,
+		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType);
-		void CalculateDensityControlArea(FDVertex *vertex);
+		void CalculateDensityControlArea();
 		void UpdateValue(Name prptyName, double val);
 	private:
+		FDVertex *vertSelf; ///< the vertex this physics property belongs to
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used.
 		//the value of these physical properties is normalized value.
 		double bandgap; ///< bandgap of the material, normalized, in[eV]
@@ -145,6 +154,7 @@ namespace SctmPhys
 		double e_mobility; ///< electron mobility
 		double e_density; ///< the electron density
 		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
+		double tunnelCoeff; ///< the tunneling coefficient of this vertex
 	};
 }
 

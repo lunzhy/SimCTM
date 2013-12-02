@@ -20,6 +20,14 @@ void initialize()
 	SctmPhys::SetPhysConstant();
 }
 
+void DomainTest()
+{
+	UtilsMsg.PrintHeader("Building a simple ONO domain.");
+	FDDomain *aTest = new SimpleONO();
+	aTest->BuildDomain();
+	UtilsDebug.PrintDomainDetails(aTest);
+}
+
 void PoissonTest()
 {
 	UtilsMsg.PrintHeader("Building a simple ONO domain.");
@@ -71,6 +79,7 @@ void SolverPackTest()
 int main()
 {
 	initialize();
+	//DomainTest();
 	SolverPackTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

@@ -83,7 +83,7 @@ namespace SctmUtils
 		switch (err_code)
 		{
 		case 10001:
-			msg = "[SctmPhys.cpp] Non-existed physical property.";
+			msg = "[SctmPhys.cpp] Can not get the specified physical property";
 			break;
 		case 10002:
 			msg = "[Material.cpp] Non-existed material property.";
@@ -146,7 +146,22 @@ namespace SctmUtils
 			msg = "[TunnelSolver.cpp] Emin/Emax error in tunneling solver.";
 			break;
 		case 10022:
-			msg = "[DDSolver.cpp] Errors occurred when passing the boundary current density from tunneling layer to ddsolver.";
+			msg = "[DDSolver.cpp] Errors occurred when passing the boundary current density from tunneling layer to drift-diffusion solver.";
+			break;
+		case 10023:
+			msg = "[DomainDetails.cpp] Invalid boundary direction.";
+			break;
+		case 10024:
+			msg = "[SctmPhys.cpp] Error occurs in calculating electric field or current density. Zero value of length is obtained.";
+			break;
+		case 10025:
+			msg = "[SctmPhys.cpp] Calculating electric field or current density meets non-existent vertex. The corresponding grid number should be larger than 3.";
+			break;
+		case 10026:
+			msg = "[DomainDetails.cpp] Can not set or get tunneling tag to this vertex.";
+			break;
+		case 10027:
+			msg = "[DDSolver] Error occurred when reading tunneling current for boundary condition";
 			break;
 		default:
 			msg = "Untracked error";
@@ -171,9 +186,9 @@ namespace SctmUtils
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
 			//if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
 			PrintValue(currVert->IsAtBoundary(FDBoundary::Potential));
-			PrintValue(currVert->BndCond.Valid(FDBoundary::Potential));
 			if (currVert->IsAtBoundary(FDBoundary::Potential))
 			{
+				PrintDirectionVector(currVert->BndCond.GetBndDirection(FDBoundary::Potential));
 				PrintBCType(currVert->BndCond.GetBCType(FDBoundary::Potential));
 				if (currVert->BndCond.GetBCType(FDBoundary::Potential) == FDBoundary::BC_Dirichlet)
 				{
@@ -189,6 +204,7 @@ namespace SctmUtils
 			PrintValue(currVert->IsAtBoundary(FDBoundary::eDensity));
 			if (currVert->IsAtBoundary(FDBoundary::eDensity))
 			{
+				PrintDirectionVector(currVert->BndCond.GetBndDirection(FDBoundary::eDensity));
 				PrintBCType(currVert->BndCond.GetBCType(FDBoundary::eDensity));
 				if (currVert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Dirichlet)
 				{
@@ -220,7 +236,7 @@ namespace SctmUtils
 			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
 			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
 			cout << " -- ";
-			PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea));
+			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea));
 			cout << " -- ";
 			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::eMobility));
 			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->Phys->GetPhysPrpty(PhysProperty::ElectronAffinity));
@@ -331,6 +347,7 @@ namespace SctmUtils
 
 
 
+
 	void SctmMessaging::printLine(string &line)
 	{
 		std::cout << line << std::endl;
@@ -420,6 +437,25 @@ namespace SctmUtils
 				file.open(this->fileName.c_str(), std::ios::out | std::ios::trunc);
 				file.close();
 			}
+			return;
+		}
+		if (_mode == Append)
+		{
+			file.open(this->fileName.c_str(), std::ios::in);
+			if (!file)
+			{
+				//if the file doesn't exist, create it.
+				file.open(this->fileName.c_str(), std::ios::out);
+				if (!file)
+					UtilsMsg.PrintDirectoryError();
+				else
+					file.close();
+			}
+			else
+			{
+				file.close();//this is important because the existed file has been opened already.
+			}
+			return;
 		}
 		if (_mode == Read)
 		{
@@ -428,6 +464,7 @@ namespace SctmUtils
 				UtilsMsg.PrintFileError(_filename.c_str());
 			else
 				file.close();
+			return;
 		}
 	}
 
@@ -476,6 +513,14 @@ namespace SctmUtils
 		tofile.close();
 	}
 
+	void SctmFileStream::WriteLine(string &line)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << line << '\n';
+		tofile.close();
+	}
+
+
 
 
 	SctmTimeStep::SctmTimeStep()
@@ -508,31 +553,36 @@ namespace SctmUtils
 		Normalization norm = Normalization();
 		double next = 0; // in [s]
 
-		while(false)
+		while(true)
 		{
 			if (currStepNumber <= 10)
-			{
-				next = 1e-15;
-				break;
-			}
-			if (currStepNumber <= 19)
-			{
-				next = 1e-14;
-				break;
-			}
-			if (currStepNumber <= 28 )
 			{
 				next = 1e-13;
 				break;
 			}
-			if (currStepNumber <= 37)
+			if (currStepNumber <= 19)
 			{
 				next = 1e-12;
 				break;
 			}
-			if (currStepNumber <= 46)
+			if (currStepNumber <= 28 )
 			{
 				next = 1e-11;
+				break;
+			}
+			if (currStepNumber <= 37)
+			{
+				next = 1e-10;
+				break;
+			}
+			if (currStepNumber <= 46)
+			{
+				next = 1e-9;
+				break;
+			}
+			if (currStepNumber <= 100)
+			{
+				next = 1e-8;
 				break;
 			}
 			break;
@@ -568,7 +618,7 @@ namespace SctmUtils
 			break;
 		}
 		
-		next = 2e-13;
+		//next = 2e-6;
 		return norm.PushTime(next);
 	}
 
@@ -585,7 +635,7 @@ namespace SctmUtils
 
 	void SctmData::WriteElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "eDensity" + generateFileSuffix();
+		fileName = directoryName + "Density\\eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -609,7 +659,7 @@ namespace SctmUtils
 
 	void SctmData::WritePotential(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "potential" + generateFileSuffix();
+		fileName = directoryName + "Potential\\potential" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -642,7 +692,7 @@ namespace SctmUtils
 
 	void SctmData::WriteBandInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "band" + generateFileSuffix();
+		fileName = directoryName + "Band\\band" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization();
@@ -668,7 +718,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity)
 	{
-		fileName = directoryName + "subsCurrent" + generateFileSuffix();
+		fileName = directoryName + "Current\\subsCurrent" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 		
 		int vertID = 0;
@@ -687,9 +737,96 @@ namespace SctmUtils
 			currDens.push_back(norm.PullCurrDens(it->second));
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		string title = "band structure of time [" + numStr + "] (x, y, tunneling current density)";
+		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density)";
 		file.WriteVector(vecX, vecY, currDens, title.c_str());
 	}
+
+	void SctmData::WriteElecCurrDens(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "Current\\eCurrDens" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> eCurrDens;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
+		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
+	}
+
+	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "ElecField\\elecField" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> eCurrDens;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "electric field of time [" + numStr + "] (x, y, electric field)";
+		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
+	}
+
+	void SctmData::WriteTotalElecDens(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "Debug\\TotalDensity.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		double lineDens = 0;
+		Normalization norm = Normalization();
+		FDVertex *vert = NULL;
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			vert = vertices.at(iVert);
+			lineDens += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
+				* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string valStr = ConvertToString::Double(norm.PullLineDensity(lineDens));
+		string line = numStr + "\t\t" + valStr;
+		file.WriteLine(line);
+	}
+
+	void SctmData::WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff)
+	{
+		fileName = directoryName + "Debug\\tunCoeff.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		int vertID = 0;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		VertexMapDouble::iterator it = inCurrDens.begin(); 
+		string currDens = ConvertToString::Double(norm.PullCurrDens(it->second));
+		it = outCurrCoeff.begin();
+		string tunCoeff = ConvertToString::Double(norm.PullTunCoeff(it->second));
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+
+		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
+		file.WriteLine(line);
+	}
+
+
 
 
 	string ConvertToString::Int(int num)
