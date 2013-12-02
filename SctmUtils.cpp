@@ -557,32 +557,32 @@ namespace SctmUtils
 		{
 			if (currStepNumber <= 10)
 			{
-				next = 1e-10;
+				next = 1e-13;
 				break;
 			}
 			if (currStepNumber <= 19)
 			{
-				next = 1e-9;
+				next = 1e-12;
 				break;
 			}
 			if (currStepNumber <= 28 )
 			{
-				next = 1e-8;
+				next = 1e-11;
 				break;
 			}
 			if (currStepNumber <= 37)
 			{
-				next = 1e-5;
+				next = 1e-10;
 				break;
 			}
 			if (currStepNumber <= 46)
 			{
-				next = 1e-3;
+				next = 1e-9;
 				break;
 			}
-			if (currStepNumber <= 55)
+			if (currStepNumber <= 100)
 			{
-				next = 1e-2;
+				next = 1e-8;
 				break;
 			}
 			break;
@@ -757,7 +757,7 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_Y)));
+			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
 		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
@@ -780,10 +780,10 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y)));
+			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		string title = "electric field of time [" + numStr + "] (x, y, electric field)"; 
+		string title = "electric field of time [" + numStr + "] (x, y, electric field)";
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
 

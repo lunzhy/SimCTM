@@ -121,10 +121,9 @@ protected:
 	void fillBackElecDens();
 	virtual void processBndCond();
 	void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
-
 	void handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2);
-	void readCurrDensBC_in(FDVertex *vert, double currdens);
-	void readCurrDensBC_out(FDVertex *vert, double tunCoeff);
+	void handleCurrDensBC_in(FDVertex *vert, double currdens);
+	void handleCurrDensBC_out(FDVertex *vert, double tunCoeff);
 };
 
 class DDTest : public DriftDiffusionSolver

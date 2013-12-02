@@ -37,22 +37,22 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 
 	//set the simulation time step
 	setTimeStep();
+	
 	//refresh the vertex map for building Coefficient matrix
 	refreshVertexMap();
+	
 	//build and refresh the coefficient matrix
-
 	buildCoefficientMatrix();
-	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
 	refreshCoefficientMatrix();
-	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-
+	
 	//handle the tunneling current. Update the coefficient matrix or refreshing BndCond value for building Rhs vector
 	handleBndTunnelCurrDens(bc1, bc2);
-	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
+	
 	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
 	//different due to the difference in last time electron density
 	buildRhsVector();
-	UtilsDebug.PrintVector(rhsVector, "rhs vector");
+
+	//solve the matrix
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
 	//fill back electron density to last time density, this is also done in refreshing vertex map
@@ -1107,7 +1107,7 @@ void DriftDiffusionSolver::getDeltaXYAtVertex(FDVertex *vert, double &dx, double
 	SCTM_ASSERT(dx!=0 && dy!=0, 10015);
 }
 
-void DriftDiffusionSolver::readCurrDensBC_in(FDVertex *vert, double currdens)
+void DriftDiffusionSolver::handleCurrDensBC_in(FDVertex *vert, double currdens)
 {
 	int vertID = 0;
 
@@ -1139,7 +1139,7 @@ void DriftDiffusionSolver::refreshVertexMap()
 	}
 }
 
-void DriftDiffusionSolver::readCurrDensBC_out(FDVertex *vert, double tunCoeff)
+void DriftDiffusionSolver::handleCurrDensBC_out(FDVertex *vert, double tunCoeff)
 {
 	//the value of tunneling coefficient is in [A*cm]
 
@@ -1209,12 +1209,12 @@ void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexM
 		{
 			case FDBoundary::eTunnelIn:
 			{
-				readCurrDensBC_in(currVert, it->second);
+				handleCurrDensBC_in(currVert, it->second);
 				break;
 			}
 			case FDBoundary::eTunnelOut:
 			{
-				readCurrDensBC_out(currVert, it->second);
+				handleCurrDensBC_out(currVert, it->second);
 				break;
 			}
 
