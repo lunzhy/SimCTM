@@ -496,4 +496,122 @@ namespace SctmPhys
 		SctmPhys::ReferencePotential = norm.PushPotential(SctmPhys::ReferencePotential);
 	}
 
+
+	TrapProperty::TrapProperty(FDVertex *_vert)
+	{
+		vertSelf = _vert;
+	}
+
+	void TrapProperty::FillTrapPrptyUsingMatPrpty(TrapProperty::Name trapPrpty, MaterialDB::MatProperty::Name matPrpty)
+	{
+		FDElement *currElem = NULL;
+		double tot = 0; //total area
+		double sum = 0; //sum corresponds to the integral
+		double trapValue = 0; //the final trap property value related to vertex
+
+		using MaterialDB::GetMatPrpty;
+		double temp = 0;
+		currElem = vertSelf->NorthwestElem;
+		if ( !FDDomain::isNotTrappingElem(currElem) )
+		{
+			temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+			tot += currElem->Area;
+			sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+		}
+		
+		currElem = vertSelf->NortheastElem;
+		if ( !FDDomain::isNotTrappingElem(currElem) )
+		{
+			temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+			tot += currElem->Area;
+			sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+		}
+		
+		currElem = vertSelf->SouthwestElem;
+		if ( !FDDomain::isNotTrappingElem(currElem) )
+		{
+			temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+			tot += currElem->Area;
+			sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+		}
+		
+		currElem = vertSelf->SoutheastElem;
+		if ( !FDDomain::isNotTrappingElem(currElem) )
+		{
+			temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+			tot += currElem->Area;
+			sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+		}
+
+		if (tot == 0)
+		{
+			trapValue = 0;
+		}
+		else
+		{
+			trapValue = sum / tot;
+		}
+		vertSelf->Trap->SetTrapPrpty(trapPrpty, trapValue);
+	}
+
+	void TrapProperty::SetTrapPrpty(TrapProperty::Name trapPrpty, double val)
+	{
+		switch (trapPrpty)
+		{
+		case eCrossSection:
+			e_crossSection = val;
+			break;
+		case EnergyFromCondBand:
+			energyFromCondBand = val;
+			break;
+		case eTrapDensity:
+			e_trapDensity = val;
+			break;
+		case eTrapped:
+			e_trapped = val;
+			break;
+		default:
+			SCTM_ASSERT(SCTM_ERROR, 10028);
+		}
+	}
+
+	double TrapProperty::GetTrapPrpty(TrapProperty::Name trapPrpty) const
+	{
+		double ret = 0;
+		switch (trapPrpty)
+		{
+			case eTrapped:
+			{
+				ret = e_trapped;
+				break;
+			}
+			case eTrapDensity:
+			{
+				ret = e_trapDensity;
+				break;
+			}
+			case eOccupation:
+			{
+				ret = e_trapped / e_trapDensity;
+				break;
+			}
+			case EnergyFromCondBand:
+			{
+				ret = energyFromCondBand;
+				break;
+			}
+			case eCrossSection:
+			{
+				ret = e_crossSection;
+				break;
+			}
+			default:
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10029);
+			}
+		}
+
+		return ret;
+	}
+
 }

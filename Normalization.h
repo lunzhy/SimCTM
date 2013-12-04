@@ -186,7 +186,7 @@ namespace SctmUtils
 			return currdens * currDensFactor;
 		}
 		
-		//area, in [cm^2]
+		//line density, in [cm^-1]
 		inline double PullLineDensity(double lineDensity)
 		{
 			return lineDensity * densityFactor * lengthFactor * lengthFactor;
@@ -211,6 +211,16 @@ namespace SctmUtils
 		inline double PullTunCoeff(double coeff)
 		{
 			return coeff * (currDensFactor / densityFactor);
+		}
+
+		//area, including the cross section used in trap property
+		inline double PushArea(double area)
+		{
+			return area / ( lengthFactor * lengthFactor ); 
+		}
+		inline double PullArea(double area)
+		{
+			return area * ( lengthFactor * lengthFactor );
 		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.

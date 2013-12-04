@@ -50,6 +50,8 @@ namespace MaterialDB
 		Si3N4.ElectronMass(1); // need to be revised
 		Si3N4.HoleMass(1);
 		Si3N4.ElectronMobility(norm.PushMobility(0.1));
+		Si3N4.ElecTrapEnergyFromCB(norm.PushEnergy(1.5));
+		Si3N4.ElecTrapXSection(norm.PushArea(1e-15));
 	}
 
 	double GetMatPrpty(Material *theMaterial, MatProperty::Name prptyName)
@@ -84,6 +86,12 @@ namespace MaterialDB
 			break;
 		case MatProperty::Mat_HoleMobility:
 			ret = theMaterial->HoleMobility();
+			break;
+		case MatProperty::Mat_ElecTrapEnergyFromCB:
+			ret = theMaterial->ElecTrapEnergyFromCB();
+			break;
+		case MatProperty::Mat_ElecTrapXSection:
+			ret = theMaterial->ElecTrapXSection();
 			break;
 		default:
 			// use SCTM_CHECK for non-existed property

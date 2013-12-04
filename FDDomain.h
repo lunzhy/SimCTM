@@ -28,6 +28,12 @@ namespace SctmUtils
 	class SctmFileStream;
 }
 
+namespace SctmPhys
+{
+	class PhysProperty;
+	class TrapProperty;
+}
+
 /// @brief FDDomain describes the simulation domain in finite differential method.
 ///
 /// This class is used as a base class for FD domain. It only contains the general properties in FD domain
@@ -37,6 +43,7 @@ class FDDomain
 	friend class SctmUtils::SctmFileStream;
 	friend class DDTest;
 	friend class DriftDiffusionSolver;
+	friend class SctmPhys::TrapProperty;
 public:
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 
@@ -115,7 +122,17 @@ public:
 protected:
 	void virtual buildStructure() = 0;
 	void virtual postProcessOfDomain() = 0;
-	void setVertexPhysics();
+	void virtual setTrapDistribution() = 0;
+	/// @brief setVertexPhysics is used to set the physical value related to the specific vertex.
+	/// 
+	/// These physical values are calculated from the material-related properties using the area of the adjacent elements 
+	/// Electron affinity, bandgap, electron mass are calculated and filled into the physical value of the vertex.
+	///
+	/// @pre
+	/// @return void
+	/// @note
+	void setVertexPhysProperty();
+	void setVertexTrapProperty();
 	void setBoundary();
 	void setBndVert_Potential(FDVertex *vert);
 	void setBndVert_eDensity(FDVertex *vert);
@@ -123,6 +140,7 @@ protected:
 	void updateBCVert_Potential(FDVertex *vert);
 	void updateBCVert_eDensity(FDVertex *vert);
 	void fillDDVerts();
+
 private:
 	static bool isValidElem(FDElement *elem);
 	static bool isNotTrappingElem(FDElement *elem);

@@ -156,6 +156,31 @@ namespace SctmPhys
 		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
 		double tunnelCoeff; ///< the tunneling coefficient of this vertex
 	};
+
+	class TrapProperty
+	{
+	public:
+		enum Name
+		{
+			eTrapped,
+			eTrapDensity,
+			eCrossSection,
+			EnergyFromCondBand,
+			eOccupation
+		};
+		TrapProperty(FDVertex *_vert);
+		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;
+		void SetTrapPrpty(TrapProperty::Name trapPrpty, double val);
+
+		void FillTrapPrptyUsingMatPrpty(TrapProperty::Name trapPrpty, MaterialDB::MatProperty::Name matPrpty);
+
+	private:
+		FDVertex *vertSelf;
+		double e_trapped;
+		double e_trapDensity;
+		double e_crossSection;
+		double energyFromCondBand;
+	};
 }
 
 #endif

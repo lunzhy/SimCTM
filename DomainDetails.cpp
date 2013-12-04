@@ -41,6 +41,7 @@ FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
 	SouthwestElem = NULL;
 	Contact = NULL;
 	Phys = new PhysProperty(this);
+	Trap = NULL; // initially no trap property is attached to the vertex, trap property is set in the specific method in FDDomain
 }
 
 void FDBoundary::SetBnd(BCName bcName, BCType bcType, VectorValue bndVec, double bcValue /*= 0*/)

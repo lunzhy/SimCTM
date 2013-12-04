@@ -25,6 +25,7 @@ using std::endl;
 using std::fstream;
 using std::stringstream;
 using SctmPhys::PhysProperty;
+using SctmPhys::TrapProperty;
 
 namespace SctmUtils
 {
@@ -163,6 +164,12 @@ namespace SctmUtils
 		case 10027:
 			msg = "[DDSolver] Error occurred when reading tunneling current for boundary condition";
 			break;
+		case 10028:
+			msg = "[SctmPhys.cpp] Can not set the required trap property.";
+			break;
+		case 10029:
+			msg = "[SctmPhys.cpp] Can not get the required trap property.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -181,10 +188,24 @@ namespace SctmUtils
 			currVert = domain->GetVertex(iVert);
 			PrintValue(currVert->GetID());
 			cout << " -- ";
+			if (currVert->Trap == NULL)
+			{
+				
+				cout << "not related to trapping layer";
+			}
+			else
+			{
+				PrintValue(norm.PullArea(currVert->Trap->GetTrapPrpty(TrapProperty::eCrossSection)));
+				cout << " -- ";
+				PrintValue(norm.PullEnergy(currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand)));
+				cout << " -- ";
+				PrintValue(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
+			}
 			//PrintValue(currVert->IsAtContact());
 			//PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
 			//if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
+			/*
 			PrintValue(currVert->IsAtBoundary(FDBoundary::Potential));
 			if (currVert->IsAtBoundary(FDBoundary::Potential))
 			{
@@ -216,6 +237,7 @@ namespace SctmUtils
 					PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity));
 				}
 			}
+			*/
 			//if (currVert->BndCond.Valid(FDBoundary::eDensity)) { PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity)); }
 			//PrintValue(currVert->EastLength);
 			//PrintValue(currVert->WestLength);

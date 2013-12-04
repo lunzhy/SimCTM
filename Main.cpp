@@ -93,8 +93,8 @@ void TimeStepTest()
 int main()
 {
 	initialize();
-	//DomainTest();
-	SolverPackTest();
+	DomainTest();
+	//SolverPackTest();
 	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

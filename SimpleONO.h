@@ -119,6 +119,11 @@ private:
 	/// @note the initial region sequence is tunneling oxide (region[0]), 
 	/// trapping layer (region[1]) and blocking oxide (region[2]).
 	FDRegion * thisRegion( int elemY);
+
+	void setTrapDistribution();
+	void postProcessOfDomain();
+	void refreshPotential();
+
 	/// @brief stuffPotential is used to stuff potential obtained from calculation results
 	/// 
 	/// This is a temporary method for initializing the potential. The potential is calculated with
@@ -129,15 +134,6 @@ private:
 	/// @return void
 	/// @note
 	void stuffPotential();
-	/// @brief setVertexPhysics is used to set the physical value related to the specific vertex.
-	/// 
-	/// These physical values are calculated from the material-related properties using the area of the adjacent elements 
-	/// Electron affinity, bandgap, electron mass are calculated and filled into the physical value of the vertex.
-	/// 
-	/// @pre
-	/// @return void
-	/// @note
-	void setVertexPhysics();
 	/// @brief refreshBandEnergy is used to refresh band energy profile using the potential
 	/// 
 	/// The conduction/valence band energy is computed through the use of the obtained potential profile.
@@ -146,9 +142,6 @@ private:
 	/// @return void
 	/// @note
 	void refreshBandEnergy();
-
-	void postProcessOfDomain();
-	void refreshPotential();
 };
 
 #endif

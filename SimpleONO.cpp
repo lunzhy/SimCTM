@@ -40,9 +40,9 @@ void SimpleONO::setParameters()
 	double yLengthTrap_in_nm = 10;
 	double yLengthBlock_in_nm = 9;
 	int xGridNumber = 5; //the grid number, not vertex number
-	int yGridNumberTunnel = 100;
-	int yGridNumberTrap = 100;
-	int yGridNumberBlock = 100;
+	int yGridNumberTunnel = 5;
+	int yGridNumberTrap = 5;
+	int yGridNumberBlock = 5;
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
 	//here, the length of the parameter is conversed to [cm]
@@ -473,6 +473,21 @@ void SimpleONO::refreshPotential()
 
 void SimpleONO::postProcessOfDomain()
 {
-	//temporarily used for setting the initial boundary condition
+	//TODO: temporarily used for setting the initial boundary condition
 	refreshPotential();
+}
+
+void SimpleONO::setTrapDistribution()
+{
+	//TODO: Setting the distribution of trap density is temporarily considered here
+	using SctmPhys::TrapProperty;
+
+	Normalization norm = Normalization();
+	double eTrapDens = norm.PushDensity(1e18); // 1e18 cm^-3
+	FDVertex *currVert = NULL;
+	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	{
+		currVert = ddVerts.at(iVert);
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
+	}
 }

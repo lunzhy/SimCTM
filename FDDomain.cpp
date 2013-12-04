@@ -266,24 +266,22 @@ void FDDomain::BuildDomain()
 	buildStructure();
 	//fill the vertices belonging to drift-diffusion process
 	fillDDVerts();
-	//set the physics value related to vertex
-	setVertexPhysics();
+	//set the physics value related to vertex, when the vertex is related to trapping layer, set the trap property
+	setVertexPhysProperty();
+	setVertexTrapProperty();
+	setTrapDistribution();
 	//set the boundary condition, the specific value is not considered in this class.
 	setBoundary();
 	updateBndCond();
-	//in case the specific domain has some special post-process
+	//in case the specific domain has some special post-procedure
 	postProcessOfDomain();
 
 	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 
-void FDDomain::setVertexPhysics()
+void FDDomain::setVertexPhysProperty()
 {
 	FDVertex * currVertex = NULL;
-	FDElement * currElem = NULL;
-	double tot = 0; //total area
-	double sum = 0; //sum corresponds to integral value
-	double physValue = 0;
 
 	using namespace MaterialDB;
 	using namespace SctmPhys;
@@ -315,27 +313,6 @@ void FDDomain::setVertexPhysics()
 				currVertex->Phys->FillVertexPhysUsingMatPropty(verPrptys.at(iPrpty), matPrptys.at(iPrpty));
 			}
 			currVertex->Phys->CalculateDensityControlArea();
-			/*
-			tot = 0; sum = 0;
-			currElem = currVertex->SouthwestElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-			
-			currElem = currVertex->SoutheastElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-			
-			currElem = currVertex->NortheastElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-			
-			currElem = currVertex->NorthwestElem;
-			tot += ( currElem != NULL ) ? currElem->Area : 0;
-			sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrptys.at(iPrpty)) * currElem->Area : 0;
-
-			physValue = sum / tot;
-			currVertex->Phys->SetPhysPrpty(verPrptys.at(iPrpty), physValue);
-			*/
 		}
 	}
 }
@@ -353,10 +330,10 @@ void FDDomain::fillDDVerts()
 	{
 		currVert = this->vertices.at(iVert);
 
-		bool notTrapping_NW = isNotTrappingElem(currVert->NorthwestElem);
-		bool notTrapping_NE = isNotTrappingElem(currVert->NortheastElem);
-		bool notTrapping_SE = isNotTrappingElem(currVert->SoutheastElem);
-		bool notTrapping_SW = isNotTrappingElem(currVert->SouthwestElem);
+		notTrapping_NW = isNotTrappingElem(currVert->NorthwestElem);
+		notTrapping_NE = isNotTrappingElem(currVert->NortheastElem);
+		notTrapping_SE = isNotTrappingElem(currVert->SoutheastElem);
+		notTrapping_SW = isNotTrappingElem(currVert->SouthwestElem);
 
 		if (!(notTrapping_NE && notTrapping_NW && notTrapping_SE && notTrapping_SW))
 		{
@@ -489,5 +466,21 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, -1));
 			return;
 		}
+	}
+}
+
+void FDDomain::setVertexTrapProperty()
+{
+	using MaterialDB::MatProperty;
+	using SctmPhys::TrapProperty;
+
+	FDVertex *currVert = NULL;
+	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	{
+		currVert = ddVerts.at(iVert);
+		currVert->Trap = new TrapProperty(currVert);
+
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eCrossSection, MatProperty::Mat_ElecTrapXSection);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
 	}
 }

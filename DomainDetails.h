@@ -25,12 +25,14 @@ namespace MaterialDB
 namespace SctmPhys
 {
 	class PhysProperty;
+	class TrapProperty;
 }
 using MaterialDB::Material;
 using std::string;
 using std::map;
 using SctmMath::VectorValue;
 using SctmPhys::PhysProperty;
+using SctmPhys::TrapProperty;
 /// @brief FDBoundary is a the class describing the boundary conditions in finite differential method
 ///
 /// The object of FDBoundary is a member in FDVertex to store the boundary information(valid/invalid).
@@ -190,6 +192,7 @@ public:
 	FDContact *Contact; ///< the pointer to the contact the vertex belongs
 
 	PhysProperty *Phys; ///< the physical values attached to current vertex
+	TrapProperty *Trap; ///< the trap property attached to current vertex
 	FDBoundary BndCond; ///< the boundary condition of current vertex
 	
 	/// @brief IsAtBoundary is used to check if the vertex is a boundary vertex with specified boundary name

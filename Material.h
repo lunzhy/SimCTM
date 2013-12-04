@@ -39,7 +39,9 @@ namespace MaterialDB
 		double		holeDiffusion; ///< hole diffusion coefficient, in [D0]
 		double		electronMobility; ///< electron mobility
 		double		holeMobility; ///< hole mobility
-		
+		double		elecTrapXSection; ///< electron trap cross section
+		double		elecTrapEnergyFromCB; ///< electron trap energy from conduction band
+
 	public:
 		/// @brief Material is the construction method of this class
 		///  
@@ -52,28 +54,32 @@ namespace MaterialDB
 		Material(string _name):name(_name) {};
 
 		//The methods below are used to encapsulate the private members of this class.
-		double		DielectricConstant() const			{ return dielectricConstant;	}
-		void		DielectricConstant(double val)		{ dielectricConstant = val;		}
-		double		Bandgap() const						{ return bandgap;				}
-		void		Bandgap(double val)					{ bandgap = val;				}
-		double		ElectronAffinity() const			{ return electronAffinity;		}
-		void		ElectronAffinity(double val)		{ electronAffinity = val;		}
-		double		ElectronMass() const				{ return electronMass;			}
-		void		ElectronMass(double val)			{ electronMass = val;			}
-		double		HoleMass() const					{ return holeMass;				}
-		void		HoleMass(double val)				{ holeMass = val;				}
-		double		ElectronDOS() const					{ return electronDOS;			}
-		void		ElectronDOS(double val)				{ electronDOS = val;			}
-		double		HoleDOS() const						{ return holeDOS;				}
-		void		HoleDOS(double val)					{ holeDOS = val;				}
-		double		ElectronDiffusion() const			{ return electronDiffusion;		}
-		void		ElectronDiffusion(double val)		{ electronDiffusion = val;		}
-		double		HoleDiffusion() const				{ return holeDiffusion;			}
-		void		HoleDiffusion(double val)			{ holeDiffusion = val;			}
-		double		ElectronMobility() const			{ return electronMobility;		}
-		void		ElectronMobility(double val)		{ electronMobility = val;		}
-		double		HoleMobility() const				{ return holeMobility;			}
-		void		HoleMobility(double val)			{ holeMobility = val;			}
+		double		DielectricConstant() const				{ return dielectricConstant;	}
+		void		DielectricConstant(double val)			{ dielectricConstant = val;		}
+		double		Bandgap() const							{ return bandgap;				}
+		void		Bandgap(double val)						{ bandgap = val;				}
+		double		ElectronAffinity() const				{ return electronAffinity;		}
+		void		ElectronAffinity(double val)			{ electronAffinity = val;		}
+		double		ElectronMass() const					{ return electronMass;			}
+		void		ElectronMass(double val)				{ electronMass = val;			}
+		double		HoleMass() const						{ return holeMass;				}
+		void		HoleMass(double val)					{ holeMass = val;				}
+		double		ElectronDOS() const						{ return electronDOS;			}
+		void		ElectronDOS(double val)					{ electronDOS = val;			}
+		double		HoleDOS() const							{ return holeDOS;				}
+		void		HoleDOS(double val)						{ holeDOS = val;				}
+		double		ElectronDiffusion() const				{ return electronDiffusion;		}
+		void		ElectronDiffusion(double val)			{ electronDiffusion = val;		}
+		double		HoleDiffusion() const					{ return holeDiffusion;			}
+		void		HoleDiffusion(double val)				{ holeDiffusion = val;			}
+		double		ElectronMobility() const				{ return electronMobility;		}
+		void		ElectronMobility(double val)			{ electronMobility = val;		}
+		double		HoleMobility() const					{ return holeMobility;			}
+		void		HoleMobility(double val)				{ holeMobility = val;			}
+		double		ElecTrapXSection() const				{ return elecTrapXSection; }
+		void		ElecTrapXSection(double val)			{ elecTrapXSection = val; }
+		double		ElecTrapEnergyFromCB() const		{ return elecTrapEnergyFromCB; }
+		void		ElecTrapEnergyFromCB(double val)	{ elecTrapEnergyFromCB = val; }
 	};
 
 
@@ -94,6 +100,8 @@ namespace MaterialDB
 			Mat_HoleDiffusion, ///< hole drift diffusion of the material
 			Mat_ElectronMobility, ///< electron mobility of the material
 			Mat_HoleMobility, ///< hole mobility of the material
+			Mat_ElecTrapXSection, ///< electron trap cross section
+			Mat_ElecTrapEnergyFromCB, ///< electron trap energy from conduction band
 		};
 	};
 
