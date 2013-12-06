@@ -404,7 +404,7 @@ namespace SctmPhys
 	}		
 
 	void PhysProperty::FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys, 
-		MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType)
+		MaterialDB::MatProperty::Name matPrpty, FDRegion::TypeName rType)
 	{
 		//TODO : need to solve the problem of mutual including.
 		//the problem is solved but with some unknowns.
@@ -479,11 +479,12 @@ namespace SctmPhys
 
 	void SetPhysConstant()
 	{
+		using namespace MaterialDB;
 		//the value returned by GetMatPrpty is normalized value
-		double mp = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_HoleMass);
-		double mn = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronMass);
-		double bandgap = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_Bandgap);
-		double affinity = MaterialDB::GetMatPrpty(&MaterialDB::Silicon, MaterialDB::MatProperty::Mat_ElectronAffinity);
+		double mp = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_HoleMass);
+		double mn = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_ElectronMass);
+		double bandgap = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_Bandgap);
+		double affinity = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_ElectronAffinity);
 		double temp = T0;
 		using SctmUtils::Normalization;
 		Normalization norm = Normalization();

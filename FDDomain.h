@@ -16,11 +16,8 @@
 #define _FDDOMAIN_H_
 
 #include <vector>
-
-class FDVertex;
-class FDElement;
-class FDRegion;
-class FDContact;
+#include <map>
+#include "DomainDetails.h"
 
 namespace SctmUtils
 {
@@ -45,6 +42,8 @@ class FDDomain
 	friend class DriftDiffusionSolver;
 	friend class SctmPhys::TrapProperty;
 public:
+	
+public:
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 
 	/// This class depends on some virtual classes which are defined in derived class. The detailed implementation 
@@ -61,7 +60,8 @@ protected:
 	std::vector<FDVertex *> vertices; ///< the vertices contained in the domain
 	std::vector<FDVertex *> ddVerts; ///< the vertices related to trapping layers in the domain
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
-	std::vector<FDRegion *> regions; ///< the regions contained in the domain
+	std::map<FDRegion::TypeName, FDRegion*> regionMap;
+	//std::vector<FDRegion *> regions; ///< the regions contained in the domain
 	std::vector<FDContact *> contacts; ///< the contacts contained in the domain
 
 public:
@@ -104,11 +104,11 @@ public:
 	/// 
 	/// This method returns the pointer of specified region object. In practice, a pointer with same type is
 	/// always ready to get the returned pointer and do the following process.
-	/// @param unsigned int id
+	/// @param FDRegion::TypeName reg
 	/// @pre
 	/// @return FDRegion *
 	/// @note
-	FDRegion * GetRegion(unsigned int id);
+	FDRegion * GetRegion(FDRegion::TypeName reg);
 	/// @brief GetContact can get the contact object with given id
 	/// 
 	/// This method returns the pointer of specified contact object. In practice, a pointer with same type is

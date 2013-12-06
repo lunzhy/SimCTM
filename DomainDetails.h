@@ -313,7 +313,7 @@ class FDRegion
 {
 public:
 	/// @brief The type of the region 
-	enum RegionType
+	enum TypeName
 	{
 		Tunneling, ///< tunneling oxide
 		Trapping, ///< trapping layer
@@ -328,10 +328,10 @@ public:
 	/// @pre
 	/// @return 
 	/// @note
-	FDRegion(unsigned int _id, FDRegion::RegionType _type)
-		:id(_id), Type(_type) {}
+	FDRegion(unsigned int _id, FDRegion::TypeName _type, Material *_mat)
+		:id(_id), Type(_type), Mat(_mat) {}
 
-	FDRegion::RegionType Type; ///< type of the region, in enum RegionType
+	FDRegion::TypeName Type; ///< type of the region, in enum RegionType
 	Material * Mat; ///< the material of current region, a pointer to const material
 
 	/// @brief AddElement adds element in current region

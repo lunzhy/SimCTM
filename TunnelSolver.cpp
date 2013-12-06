@@ -258,14 +258,14 @@ void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
 	//set the silicon band edge, because the difference is fixed
 	using namespace MaterialDB;
 	double barrier = 0;
-	barrier = GetMatPrpty(&MaterialDB::Silicon, MatProperty::Mat_ElectronAffinity)
-		- GetMatPrpty(&MaterialDB::SiO2, MatProperty::Mat_ElectronAffinity);
+	barrier = GetMatPrpty(MaterialMap[Materials::Silicon], MatProperty::Mat_ElectronAffinity)
+		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
 	barrier = norm.PullEnergy(barrier);
 	cbedgeTunnelFrom = cbEdge.front() - barrier;
 
 	//set the conduction band edge in the trapping layer where the tunneling ends.
-	barrier = GetMatPrpty(&MaterialDB::Si3N4, MatProperty::Mat_ElectronAffinity)
-		- GetMatPrpty(&MaterialDB::SiO2, MatProperty::Mat_ElectronAffinity);
+	barrier = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronAffinity)
+		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
 	barrier = norm.PullEnergy(barrier);
 	cbedgeTunnelTo = cbEdge.back() - barrier;
 	
@@ -443,8 +443,8 @@ void TrapToGateElecTunnel::setSolver_Tunnel(FDVertex *endVertex)
 	//CAUTION this is a temporary method
 	using namespace MaterialDB;
 	double barrier = 0;
-	barrier = GetMatPrpty(&MaterialDB::Si3N4, MatProperty::Mat_ElectronAffinity)
-		- GetMatPrpty(&MaterialDB::SiO2, MatProperty::Mat_ElectronAffinity);
+	barrier = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronAffinity)
+		- GetMatPrpty(domain->GetRegion(FDRegion::Blocking)->Mat, MatProperty::Mat_ElectronAffinity);
 	barrier = norm.PullEnergy(barrier);
 	cbedgeTunnelFrom = cbEdge.front() - barrier;
 

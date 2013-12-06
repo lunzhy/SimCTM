@@ -136,7 +136,7 @@ namespace SctmPhys
 		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty);
 		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
-			MaterialDB::MatProperty::Name matPrpty, FDRegion::RegionType rType);
+			MaterialDB::MatProperty::Name matPrpty, FDRegion::TypeName rType);
 		void CalculateDensityControlArea();
 		void UpdateValue(Name prptyName, double val);
 	private:

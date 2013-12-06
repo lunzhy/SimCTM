@@ -13,76 +13,25 @@
 #ifndef _MATERIAL_H_
 #define _MATERIAL_H_
 
-#include <string>
-using std::string;
+#include <map>
 
 /// @brief This namespace contains the material parameters.
 ///
 /// This is used as a material database.
 namespace MaterialDB
 {
-	/// @brief This class is a data structure to store the parameters for different materials used in the simulation.
-	///
-	/// The data is stored in normalized value
-	class Material
+	class Materials
 	{
-	private:
-		string		name; ///< material name
-		double		dielectricConstant; ///< dielectric constant
-		double		bandgap; ///< bandgap, in [eV]
-		double		electronAffinity; ///< electron affinity energy, in [eV]
-		double		electronMass; ///< electron effective mass, in [m0]
-		double		holeMass; ///< hole effective mass, in [m0]
-		double		electronDOS;
-		double		holeDOS;
-		double		electronDiffusion; ///< electron diffusion coefficient, in [D0]
-		double		holeDiffusion; ///< hole diffusion coefficient, in [D0]
-		double		electronMobility; ///< electron mobility
-		double		holeMobility; ///< hole mobility
-		double		elecTrapXSection; ///< electron trap cross section
-		double		elecTrapEnergyFromCB; ///< electron trap energy from conduction band
-
 	public:
-		/// @brief Material is the construction method of this class
-		///  
-		/// The object of this class is constructed with given material name.
-		/// 
-		/// @param string _name
-		/// @pre
-		/// @return 
-		/// @note
-		Material(string _name):name(_name) {};
-
-		//The methods below are used to encapsulate the private members of this class.
-		double		DielectricConstant() const				{ return dielectricConstant;	}
-		void		DielectricConstant(double val)			{ dielectricConstant = val;		}
-		double		Bandgap() const							{ return bandgap;				}
-		void		Bandgap(double val)						{ bandgap = val;				}
-		double		ElectronAffinity() const				{ return electronAffinity;		}
-		void		ElectronAffinity(double val)			{ electronAffinity = val;		}
-		double		ElectronMass() const					{ return electronMass;			}
-		void		ElectronMass(double val)				{ electronMass = val;			}
-		double		HoleMass() const						{ return holeMass;				}
-		void		HoleMass(double val)					{ holeMass = val;				}
-		double		ElectronDOS() const						{ return electronDOS;			}
-		void		ElectronDOS(double val)					{ electronDOS = val;			}
-		double		HoleDOS() const							{ return holeDOS;				}
-		void		HoleDOS(double val)						{ holeDOS = val;				}
-		double		ElectronDiffusion() const				{ return electronDiffusion;		}
-		void		ElectronDiffusion(double val)			{ electronDiffusion = val;		}
-		double		HoleDiffusion() const					{ return holeDiffusion;			}
-		void		HoleDiffusion(double val)				{ holeDiffusion = val;			}
-		double		ElectronMobility() const				{ return electronMobility;		}
-		void		ElectronMobility(double val)			{ electronMobility = val;		}
-		double		HoleMobility() const					{ return holeMobility;			}
-		void		HoleMobility(double val)				{ holeMobility = val;			}
-		double		ElecTrapXSection() const				{ return elecTrapXSection; }
-		void		ElecTrapXSection(double val)			{ elecTrapXSection = val; }
-		double		ElecTrapEnergyFromCB() const		{ return elecTrapEnergyFromCB; }
-		void		ElecTrapEnergyFromCB(double val)	{ elecTrapEnergyFromCB = val; }
+		enum Name
+		{
+			Silicon,
+			SiO2,
+			Si3N4,
+			HfO2,
+			Al2O3,
+		};
 	};
-
-
 	/// @brief This class just provides a container to restrict the enum of material property name.
 	class MatProperty
 	{
@@ -96,13 +45,75 @@ namespace MaterialDB
 			Mat_HoleMass, ///< hole effective mass of the material
 			Mat_ElectronDOS, ///< electron density of states of the material
 			Mat_HoleDOS, ///< hole density of states of the material
-			Mat_ElectronDiffusion, ///< electron drift diffusion of the material
-			Mat_HoleDiffusion, ///< hole drift diffusion of the material
+			Mat_ElectronDiffusion, ///< electron diffusion coefficient of the material
+			Mat_HoleDiffusion, ///< hole diffusion coefficient of the material
 			Mat_ElectronMobility, ///< electron mobility of the material
 			Mat_HoleMobility, ///< hole mobility of the material
 			Mat_ElecTrapXSection, ///< electron trap cross section
 			Mat_ElecTrapEnergyFromCB, ///< electron trap energy from conduction band
 		};
+	};
+
+	/// @brief This class is a data structure to store the parameters for different materials used in the simulation.
+	///
+	/// The data is stored in normalized value
+	class Material
+	{
+	private:
+		double temperature;
+		Materials::Name name; ///< material name
+		double dielectricConstant; ///< dielectric constant
+		double bandgap; ///< bandgap, in [eV]
+		double electronAffinity; ///< electron affinity energy, in [eV]
+		double electronMass; ///< electron effective mass, in [m0]
+		double holeMass; ///< hole effective mass, in [m0]
+		double electronDOS;
+		double holeDOS;
+		double electronDiffusion; ///< electron diffusion coefficient, in [D0]
+		double holeDiffusion; ///< hole diffusion coefficient, in [D0]
+		double electronMobility; ///< electron mobility, in [cm^2/V/s]
+		double holeMobility; ///< hole mobility, in [cm^2/V/s]
+		double elecTrapXSection; ///< electron trap cross section, in [cm^2]
+		double elecTrapEnergyFromCB; ///< electron trap energy from conduction band, in eV
+
+	public:
+		/// @brief Material is the construction method of this class
+		///  
+		/// The object of this class is constructed with given material name.
+		/// 
+		/// @param string _name
+		/// @pre
+		/// @return 
+		/// @note
+		Material(Materials::Name _name);
+
+		//The methods below are used to encapsulate the private members of this class.
+		double		DielectricConstant() const;
+		void		DielectricConstant(double val);
+		double		Bandgap() const;
+		void		Bandgap(double val);
+		double		ElectronAffinity() const;
+		void		ElectronAffinity(double val);
+		double		ElectronMass() const;
+		void		ElectronMass(double val);
+		double		HoleMass() const;
+		void		HoleMass(double val);
+		double		ElectronDOS() const;
+		void		ElectronDOS(double val);
+		double		HoleDOS() const;
+		void		HoleDOS(double val);
+		double		ElectronDiffusion() const;
+		void		ElectronDiffusion(double val);
+		double		HoleDiffusion() const;
+		void		HoleDiffusion(double val);
+		double		ElectronMobility() const;
+		void		ElectronMobility(double val);
+		double		HoleMobility() const;
+		void		HoleMobility(double val);
+		double		ElecTrapXSection() const;
+		void		ElecTrapXSection(double val);
+		double		ElecTrapEnergyFromCB() const;
+		void		ElecTrapEnergyFromCB(double val);
 	};
 
 	/// @brief GetMatPrpty is called to get the value of material property with given material
@@ -136,10 +147,8 @@ namespace MaterialDB
 	/// @note
 	void SetMaterials();
 
-	//TODO: conceive the method that accounts for material specification
-	extern Material Silicon;
-	extern Material SiO2;
-	extern Material Si3N4;
+	//TODO: consider the method that accounts for material specification
+	extern std::map<Materials::Name, Material*> MaterialMap;
 }
 
 #endif

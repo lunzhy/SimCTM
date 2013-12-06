@@ -181,14 +181,13 @@ void SimpleONO::setDomainDetails()
 	/////////////////////////////////////////////////////////////////////
 	//set regions
 	////////////////////////////////////////////////////////////////////
-	regions.push_back(new FDRegion(cntRegion, FDRegion::Tunneling));
-	regions.back()->Mat = &MaterialDB::SiO2;
+	using MaterialDB::MaterialMap;
+	using MaterialDB::Materials;
+	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap[Materials::SiO2]);
 	cntRegion++;
-	regions.push_back(new FDRegion(cntRegion, FDRegion::Trapping));
-	regions.back()->Mat = &MaterialDB::Si3N4;
+	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap[Materials::Si3N4]);
 	cntRegion++;
-	regions.push_back(new FDRegion(cntRegion, FDRegion::Blocking));
-	regions.back()->Mat = &MaterialDB::SiO2;
+	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap[Materials::SiO2]);
 	cntRegion++;
 
 	/////////////////////////////////////////////////////////////////////
@@ -335,17 +334,17 @@ double SimpleONO::xNextGridLength(int vertexX)
 FDRegion * SimpleONO::thisRegion(int elemY)
 {
 	if ( elemY < yCntVertexTunnel - 1 ) //transfer the vertex count into element count
-		return GetRegion(0);
+		return GetRegion(FDRegion::Tunneling);
 	else
 		elemY -= yCntVertexTunnel - 1;
 
 	if ( elemY < yCntVertexTrap - 1 )
-		return GetRegion(1);
+		return GetRegion(FDRegion::Trapping);
 	else
 		elemY -= yCntVertexTrap - 1;
 
 	if ( elemY < yCntVertexBlock - 1)
-		return GetRegion(2);
+		return GetRegion(FDRegion::Blocking);
 	else
 		return NULL;
 }

@@ -32,9 +32,9 @@ FDVertex * FDDomain::GetVertex(unsigned int id)
 	//return vertices[id];
 }
 
-FDRegion * FDDomain::GetRegion(unsigned int id)
+FDRegion * FDDomain::GetRegion(FDRegion::TypeName reg)
 {
-	return regions.at(id);
+	return regionMap[reg];
 	//return regions[id];
 }
 
@@ -259,7 +259,7 @@ void FDDomain::BuildDomain()
 	vertices.clear();
 	ddVerts.clear();
 	elements.clear();
-	regions.clear();
+	regionMap.clear();
 	contacts.clear();
 
 	//build the data and mesh structure of simulated region, this is a pure virtual method
