@@ -24,7 +24,7 @@ using namespace SctmUtils;
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), totalVertices(domain->GetVertices())
 {
 	this->bcMethod = UsingCurrentDensity;
-	this->useCrankNicolsonMethod = false;
+	this->useCrankNicolsonMethod = false; // Crank-Nicolson method isn't complete currently.
 	this->useScharfetterGummelMethod = true;
 	this->lastTimeStep = 0;
 	getDDVertices(domain);
@@ -43,7 +43,8 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	
 	//build and refresh the coefficient matrix
 	buildCoefficientMatrix();
-	refreshCoefficientMatrix();
+	setCoeffMatrixForTimestep();
+	setCoeffMatrixForTrapping();
 	
 	//handle the tunneling current. Update the coefficient matrix or refreshing BndCond value for building Rhs vector
 	handleBndTunnelCurrDens(bc1, bc2);
@@ -131,16 +132,16 @@ void DriftDiffusionSolver::buildCoefficientMatrix()
 			switch (this->bcMethod)
 			{
 			case DirectDiscretization:
-				setCoefficientBCVertex_DirectDiscretization(currVert);
+				setCoeffBCVertex_DirectDiscretization(currVert);
 				break;
 			case UsingCurrentDensity:
-				setCoefficientBCVertex_UsingCurrent(currVert);
+				setCoeffBCVertex_UsingCurrent(currVert);
 				break;
 			}
 			continue;
 		}
 		//inner vertex
-		setCoefficientInnerVertex(currVert);
+		setCoeffInnerVertex(currVert);
 	}
 }
 
@@ -180,7 +181,7 @@ void DriftDiffusionSolver::buildRhsVector()
 	}
 }
 
-void DriftDiffusionSolver::refreshCoefficientMatrix()
+void DriftDiffusionSolver::setCoeffMatrixForTimestep()
 {
 	//The boundary conditions are always BC_Cauchy, so there is no need to refresh the matrix for this reason.
 	//However, due to that the time step is likely to be different in each simulation step, the time dependent item
@@ -285,7 +286,7 @@ void DriftDiffusionSolver::fillBackElecDens()
 	}
 }
 
-void DriftDiffusionSolver::setCoefficientBCVertex_DirectDiscretization(FDVertex *vert)
+void DriftDiffusionSolver::setCoeffBCVertex_DirectDiscretization(FDVertex *vert)
 {
 	//for Cauchy boundary condition
 	int indexEquation = 0;
@@ -385,7 +386,7 @@ void DriftDiffusionSolver::setCoefficientBCVertex_DirectDiscretization(FDVertex 
 
 }
 
-void DriftDiffusionSolver::setCoefficientInnerVertex(FDVertex *vert)
+void DriftDiffusionSolver::setCoeffInnerVertex(FDVertex *vert)
 {
 	int indexEquation = 0;
 	int indexCoefficient = 0;
@@ -540,7 +541,7 @@ void DriftDiffusionSolver::processBndCond()
 	//current nothing is done here.
 }
 
-void DriftDiffusionSolver::setCoefficientBCVertex_UsingCurrent(FDVertex *vert)
+void DriftDiffusionSolver::setCoeffBCVertex_UsingCurrent(FDVertex *vert)
 {
 	int indexEquation = 0;
 	int indexCoefficient = 0;
@@ -1219,6 +1220,28 @@ void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexM
 			}
 
 		}
+	}
+}
+
+void DriftDiffusionSolver::setCoeffMatrixForTrapping()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	int indexEqu = 0;
+	int indexCoeff= 0;
+	double coeff_trapping = 0;
+
+	for (size_t iVert = 0; iVert != ddVertices.size(); ++iVert)
+	{
+		currVert = ddVertices.at(iVert);
+		vertID = currVert->GetID();
+
+		indexEqu = equationMap[vertID];
+		SCTM_ASSERT(indexEqu==iVert, 10012);
+		indexCoeff = indexEqu;
+
+		coeff_trapping = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff) *
+						 currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
 	}
 }
 

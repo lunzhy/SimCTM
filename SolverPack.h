@@ -10,6 +10,9 @@
 * @note
 * @todo
 */
+#ifndef _SOLVERPACK_H_
+#define _SOLVERPACK_H_
+
 #include <map>
 
 class FDDomain;
@@ -48,3 +51,5 @@ private:
 	VertexMapDouble mapCurrDensFromTunnelLayer;
 	VertexMapDouble mapCurrDensCoeff; // the coefficient to calculate current density for dd solver, in [A*cm]
 };
+
+#endif

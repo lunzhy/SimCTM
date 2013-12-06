@@ -501,6 +501,10 @@ namespace SctmPhys
 	TrapProperty::TrapProperty(FDVertex *_vert)
 	{
 		vertSelf = _vert;
+		e_trapDensity = 0;
+		e_trapped = 0;
+		e_crossSection = 0;
+		energyFromCondBand = 0;
 	}
 
 	void TrapProperty::FillTrapPrptyUsingMatPrpty(TrapProperty::Name trapPrpty, MaterialDB::MatProperty::Name matPrpty)
@@ -605,6 +609,19 @@ namespace SctmPhys
 			{
 				ret = e_crossSection;
 				break;
+			}
+			case eEmptyTrapDens:
+			{
+				ret = e_trapDensity - e_trapped;
+				break;
+			}
+			case eCaptureCoeff:
+			{
+				double mobility = 0;
+				double elecField = 0;
+				mobility = vertSelf->Phys->GetPhysPrpty(PhysProperty::eMobility);
+				elecField = vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField);
+				ret = GetTrapPrpty(eCrossSection) * mobility * elecField;
 			}
 			default:
 			{

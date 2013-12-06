@@ -91,9 +91,9 @@ protected:
 	/// @return void
 	/// @note
 	void buildCoefficientMatrix();
-	void setCoefficientBCVertex_UsingCurrent(FDVertex *vert);
-	void setCoefficientBCVertex_DirectDiscretization(FDVertex *vert);
-	void setCoefficientInnerVertex(FDVertex *vert);
+	void setCoeffBCVertex_UsingCurrent(FDVertex *vert);
+	void setCoeffBCVertex_DirectDiscretization(FDVertex *vert);
+	void setCoeffInnerVertex(FDVertex *vert);
 	/// @brief refreshCoefficientMatrix
 	/// 
 	/// The boundary conditions are always BC_Cauchy, so there is no need to refresh the matrix for this reason.
@@ -103,7 +103,8 @@ protected:
 	/// @pre
 	/// @return void
 	/// @note
-	void refreshCoefficientMatrix();
+	void setCoeffMatrixForTimestep();
+	void setCoeffMatrixForTrapping();
 	/// @brief buildRhsVector
 	/// 
 	/// This method is called at each simulation step. Because in each time step, the density of each vertex has to be

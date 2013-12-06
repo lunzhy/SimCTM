@@ -166,7 +166,9 @@ namespace SctmPhys
 			eTrapDensity,
 			eCrossSection,
 			EnergyFromCondBand,
-			eOccupation
+			eOccupation,
+			eEmptyTrapDens,
+			eCaptureCoeff,
 		};
 		TrapProperty(FDVertex *_vert);
 		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;
