@@ -26,7 +26,7 @@ class TrapSolver
 public:
 	TrapSolver(FDDomain *_domain);
 	void SolveTrap();
-	void UpdateTrappe();
+	void UpdateTrapped();
 protected:
 	void initializeSolver();
 	void refreshSolver();

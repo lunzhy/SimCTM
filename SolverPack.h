@@ -19,6 +19,7 @@ class FDDomain;
 class TwoDimPoissonSolver;
 class TunnelSolver;
 class DriftDiffusionSolver;
+class TrapSolver;
 
 typedef std::map<int, int> VertexMapInt; // <vertID, int>
 typedef std::map<int, double> VertexMapDouble; // <vertID, double>
@@ -31,8 +32,9 @@ public:
 protected:
 	FDDomain *domain;
 	TwoDimPoissonSolver *poissonSolver;
-	TunnelSolver *TunnelOxideSolver;
-	TunnelSolver *BlockOxideSolver;
+	TunnelSolver *tunnelOxideSolver;
+	TunnelSolver *blockOxideSolver;
+	TrapSolver *trappingSolver;
 	DriftDiffusionSolver *ddSolver;
 
 protected:
@@ -43,6 +45,7 @@ protected:
 	void fetchTunnelOxideResult();
 	void fetchBlockOxideResult();
 	void fetchDDResult();
+	void fetchTrappingResult();
 
 	void fakeFermiEnergy();
 private:

@@ -19,6 +19,8 @@
 #include "SctmUtils.h"
 #include "DomainDetails.h"
 #include "Normalization.h"
+#include "TrapSolver.h"
+
 using namespace SctmUtils;
 
 SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
@@ -30,9 +32,10 @@ SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
 void SolverPack::initialize()
 {
 	poissonSolver = new TwoDimPoissonSolver(domain);
-	TunnelOxideSolver = new SubsToTrapElecTunnel(domain);
-	BlockOxideSolver = new TrapToGateElecTunnel(domain);
+	tunnelOxideSolver = new SubsToTrapElecTunnel(domain);
+	blockOxideSolver = new TrapToGateElecTunnel(domain);
 	ddSolver = new DriftDiffusionSolver(domain);
+	trappingSolver = new TrapSolver(domain);
 
 	mapPotential.clear();
 	mapCurrDensFromTunnelLayer.clear();
@@ -50,15 +53,18 @@ void SolverPack::callIteration()
 		UtilsData.WritePotential(domain->GetVertices());
 		UtilsData.WriteBandInfo(domain->GetVertices());
 
-		TunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
-		TunnelOxideSolver->SolveTunnel();
+		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
+		tunnelOxideSolver->SolveTunnel();
 		fetchTunnelOxideResult();
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
 		UtilsData.WriteElecField(domain->GetVertices());
 		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
 
-		BlockOxideSolver->SolveTunnel();
+		blockOxideSolver->SolveTunnel();
 		fetchBlockOxideResult();
+
+		trappingSolver->SolveTrap();
+		fetchTrappingResult();
 
 		ddSolver->SolveDD(mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		fetchDDResult();
@@ -104,7 +110,7 @@ void SolverPack::fakeFermiEnergy()
 void SolverPack::fetchTunnelOxideResult()
 {
 	this->mapCurrDensFromTunnelLayer.clear();
-	TunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
+	tunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
 	//set the sign of boundary current for dd solver.
 	for (VertexMapDouble::iterator it = mapCurrDensFromTunnelLayer.begin(); it != mapCurrDensFromTunnelLayer.end(); ++it)
 	{
@@ -121,7 +127,7 @@ void SolverPack::fetchDDResult()
 void SolverPack::fetchBlockOxideResult()
 {
 	this->mapCurrDensCoeff.clear();
-	BlockOxideSolver->ReturnResult(mapCurrDensCoeff);
+	blockOxideSolver->ReturnResult(mapCurrDensCoeff);
 	//the current(or tunnCoeff) should be same with the direction of the boundary condition
 	//so, reversed value is used to calculate current density
 	FDVertex *currVert = NULL;
@@ -135,4 +141,9 @@ void SolverPack::fetchBlockOxideResult()
 		//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
 		currVert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
 	}
+}
+
+void SolverPack::fetchTrappingResult()
+{
+	trappingSolver->UpdateTrapped();
 }

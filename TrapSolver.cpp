@@ -107,7 +107,7 @@ void TrapSolver::SolveTrap()
 	}
 }
 
-void TrapSolver::UpdateTrappe()
+void TrapSolver::UpdateTrapped()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
