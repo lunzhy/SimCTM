@@ -20,7 +20,7 @@ using SctmPhys::TrapProperty;
 
 TrapSolver::TrapSolver(FDDomain *_domain): domain(_domain), vertices(_domain->GetDDVerts())
 {
-
+	initializeSolver();
 }
 
 void TrapSolver::initializeSolver()
@@ -94,17 +94,9 @@ void TrapSolver::refreshSolver()
 
 void TrapSolver::SolveTrap()
 {
-	FDVertex *currVert = NULL;
-	int vertID = 0;
-	double eTrapped = 0;
-
-	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
-	{
-		currVert = vertices.at(iVert);
-		vertID = currVert->GetID();
-		eTrapped = rhsMap[vertID] / coeffMap[vertID];
-		eTrapDensMap[vertID] = eTrapped;
-	}
+	refreshSolver();
+	setSolverTrapping();
+	solveEachVertex();
 }
 
 void TrapSolver::UpdateTrapped()
@@ -119,6 +111,21 @@ void TrapSolver::UpdateTrapped()
 
 		eTrapped = eTrappedMap[vertID];
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrapped);
+	}
+}
+
+void TrapSolver::solveEachVertex()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double eTrapped = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+		eTrapped = rhsMap[vertID] / coeffMap[vertID];
+		eTrappedMap[vertID] = eTrapped;
 	}
 }
 

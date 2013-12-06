@@ -655,7 +655,7 @@ namespace SctmUtils
 	{
 		////////// time sequence parameter //////////
 		double startTimeDefault = 1e-15;
-		double endTime = 1e-8;
+		double endTime = 1e-4;
 		double stepPerDecade = 5;
 		/////////////////////////////////////////////
 
@@ -664,7 +664,7 @@ namespace SctmUtils
 		double increase = 0;
 		
 		time = startTimeDefault;
-		increase = SctmMath::exp10(1/stepPerDecade);
+		increase = SctmMath::exp10( 1 / stepPerDecade );
 		timeSequence.push_back(0);
 		timeSequence.push_back(norm.PushTime(startTimeDefault));
 		while (!isEndTime(time, endTime))
@@ -678,7 +678,7 @@ namespace SctmUtils
 	{
 		double roundingError = 0.001;
 		bool ret = false;
-		ret = ( SctmMath::abs((time-endTime) / endTime) < roundingError ) || ( time > endTime);
+		ret = ( SctmMath::abs((time-endTime) / endTime) < roundingError ) || ( time > endTime );
 		return ret;
 	}
 
@@ -898,6 +898,30 @@ namespace SctmUtils
 		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
 		file.WriteLine(line);
 	}
+
+	void SctmData::WriteTrapOccupation(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "Trap\\trapOccupation" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> occupation;
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
+		}
+		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string title = "occupation of electron trap [" + numStr + "] (x, y, trap occupation)";
+		file.WriteVector(vecX, vecY, occupation, title.c_str());
+	}
+
 
 
 

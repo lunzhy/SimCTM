@@ -50,7 +50,7 @@ namespace MaterialDB
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
 		Si3N4_material.ElecTrapEnergyFromCB(1.5);
-		Si3N4_material.ElecTrapXSection(1e-15);
+		Si3N4_material.ElecTrapXSection(1e-14);
 
 		MaterialMap[Materials::Silicon] = &Silicon_material;
 		MaterialMap[Materials::SiO2] = &SiO2_material;

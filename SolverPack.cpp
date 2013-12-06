@@ -65,6 +65,7 @@ void SolverPack::callIteration()
 
 		trappingSolver->SolveTrap();
 		fetchTrappingResult();
+		UtilsData.WriteTrapOccupation(domain->GetDDVerts());
 
 		ddSolver->SolveDD(mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		fetchDDResult();

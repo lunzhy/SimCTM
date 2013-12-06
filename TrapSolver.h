@@ -31,6 +31,7 @@ protected:
 	void initializeSolver();
 	void refreshSolver();
 	void setSolverTrapping();
+	void solveEachVertex();
 
 protected:
 	FDDomain *domain;

@@ -247,6 +247,7 @@ namespace SctmUtils
 		void WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity);
 		void WriteTotalElecDens(vector<FDVertex *> &vertices);
 		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
+		void WriteTrapOccupation(vector<FDVertex *> &vertices);
 	protected:
 		string fileName;
 		string directoryName;

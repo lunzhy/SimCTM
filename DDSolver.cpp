@@ -1240,8 +1240,10 @@ void DriftDiffusionSolver::setCoeffMatrixForTrapping()
 		SCTM_ASSERT(indexEqu==iVert, 10012);
 		indexCoeff = indexEqu;
 
-		coeff_trapping = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff) *
-						 currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+		coeff_trapping = - currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff) *
+			currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+
+		matrixSolver.RefreshMatrixValue(indexEqu, indexCoeff, coeff_trapping, SctmSparseMatrixSolver::Add);
 	}
 }
 

@@ -622,6 +622,7 @@ namespace SctmPhys
 				mobility = vertSelf->Phys->GetPhysPrpty(PhysProperty::eMobility);
 				elecField = vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField);
 				ret = GetTrapPrpty(eCrossSection) * mobility * elecField;
+				break;
 			}
 			default:
 			{
