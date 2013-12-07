@@ -293,6 +293,7 @@ void FDDomain::setVertexPhysProperty()
 	matPrptys.push_back(MatProperty::Mat_ElectronMass); verPrptys.push_back(PhysProperty::eMass);
 	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
 	matPrptys.push_back(MatProperty::Mat_ElectronMobility); verPrptys.push_back(PhysProperty::eMobility);
+	matPrptys.push_back(MatProperty::Mat_DielectricConstant); verPrptys.push_back(PhysProperty::DielectricConstant);
 
 	//iteration over the vertices
 	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)

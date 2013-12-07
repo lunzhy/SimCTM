@@ -45,6 +45,7 @@ namespace SctmPhys
 		e_density = 0;
 		e_mobility = 0;
 		controlArea = 0;
+		epsilon = 0;
 	}
 
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
@@ -74,6 +75,9 @@ namespace SctmPhys
 			break;
 		case TunnelCoeff:
 			tunnelCoeff = prptyValue;
+			break;
+		case DielectricConstant:
+			epsilon = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -150,6 +154,11 @@ namespace SctmPhys
 			case DensityControlArea:
 			{
 				ret = controlArea;
+				break;
+			}
+			case DielectricConstant:
+			{
+				ret = epsilon;
 				break;
 			}
 			case ElectricField_X:

@@ -248,6 +248,7 @@ namespace SctmUtils
 		void WriteTotalElecDens(vector<FDVertex *> &vertices);
 		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
 		void WriteTrapOccupation(vector<FDVertex *> &vertices);
+		void WriteFlatBandVoltageShift(FDDomain *domain);
 	protected:
 		string fileName;
 		string directoryName;

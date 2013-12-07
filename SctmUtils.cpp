@@ -201,6 +201,7 @@ namespace SctmUtils
 				cout << " -- ";
 				PrintValue(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
 			}
+			PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DielectricConstant));
 			//PrintValue(currVert->IsAtContact());
 			//PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
@@ -877,10 +878,10 @@ namespace SctmUtils
 			freeElecDens += area * vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 			trapElecDens += area * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 		}
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string timeStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
 		string valStrFree = ConvertToString::Double(norm.PullLineDensity(freeElecDens));
 		string valStrTrap = ConvertToString::Double(norm.PullLineDensity(trapElecDens));
-		string line = numStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
+		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
 		file.WriteLine(line);
 	}
 
@@ -925,6 +926,62 @@ namespace SctmUtils
 		string title = "occupation of electron trap [" + numStr + "] (x, y, trap occupation)";
 		file.WriteVector(vecX, vecY, occupation, title.c_str());
 	}
+
+	void SctmData::WriteFlatBandVoltageShift(FDDomain *domain)
+	{
+		//TODO: this is a temporary method to get the start vertex to calculate the flat band voltage shift
+		static FDVertex *startVert = domain->GetVertex(0);
+
+		Normalization norm = Normalization();
+		FDVertex *currVert = NULL;
+		FDVertex *vertForCap = NULL; // the vertex pointer for calculation of capacitance
+		double densCtrlArea = 0;
+		double eFreeDens = 0;
+		double eTrappedDens = 0;
+		double eLineDens = 0;
+		double cap_reciprocal = 0;
+		double epsilon = 0;
+		double wide = 0;
+		double delta_d = 0;
+		double VfbShift = 0;
+
+		currVert = startVert;
+		while (currVert != NULL)
+		{	
+			if (currVert->Trap != NULL)
+			{
+				densCtrlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
+
+				vertForCap = currVert;
+				cap_reciprocal = 0;
+
+				while (vertForCap != NULL)
+				{
+					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
+					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
+					epsilon = vertForCap->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
+					cap_reciprocal += delta_d / epsilon / wide;
+
+					vertForCap = vertForCap->NorthVertex;
+				}
+				VfbShift += eLineDens * cap_reciprocal;
+			}
+
+			currVert = currVert->NorthVertex;
+		}
+
+		fileName = directoryName + "VfbShift.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		string timeStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string valStr = ConvertToString::Double(norm.PullPotential(VfbShift));
+		string line = timeStr + "\t\t" + valStr;
+		file.WriteLine(line);
+	}
+
 
 
 

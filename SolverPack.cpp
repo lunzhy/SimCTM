@@ -73,6 +73,7 @@ void SolverPack::callIteration()
 		UtilsData.WriteElecCurrDens(domain->GetDDVerts());
 
 		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
+		UtilsData.WriteFlatBandVoltageShift(domain);
 	}
 }
 
