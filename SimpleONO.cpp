@@ -182,12 +182,12 @@ void SimpleONO::setDomainDetails()
 	//set regions
 	////////////////////////////////////////////////////////////////////
 	using MaterialDB::MaterialMap;
-	using MaterialDB::Materials;
-	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap[Materials::SiO2]);
+	using MaterialDB::Mat;
+	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap[Mat::SiO2]);
 	cntRegion++;
-	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap[Materials::Si3N4]);
+	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap[Mat::Si3N4]);
 	cntRegion++;
-	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap[Materials::SiO2]);
+	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap[Mat::SiO2]);
 	cntRegion++;
 
 	/////////////////////////////////////////////////////////////////////
@@ -482,7 +482,7 @@ void SimpleONO::setTrapDistribution()
 	using SctmPhys::TrapProperty;
 
 	Normalization norm = Normalization();
-	double eTrapDens = norm.PushDensity(1e18); // 1e18 cm^-3
+	double eTrapDens = norm.PushDensity(5e19); // 1e18 cm^-3
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{

@@ -481,10 +481,10 @@ namespace SctmPhys
 	{
 		using namespace MaterialDB;
 		//the value returned by GetMatPrpty is normalized value
-		double mp = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_HoleMass);
-		double mn = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_ElectronMass);
-		double bandgap = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_Bandgap);
-		double affinity = MaterialDB::GetMatPrpty(MaterialMap[Materials::Silicon], MaterialDB::MatProperty::Mat_ElectronAffinity);
+		double mp = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_HoleMass);
+		double mn = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_ElectronMass);
+		double bandgap = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_Bandgap);
+		double affinity = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_ElectronAffinity);
 		double temp = T0;
 		using SctmUtils::Normalization;
 		Normalization norm = Normalization();

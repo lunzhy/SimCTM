@@ -20,7 +20,7 @@
 /// This is used as a material database.
 namespace MaterialDB
 {
-	class Materials
+	class Mat
 	{
 	public:
 		enum Name
@@ -61,7 +61,7 @@ namespace MaterialDB
 	{
 	private:
 		double temperature;
-		Materials::Name name; ///< material name
+		Mat::Name name; ///< material name
 		double dielectricConstant; ///< dielectric constant
 		double bandgap; ///< bandgap, in [eV]
 		double electronAffinity; ///< electron affinity energy, in [eV]
@@ -85,7 +85,7 @@ namespace MaterialDB
 		/// @pre
 		/// @return 
 		/// @note
-		Material(Materials::Name _name);
+		Material(Mat::Name _name);
 
 		//The methods below are used to encapsulate the private members of this class.
 		double		DielectricConstant() const;
@@ -148,7 +148,7 @@ namespace MaterialDB
 	void SetMaterials();
 
 	//TODO: consider the method that accounts for material specification
-	extern std::map<Materials::Name, Material*> MaterialMap;
+	extern std::map<Mat::Name, Material*> MaterialMap;
 }
 
 #endif

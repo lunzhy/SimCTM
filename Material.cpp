@@ -19,14 +19,15 @@ using SctmUtils::Normalization;
 
 namespace MaterialDB
 {
-	std::map<Materials::Name, Material*> MaterialMap;
-	Material Silicon_material = Material(Materials::Silicon);
-	Material SiO2_material = Material(Materials::SiO2);
-	Material Si3N4_material = Material(Materials::Si3N4);
+	std::map<Mat::Name, Material*> MaterialMap;
+	Material Silicon_material = Material(Mat::Silicon);
+	Material SiO2_material = Material(Mat::SiO2);
+	Material Si3N4_material = Material(Mat::Si3N4);
+	Material Al2O3_material = Material(Mat::Al2O3);
 	
 	void SetMaterials()
 	{
-		//Silicon = Material("Silicon");
+		//Silicon
 		Silicon_material.Bandgap(1.12);
 		Silicon_material.DielectricConstant(11.9);
 		Silicon_material.ElectronAffinity(4.05);
@@ -34,7 +35,7 @@ namespace MaterialDB
 		Silicon_material.HoleMass(1);
 		Silicon_material.ElectronMobility(1350);
 
-		//SiO2 = Material("SiO2");
+		//SiO2
 		SiO2_material.Bandgap(9.4);
 		SiO2_material.DielectricConstant(3.9);
 		SiO2_material.ElectronAffinity(0.9);
@@ -42,7 +43,13 @@ namespace MaterialDB
 		SiO2_material.HoleMass(1);
 		SiO2_material.ElectronMobility(0);
 
-		//Si3N4 = Material("Si3N4");
+		//Al2O3
+		Al2O3_material.Bandgap(8.8);
+		Al2O3_material.DielectricConstant(9.0);
+		Al2O3_material.ElectronAffinity(1.25);
+		Al2O3_material.ElectronMass(0.2);
+
+		//Si3N4
 		Si3N4_material.Bandgap(5.0);
 		Si3N4_material.DielectricConstant(7.5);
 		Si3N4_material.ElectronAffinity(1.9);
@@ -50,11 +57,12 @@ namespace MaterialDB
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
 		Si3N4_material.ElecTrapEnergyFromCB(1.5);
-		Si3N4_material.ElecTrapXSection(1e-14);
+		Si3N4_material.ElecTrapXSection(1e-12);
 
-		MaterialMap[Materials::Silicon] = &Silicon_material;
-		MaterialMap[Materials::SiO2] = &SiO2_material;
-		MaterialMap[Materials::Si3N4] = &Si3N4_material;
+		MaterialMap[Mat::Silicon] = &Silicon_material;
+		MaterialMap[Mat::SiO2] = &SiO2_material;
+		MaterialMap[Mat::Si3N4] = &Si3N4_material;
+		MaterialMap[Mat::Al2O3] = &Al2O3_material;
 	}
 
 	double GetMatPrpty(Material *theMaterial, MatProperty::Name prptyName)
@@ -104,7 +112,7 @@ namespace MaterialDB
 		return ret;
 	}
 
-	Material::Material(Materials::Name _name) :name(_name)
+	Material::Material(Mat::Name _name) :name(_name)
 	{
 		//TODO: Read the temperature from environment
 		temperature = 300;

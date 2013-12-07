@@ -49,7 +49,7 @@ void TrapSolver::setSolverTrapping()
 	int vertID = 0;
 	double captureCoeff = 0;
 	double eTrapDens = 0;
-	double eDens = 0; // the electron density in conduction band
+	double eFreeDens = 0; // the electron density in conduction band
 	
 	double timeStep = 0;
 	double coeff = 0;
@@ -64,13 +64,13 @@ void TrapSolver::setSolverTrapping()
 		captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff);
 		eTrapDens = eTrapDensMap[vertID];
 
-		eDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 
-		coeff = captureCoeff * timeStep * eDens;
+		coeff = captureCoeff * timeStep * eFreeDens;
 		// += is used here
 		coeffMap[vertID] += coeff;
 
-		rhs = captureCoeff * timeStep * eDens * eTrapDens;
+		rhs = captureCoeff * timeStep * eFreeDens * eTrapDens;
 		rhsMap[vertID] += rhs;
 	}
 }

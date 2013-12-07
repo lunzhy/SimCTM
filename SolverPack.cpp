@@ -52,13 +52,12 @@ void SolverPack::callIteration()
 		fetchPoissonResult();
 		UtilsData.WritePotential(domain->GetVertices());
 		UtilsData.WriteBandInfo(domain->GetVertices());
+		UtilsData.WriteElecField(domain->GetVertices());
 
 		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		tunnelOxideSolver->SolveTunnel();
 		fetchTunnelOxideResult();
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
-		UtilsData.WriteElecField(domain->GetVertices());
-		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
 
 		blockOxideSolver->SolveTunnel();
 		fetchBlockOxideResult();
@@ -72,6 +71,8 @@ void SolverPack::callIteration()
 		UtilsData.WriteTunnelCoeff(domain, mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		UtilsData.WriteElecDens(domain->GetDDVerts());
 		UtilsData.WriteElecCurrDens(domain->GetDDVerts());
+
+		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
 	}
 }
 

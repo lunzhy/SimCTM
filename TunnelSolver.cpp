@@ -258,7 +258,7 @@ void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
 	//set the silicon band edge, because the difference is fixed
 	using namespace MaterialDB;
 	double barrier = 0;
-	barrier = GetMatPrpty(MaterialMap[Materials::Silicon], MatProperty::Mat_ElectronAffinity)
+	barrier = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_ElectronAffinity)
 		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
 	barrier = norm.PullEnergy(barrier);
 	cbedgeTunnelFrom = cbEdge.front() - barrier;

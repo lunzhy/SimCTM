@@ -655,7 +655,7 @@ namespace SctmUtils
 	{
 		////////// time sequence parameter //////////
 		double startTimeDefault = 1e-15;
-		double endTime = 1e-4;
+		double endTime = 10;
 		double stepPerDecade = 5;
 		/////////////////////////////////////////////
 
@@ -865,18 +865,22 @@ namespace SctmUtils
 		fileName = directoryName + "Debug\\TotalDensity.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
-		double lineDens = 0;
+		double area = 0;
+		double freeElecDens = 0; // line density
+		double trapElecDens = 0;
 		Normalization norm = Normalization();
 		FDVertex *vert = NULL;
 		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 		{
 			vert = vertices.at(iVert);
-			lineDens += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
-				* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+			area = vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+			freeElecDens += area * vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+			trapElecDens += area * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 		}
 		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		string valStr = ConvertToString::Double(norm.PullLineDensity(lineDens));
-		string line = numStr + "\t\t" + valStr;
+		string valStrFree = ConvertToString::Double(norm.PullLineDensity(freeElecDens));
+		string valStrTrap = ConvertToString::Double(norm.PullLineDensity(trapElecDens));
+		string line = numStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
 		file.WriteLine(line);
 	}
 
