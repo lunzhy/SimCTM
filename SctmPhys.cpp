@@ -489,20 +489,22 @@ namespace SctmPhys
 	void SetPhysConstant()
 	{
 		using namespace MaterialDB;
+		using SctmUtils::SctmGlobalControl;
 		//the value returned by GetMatPrpty is normalized value
 		double mp = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_HoleMass);
 		double mn = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_ElectronMass);
 		double bandgap = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_Bandgap);
 		double affinity = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_ElectronAffinity);
-		double temp = T0;
+		double temperature = SctmGlobalControl::Get().Temperature;
+		
 		using SctmUtils::Normalization;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
 		//CAUTION: Is reference potential related to temperature
 		//the value of reference potential is
 		//phi(electron affinity) + Eg/2 + 3/4*kT/q*ln(mp/mn)
 		//affinity and bandgap is in eV, so ReferencePotential is in [eV]
 		//the reference potential should be normalized.
-		SctmPhys::ReferencePotential = norm.PullEnergy(affinity) + norm.PullEnergy(bandgap / 2) - 3/4 * k0 * temp / q * SctmMath::ln( mp / mn );
+		SctmPhys::ReferencePotential = norm.PullEnergy(affinity) + norm.PullEnergy(bandgap / 2) - 0.75 * k0 * temperature / q * SctmMath::ln( mp / mn );
 		SctmPhys::ReferencePotential = norm.PushPotential(SctmPhys::ReferencePotential);
 	}
 

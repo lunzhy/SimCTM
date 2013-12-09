@@ -79,7 +79,7 @@ void SolverPackTest()
 
 void TimeStepTest()
 {
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
 	while (!UtilsTimeStep.End())
 	{
 		UtilsTimeStep.GenerateNext();

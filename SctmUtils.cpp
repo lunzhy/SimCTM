@@ -13,7 +13,6 @@
 #include "SctmUtils.h"
 #include "FDDomain.h"
 #include "DomainDetails.h"
-#include "Material.h"
 #include "Normalization.h"
 #include <iomanip>
 #include <cstring>
@@ -182,7 +181,7 @@ namespace SctmUtils
 			return;
 		using namespace MaterialDB;
 		FDVertex *currVert = NULL;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		for (size_t iVert = 0; iVert != domain->vertices.size(); ++iVert)
 		{
 			currVert = domain->GetVertex(iVert);
@@ -368,6 +367,12 @@ namespace SctmUtils
 		UtilsData.WriteElecDens(domain->GetDDVerts());
 	}
 
+	SctmDebug::SctmDebug() : enable(SCTM_DEBUG_ENABLE)
+	{
+		this->temperature = SctmGlobalControl::Get().Temperature;
+	}
+
+
 
 
 
@@ -548,6 +553,7 @@ namespace SctmUtils
 
 	SctmTimeStep::SctmTimeStep()
 	{
+		this->temperature = SctmGlobalControl::Get().Temperature;
 		this->currStepNumber = 0;
 		this->currElapsedTime = 0;
 		generateTimeSequence();
@@ -568,14 +574,14 @@ namespace SctmUtils
 
 	double SctmTimeStep::ElapsedTime() const
 	{
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		return norm.PullTime(currElapsedTime);
 	}
 
 	double SctmTimeStep::getTimeStep_old()
 	{
 		//TODO: currently, constant time step is used in the simulation
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		double next = 0; // in [s]
 
 		while(true)
@@ -656,11 +662,15 @@ namespace SctmUtils
 	{
 		////////// time sequence parameter //////////
 		double startTimeDefault = 1e-15;
-		double endTime = 10;
-		double stepPerDecade = 5;
+		if (SctmGlobalControl::Get().SimStartTime < startTimeDefault)
+		{
+			startTimeDefault = SctmGlobalControl::Get().SimStartTime;
+		}
+		double endTime = SctmGlobalControl::Get().SimEndTime;
+		double stepPerDecade = SctmGlobalControl::Get().SimStepsPerDecade;
 		/////////////////////////////////////////////
 
-		Normalization norm  = Normalization();
+		Normalization norm  = Normalization(this->temperature);
 		double time = 0;
 		double increase = 0;
 		
@@ -685,7 +695,7 @@ namespace SctmUtils
 
 	double SctmTimeStep::getTimeStep()
 	{
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		double next = 0;
 		next = timeSequence.at(currStepNumber) - timeSequence.at(currStepNumber - 1);
 		return next;
@@ -703,6 +713,7 @@ namespace SctmUtils
 
 	SctmData::SctmData()
 	{
+		this->temperature = SctmGlobalControl::Get().Temperature;
 		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest\\";
 	}
 
@@ -712,7 +723,7 @@ namespace SctmUtils
 		fileName = directoryName + "Density\\eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> vecDen;
@@ -736,7 +747,7 @@ namespace SctmUtils
 		fileName = directoryName + "Potential\\potential" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> vecPot;
@@ -769,7 +780,7 @@ namespace SctmUtils
 		fileName = directoryName + "Band\\band" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> vecCB;
@@ -799,7 +810,7 @@ namespace SctmUtils
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> currDens;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
 		for (VertexMapDouble::iterator it = currDensity.begin(); it != currDensity.end(); ++it)
@@ -823,7 +834,7 @@ namespace SctmUtils
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> eCurrDens;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
 		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
@@ -846,7 +857,7 @@ namespace SctmUtils
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> eCurrDens;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
 		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
@@ -869,7 +880,7 @@ namespace SctmUtils
 		double area = 0;
 		double freeElecDens = 0; // line density
 		double trapElecDens = 0;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		FDVertex *vert = NULL;
 		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 		{
@@ -891,7 +902,7 @@ namespace SctmUtils
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		int vertID = 0;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
 		VertexMapDouble::iterator it = inCurrDens.begin(); 
@@ -912,7 +923,7 @@ namespace SctmUtils
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> occupation;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
 		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
@@ -932,7 +943,7 @@ namespace SctmUtils
 		//TODO: this is a temporary method to get the start vertex to calculate the flat band voltage shift
 		static FDVertex *startVert = domain->GetVertex(0);
 
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 		FDVertex *vertForCap = NULL; // the vertex pointer for calculation of capacitance
 		double densCtrlArea = 0;
@@ -1000,6 +1011,46 @@ namespace SctmUtils
 		ss << num;
 		return ss.str();
 	}
+
+
+
+	void SctmGlobalControl::setGlobalCntrl()
+	{
+		Temperature = 300;
+		GateVoltage = 16;
+		GateWorkFunction = 4.1;
+		ChannelPotential = 0.599;
+
+		SimStartTime = 1e-15;
+		SimEndTime = 10;
+		SimStepsPerDecade = 5;
+
+		//the length are in nm
+		XLength = 10;
+		YLengthTunnel = 4;
+		YLengthTrap = 10;
+		YLengthBlock = 9;
+		XGridNum = 5;
+		YGridNumTunnel = 50;
+		YGridNumTrap = 100;
+		YGridNumBlock = 50;
+
+		TunnelMaterial = Mat::SiO2;
+		TrapMaterial = Mat::Si3N4;
+		BlockMaterial = Mat::SiO2;
+	}
+
+	SctmGlobalControl::SctmGlobalControl()
+	{
+		setGlobalCntrl();
+	}
+
+	SctmGlobalControl& SctmGlobalControl::Get()
+	{
+		static SctmGlobalControl instance;
+		return instance;
+	}
+
 
 
 }

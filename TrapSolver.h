@@ -34,6 +34,7 @@ protected:
 	void solveEachVertex();
 
 protected:
+	double temperature;
 	FDDomain *domain;
 	vector<FDVertex *> &vertices;
 

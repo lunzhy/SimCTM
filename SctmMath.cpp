@@ -93,13 +93,14 @@ namespace SctmMath
 
 	double Bernoulli_Potential(double potVal)
 	{
+		using SctmUtils::SctmGlobalControl;
 		double ret = 0;
-		//TODO: read the temperature from user input
-		double temperature = 300;
+
+		double temperature = SctmGlobalControl::Get().Temperature;
 		double kT_div_q = SctmPhys::k0 * temperature / SctmPhys::q;
 		
 		using SctmUtils::Normalization;
-		Normalization norm = Normalization();
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
 		
 		double val = norm.PullPotential(potVal) / kT_div_q;
 		double deno = exp(val) - 1; // denominator

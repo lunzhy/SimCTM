@@ -58,13 +58,14 @@ public:
 	/// @note
 	void SolvePotential();
 	void UpdatePotential();
-private:
+
+protected:
 	vector<FDVertex *> &vertices; ///< the vertices of the domain to be solved
 	vector<double> potential; ///< the potential of the vertices with same sequence in the vertices vector (same sequence of the equations)
 	vector<double> rhsVector; ///< the right-hand side of the equations, the index is equation index
 	VertexMapInt equationMap; ///< map the equation index to the internal id of the vertices. (equation index is the same with the index of vertices vector)
-protected:
 	SctmSparseMatrixSolver matrixSolver; ///< the sparse matrix solver
+
 protected:
 	/// @brief initializeSolver is used to initialize the Poisson solver.
 	/// 

@@ -153,8 +153,9 @@ double TunnelSolver::calcThermalEmission()
 
 TunnelSolver::TunnelSolver(FDDomain *_domain): domain(_domain)
 {
+	using SctmUtils::SctmGlobalControl;
 	this->eCurrDens = 0;
-	this->temperature = 300;
+	this->temperature = SctmGlobalControl::Get().Temperature;
 }
 
 void TunnelSolver::ReadInput(VertexMapDouble &fermi)
@@ -212,7 +213,7 @@ void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
 	//
 	// IMPORTANT! the parameters are in normalization values. They are converted before the calculation. (Not here) !
 	// the tunneling direction is north
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	double dx = 0;
 	double emass = 0;
 	double cbedge = 0;
@@ -322,7 +323,7 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 	double currDens = 0;
 	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
 
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	for (size_t iVert = 0; iVert != vertsEnd_Tunnel.size(); ++iVert)
 	{
 		currVert = vertsEnd_Tunnel.at(iVert);
@@ -393,7 +394,7 @@ void TrapToGateElecTunnel::setSolver_Tunnel(FDVertex *endVertex)
 	//
 	// IMPORTANT! the parameters are in normalization values. They are converted before the calculation. (Not here) !
 	// the tunneling direction is north, but the vertex find direction is south
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	double dx = 0;
 	double emass = 0;
 	double cbedge = 0;
@@ -475,7 +476,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 	double tunCoeff = 0;
 	double cm_in_m = SctmPhys::cm_in_m;
 
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	for (size_t iVert = 0; iVert != vertsEnd_Tunnel.size(); ++iVert)
 	{
 		currVert = vertsStart_Tunnel.at(iVert);

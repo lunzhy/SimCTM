@@ -30,6 +30,7 @@ public:
 	SolverPack(FDDomain *_domain);
 	void Run();
 protected:
+	double temperature;
 	FDDomain *domain;
 	TwoDimPoissonSolver *poissonSolver;
 	TunnelSolver *tunnelOxideSolver;
@@ -48,6 +49,7 @@ protected:
 	void fetchTrappingResult();
 
 	void fakeFermiEnergy();
+
 private:
 	VertexMapDouble mapSiFermiAboveCBedge; // for input in the tunneling solver silicon fermi energy - silicon conduction band edge
 	VertexMapDouble mapPotential;

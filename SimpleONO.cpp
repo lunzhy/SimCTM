@@ -35,14 +35,24 @@ void SimpleONO::setParameters()
 	////////////////////////////////////////////////////////////////////////////
 	//modify here to change the structures
 	//current parameters is set according to the structure prepared in Sentaurus
-	double xLength_in_nm = 10;
-	double yLengthTunnel_in_nm = 4;
-	double yLengthTrap_in_nm = 10;
-	double yLengthBlock_in_nm = 9;
-	int xGridNumber = 5; //the grid number, not vertex number
-	int yGridNumberTunnel = 100;
-	int yGridNumberTrap = 50;
-	int yGridNumberBlock = 50;
+	double xLength_in_nm = SctmGlobalControl::Get().XLength;
+	double yLengthTunnel_in_nm = SctmGlobalControl::Get().YLengthTunnel;
+	double yLengthTrap_in_nm = SctmGlobalControl::Get().YLengthTrap;
+	double yLengthBlock_in_nm = SctmGlobalControl::Get().YLengthBlock;
+	int xGridNumber = SctmGlobalControl::Get().XGridNum; //the grid number, not vertex number
+	int yGridNumberTunnel = SctmGlobalControl::Get().YGridNumTunnel;
+	int yGridNumberTrap = SctmGlobalControl::Get().YGridNumTrap;
+	int yGridNumberBlock = SctmGlobalControl::Get().YGridNumBlock;
+	
+	//double xLength_in_nm = 10;
+	//double yLengthTunnel_in_nm = 4;
+	//double yLengthTrap_in_nm = 10;
+	//double yLengthBlock_in_nm = 9;
+	//int xGridNumber = 5; //the grid number, not vertex number
+	//int yGridNumberTunnel = 100;
+	//int yGridNumberTrap = 50;
+	//int yGridNumberBlock = 50;
+	
 	////////////////////////////////////////////////////////////////////////////
 	//set geometric class members
 	//here, the length of the parameter is conversed to [cm]
@@ -67,11 +77,14 @@ void SimpleONO::setParameters()
 	//TODO: the gate potential should be obtained with gate voltage and work function.
 	//Currently, the gate voltage is not considered in the structure.
 	/////////////////////////////////////////////////////////////////////////////
-	this->gatePotential = 16.526;
-	this->channelPotential = 0.599;
+	
+	//this->gatePotential = 16.526;
+	//this->channelPotential = 0.599;
+	Normalization norm = Normalization(this->temperature);
+	double refPot = norm.PullPotential(SctmPhys::ReferencePotential);
 
-	//this->gatePotential = 5;
-	//this->channelPotential = 0;
+	this->gatePotential = SctmGlobalControl::Get().GateVoltage - ( SctmGlobalControl::Get().GateWorkFunction - refPot);
+	this->channelPotential = SctmGlobalControl::Get().ChannelPotential;
 }
 
 void SimpleONO::printStructure()
@@ -122,7 +135,7 @@ void SimpleONO::setDomainDetails()
 	////////////////////////////////////////////////////////////////////
 	//set vertices
 	////////////////////////////////////////////////////////////////////
-	Normalization theNorm = Normalization();
+	Normalization theNorm = Normalization(this->temperature);
 
 	double normCoordX = 0.0;
 	double normCoordY = 0.0;
@@ -358,7 +371,7 @@ void SimpleONO::stuffPotential()
 	double elecFieldTrap = 4.96e6; // in [V/cm]
 	double elecFieldBlock = 9.55e6; // in [V/cm]
 
-	Normalization theNorm = Normalization();
+	Normalization theNorm = Normalization(this->temperature);
 	//elecFieldTunnel = theNorm.PushElecField(elecFieldTunnel);
 	//elecFieldTrap = theNorm.PushElecField(elecFieldTrap);
 	//elecFieldBlock = theNorm.PushElecField(elecFieldBlock);
@@ -439,7 +452,7 @@ void SimpleONO::refreshBandEnergy()
 void SimpleONO::refreshPotential()
 {
 	//normalization is needed here because all the values related to the domain details (i.e. the stored value) are normalized
-	Normalization theNorm = Normalization();
+	Normalization theNorm = Normalization(this->temperature);
 	double potentialValue = 0.0;
 
 	FDVertex *vert = NULL;
@@ -481,7 +494,7 @@ void SimpleONO::setTrapDistribution()
 	//TODO: Setting the distribution of trap density is temporarily considered here
 	using SctmPhys::TrapProperty;
 
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	double eTrapDens = norm.PushDensity(5e19); // 1e18 cm^-3
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
@@ -489,4 +502,9 @@ void SimpleONO::setTrapDistribution()
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
 	}
+}
+
+SimpleONO::SimpleONO()
+{
+	this->temperature = SctmGlobalControl::Get().Temperature;
 }

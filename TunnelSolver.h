@@ -41,6 +41,7 @@ protected:
 	double solveCurrDens_Tunnel(); //solver the tunneling current when solver is ready
 
 protected:
+	double temperature;
 	FDDomain *domain;
 	vector<FDVertex *> vertsStart_Tunnel;
 	vector<FDVertex *> vertsEnd_Tunnel;
@@ -60,7 +61,6 @@ protected:
 	double fermiEnergyTunnelFrom;
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
-	double temperature;
 	double eCurrDens; ///< the tunneling current density, in [A/cm^2]
 };
 

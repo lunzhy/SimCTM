@@ -25,6 +25,7 @@ using namespace SctmUtils;
 
 SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
 {
+	this->temperature = SctmGlobalControl::Get().Temperature;
 	initialize();
 	fakeFermiEnergy();
 }
@@ -94,7 +95,7 @@ void SolverPack::Run()
 void SolverPack::fakeFermiEnergy()
 {
 	mapSiFermiAboveCBedge.clear();
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	double val = 0.05;

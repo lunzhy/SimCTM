@@ -17,9 +17,11 @@
 #include "SctmUtils.h"
 
 using SctmPhys::TrapProperty;
+using SctmUtils::SctmGlobalControl;
 
 TrapSolver::TrapSolver(FDDomain *_domain): domain(_domain), vertices(_domain->GetDDVerts())
 {
+	this->temperature = SctmGlobalControl::Get().Temperature;
 	initializeSolver();
 }
 

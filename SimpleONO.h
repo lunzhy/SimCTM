@@ -19,6 +19,8 @@
 /// This class is derived from SimpleONO. It can build a rectangle domain by using FDDomainHelper.
 class SimpleONO : public FDDomain
 {
+public:
+	SimpleONO();
 protected:
 	double xLength; ///< the length in x direction of the rectangle structure.
 	double yLengthTunnel; ///< the length in y direction of tunneling oxide
@@ -39,6 +41,7 @@ protected:
 	double gatePotential; ///< the gate potential, related to FDContact Gate
 	double channelPotential; ///< the channel potential 
 
+	double temperature;
 private:
 	/// @brief buildStructure is used to prepare the domain structure for the following process.
 	/// 

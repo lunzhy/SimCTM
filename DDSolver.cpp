@@ -27,6 +27,7 @@ DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), 
 	this->useCrankNicolsonMethod = false; // Crank-Nicolson method isn't complete currently.
 	this->useScharfetterGummelMethod = true;
 	this->lastTimeStep = 0;
+	this->temperature = SctmGlobalControl::Get().Temperature;
 	getDDVertices(domain);
 	initializeSolver();
 }
@@ -68,8 +69,6 @@ void DriftDiffusionSolver::initializeSolver()
 	int vertSize = this->ddVertices.size();
 	this->rhsVector.resize(vertSize);
 	this->elecDensity.resize(vertSize);
-	this->temperature = 300; //temporarily used here TODO: modify to accord with the whole simulation
-	
 	buildVertexMap(); //call the method in DriftDiffusionSolver (Base class), because at this time the derived class is not constructed.
 }
 
@@ -1057,7 +1056,7 @@ double DriftDiffusionSolver::CalculateTotalLineDensity()
 
 	FDVertex *vert = NULL;
 
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 
 	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
@@ -1265,12 +1264,11 @@ void DDTest::buildVertexMap()
 	//the following is used to set the mobility to uniform value, because the original setting method leads to incorrect calculation
 	//of the mobility at the trapping layer interface.
 	//This is now solved by using different method of setting vertex-related physical values.
-	//Normalization norm = Normalization();
 	//double mobility = MaterialDB::GetMatPrpty(&MaterialDB::Si3N4, MaterialDB::MatProperty::Mat_ElectronMobility);
 
 	//this map is filled in order to obtain the vertex index from the vertex internal id. This is useful
 	//in setting up the equation, i.e. filling the matrix.
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	double lastDensity = norm.PushDensity(1e12);
 	for (std::size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
@@ -1300,7 +1298,7 @@ void DDTest::setBndCurrent()
 	// current density at boundary for test, in [A/cm^2]
 	// note that the current direction is the reversed direction of electron flow
 
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	bcVal_in = norm.PushCurrDens(bcVal_in);
 
 	//the sequence of the assignment is in accordance with the direction
@@ -1475,7 +1473,7 @@ void DDTest::setBndDensity()
 	double valWest = 0;							double valEast = 0;
 						double valSouth = 1e12;
 
-	Normalization norm = Normalization();
+	Normalization norm = Normalization(this->temperature);
 	valNorth = norm.PushDensity(valNorth);
 	valSouth = norm.PushDensity(valSouth);
 	valEast = norm.PushDensity(valEast);

@@ -57,7 +57,7 @@ namespace MaterialDB
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
 		Si3N4_material.ElecTrapEnergyFromCB(1.5);
-		Si3N4_material.ElecTrapXSection(1e-12);
+		Si3N4_material.ElecTrapXSection(1e-14);
 
 		MaterialMap[Mat::Silicon] = &Silicon_material;
 		MaterialMap[Mat::SiO2] = &SiO2_material;
@@ -114,8 +114,8 @@ namespace MaterialDB
 
 	Material::Material(Mat::Name _name) :name(_name)
 	{
-		//TODO: Read the temperature from environment
-		temperature = 300;
+		using SctmUtils::SctmGlobalControl;
+		temperature = SctmGlobalControl::Get().Temperature;
 	}
 
 	double Material::DielectricConstant() const

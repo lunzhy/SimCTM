@@ -25,6 +25,7 @@
 #include "SctmMath.h"
 #include <map>
 #include <vector>
+#include "Material.h"
 using SctmMath::VectorValue;
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
@@ -42,6 +43,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::fstream;
+using MaterialDB::Mat;
 
 class FDDomain;
 
@@ -123,6 +125,7 @@ namespace SctmUtils
 		double TimeStep() const;
 		bool End() const;
 	protected:
+		double temperature;
 		double currElapsedTime; /// current time of the simulation
 		int currStepNumber; /// current step of the simulation, starting with 1
 		double currTimeStep; /// current simulation time step
@@ -150,7 +153,7 @@ namespace SctmUtils
 		/// @pre
 		/// @return 
 		/// @note
-		SctmDebug(): enable(SCTM_DEBUG_ENABLE) {}
+		SctmDebug();
 		/// @brief PrintErrorInfo is used to output message to console with given message.
 		/// 
 		///
@@ -186,6 +189,7 @@ namespace SctmUtils
 		void WriteDensity(FDDomain *domain);
 	private:
 		bool enable;
+		double temperature;
 	};
 
 	
@@ -250,16 +254,53 @@ namespace SctmUtils
 		void WriteTrapOccupation(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 	protected:
+		double temperature;
 		string fileName;
 		string directoryName;
 		string generateFileSuffix();
 	};
+
 
 	class ConvertToString
 	{
 	public:
 		static string Int(int num);
 		static string Double(double num, bool useScientific = true, int numAfterPoionts = 3);
+	};
+
+
+	class SctmGlobalControl
+	{
+	public:
+		static SctmGlobalControl& Get();
+	private:
+		SctmGlobalControl();
+	public:
+		double Temperature; ///< temperature of the simulation, in [K]
+		double GateVoltage; ///< gate voltage, in [V]
+		double GateWorkFunction; ///< the work function of gate material, in [eV]
+		double ChannelPotential;
+
+		double SimStartTime; ///< simulation start time
+		double SimEndTime; ///< simulation end time
+		int SimStepsPerDecade; ///< simulation steps per time decade
+		
+		//the length are in [nm]
+		double XLength;
+		double YLengthTunnel;
+		double YLengthTrap;
+		double YLengthBlock;
+		int XGridNum;
+		int YGridNumTunnel;
+		int YGridNumTrap;
+		int YGridNumBlock;
+
+		Mat::Name TunnelMaterial;
+		Mat::Name TrapMaterial;
+		Mat::Name BlockMaterial;
+
+	protected:
+		void setGlobalCntrl();
 	};
 
 	extern SctmMessaging UtilsMsg;

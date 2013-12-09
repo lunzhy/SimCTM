@@ -51,7 +51,7 @@ namespace SctmPhys
 	const double hbar = h / 2 / SctmMath::PI;
 
 	
-	extern double ReferencePotential; // the reference potential used in calculating the conduction/valence band energy
+	extern double ReferencePotential; // the reference potential used in calculating the conduction/valence band energy, stored in normalized value
 
 	/// @brief SetPhysConstant is used to set the constant parameters which are initialized with the material parameters
 	/// 
