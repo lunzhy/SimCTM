@@ -24,6 +24,7 @@ namespace MaterialDB
 	Material SiO2_material = Material(Mat::SiO2);
 	Material Si3N4_material = Material(Mat::Si3N4);
 	Material Al2O3_material = Material(Mat::Al2O3);
+	Material HfO2_material = Material(Mat::HfO2);
 	
 	void SetMaterials()
 	{
@@ -39,7 +40,7 @@ namespace MaterialDB
 		SiO2_material.Bandgap(9.4);
 		SiO2_material.DielectricConstant(3.9);
 		SiO2_material.ElectronAffinity(0.9);
-		SiO2_material.ElectronMass(0.42); // need to be revised
+		SiO2_material.ElectronMass(0.40); // need to be revised
 		SiO2_material.HoleMass(1);
 		SiO2_material.ElectronMobility(0);
 
@@ -57,7 +58,17 @@ namespace MaterialDB
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
 		Si3N4_material.ElecTrapEnergyFromCB(1.5);
-		Si3N4_material.ElecTrapXSection(1e-14);
+		Si3N4_material.ElecTrapXSection(1e-13);
+
+		//HfO2
+		HfO2_material.Bandgap(5.9);
+		HfO2_material.DielectricConstant(20.0);
+		HfO2_material.ElectronAffinity(2.05);
+		HfO2_material.ElectronMass(0.2);
+		HfO2_material.HoleMass(1); // need to be revised
+		HfO2_material.ElectronMobility(0.01);
+		HfO2_material.ElecTrapEnergyFromCB(0.7);
+		HfO2_material.ElecTrapXSection(1e-14);
 
 		MaterialMap[Mat::Silicon] = &Silicon_material;
 		MaterialMap[Mat::SiO2] = &SiO2_material;

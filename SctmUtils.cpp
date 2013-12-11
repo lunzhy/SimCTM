@@ -959,6 +959,7 @@ namespace SctmUtils
 		currVert = startVert;
 		while (currVert != NULL)
 		{	
+			//for vertex in the trapping layer
 			if (currVert->Trap != NULL)
 			{
 				densCtrlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
@@ -1017,19 +1018,19 @@ namespace SctmUtils
 	void SctmGlobalControl::setGlobalCntrl()
 	{
 		Temperature = 300;
-		GateVoltage = 16;
-		GateWorkFunction = 4.1;
-		ChannelPotential = 0.599;
+		GateVoltage = 18;
+		GateWorkFunction = 4.7; //for TaN gate
+		ChannelPotential = 0.6;
 
 		SimStartTime = 1e-15;
-		SimEndTime = 10;
+		SimEndTime = 1;
 		SimStepsPerDecade = 5;
 
 		//the length are in nm
 		XLength = 10;
-		YLengthTunnel = 4;
-		YLengthTrap = 10;
-		YLengthBlock = 9;
+		YLengthTunnel = 4.5;
+		YLengthTrap = 6.5;
+		YLengthBlock = 15;
 		XGridNum = 5;
 		YGridNumTunnel = 50;
 		YGridNumTrap = 100;
@@ -1037,7 +1038,10 @@ namespace SctmUtils
 
 		TunnelMaterial = Mat::SiO2;
 		TrapMaterial = Mat::Si3N4;
-		BlockMaterial = Mat::SiO2;
+		BlockMaterial = Mat::Al2O3;
+
+		UniformTrapDens = 6e19; // in [cm^-3]
+		ChannelFermiAboveCB = 0.15;
 	}
 
 	SctmGlobalControl::SctmGlobalControl()

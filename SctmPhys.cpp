@@ -635,6 +635,12 @@ namespace SctmPhys
 				ret = GetTrapPrpty(eCrossSection) * mobility * elecField;
 				break;
 			}
+			case NetCharge:
+			{
+				// there should be 2 parts here
+				ret = - GetTrapPrpty(eTrapped);
+				break;
+			}
 			default:
 			{
 				SCTM_ASSERT(SCTM_ERROR, 10029);

@@ -98,7 +98,7 @@ void SolverPack::fakeFermiEnergy()
 	Normalization norm = Normalization(this->temperature);
 	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double val = 0.05;
+	double val = SctmGlobalControl::Get().ChannelFermiAboveCB;
 	val = norm.PushEnergy(val);
 	for (size_t iVert = 0; iVert != domain->GetVertices().size(); ++iVert)
 	{

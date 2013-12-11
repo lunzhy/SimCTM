@@ -299,6 +299,9 @@ namespace SctmUtils
 		Mat::Name TrapMaterial;
 		Mat::Name BlockMaterial;
 
+		double ChannelFermiAboveCB; ///< the amount of fermi energy surpassing conduanction band edge at channel
+		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
+
 	protected:
 		void setGlobalCntrl();
 	};

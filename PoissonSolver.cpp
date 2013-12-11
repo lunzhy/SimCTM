@@ -197,8 +197,14 @@ void TwoDimPoissonSolver::buildRhsVector()
 		currVert = this->vertices.at(iVert);
 		equationID = equationMap[currVert->GetID()];
 		SCTM_ASSERT(equationID==iVert, 10008);
+
 		charge = currVert->Phys->GetPhysPrpty(PhysProperty::NetCharge);
+		if (currVert->Trap != NULL)
+		{
+			charge += currVert->Trap->GetTrapPrpty(TrapProperty::NetCharge);
+		}
 		controlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+		
 		this->rhsVector.at(equationID) = - charge * controlArea;
 	}
 }

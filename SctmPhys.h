@@ -171,6 +171,7 @@ namespace SctmPhys
 			eOccupation,
 			eEmptyTrapDens,
 			eCaptureCoeff,
+			NetCharge,
 		};
 		TrapProperty(FDVertex *_vert);
 		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;
