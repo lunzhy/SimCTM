@@ -104,7 +104,6 @@ protected:
 	/// @return void
 	/// @note
 	void setCoeffMatrixForTimestep();
-	void setCoeffMatrixForTrapping();
 	/// @brief buildRhsVector
 	/// 
 	/// This method is called at each simulation step. Because in each time step, the density of each vertex has to be
@@ -125,6 +124,9 @@ protected:
 	void handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2);
 	void handleCurrDensBC_in(FDVertex *vert, double currdens);
 	void handleCurrDensBC_out(FDVertex *vert, double tunCoeff);
+
+	void updateCoeffMatrixForTrapping();
+	void updateRhsForDetrapping();
 };
 
 class DDTest : public DriftDiffusionSolver

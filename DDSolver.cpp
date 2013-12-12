@@ -45,14 +45,21 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//build and refresh the coefficient matrix
 	buildCoefficientMatrix();
 	setCoeffMatrixForTimestep();
-	setCoeffMatrixForTrapping();
 	
 	//handle the tunneling current. Update the coefficient matrix or refreshing BndCond value for building Rhs vector
+	//IMPORTANT! this is done before building the rhs vector
+	//for tunneling-in current the boundary condition is revised for building rhs vector
+	//for tunneling-out current the coefficient matrix is updated using the tunneling coefficient
 	handleBndTunnelCurrDens(bc1, bc2);
 	
 	//buildRhsVector and refreshRhsWithBC are called together, because for each simulation step, the initial building of Rhs is
 	//different due to the difference in last time electron density
 	buildRhsVector();
+
+	//dealing the the trapping/detrapping mechanism
+	//some of these considerations update the matrix coefficient and some update rhs vector
+	updateCoeffMatrixForTrapping();
+	updateRhsForDetrapping();
 
 	//solve the matrix
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
@@ -1141,6 +1148,8 @@ void DriftDiffusionSolver::refreshVertexMap()
 
 void DriftDiffusionSolver::handleCurrDensBC_out(FDVertex *vert, double tunCoeff)
 {
+	//the method for getting rhs value of bc vertex did nothing with tunneling-out boundary condition, because the tunneling-out current value
+	//is 0 in that method.
 	//the value of tunneling coefficient is in [A*cm]
 
 	int vertID = 0;
@@ -1222,7 +1231,7 @@ void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexM
 	}
 }
 
-void DriftDiffusionSolver::setCoeffMatrixForTrapping()
+void DriftDiffusionSolver::updateCoeffMatrixForTrapping()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -1243,6 +1252,30 @@ void DriftDiffusionSolver::setCoeffMatrixForTrapping()
 			currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
 
 		matrixSolver.RefreshMatrixValue(indexEqu, indexCoeff, coeff_trapping, SctmSparseMatrixSolver::Add);
+	}
+}
+
+void DriftDiffusionSolver::updateRhsForDetrapping()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	int equID = 0;
+	double eEmission = 0;
+	double eTrappedDens = 0;
+	double rhs_detrapping = 0;
+
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
+	{
+		currVert = this->ddVertices.at(iVert);
+		vertID = currVert->GetID();
+		equID = equationMap[vertID];
+
+		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmission_BasicSRH);
+		eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+
+		rhs_detrapping = eEmission * eTrappedDens;
+		// the negative sigh symbolizes moving the addend from right to left of the equation.
+		rhsVector.at(equID) += -rhs_detrapping;
 	}
 }
 

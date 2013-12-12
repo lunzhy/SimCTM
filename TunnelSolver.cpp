@@ -201,7 +201,10 @@ void SubsToTrapElecTunnel::initialize()
 	}
 	//set the effective tunneling mass
 	//TODO: this should be obtained from user input
-	this->effTunnelMass = 0.5; // in m0
+	using namespace MaterialDB;
+	//the material for substrate is silicon
+	double effSiMass = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_ElectronMass);
+	this->effTunnelMass = effSiMass; // the effective electron mass, in [m0]
 }
 
 void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
@@ -382,7 +385,9 @@ void TrapToGateElecTunnel::initialize()
 	}
 	//set the effective tunneling mass
 	//TODO: this should be obtained from user input
-	this->effTunnelMass = 0.5;
+	using namespace MaterialDB;
+	double effMass = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronMass);
+	this->effTunnelMass = effMass; // the effective electron mass, in [m0]
 }
 
 void TrapToGateElecTunnel::setSolver_Tunnel(FDVertex *endVertex)
@@ -483,7 +488,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 		vertID = currVert->GetID();
 		//currently the eCurrDens_Tunnel stores the coefficient to calculate current density
 		//the calculated coefficient has a dimension of A*m, and should be converted to A*cm
-		//value[A*cm] * eDensity[cm^-3] = current density[A/cm^2]
+		//this value[A*cm] * eDensity[cm^-3] = current density[A/cm^2]
 		tunCoeff = eCurrDens_Tunnel.at(iVert) / cm_in_m;
 		ret[vertID] = norm.PushTunCoeff(tunCoeff);
 	}

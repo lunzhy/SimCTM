@@ -213,7 +213,7 @@ namespace SctmUtils
 			return coeff * (currDensFactor / densityFactor);
 		}
 
-		//area, including the cross section used in trap property
+		//area, in [cm^2], including the cross section used in trap property
 		inline double PushArea(double area)
 		{
 			return area / ( lengthFactor * lengthFactor ); 
@@ -221,6 +221,16 @@ namespace SctmUtils
 		inline double PullArea(double area)
 		{
 			return area * ( lengthFactor * lengthFactor );
+		}
+
+		//velocity, in [cm/s]
+		inline double PushVelocity(double vel)
+		{
+			return vel / ( lengthFactor / timeFactor );
+		}
+		inline double PullVelocity(double vel)
+		{
+			return vel * ( lengthFactor * timeFactor );
 		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.

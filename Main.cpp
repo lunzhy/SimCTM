@@ -7,11 +7,13 @@
 #include "SctmPhys.h"
 #include "SolverPack.h"
 #include "Normalization.h"
+#include <stdlib.h>
 
 using namespace SctmUtils;
 
 void initialize()
 {
+	std::system("E:\\\"PhD Study\"\\SimCTM\\PySimFig\\DeleteData.py");
 	UtilsMsg.PrintWelcomingInformation();
 	UtilsMsg.PrintHeader("Initializing the simulator.");
 	UtilsTimer.Start();

@@ -28,6 +28,7 @@ namespace SctmPhys
 	const double &T0 = RoomTemperature;
 	const double &q = ElementaryCharge;
 	const double &ni = IntrinsicConcentration;
+	const double &m0 = ElectronMass;
 	
 	double ReferencePotential;
 
@@ -46,6 +47,8 @@ namespace SctmPhys
 		e_mobility = 0;
 		controlArea = 0;
 		epsilon = 0;
+
+		temperature = SctmUtils::SctmGlobalControl::Get().Temperature;
 	}
 
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
@@ -369,6 +372,41 @@ namespace SctmPhys
 				ret = tunnelCoeff;
 				break;
 			}
+			case eEffDOS:
+			{
+				double mass = GetPhysPrpty(PhysProperty::eMass) * SctmPhys::m0;
+				double kT = SctmPhys::k0 * GetPhysPrpty(PhysProperty::Temperature); // the simulation temperature
+				double h = SctmPhys::h;
+				double per_m3_in_per_cm3 = 1 / SctmMath::pow((1 / SctmPhys::cm_in_m), 3);
+
+				// 3/2 = 1, 3.0/2 = 1.5
+				ret = 2 * SctmMath::pow((2*SctmMath::PI*mass*kT), 3.0/2) / h / h / h; // in [m^-3]
+				ret = ret * per_m3_in_per_cm3; // convert to [cm^-3]
+
+				using SctmUtils::Normalization;
+				Normalization norm = Normalization(GetPhysPrpty(PhysProperty::Temperature));
+				ret = norm.PushDensity(ret);
+				break;
+			}
+			case PhysProperty::eThermalVelocity:
+			{
+				double mass = GetPhysPrpty(PhysProperty::eMass) * SctmPhys::m0;
+				double kT = SctmPhys::k0 * GetPhysPrpty(PhysProperty::Temperature);
+				double m_in_cm = 1/ SctmPhys::cm_in_m;
+
+				ret = SctmMath::sqrt(3 * kT / mass); // in [m/s]
+				ret = ret * m_in_cm;
+			
+				using SctmUtils::Normalization;
+				Normalization norm = Normalization(GetPhysPrpty(PhysProperty::Temperature));
+				ret = norm.PushVelocity(ret);
+				break;
+			}
+			case PhysProperty::Temperature:
+			{
+				ret = temperature;
+				break;
+			}
 			default:
 			{
 				// use SCTM_ASSERT for non-existed property
@@ -633,6 +671,25 @@ namespace SctmPhys
 				mobility = vertSelf->Phys->GetPhysPrpty(PhysProperty::eMobility);
 				elecField = vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField);
 				ret = GetTrapPrpty(eCrossSection) * mobility * elecField;
+				break;
+			}
+			case eEmission_BasicSRH:
+			{
+				double eVelocity = 0;
+				double eEffectiveDOS = 0;
+				double temperature = vertSelf->Phys->GetPhysPrpty(PhysProperty::Temperature);
+
+				double kT_div_q = SctmPhys::k0 * temperature / SctmPhys::q;
+				eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity);
+				eEffectiveDOS = vertSelf->Phys->GetPhysPrpty(PhysProperty::eEffDOS);
+
+				using SctmUtils::Normalization;
+				Normalization norm = Normalization(temperature);
+				double trapEnergy = norm.PullEnergy(GetTrapPrpty(TrapProperty::EnergyFromCondBand));
+
+				ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS * 
+					SctmMath::exp( - trapEnergy / kT_div_q);
+				
 				break;
 			}
 			case NetCharge:

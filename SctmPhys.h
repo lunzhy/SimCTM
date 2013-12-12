@@ -42,6 +42,7 @@ namespace SctmPhys
 	const double per_sqr_m_in_per_sqr_cm	= 1e-4; // per square meter in per square centimeter 1/m^2 = 1e-4 /cm^2
 	
 	// simplified physical constant
+	extern const double &m0;
 	extern const double &k0;
 	extern const double &h;
 	extern const double &eps;
@@ -93,6 +94,9 @@ namespace SctmPhys
 			DielectricConstant,
 			//CAUTION: currently, the tunneling coefficient stores tunneling-out coefficient of the boundary vertex.
 			TunnelCoeff, ///< the tunneling coefficient of this vertex
+			eEffDOS, ///< effective electron density of states, in [cm^-3]
+			eThermalVelocity, ///< electron thermal velocity
+			Temperature, ///< the lattice temperature
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -157,6 +161,7 @@ namespace SctmPhys
 		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
 		double epsilon; ///< dielectric constant
 		double tunnelCoeff; ///< the tunneling coefficient of this vertex
+		double temperature; ///< the lattice temperature of this vertex
 	};
 
 	class TrapProperty
@@ -170,8 +175,9 @@ namespace SctmPhys
 			EnergyFromCondBand,
 			eOccupation,
 			eEmptyTrapDens,
-			eCaptureCoeff,
 			NetCharge,
+			eCaptureCoeff,
+			eEmission_BasicSRH, ///< the electron emission rate of basic SRH process
 		};
 		TrapProperty(FDVertex *_vert);
 		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;

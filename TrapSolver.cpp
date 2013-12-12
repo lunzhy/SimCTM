@@ -18,6 +18,7 @@
 
 using SctmPhys::TrapProperty;
 using SctmUtils::SctmGlobalControl;
+using SctmUtils::UtilsTimeStep;
 
 TrapSolver::TrapSolver(FDDomain *_domain): domain(_domain), vertices(_domain->GetDDVerts())
 {
@@ -57,7 +58,8 @@ void TrapSolver::setSolverTrapping()
 	double coeff = 0;
 	double rhs = 0;
 
-	timeStep = SctmUtils::UtilsTimeStep.TimeStep();
+	timeStep = UtilsTimeStep.TimeStep();
+
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
@@ -68,10 +70,11 @@ void TrapSolver::setSolverTrapping()
 
 		eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 
+		//coeff of nt due this trapping = capture coeff * delta_time * nf
 		coeff = captureCoeff * timeStep * eFreeDens;
-		// += is used here
-		coeffMap[vertID] += coeff;
+		coeffMap[vertID] += coeff; // += is used here
 
+		//rhs of the equation = capture coeff * delta_time * nf * eTrapDens
 		rhs = captureCoeff * timeStep * eFreeDens * eTrapDens;
 		rhsMap[vertID] += rhs;
 	}
@@ -98,6 +101,7 @@ void TrapSolver::SolveTrap()
 {
 	refreshSolver();
 	setSolverTrapping();
+	setSolverDetrapping_BasicSRH();
 	solveEachVertex();
 }
 
@@ -128,6 +132,32 @@ void TrapSolver::solveEachVertex()
 		vertID = currVert->GetID();
 		eTrapped = rhsMap[vertID] / coeffMap[vertID];
 		eTrappedMap[vertID] = eTrapped;
+	}
+}
+
+void TrapSolver::setSolverDetrapping_BasicSRH()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double timeStep = 0;	
+
+	double coeff_detrapping = 0;
+	double eEmission = 0;
+
+	timeStep = UtilsTimeStep.TimeStep();
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmission_BasicSRH);
+		
+		//coeff of nt due to detrapping = emission rate * dalta_time
+		coeff_detrapping = timeStep * eEmission;
+		coeffMap[vertID] += coeff_detrapping;
+
+		//rhs the equation due to detrapping = 0; none effect
+		rhsMap[vertID] += 0;
 	}
 }
 

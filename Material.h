@@ -43,8 +43,6 @@ namespace MaterialDB
 			Mat_ElectronAffinity, ///< electron affinity of the material
 			Mat_ElectronMass, ///< electron effective mass of the material
 			Mat_HoleMass, ///< hole effective mass of the material
-			Mat_ElectronDOS, ///< electron density of states of the material
-			Mat_HoleDOS, ///< hole density of states of the material
 			Mat_ElectronDiffusion, ///< electron diffusion coefficient of the material
 			Mat_HoleDiffusion, ///< hole diffusion coefficient of the material
 			Mat_ElectronMobility, ///< electron mobility of the material
@@ -67,8 +65,6 @@ namespace MaterialDB
 		double electronAffinity; ///< electron affinity energy, in [eV]
 		double electronMass; ///< electron effective mass, in [m0]
 		double holeMass; ///< hole effective mass, in [m0]
-		double electronDOS;
-		double holeDOS;
 		double electronDiffusion; ///< electron diffusion coefficient, in [D0]
 		double holeDiffusion; ///< hole diffusion coefficient, in [D0]
 		double electronMobility; ///< electron mobility, in [cm^2/V/s]
@@ -98,10 +94,6 @@ namespace MaterialDB
 		void		ElectronMass(double val);
 		double		HoleMass() const;
 		void		HoleMass(double val);
-		double		ElectronDOS() const;
-		void		ElectronDOS(double val);
-		double		HoleDOS() const;
-		void		HoleDOS(double val);
 		double		ElectronDiffusion() const;
 		void		ElectronDiffusion(double val);
 		double		HoleDiffusion() const;

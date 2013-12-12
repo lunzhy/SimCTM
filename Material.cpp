@@ -15,6 +15,9 @@
 #include "Material.h"
 #include "SctmUtils.h"
 #include "Normalization.h"
+#include "SctmPhys.h"
+#include "SctmMath.h"
+
 using SctmUtils::Normalization;
 
 namespace MaterialDB
@@ -32,7 +35,7 @@ namespace MaterialDB
 		Silicon_material.Bandgap(1.12);
 		Silicon_material.DielectricConstant(11.9);
 		Silicon_material.ElectronAffinity(4.05);
-		Silicon_material.ElectronMass(1); // need to be revised
+		Silicon_material.ElectronMass(1.08); // need to be revised
 		Silicon_material.HoleMass(1);
 		Silicon_material.ElectronMobility(1350);
 
@@ -54,7 +57,7 @@ namespace MaterialDB
 		Si3N4_material.Bandgap(5.0);
 		Si3N4_material.DielectricConstant(7.5);
 		Si3N4_material.ElectronAffinity(1.9);
-		Si3N4_material.ElectronMass(1); // need to be revised
+		Si3N4_material.ElectronMass(0.42); // need to be revised
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
 		Si3N4_material.ElecTrapEnergyFromCB(1.5);
@@ -179,26 +182,6 @@ namespace MaterialDB
 	void Material::HoleMass(double val)
 	{
 		holeMass = val;
-	}
-
-	double Material::ElectronDOS() const
-	{
-		return electronDOS;
-	}
-
-	void Material::ElectronDOS(double val)
-	{
-		electronDOS = val;
-	}
-
-	double Material::HoleDOS() const
-	{
-		return holeDOS;
-	}
-
-	void Material::HoleDOS(double val)
-	{
-		holeDOS = val;
 	}
 
 	double Material::ElectronDiffusion() const

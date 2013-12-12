@@ -1041,7 +1041,7 @@ namespace SctmUtils
 		BlockMaterial = Mat::Al2O3;
 
 		UniformTrapDens = 6e19; // in [cm^-3]
-		ChannelFermiAboveCB = 0.15;
+		ChannelFermiAboveCB = 0.20;
 	}
 
 	SctmGlobalControl::SctmGlobalControl()
