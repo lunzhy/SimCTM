@@ -27,6 +27,8 @@ namespace SctmPhys
 	class PhysProperty;
 	class TrapProperty;
 }
+class SubstrateSolver;
+
 using MaterialDB::Material;
 using std::string;
 using std::map;
@@ -352,6 +354,7 @@ protected:
 /// @brief FDContact is the class describing the contact in finite differential domain.
 class FDContact
 {
+	friend class SubstrateSolver;
 public:
 	string ContactName; ///< contact name
 	double Voltage; ///< the contact voltage

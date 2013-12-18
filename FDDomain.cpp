@@ -43,6 +43,21 @@ FDContact * FDDomain::GetContact(unsigned int id)
 	return contacts.at(id);
 }
 
+FDContact * FDDomain::GetContact(std::string contactName)
+{
+	FDContact *currCont = NULL;
+	for (size_t iCont = 0; iCont != contacts.size(); ++iCont)
+	{
+		currCont = GetContact(iCont);
+		if (currCont->ContactName == contactName)
+		{
+			break;
+		}
+	}
+	SCTM_ASSERT(currCont != NULL, 10030);
+	return currCont;
+}
+
 std::vector<FDVertex *> & FDDomain::GetVertices()
 {
 	return this->vertices;

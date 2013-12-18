@@ -299,7 +299,8 @@ namespace SctmUtils
 		Mat::Name TrapMaterial;
 		Mat::Name BlockMaterial;
 
-		double ChannelFermiAboveCB; ///< the amount of fermi energy surpassing conduanction band edge at channel
+		double ChannelFermiAboveCB; ///< the amount of fermi energy surpassing conduction band edge at channel
+		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
 
 	protected:

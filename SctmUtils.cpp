@@ -169,6 +169,9 @@ namespace SctmUtils
 		case 10029:
 			msg = "[SctmPhys.cpp] Can not get the required trap property.";
 			break;
+		case 10030:
+			msg = "[FDDomain.cpp] Can not find the required contact.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -968,7 +971,7 @@ namespace SctmUtils
 				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
 
 				vertForCap = currVert;
-				cap_reciprocal = 0;
+				cap_reciprocal = 0; // the reciprocal of capacitance
 
 				while (vertForCap != NULL)
 				{
@@ -1041,6 +1044,7 @@ namespace SctmUtils
 		BlockMaterial = Mat::Al2O3;
 
 		UniformTrapDens = 6e19; // in [cm^-3]
+		SubstrateDoping = -5e17; // negative for P-type
 		ChannelFermiAboveCB = 0.20;
 	}
 

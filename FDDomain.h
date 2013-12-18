@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 #include "DomainDetails.h"
 
 namespace SctmUtils
@@ -119,6 +120,7 @@ public:
 	/// @return FDContact *
 	/// @note
 	FDContact * GetContact(unsigned int id);
+	FDContact * GetContact(std::string contactName);
 protected:
 	void virtual buildStructure() = 0;
 	void virtual postProcessOfDomain() = 0;
