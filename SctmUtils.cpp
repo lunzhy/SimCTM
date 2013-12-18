@@ -1024,7 +1024,7 @@ namespace SctmUtils
 
 		SimStartTime = 1e-15;
 		SimEndTime = 1;
-		SimStepsPerDecade = 5;
+		SimStepsPerDecade = 10;
 
 		//the length are in nm
 		XLength = 10;

@@ -43,7 +43,7 @@ namespace MaterialDB
 		SiO2_material.Bandgap(9.4);
 		SiO2_material.DielectricConstant(3.9);
 		SiO2_material.ElectronAffinity(0.9);
-		SiO2_material.ElectronMass(0.40); // need to be revised
+		SiO2_material.ElectronMass(0.32); // need to be revised
 		SiO2_material.HoleMass(1);
 		SiO2_material.ElectronMobility(0);
 
@@ -60,7 +60,7 @@ namespace MaterialDB
 		Si3N4_material.ElectronMass(0.42); // need to be revised
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
-		Si3N4_material.ElecTrapEnergyFromCB(1.5);
+		Si3N4_material.ElecTrapEnergyFromCB(0.7);
 		Si3N4_material.ElecTrapXSection(1e-13);
 
 		//HfO2
