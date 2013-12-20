@@ -65,7 +65,8 @@ void TrapSolver::setSolverTrapping()
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
 
-		captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff);
+		captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
+		//captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
 		eTrapDens = eTrapDensMap[vertID];
 
 		eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
@@ -150,7 +151,7 @@ void TrapSolver::setSolverDetrapping_BasicSRH()
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
 
-		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmission_BasicSRH);
+		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
 		
 		//coeff of nt due to detrapping = emission rate * dalta_time
 		coeff_detrapping = timeStep * eEmission;

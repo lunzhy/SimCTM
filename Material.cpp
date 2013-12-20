@@ -61,7 +61,7 @@ namespace MaterialDB
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
 		Si3N4_material.ElecTrapEnergyFromCB(0.7);
-		Si3N4_material.ElecTrapXSection(1e-13);
+		Si3N4_material.ElecTrapXSection(1e-14);
 
 		//HfO2
 		HfO2_material.Bandgap(5.9);

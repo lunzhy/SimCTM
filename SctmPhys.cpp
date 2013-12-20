@@ -664,7 +664,7 @@ namespace SctmPhys
 				ret = e_trapDensity - e_trapped;
 				break;
 			}
-			case eCaptureCoeff:
+			case eCaptureCoeff_J_Model:
 			{
 				double mobility = 0;
 				double elecField = 0;
@@ -673,7 +673,13 @@ namespace SctmPhys
 				ret = GetTrapPrpty(eCrossSection) * mobility * elecField;
 				break;
 			}
-			case eEmission_BasicSRH:
+			case eCaptureCoeff_V_Model:
+			{
+				double eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity);
+				ret = eVelocity * GetTrapPrpty(eCrossSection);
+				break;
+			}
+			case eEmissionCoeff_BasicSRH:
 			{
 				double eVelocity = 0;
 				double eEffectiveDOS = 0;

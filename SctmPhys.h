@@ -179,8 +179,9 @@ namespace SctmPhys
 			eOccupation,
 			eEmptyTrapDens,
 			NetCharge,
-			eCaptureCoeff,
-			eEmission_BasicSRH, ///< the electron emission rate of basic SRH process
+			eCaptureCoeff_J_Model,
+			eCaptureCoeff_V_Model,
+			eEmissionCoeff_BasicSRH, ///< the electron emission rate of basic SRH process
 		};
 		TrapProperty(FDVertex *_vert);
 		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;

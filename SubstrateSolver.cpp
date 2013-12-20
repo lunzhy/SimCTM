@@ -102,7 +102,7 @@ double OneDimSubsSolver::solve_NewtonMethod()
 {
 	static double tolerance = 1e-7;
 	static double eps = 1e-50;
-	static int maxIterations = 200;
+	static int maxIterations = 500;
 
 	double guessSurfPot = 0; // in [V]
 	if (gateVoltage - flatbandVoltage > 0)

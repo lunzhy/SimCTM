@@ -1248,7 +1248,10 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping()
 		SCTM_ASSERT(indexEqu==iVert, 10012);
 		indexCoeff = indexEqu;
 
-		coeff_trapping = - currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff) *
+		//coeff_trapping = - currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model) *
+		//	currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+
+		coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model) *
 			currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
 
 		matrixSolver.RefreshMatrixValue(indexEqu, indexCoeff, coeff_trapping, SctmSparseMatrixSolver::Add);
@@ -1270,7 +1273,7 @@ void DriftDiffusionSolver::updateRhsForDetrapping()
 		vertID = currVert->GetID();
 		equID = equationMap[vertID];
 
-		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmission_BasicSRH);
+		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
 		eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 
 		rhs_detrapping = eEmission * eTrappedDens;

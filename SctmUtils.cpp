@@ -1026,7 +1026,7 @@ namespace SctmUtils
 
 		//the length are in nm
 		XLength = 10;
-		YLengthTunnel = 4.5;
+		YLengthTunnel = 4;
 		YLengthTrap = 6.5;
 		YLengthBlock = 15;
 		XGridNum = 5;
@@ -1039,7 +1039,7 @@ namespace SctmUtils
 		BlockMaterial = Mat::Al2O3;
 
 		UniformTrapDens = 6e19; // in [cm^-3]
-		SubstrateDoping = -5e17; // negative for P-type
+		SubstrateDoping = -1e17; // negative for P-type
 	}
 
 	SctmGlobalControl::SctmGlobalControl()
