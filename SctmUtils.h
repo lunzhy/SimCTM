@@ -46,6 +46,7 @@ using std::fstream;
 using MaterialDB::Mat;
 
 class FDDomain;
+class OneDimSubsSolver;
 
 typedef std::map<int, double> VertexMapDouble; // <vertID, phyValue>
 
@@ -253,6 +254,7 @@ namespace SctmUtils
 		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
 		void WriteTrapOccupation(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
+		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 	protected:
 		double temperature;
 		string fileName;
@@ -279,7 +281,6 @@ namespace SctmUtils
 		double Temperature; ///< temperature of the simulation, in [K]
 		double GateVoltage; ///< gate voltage, in [V]
 		double GateWorkFunction; ///< the work function of gate material, in [eV]
-		double ChannelPotential;
 
 		double SimStartTime; ///< simulation start time
 		double SimEndTime; ///< simulation end time
@@ -299,7 +300,6 @@ namespace SctmUtils
 		Mat::Name TrapMaterial;
 		Mat::Name BlockMaterial;
 
-		double ChannelFermiAboveCB; ///< the amount of fermi energy surpassing conduction band edge at channel
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
 

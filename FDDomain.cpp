@@ -16,6 +16,8 @@
 #include "DomainDetails.h"
 #include "SctmUtils.h"
 #include "SctmPhys.h"
+#include "Normalization.h"
+
 using SctmPhys::PhysProperty;
 using namespace SctmUtils;
 
@@ -269,7 +271,7 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 
 void FDDomain::BuildDomain()
 {
-	UtilsTimer.Set();
+	//UtilsTimer.Set();
 	//Initialize the vectors in FDDomain
 	vertices.clear();
 	ddVerts.clear();
@@ -288,10 +290,13 @@ void FDDomain::BuildDomain()
 	//set the boundary condition, the specific value is not considered in this class.
 	setBoundary();
 	updateBndCond();
+	
 	//in case the specific domain has some special post-procedure
-	postProcessOfDomain();
+	//This is used because previously the gate and channel potential is directly set using global control
+	//Currently, it is done using related parameters.
+	//postProcessOfDomain();
 
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+	//UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 
 void FDDomain::setVertexPhysProperty()
@@ -377,19 +382,29 @@ void FDDomain::updateBndCond()
 
 void FDDomain::updateBCVert_Potential(FDVertex *vert)
 {
+	Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+	static double workFunction_Si = SctmPhys::ReferencePotential;
+	static double gateWorkFunction = norm.PushPotential(SctmGlobalControl::Get().GateWorkFunction);
+	double gateVoltage = 0;
+	double gatePotential = 0;
+
 	//to decide if the vertex is at a contact.
 	if ( vert->IsAtContact() )
 	{
 		//the gate name is in accordance with the name specified in setting domain details
 		if (vert->Contact->ContactName == "Gate")
 		{
-			//change the boundary condition type to BC_Dirichlet, not care about the value
-			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet);
+			//change the boundary condition type to BC_Dirichlet
+			//set the gate potential using gate voltage and work function.
+			gateVoltage = this->GetContact("Gate")->Voltage;
+			gatePotential = gateVoltage - ( gateWorkFunction - workFunction_Si);
+			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, gatePotential);
 			return;
 		}
 		else if (vert->Contact->ContactName == "Channel")
 		{
 			//change the boundary condition type to BC_Dirichlet, not care about the value
+			//because the channel potential is set after solving substrate.
 			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet);
 			return;
 		}

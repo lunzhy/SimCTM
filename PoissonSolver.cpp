@@ -22,7 +22,7 @@ using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
 using SctmUtils::SctmFileStream;
 
-TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *domain) :vertices(domain->GetVertices())
+TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *_domain) :domain(_domain), vertices(_domain->GetVertices())
 {
 	initializeSolver();
 }
@@ -252,7 +252,7 @@ void TwoDimPoissonSolver::refreshRhs()
 			{
 				case FDBoundary::BC_Dirichlet:
 				{
-					rhsVector.at(equationID) = currVert->BndCond.GetBCValue(FDBoundary::Potential);//for potential           
+					rhsVector.at(equationID) = currVert->BndCond.GetBCValue(FDBoundary::Potential);//for potential
 					break;
 				}
 				
@@ -305,7 +305,8 @@ void TwoDimPoissonSolver::refreshRhs()
 
 void TwoDimPoissonSolver::SolvePotential()
 {
-	SctmUtils::UtilsTimer.Set();
+	//SctmUtils::UtilsTimer.Set();
+	
 	//the density of different kinds of charge is updated
 	buildRhsVector();
 	refreshRhs();
@@ -313,7 +314,8 @@ void TwoDimPoissonSolver::SolvePotential()
 	//SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
 	matrixSolver.SolveMatrix(rhsVector, potential);
 	//SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
-	SctmUtils::UtilsMsg.PrintTimeElapsed(SctmUtils::UtilsTimer.SinceLastSet());
+	
+	//SctmUtils::UtilsMsg.PrintTimeElapsed(SctmUtils::UtilsTimer.SinceLastSet());
 }
 
 void TwoDimPoissonSolver::fillBackPotential()
@@ -344,5 +346,27 @@ void TwoDimPoissonSolver::UpdatePotential()
 		pot = potential.at(equationID); //iVert = EquationID
 		
 		currVert->Phys->SetPhysPrpty(PhysProperty::ElectrostaticPotential, pot);
+	}
+}
+
+void TwoDimPoissonSolver::ReadChannelPotential(VertexMapDouble &channelPot)
+{
+	//gate potential is set when building the structure.
+	//This method is only used to refresh channel potential
+	FDVertex *vert = NULL;
+	int vertID;
+	double potential = 0;
+
+	for (VertexMapDouble::iterator it = channelPot.begin(); it != channelPot.end(); ++it)
+	{
+		vertID = it->first;
+		potential = it->second;
+		vert = domain->GetVertex(vertID);
+
+		if (!(vert->IsAtContact() && vert->Contact->ContactName == "Channel"))
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10033);
+		}
+		vert->BndCond.RefreshBndCond(FDBoundary::Potential, potential);
 	}
 }

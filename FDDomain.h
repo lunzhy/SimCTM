@@ -25,7 +25,6 @@ namespace SctmUtils
 	class SctmDebug;
 	class SctmFileStream;
 }
-
 namespace SctmPhys
 {
 	class PhysProperty;

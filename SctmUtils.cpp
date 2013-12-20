@@ -18,6 +18,7 @@
 #include <cstring>
 #include <fstream>
 #include "SctmPhys.h"
+#include "SubstrateSolver.h"
 
 using std::cout;
 using std::endl;
@@ -177,6 +178,9 @@ namespace SctmUtils
 			break;
 		case 10032:
 			msg = "[SubstrateSolver.cpp] Solving surface potential meets maximum iteration.";
+			break;
+		case 10033:
+			msg = "[SolverPack.cpp] Error occurs in processing substrate solver result.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -883,7 +887,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTotalElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "Debug\\TotalDensity.txt";
+		fileName = directoryName + "Debug\\totalDensity.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		double area = 0;
@@ -949,59 +953,45 @@ namespace SctmUtils
 
 	void SctmData::WriteFlatBandVoltageShift(FDDomain *domain)
 	{
-		//TODO: this is a temporary method to get the start vertex to calculate the flat band voltage shift
-		static FDVertex *startVert = domain->GetVertex(0);
-
-		Normalization norm = Normalization(this->temperature);
-		FDVertex *currVert = NULL;
-		FDVertex *vertForCap = NULL; // the vertex pointer for calculation of capacitance
-		double densCtrlArea = 0;
-		double eFreeDens = 0;
-		double eTrappedDens = 0;
-		double eLineDens = 0;
-		double cap_reciprocal = 0;
-		double epsilon = 0;
-		double wide = 0;
-		double delta_d = 0;
 		double VfbShift = 0;
-
-		currVert = startVert;
-		while (currVert != NULL)
-		{	
-			//for vertex in the trapping layer
-			if (currVert->Trap != NULL)
-			{
-				densCtrlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
-				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
-				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
-				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
-
-				vertForCap = currVert;
-				cap_reciprocal = 0; // the reciprocal of capacitance
-
-				while (vertForCap != NULL)
-				{
-					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
-					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
-					epsilon = vertForCap->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
-					cap_reciprocal += delta_d / epsilon / wide;
-
-					vertForCap = vertForCap->NorthVertex;
-				}
-				VfbShift += eLineDens * cap_reciprocal;
-			}
-
-			currVert = currVert->NorthVertex;
-		}
+		Normalization norm = Normalization(this->temperature);
 
 		fileName = directoryName + "VfbShift.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		VfbShift = SctmPhys::CalculateFlatbandShift(domain);
 
 		string timeStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
 		string valStr = ConvertToString::Double(norm.PullPotential(VfbShift));
 		string line = timeStr + "\t\t" + valStr;
 		file.WriteLine(line);
 	}
+
+	void SctmData::WriteSubstrateResult(OneDimSubsSolver *subsSolver)
+	{
+		static bool firstRun = true;
+		Normalization norm = Normalization(this->temperature);
+
+		fileName = directoryName + "Debug\\substrate.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		double fermiAbove = 0;
+		double channelPot = 0;
+		subsSolver->ReturnResult(fermiAbove, channelPot);
+
+		if (firstRun)
+		{
+			string headline = "Time [s]\t\tChannel potential\t\tFermi energy above conduction band";
+			file.WriteLine(headline);
+			firstRun = false;
+		}
+
+		string line = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		line += "\t\t" + ConvertToString::Double(norm.PullPotential(channelPot));
+		line += "\t\t" + ConvertToString::Double(norm.PullPotential(fermiAbove));
+		file.WriteLine(line);
+	}
+
 
 
 
@@ -1029,7 +1019,6 @@ namespace SctmUtils
 		Temperature = 300;
 		GateVoltage = 18;
 		GateWorkFunction = 4.7; //for TaN gate
-		ChannelPotential = 0.6;
 
 		SimStartTime = 1e-15;
 		SimEndTime = 1;
@@ -1051,7 +1040,6 @@ namespace SctmUtils
 
 		UniformTrapDens = 6e19; // in [cm^-3]
 		SubstrateDoping = -5e17; // negative for P-type
-		ChannelFermiAboveCB = 0.20;
 	}
 
 	SctmGlobalControl::SctmGlobalControl()

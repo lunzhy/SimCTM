@@ -20,6 +20,7 @@
 #include "DomainDetails.h"
 #include "Normalization.h"
 #include "TrapSolver.h"
+#include "SubstrateSolver.h"
 
 using namespace SctmUtils;
 
@@ -27,11 +28,12 @@ SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
 {
 	this->temperature = SctmGlobalControl::Get().Temperature;
 	initialize();
-	fakeFermiEnergy();
+	//fakeFermiEnergy();
 }
 
 void SolverPack::initialize()
 {
+	subsSolver = new OneDimSubsSolver(domain);
 	poissonSolver = new TwoDimPoissonSolver(domain);
 	tunnelOxideSolver = new SubsToTrapElecTunnel(domain);
 	blockOxideSolver = new TrapToGateElecTunnel(domain);
@@ -41,6 +43,8 @@ void SolverPack::initialize()
 	mapPotential.clear();
 	mapCurrDensFromTunnelLayer.clear();
 	mapSiFermiAboveCBedge.clear();
+	mapCurrDensCoeff.clear();
+	mapChannelPotential.clear();
 }
 
 void SolverPack::callIteration()
@@ -48,33 +52,48 @@ void SolverPack::callIteration()
 	while (!UtilsTimeStep.End())
 	{
 		UtilsTimeStep.GenerateNext();
+		UtilsTimer.Set();
 
+		//solve substrate
+		subsSolver->SolveSurfacePot();
+		fetchSubstrateResult();
+		UtilsData.WriteSubstrateResult(subsSolver);
+
+		//solver Poisson equation
+		poissonSolver->ReadChannelPotential(mapChannelPotential);
 		poissonSolver->SolvePotential();
 		fetchPoissonResult();
 		UtilsData.WritePotential(domain->GetVertices());
 		UtilsData.WriteBandInfo(domain->GetVertices());
 		UtilsData.WriteElecField(domain->GetVertices());
 
+		//solve tunneling problem in tunneling oxide
 		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		tunnelOxideSolver->SolveTunnel();
 		fetchTunnelOxideResult();
 		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
 
+		//solve tunneling problem in blocking oxide
 		blockOxideSolver->SolveTunnel();
 		fetchBlockOxideResult();
 
+		//solve trapping
 		trappingSolver->SolveTrap();
 		fetchTrappingResult();
 		UtilsData.WriteTrapOccupation(domain->GetDDVerts());
 
+		//solver drift-diffusion equation
 		ddSolver->SolveDD(mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		fetchDDResult();
 		UtilsData.WriteTunnelCoeff(domain, mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		UtilsData.WriteElecDens(domain->GetDDVerts());
 		UtilsData.WriteElecCurrDens(domain->GetDDVerts());
 
+		//write the final result
 		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
 		UtilsData.WriteFlatBandVoltageShift(domain);
+
+		UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 	}
 }
 
@@ -92,27 +111,9 @@ void SolverPack::Run()
 	//UtilsDebug.WriteDensity(domain);
 }
 
-void SolverPack::fakeFermiEnergy()
-{
-	mapSiFermiAboveCBedge.clear();
-	Normalization norm = Normalization(this->temperature);
-	FDVertex *currVert = NULL;
-	int vertID = 0;
-	double val = SctmGlobalControl::Get().ChannelFermiAboveCB;
-	val = norm.PushEnergy(val);
-	for (size_t iVert = 0; iVert != domain->GetVertices().size(); ++iVert)
-	{
-		currVert = domain->GetVertices().at(iVert);
-		if (currVert->IsAtContact() && currVert->Contact->ContactName == "Channel")
-		{
-			vertID = currVert->GetID();
-			mapSiFermiAboveCBedge[vertID] = val;
-		}
-	}
-}
-
 void SolverPack::fetchTunnelOxideResult()
 {
+	//it is critical to clear the map
 	this->mapCurrDensFromTunnelLayer.clear();
 	tunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
 	//set the sign of boundary current for dd solver.
@@ -130,6 +131,7 @@ void SolverPack::fetchDDResult()
 
 void SolverPack::fetchBlockOxideResult()
 {
+	//it is critical to clear the map
 	this->mapCurrDensCoeff.clear();
 	blockOxideSolver->ReturnResult(mapCurrDensCoeff);
 	//the current(or tunnCoeff) should be same with the direction of the boundary condition
@@ -150,4 +152,24 @@ void SolverPack::fetchBlockOxideResult()
 void SolverPack::fetchTrappingResult()
 {
 	trappingSolver->UpdateTrapped();
+}
+
+void SolverPack::fetchSubstrateResult()
+{
+	double fermiAbove = 0;
+	double channelPot = 0;
+	subsSolver->ReturnResult(fermiAbove, channelPot);
+	
+	FDContact *channelContact = NULL;
+	int vertID = 0;
+
+	channelContact = domain->GetContact("Channel");
+	std::vector<FDVertex *> &channelVerts = channelContact->GetContactVerts();
+	
+	for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
+	{
+		vertID = channelVerts.at(iVert)->GetID();
+		mapChannelPotential[vertID] = channelPot;
+		mapSiFermiAboveCBedge[vertID] = fermiAbove;
+	}
 }

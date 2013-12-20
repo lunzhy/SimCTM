@@ -27,7 +27,7 @@ namespace SctmPhys
 	class PhysProperty;
 	class TrapProperty;
 }
-class SubstrateSolver;
+class OneDimSubsSolver;
 
 using MaterialDB::Material;
 using std::string;
@@ -354,7 +354,6 @@ protected:
 /// @brief FDContact is the class describing the contact in finite differential domain.
 class FDContact
 {
-	friend class SubstrateSolver;
 public:
 	string ContactName; ///< contact name
 	double Voltage; ///< the contact voltage
@@ -378,6 +377,15 @@ public:
 	/// @return void
 	/// @note
 	void AddVertex(FDVertex *vert) { vertices.push_back(vert); }
+	/// @brief GetContactVerts is used to get all vertices in the contact
+	/// 
+	/// This method is used in one dimensional problem to get or set the properties
+	/// of the vertex at specific contact.
+	/// 
+	/// @pre
+	/// @return std::vector<FDVertex *> &
+	/// @note TODO: this could be enhanced.
+	std::vector<FDVertex *> & GetContactVerts();
 protected:
 	std::vector<FDVertex *> vertices; ///< the vertices belong to this contact
 	unsigned int id; ///< internal id

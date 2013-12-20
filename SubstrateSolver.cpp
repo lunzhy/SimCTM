@@ -22,7 +22,7 @@
 
 using SctmUtils::Normalization;
 
-void SubstrateSolver::initializeSolver()
+void OneDimSubsSolver::initializeSolver()
 {
 	using SctmUtils::SctmGlobalControl;
 
@@ -43,19 +43,18 @@ void SubstrateSolver::initializeSolver()
 	else
 	{
 		//P-type
-		subsDopConc = SctmMath::abs(subsDopConc);
 		subsType = PType;
+		subsDopConc = SctmMath::abs(subsDopConc);
 		hDensEqui = SctmMath::abs(subsDopConc);
 		eDensEqui = 1 / hDensEqui;
 	}
 
 	//////////calculate the gate capacitance
 	FDContact *channelCont = NULL;
-	std::string channelContName = "Channel";
-	channelCont = domain->GetContact(channelContName);
+	channelCont = domain->GetContact("Channel");
 
 	//TODO: this is an temporary method to get the required vertex
-	FDVertex *startVert = channelCont->vertices.at(0);
+	FDVertex *startVert = channelCont->GetContactVerts().at(0);
 	FDVertex *currVert = startVert;
 
 	double epsilon = 0;
@@ -75,7 +74,7 @@ void SubstrateSolver::initializeSolver()
 	//double gateCap = norm.PullCapacitancePerArea(gateCapacitance);
 }
 
-void SubstrateSolver::calcFuncAndItsDeriv(double surfpot)
+void OneDimSubsSolver::calcFuncAndItsDeriv(double surfpot)
 {
 	using namespace MaterialDB;
 	static double eps_Si = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_DielectricConstant);
@@ -99,7 +98,7 @@ void SubstrateSolver::calcFuncAndItsDeriv(double surfpot)
 	
 }
 
-double SubstrateSolver::solve_NewtonMethod()
+double OneDimSubsSolver::solve_NewtonMethod()
 {
 	static double tolerance = 1e-7;
 	static double eps = 1e-50;
@@ -150,23 +149,23 @@ double SubstrateSolver::solve_NewtonMethod()
 	return nextRoot;
 }
 
-void SubstrateSolver::SolveSurfacePot()
+void OneDimSubsSolver::SolveSurfacePot()
 {
-	//double surfacePot = 0; // real value
 	gateVoltage = domain->GetContact("Gate")->Voltage;
-	flatbandVoltage = 0;
-	surfacePot = solve_NewtonMethod();
+	calcFlatbandVoltage();
+	this->surfacePotBend = solve_NewtonMethod();
 	Normalization norm = Normalization(temperature);
 	//double pot = norm.PullPotential(surfacePot);
 	calcFermiAboveCB();
+	calcChannelPotential();
 }
 
-SubstrateSolver::SubstrateSolver(FDDomain *_domain) : domain(_domain)
+OneDimSubsSolver::OneDimSubsSolver(FDDomain *_domain) : domain(_domain)
 {
 	initializeSolver();
 }
 
-void SubstrateSolver::calcFermiAboveCB()
+void OneDimSubsSolver::calcFermiAboveCB()
 {
 	using namespace MaterialDB;
 	double bandgap = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_Bandgap);
@@ -174,11 +173,43 @@ void SubstrateSolver::calcFermiAboveCB()
 	
 	if (subsType == PType)
 	{
-		ferimAbove = -(bandgap / 2 + SctmMath::ln(subsDopConc)) + surfacePot;
+		fermiAbove = -(bandgap / 2 + SctmMath::ln(subsDopConc)) + surfacePotBend;
 	}
 	else
 	{
-		ferimAbove = -(bandgap / 2 - SctmMath::ln(subsDopConc)) + surfacePot;
+		fermiAbove = -(bandgap / 2 - SctmMath::ln(subsDopConc)) + surfacePotBend;
 	}
 	// todo with the normalization problem
+}
+
+void OneDimSubsSolver::calcChannelPotential()
+{
+	double subsPot = 0; // the potential at the substrate contact
+	if (subsType = PType)
+	{
+		subsPot = SctmMath::asinh(-subsDopConc / 2.0);
+	}
+	else
+	{
+		subsPot = SctmMath::asinh(subsDopConc / 2);
+	}
+	channelPot = subsPot + surfacePotBend;
+}
+
+void OneDimSubsSolver::calcFlatbandVoltage()
+{
+	using namespace SctmUtils;
+	Normalization norm = Normalization(temperature);
+	double gateWorkFunction = norm.PushPotential(SctmGlobalControl::Get().GateWorkFunction);
+	double workFuncDifference = gateWorkFunction - SctmPhys::ReferencePotential;
+
+	double vfbShift_charge = SctmPhys::CalculateFlatbandShift(domain);
+
+	this->flatbandVoltage = vfbShift_charge + workFuncDifference;
+}
+
+void OneDimSubsSolver::ReturnResult(double &fermiAbove, double &channelPot)
+{
+	fermiAbove = this->fermiAbove;
+	channelPot = this->channelPot;
 }

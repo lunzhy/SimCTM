@@ -50,6 +50,7 @@ namespace SctmMath
 	inline double exp(double val) { return std::exp(val); }
 	inline double exp10(double val) { return std::pow(10, val); }
 	inline double pow(double val, double arg) { return std::pow(val, arg); }
+	inline double asinh(double val) { return std::asinh(val); }
 
 	class VectorValue
 	{

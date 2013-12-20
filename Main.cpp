@@ -97,16 +97,16 @@ void SubsSolverTest()
 {
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
-	SubstrateSolver subsSolver = SubstrateSolver(aDomain);
+	OneDimSubsSolver subsSolver = OneDimSubsSolver(aDomain);
 	subsSolver.SolveSurfacePot();
 }
 
 int main()
 {
 	initialize();
-	SubsSolverTest();
+	//SubsSolverTest();
 	//DomainTest();
-	//SolverPackTest();
+	SolverPackTest();
 	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

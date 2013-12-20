@@ -537,12 +537,12 @@ namespace SctmPhys
 		
 		using SctmUtils::Normalization;
 		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
-		//CAUTION: Is reference potential related to temperature
+		//CAUTION: Is reference potential related to temperature ?
 		//the value of reference potential is
 		//phi(electron affinity) + Eg/2 + 3/4*kT/q*ln(mp/mn)
 		//affinity and bandgap is in eV, so ReferencePotential is in [eV]
 		//the reference potential should be normalized.
-		SctmPhys::ReferencePotential = norm.PullEnergy(affinity) + norm.PullEnergy(bandgap / 2) - 0.75 * k0 * temperature / q * SctmMath::ln( mp / mn );
+		SctmPhys::ReferencePotential = norm.PullEnergy(affinity) + norm.PullEnergy(bandgap / 2.0) - 0.75 * k0 * temperature / q * SctmMath::ln( mp / mn );
 		SctmPhys::ReferencePotential = norm.PushPotential(SctmPhys::ReferencePotential);
 	}
 
@@ -705,6 +705,58 @@ namespace SctmPhys
 		}
 
 		return ret;
+	}
+
+	double CalculateFlatbandShift(FDDomain *domain)
+	{
+		static FDContact *subsContact = domain->GetContact("Channel");
+		//TODO: this is a temporary method used in one dimensional problems to get the start vertex in the calculation
+		static FDVertex *startVert = subsContact->GetContactVerts().at(0);
+
+		using namespace SctmUtils;
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+
+		FDVertex *currVert = NULL;
+		FDVertex *vertForCap = NULL; // the vertex pointer for calculation of capacitance
+		double densCtrlArea = 0;
+		double eFreeDens = 0;
+		double eTrappedDens = 0;
+		double eLineDens = 0;
+		double cap_reciprocal = 0;
+		double epsilon = 0;
+		double wide = 0;
+		double delta_d = 0;
+		double VfbShift = 0;
+
+		currVert = startVert;
+		while (currVert != NULL)
+		{
+			//for vertex in the trapping layer
+			if (currVert->Trap != NULL)
+			{
+				densCtrlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
+
+				vertForCap = currVert;
+				cap_reciprocal = 0; // the reciprocal of capacitance
+
+				while (vertForCap != NULL)
+				{
+					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
+					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
+					epsilon = vertForCap->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
+					cap_reciprocal += delta_d / epsilon / wide;
+
+					vertForCap = vertForCap->NorthVertex;
+				}
+				VfbShift += eLineDens * cap_reciprocal;
+			}
+			currVert = currVert->NorthVertex;
+		}
+
+		return VfbShift; // in normalized value
 	}
 
 }

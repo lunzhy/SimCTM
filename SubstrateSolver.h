@@ -16,7 +16,7 @@
 
 class FDDomain;
 
-class SubstrateSolver
+class OneDimSubsSolver
 {
 public:
 	enum DopType
@@ -24,8 +24,9 @@ public:
 		NType, ///< N-type of substrate
 		PType, ///< P-type of substrate
 	};
-	SubstrateSolver(FDDomain *_domain);
+	OneDimSubsSolver(FDDomain *_domain);
 	void SolveSurfacePot();
+	void ReturnResult(double &fermiAbove, double &channelPot);
 protected:
 	FDDomain *domain;
 	double temperature;
@@ -41,13 +42,17 @@ protected:
 
 	double func_SurfPot;
 	double funcDeriv_SurfPot;
-	double surfacePot;
-	double ferimAbove;
+	double surfacePotBend;
+	double fermiAbove;
+	double channelPot;
 
 	void initializeSolver(); 
 	void calcFuncAndItsDeriv(double surfpot);
+	void calcFlatbandVoltage();
 	double solve_NewtonMethod();
+
 	void calcFermiAboveCB();
+	void calcChannelPotential();
 };
 
 #endif

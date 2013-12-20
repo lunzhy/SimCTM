@@ -58,8 +58,10 @@ public:
 	/// @note
 	void SolvePotential();
 	void UpdatePotential();
+	void ReadChannelPotential(VertexMapDouble &channelPot);
 
 protected:
+	FDDomain *domain;
 	vector<FDVertex *> &vertices; ///< the vertices of the domain to be solved
 	vector<double> potential; ///< the potential of the vertices with same sequence in the vertices vector (same sequence of the equations)
 	vector<double> rhsVector; ///< the right-hand side of the equations, the index is equation index

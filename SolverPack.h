@@ -20,6 +20,7 @@ class TwoDimPoissonSolver;
 class TunnelSolver;
 class DriftDiffusionSolver;
 class TrapSolver;
+class OneDimSubsSolver;
 
 typedef std::map<int, int> VertexMapInt; // <vertID, int>
 typedef std::map<int, double> VertexMapDouble; // <vertID, double>
@@ -32,6 +33,8 @@ public:
 protected:
 	double temperature;
 	FDDomain *domain;
+
+	OneDimSubsSolver *subsSolver;
 	TwoDimPoissonSolver *poissonSolver;
 	TunnelSolver *tunnelOxideSolver;
 	TunnelSolver *blockOxideSolver;
@@ -42,19 +45,19 @@ protected:
 	void initialize();
 	void callIteration();
 	
+	void fetchSubstrateResult();
 	void fetchPoissonResult();
 	void fetchTunnelOxideResult();
 	void fetchBlockOxideResult();
 	void fetchDDResult();
 	void fetchTrappingResult();
 
-	void fakeFermiEnergy();
-
 private:
-	VertexMapDouble mapSiFermiAboveCBedge; // for input in the tunneling solver silicon fermi energy - silicon conduction band edge
+	VertexMapDouble mapChannelPotential; ///< the potential of channel vertices
+	VertexMapDouble mapSiFermiAboveCBedge; ///< for input in the tunneling solver silicon fermi energy - silicon conduction band edge
 	VertexMapDouble mapPotential;
 	VertexMapDouble mapCurrDensFromTunnelLayer;
-	VertexMapDouble mapCurrDensCoeff; // the coefficient to calculate current density for dd solver, in [A*cm]
+	VertexMapDouble mapCurrDensCoeff; ///< the coefficient to calculate current density for dd solver, in [A*cm]
 };
 
 #endif

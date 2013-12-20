@@ -20,6 +20,7 @@
 
 //in order to use the pointer of FDVertex in this head file
 class FDVertex;
+class FDDomain;
 
 /// @brief This namespace contains all the physics used in the simulation 
 ///
@@ -62,6 +63,8 @@ namespace SctmPhys
 	/// @return void
 	/// @note
 	void SetPhysConstant();
+
+	double CalculateFlatbandShift(FDDomain *domain);
 
 	/// @brief This class is a data structure to store the physical parameters of the specified vertex
 	///

@@ -178,3 +178,8 @@ FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex,
 	relError = (SouthLength - NorthLength) / SouthLength;
 	SCTM_ASSERT(relError < 0.01, 10003);
 }
+
+std::vector<FDVertex *> & FDContact::GetContactVerts()
+{
+	return vertices;
+}

@@ -76,15 +76,14 @@ void SimpleONO::setParameters()
 	//in [V]
 	//TODO: the gate potential should be obtained with gate voltage and work function.
 	//Currently, the gate voltage is not considered in the structure.
+	//This is enhanced.
 	/////////////////////////////////////////////////////////////////////////////
 	
-	//this->gatePotential = 16.526;
-	//this->channelPotential = 0.599;
-	Normalization norm = Normalization(this->temperature);
-	double refPot = norm.PullPotential(SctmPhys::ReferencePotential);
+	//Normalization norm = Normalization(this->temperature);
+	//double refPot = norm.PullPotential(SctmPhys::ReferencePotential);
 
-	this->gatePotential = SctmGlobalControl::Get().GateVoltage - ( SctmGlobalControl::Get().GateWorkFunction - refPot);
-	this->channelPotential = SctmGlobalControl::Get().ChannelPotential;
+	//this->gatePotential = SctmGlobalControl::Get().GateVoltage - ( SctmGlobalControl::Get().GateWorkFunction - refPot);
+	//this->channelPotential = SctmGlobalControl::Get().ChannelPotential;
 }
 
 void SimpleONO::printStructure()

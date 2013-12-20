@@ -34,7 +34,7 @@ DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), 
 
 void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 {
-	UtilsTimer.Set();
+	//UtilsTimer.Set();
 
 	//set the simulation time step
 	setTimeStep();
@@ -68,7 +68,7 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	fillBackElecDens();
 
 	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+	//UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
 }
 
 void DriftDiffusionSolver::initializeSolver()
