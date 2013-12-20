@@ -7,6 +7,7 @@
 #include "SctmPhys.h"
 #include "SolverPack.h"
 #include "Normalization.h"
+#include "SubstrateSolver.h"
 #include <stdlib.h>
 
 using namespace SctmUtils;
@@ -92,11 +93,20 @@ void TimeStepTest()
 	}
 }
 
+void SubsSolverTest()
+{
+	FDDomain *aDomain = new SimpleONO();
+	aDomain->BuildDomain();
+	SubstrateSolver subsSolver = SubstrateSolver(aDomain);
+	subsSolver.SolveSurfacePot();
+}
+
 int main()
 {
 	initialize();
+	SubsSolverTest();
 	//DomainTest();
-	SolverPackTest();
+	//SolverPackTest();
 	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

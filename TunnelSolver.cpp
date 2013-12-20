@@ -274,6 +274,7 @@ void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
 	cbedgeTunnelTo = cbEdge.back() - barrier;
 	
 	//set the fermi energy of the tunneling-in vertex
+	//Pulling of the parameters is done here, because TunnelSolver uses real value internally
 	double fermiAbove = norm.PullEnergy(fermiAboveMap[startVertex->GetID()]);
 	fermiEnergyTunnelFrom = cbedgeTunnelFrom + fermiAbove;
 }

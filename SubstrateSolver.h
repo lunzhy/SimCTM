@@ -19,9 +19,10 @@ class FDDomain;
 class SubstrateSolver
 {
 public:
-	enum SubsType
+	enum DopType
 	{
-
+		NType, ///< N-type of substrate
+		PType, ///< P-type of substrate
 	};
 	SubstrateSolver(FDDomain *_domain);
 	void SolveSurfacePot();
@@ -29,19 +30,24 @@ protected:
 	FDDomain *domain;
 	double temperature;
 
-	double subsDopConc; ///< substrate doping concentration
+	double subsDopConc; ///< substrate doping concentration, in [ni]
 	double hDensEqui; ///< p0, equilibrium hole density, in [ni]
 	double eDensEqui; ///< n0, equilibrium electron density, in [ni]
 
+	DopType subsType;
 	double gateVoltage;
 	double flatbandVoltage;
 	double gateCapacitance;
 
 	double func_SurfPot;
 	double funcDeriv_SurfPot;
+	double surfacePot;
+	double ferimAbove;
 
 	void initializeSolver(); 
 	void calcFuncAndItsDeriv(double surfpot);
+	double solve_NewtonMethod();
+	void calcFermiAboveCB();
 };
 
 #endif

@@ -75,8 +75,9 @@ namespace SctmUtils
 		double temperature;///< factor of the system temperature
 		double diffusionFactor;///< factor of diffusion coefficient
 		double mobilityFactor;///< factor of carrier mobility
-		double timeFactor;///factor of time step
-		double currDensFactor;///factor of current density
+		double timeFactor;///< factor of time step
+		double currDensFactor;///< factor of current density
+		double epsilonFactor;///< factor of the dielectric constant, i.e. the epsilon value.
 	public:
 
 		/// @brief The method for normalization of the parameters.
@@ -224,13 +225,19 @@ namespace SctmUtils
 		}
 
 		//velocity, in [cm/s]
-		inline double PushVelocity(double vel)
+		inline double PushVelocity(double velocity)
 		{
-			return vel / ( lengthFactor / timeFactor );
+			return velocity / ( lengthFactor / timeFactor );
 		}
-		inline double PullVelocity(double vel)
+		inline double PullVelocity(double velocity)
 		{
-			return vel * ( lengthFactor * timeFactor );
+			return velocity * ( lengthFactor * timeFactor );
+		}
+
+		//capacitance per area, in [F/cm2]
+		inline double PullCapacitancePerArea(double cap)
+		{
+			return cap * (epsilonFactor / lengthFactor);
 		}
 	private:
 		/// @brief initFactors is used to initialize the normalization factors.

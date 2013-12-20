@@ -135,7 +135,7 @@ void SimpleONO::setDomainDetails()
 	////////////////////////////////////////////////////////////////////
 	//set vertices
 	////////////////////////////////////////////////////////////////////
-	Normalization theNorm = Normalization(this->temperature);
+	Normalization norm = Normalization(this->temperature);
 
 	double normCoordX = 0.0;
 	double normCoordY = 0.0;
@@ -149,8 +149,8 @@ void SimpleONO::setDomainDetails()
 		{
 			//currCoordX = ix * xGrid;
 			//the coordinates are normalized before pushing into vertex
-			normCoordX = theNorm.PushLength(currCoordX); //the value of currCoordX is already in cm
-			normCoordY = theNorm.PushLength(currCoordY); //the value of currCoordY is already in cm
+			normCoordX = norm.PushLength(currCoordX); //the value of currCoordX is already in cm
+			normCoordY = norm.PushLength(currCoordY); //the value of currCoordY is already in cm
 			vertices.push_back(new FDVertex(cntVertex, normCoordX, normCoordY));
 			cntVertex++;
 			currCoordX += xNextGridLength(ix);//non-normalized value, in cm
@@ -164,7 +164,8 @@ void SimpleONO::setDomainDetails()
 	////////////////////////////////////////////////////////////////////
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
 	//the third parameter of FDContact construction is of no use, because the voltage is set in the following process.
-	contacts.push_back(new FDContact(cntContact, "Gate", 0));
+	double gateVoltage = SctmGlobalControl::Get().GateVoltage;
+	contacts.push_back(new FDContact(cntContact, "Gate", norm.PushPotential(gateVoltage)));
 	cntContact++;
 	contacts.push_back(new FDContact(cntContact, "Channel", 0));//here channel is an imagined contact
 	
@@ -196,11 +197,11 @@ void SimpleONO::setDomainDetails()
 	////////////////////////////////////////////////////////////////////
 	using MaterialDB::MaterialMap;
 	using MaterialDB::Mat;
-	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap[Mat::SiO2]);
+	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap[SctmGlobalControl::Get().TunnelMaterial]);
 	cntRegion++;
-	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap[Mat::Si3N4]);
+	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap[SctmGlobalControl::Get().TrapMaterial]);
 	cntRegion++;
-	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap[Mat::SiO2]);
+	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap[SctmGlobalControl::Get().BlockMaterial]);
 	cntRegion++;
 
 	/////////////////////////////////////////////////////////////////////

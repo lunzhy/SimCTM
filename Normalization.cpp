@@ -42,12 +42,12 @@ void Normalization::initFactors()
 	this->concFactor = INTRINSIC_CONC_SI;
 	*/
 
-	const double eps0 = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm], important
+	const double eps_in_cm = SctmPhys::eps / ( 1 / SctmPhys::cm_in_m); // in [F/cm], important
 	const double k0 = SctmPhys::k0;
 	const double q = SctmPhys::q;
 	const double ni = SctmPhys::ni;
 
-	this->lengthFactor = SctmMath::sqrt(eps0 * k0 * this->temperature / q / q / ni);
+	this->lengthFactor = SctmMath::sqrt(eps_in_cm * k0 * this->temperature / q / q / ni);
 	this->potentialFactor = k0 * this->temperature / q;
 	this->elecFieldFactor = this->potentialFactor / this->lengthFactor;
 	this->densityFactor = ni;
@@ -55,6 +55,7 @@ void Normalization::initFactors()
 	this->mobilityFactor = this->diffusionFactor / this->potentialFactor;
 	this->timeFactor = this->lengthFactor * this->lengthFactor / this->diffusionFactor;
 	this->currDensFactor = q * ni * this->diffusionFactor / this->lengthFactor;
+	this->epsilonFactor = eps_in_cm;
 }
 
 void Normalization::ConverseLengthVector( std::vector<double> &real, std::vector<double> &norm, ConverseDirection direction )

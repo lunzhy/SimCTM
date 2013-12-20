@@ -83,7 +83,7 @@ namespace SctmUtils
 		switch (err_code)
 		{
 		case 10001:
-			msg = "[SctmPhys.cpp] Can not get the specified physical property";
+			msg = "[SctmPhys.cpp] Can not get the specified physical property.";
 			break;
 		case 10002:
 			msg = "[Material.cpp] Non-existed material property.";
@@ -161,7 +161,7 @@ namespace SctmUtils
 			msg = "[DomainDetails.cpp] Can not set or get tunneling tag to this vertex.";
 			break;
 		case 10027:
-			msg = "[DDSolver] Error occurred when reading tunneling current for boundary condition";
+			msg = "[DDSolver] Error occurred when reading tunneling current for boundary condition.";
 			break;
 		case 10028:
 			msg = "[SctmPhys.cpp] Can not set the required trap property.";
@@ -171,6 +171,12 @@ namespace SctmUtils
 			break;
 		case 10030:
 			msg = "[FDDomain.cpp] Can not find the required contact.";
+			break;
+		case 10031:
+			msg = "[SubstrateSolver.cpp] The denominator is too small when using Newton Method.";
+			break;
+		case 10032:
+			msg = "[SubstrateSolver.cpp] Solving surface potential meets maximum iteration.";
 			break;
 		default:
 			msg = "Untracked error";

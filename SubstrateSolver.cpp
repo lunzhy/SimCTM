@@ -18,25 +18,35 @@
 #include "Material.h"
 #include "SctmUtils.h"
 #include "SctmMath.h"
+#include "Normalization.h"
+
+using SctmUtils::Normalization;
 
 void SubstrateSolver::initializeSolver()
 {
 	using SctmUtils::SctmGlobalControl;
+
 	this->temperature = SctmGlobalControl::Get().Temperature;
+	Normalization norm = Normalization(temperature);
+	
 	//////////calculate the equilibrium electron and hole density
-	double subsDop = SctmGlobalControl::Get().SubstrateDoping;
-	double ni = SctmPhys::IntrinsicConcentration;
-	if ( subsDop > 0)
+	//double subsDop = norm.PushDensity(SctmGlobalControl::Get().SubstrateDoping);
+	subsDopConc = norm.PushDensity(SctmGlobalControl::Get().SubstrateDoping);
+	//double ni = SctmPhys::IntrinsicConcentration;
+	if ( subsDopConc > 0)
 	{
 		//N-type
-		eDensEqui = subsDop;
-		hDensEqui = ni*ni / eDensEqui;
+		subsType = NType;
+		eDensEqui = subsDopConc;
+		hDensEqui = 1 / eDensEqui; // ni*ni/subsDop
 	}
 	else
 	{
 		//P-type
-		hDensEqui = SctmMath::abs(subsDop);
-		eDensEqui = ni*ni / hDensEqui;
+		subsDopConc = SctmMath::abs(subsDopConc);
+		subsType = PType;
+		hDensEqui = SctmMath::abs(subsDopConc);
+		eDensEqui = 1 / hDensEqui;
 	}
 
 	//////////calculate the gate capacitance
@@ -61,25 +71,114 @@ void SubstrateSolver::initializeSolver()
 		currVert = currVert->NorthVertex;
 	}
 	this->gateCapacitance = 1 / cap_reciprocal;
+	
+	//double gateCap = norm.PullCapacitancePerArea(gateCapacitance);
 }
 
 void SubstrateSolver::calcFuncAndItsDeriv(double surfpot)
 {
 	using namespace MaterialDB;
-	double eps_Si = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_DielectricConstant);
-
-	FDContact *gateCont = NULL;
-	this->gateVoltage = domain->GetContact("Gate")->Voltage;
-	//calculate flatband voltage
-	this->flatbandVoltage = 0;
+	static double eps_Si = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_DielectricConstant);
 
 	//double kT_div_q = SctmPhys::k0 * this->temperature / SctmPhys::q;
-	double item_in_square_bracket = 0;
-
-	item_in_square_bracket = SctmMath::sqrt(hDensEqui * (SctmMath::exp(-surfpot) + surfpot - 1) +
+	double item_in_square_bracket = SctmMath::sqrt(hDensEqui * (SctmMath::exp(-surfpot) + surfpot - 1) + 
 		eDensEqui * (SctmMath::exp(surfpot) - surfpot - 1));
 
-	func_SurfPot = SctmMath::sqrt(2.0 * eps_Si) / gateCapacitance * item_in_square_bracket + surfpot - (gateVoltage - flatbandVoltage);
-	double numerator = hDensEqui * (-SctmMath::exp(-surfpot) + 1) + eDensEqui*(SctmMath::exp(surfpot) - 1);
-	funcDeriv_SurfPot = SctmMath::sqrt(eps_Si / 2.0) / gateCapacitance * numerator / item_in_square_bracket + 1;
+	double numerator = hDensEqui * (-SctmMath::exp(-surfpot) + 1) + eDensEqui * (SctmMath::exp(surfpot) - 1);
+
+	if (gateVoltage - flatbandVoltage > 0)
+	{
+		func_SurfPot = SctmMath::sqrt(2.0 * eps_Si) / gateCapacitance * item_in_square_bracket + surfpot - (gateVoltage - flatbandVoltage);
+		funcDeriv_SurfPot = SctmMath::sqrt(eps_Si / 2.0) / gateCapacitance * numerator / item_in_square_bracket + 1;
+	}
+	else
+	{
+		func_SurfPot = -SctmMath::sqrt(2.0 * eps_Si) / gateCapacitance * item_in_square_bracket + surfpot - (gateVoltage - flatbandVoltage);
+		funcDeriv_SurfPot = -SctmMath::sqrt(eps_Si / 2.0) / gateCapacitance * numerator / item_in_square_bracket + 1;
+	}
+	
+}
+
+double SubstrateSolver::solve_NewtonMethod()
+{
+	static double tolerance = 1e-7;
+	static double eps = 1e-50;
+	static int maxIterations = 200;
+
+	double guessSurfPot = 0; // in [V]
+	if (gateVoltage - flatbandVoltage > 0)
+	{
+		guessSurfPot = 0.5;
+	}
+	else
+	{
+		guessSurfPot = -0.5;
+	}
+
+	Normalization norm = Normalization(temperature);
+
+	double guessRoot = norm.PushPotential(guessSurfPot);
+	double currRoot = guessRoot;
+	double nextRoot = 0;
+	int iteration = 0;
+	double rootNotFound = true;
+
+	while (iteration++ < maxIterations && rootNotFound)
+	{
+		calcFuncAndItsDeriv(currRoot);
+		if (SctmMath::abs(funcDeriv_SurfPot) < eps)
+		{
+			// the denominator is too small
+			SCTM_ASSERT(SCTM_ERROR, 10031);
+		}
+		nextRoot = currRoot - func_SurfPot / funcDeriv_SurfPot;
+		if (SctmMath::abs((nextRoot - currRoot) / nextRoot) < tolerance)
+		{
+			rootNotFound = false;
+		}
+		else
+		{
+			currRoot = nextRoot;
+		}
+	}
+
+	if (rootNotFound)
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10032);
+	}
+
+	return nextRoot;
+}
+
+void SubstrateSolver::SolveSurfacePot()
+{
+	//double surfacePot = 0; // real value
+	gateVoltage = domain->GetContact("Gate")->Voltage;
+	flatbandVoltage = 0;
+	surfacePot = solve_NewtonMethod();
+	Normalization norm = Normalization(temperature);
+	//double pot = norm.PullPotential(surfacePot);
+	calcFermiAboveCB();
+}
+
+SubstrateSolver::SubstrateSolver(FDDomain *_domain) : domain(_domain)
+{
+	initializeSolver();
+}
+
+void SubstrateSolver::calcFermiAboveCB()
+{
+	using namespace MaterialDB;
+	double bandgap = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_Bandgap);
+	//double kT = SctmPhys::k0 * temperature;
+	
+	if (subsType == PType)
+	{
+		ferimAbove = -(bandgap / 2 + SctmMath::ln(subsDopConc)) + surfacePot;
+	}
+	else
+	{
+		ferimAbove = -(bandgap / 2 - SctmMath::ln(subsDopConc)) + surfacePot;
+	}
+	// todo with the normalization problem
 }
