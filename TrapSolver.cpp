@@ -58,6 +58,9 @@ void TrapSolver::setSolverTrapping()
 	double coeff = 0;
 	double rhs = 0;
 
+	static string captureModel = SctmGlobalControl::Get().TrapCaptureModel;
+	//static string captureModel = "J-Model";
+
 	timeStep = UtilsTimeStep.TimeStep();
 
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
@@ -65,8 +68,20 @@ void TrapSolver::setSolverTrapping()
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
 
-		captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
-		//captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
+
+		if (captureModel == "J-Model")
+		{
+			captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
+		}
+		else if (captureModel == "V-Model")
+		{
+			captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10036);
+		}
+		
 		eTrapDens = eTrapDensMap[vertID];
 
 		eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);

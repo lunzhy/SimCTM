@@ -14,6 +14,7 @@
 #define _MATERIAL_H_
 
 #include <map>
+#include <string>
 
 /// @brief This namespace contains the material parameters.
 ///
@@ -30,7 +31,9 @@ namespace MaterialDB
 			Si3N4,
 			HfO2,
 			Al2O3,
+			ErrorMaterial,
 		};
+		static Mat::Name Parse(const std::string &matStr);
 	};
 	/// @brief This class just provides a container to restrict the enum of material property name.
 	class MatProperty
@@ -137,7 +140,9 @@ namespace MaterialDB
 	/// @pre
 	/// @return void
 	/// @note
-	void SetMaterials();
+	void SetMaterials_Directly();
+
+	void SetMaterial_FromParFile();
 
 	//TODO: consider the method that accounts for material specification
 	extern std::map<Mat::Name, Material*> MaterialMap;

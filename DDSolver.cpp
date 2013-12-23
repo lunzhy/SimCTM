@@ -1239,6 +1239,9 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping()
 	int indexCoeff= 0;
 	double coeff_trapping = 0;
 
+	static string captureModel = SctmGlobalControl::Get().TrapCaptureModel;
+	//static string captureModel = "J-Model";
+
 	for (size_t iVert = 0; iVert != ddVertices.size(); ++iVert)
 	{
 		currVert = ddVertices.at(iVert);
@@ -1248,11 +1251,20 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping()
 		SCTM_ASSERT(indexEqu==iVert, 10012);
 		indexCoeff = indexEqu;
 
-		//coeff_trapping = - currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model) *
-		//	currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
-
-		coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model) *
-			currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+		if (captureModel == "J-Model")
+		{
+			coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model) *
+				currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+		}
+		else if (captureModel == "V-Model")
+		{
+			coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model) *
+				currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10036);
+		}
 
 		matrixSolver.RefreshMatrixValue(indexEqu, indexCoeff, coeff_trapping, SctmSparseMatrixSolver::Add);
 	}

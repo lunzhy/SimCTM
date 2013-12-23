@@ -19,6 +19,7 @@
 #include <fstream>
 #include "SctmPhys.h"
 #include "SubstrateSolver.h"
+#include "Material.h"
 
 using std::cout;
 using std::endl;
@@ -26,6 +27,7 @@ using std::fstream;
 using std::stringstream;
 using SctmPhys::PhysProperty;
 using SctmPhys::TrapProperty;
+using MaterialDB::Mat;
 
 namespace SctmUtils
 {
@@ -181,6 +183,18 @@ namespace SctmUtils
 			break;
 		case 10033:
 			msg = "[SolverPack.cpp] Error occurs in processing substrate solver result.";
+			break;
+		case 10034:
+			msg = "[Parameter file] Invalid line in parameter file or invalid parameter value.";
+			break;
+		case 10035:
+			msg = "[SctmUtils.cpp] Non-exist parameter is required.";
+			break;
+		case 10036:
+			msg = "[Parameter file] Invalid trap capture model.";
+			break;
+		case 10037:
+			msg = "[Parameter file] Default Parameter file does not exist";
 			break;
 		default:
 			msg = "Untracked error";
@@ -419,7 +433,7 @@ namespace SctmUtils
 	void SctmMessaging::PrintTimeElapsed(double time)
 	{
 		cout << "Simulation time step: ";
-		string timeStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string timeStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		cout << timeStr << "s" << "\t\t";
 
 		string msg = "Time elapsed: ";
@@ -437,9 +451,10 @@ namespace SctmUtils
 		return;
 	}
 
-	void SctmMessaging::PrintFileError(const char *filename)
+	void SctmMessaging::PrintFileError(const char *filename, const char *msg)
 	{
 		cout << endl << "XXXXX=>" << "cannot open or create file" << ' ' << filename << endl;
+		cout << msg << endl;
 		exit(1);
 	}
 
@@ -453,6 +468,13 @@ namespace SctmUtils
 	{
 		cout << num << endl;
 	}
+
+	void SctmMessaging::PrintInvalidLineInParFile(const char *filename, int lineNum)
+	{
+		cout << endl << "XXXXX=>" << "Invalid line or value in parameter file: " << filename << " line:" << SctmConverter::IntToString(lineNum) << endl;
+		exit(1);
+	}
+
 
 
 	SctmFileStream::SctmFileStream(string _filename, FileMode _mode)
@@ -560,6 +582,21 @@ namespace SctmUtils
 		tofile << line << '\n';
 		tofile.close();
 	}
+
+	bool SctmFileStream::FileExisted(string _filename)
+	{
+		std::ifstream file(_filename.c_str());
+		if (!file)
+		{
+			return false;
+		}
+		else
+		{
+			file.close();
+			return true;
+		}
+	}
+
 
 
 
@@ -750,7 +787,7 @@ namespace SctmUtils
 			vecDen.push_back(norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
 		}
 
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		string title = "electron density of time [" + numStr + "]"; 
 		file.WriteVector(vecX, vecY, vecDen, title.c_str());
 	}
@@ -774,7 +811,7 @@ namespace SctmUtils
 			vecPot.push_back(norm.PullPotential(currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		}
 
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		string title = "potential of time [" + numStr + "]"; 
 		file.WriteVector(vecX, vecY, vecPot, title.c_str());
 	}
@@ -782,7 +819,7 @@ namespace SctmUtils
 	string SctmData::generateFileSuffix()
 	{
 		string ret = "";
-		string step = ConvertToString::Int(UtilsTimeStep.StepNumber());
+		string step = SctmConverter::IntToString(UtilsTimeStep.StepNumber());
 
 		ret = "_s" + step + ".txt";
 		return ret;
@@ -809,7 +846,7 @@ namespace SctmUtils
 			vecVB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy)));
 		}
 
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		string title = "band structure of time [" + numStr + "] (x, y, Conduction band, Valence band)"; 
 		file.WriteVector(vecX, vecY, vecCB, vecVB, title.c_str());
 	}
@@ -834,7 +871,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			currDens.push_back(norm.PullCurrDens(it->second));
 		}
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density)";
 		file.WriteVector(vecX, vecY, currDens, title.c_str());
 	}
@@ -857,7 +894,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
 		}
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
@@ -880,7 +917,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
 		}
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		string title = "electric field of time [" + numStr + "] (x, y, electric field)";
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
@@ -902,9 +939,9 @@ namespace SctmUtils
 			freeElecDens += area * vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 			trapElecDens += area * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 		}
-		string timeStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		string valStrFree = ConvertToString::Double(norm.PullLineDensity(freeElecDens));
-		string valStrTrap = ConvertToString::Double(norm.PullLineDensity(trapElecDens));
+		string timeStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string valStrFree = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens));
+		string valStrTrap = SctmConverter::DoubleToString(norm.PullLineDensity(trapElecDens));
 		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
 		file.WriteLine(line);
 	}
@@ -919,10 +956,10 @@ namespace SctmUtils
 		FDVertex *currVert = NULL;
 
 		VertexMapDouble::iterator it = inCurrDens.begin(); 
-		string currDens = ConvertToString::Double(norm.PullCurrDens(it->second));
+		string currDens = SctmConverter::DoubleToString(norm.PullCurrDens(it->second));
 		it = outCurrCoeff.begin();
-		string tunCoeff = ConvertToString::Double(norm.PullTunCoeff(it->second));
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string tunCoeff = SctmConverter::DoubleToString(norm.PullTunCoeff(it->second));
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 
 		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
 		file.WriteLine(line);
@@ -946,7 +983,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
 		}
-		string numStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
 		string title = "occupation of electron trap [" + numStr + "] (x, y, trap occupation)";
 		file.WriteVector(vecX, vecY, occupation, title.c_str());
 	}
@@ -961,8 +998,8 @@ namespace SctmUtils
 
 		VfbShift = SctmPhys::CalculateFlatbandShift(domain);
 
-		string timeStr = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		string valStr = ConvertToString::Double(norm.PullPotential(VfbShift));
+		string timeStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string valStr = SctmConverter::DoubleToString(norm.PullPotential(VfbShift));
 		string line = timeStr + "\t\t" + valStr;
 		file.WriteLine(line);
 	}
@@ -986,9 +1023,9 @@ namespace SctmUtils
 			firstRun = false;
 		}
 
-		string line = ConvertToString::Double(UtilsTimeStep.ElapsedTime());
-		line += "\t\t" + ConvertToString::Double(norm.PullPotential(channelPot));
-		line += "\t\t" + ConvertToString::Double(norm.PullPotential(fermiAbove));
+		string line = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(channelPot));
+		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermiAbove));
 		file.WriteLine(line);
 	}
 
@@ -998,26 +1035,51 @@ namespace SctmUtils
 
 
 
-	string ConvertToString::Int(int num)
+	string SctmConverter::IntToString(int num)
 	{
 		stringstream ss;
 		ss << num;
 		return ss.str();
 	}
 
-	string ConvertToString::Double(double num, bool useScientific /*= true*/, int numAfterPoionts /*= 3*/)
+	string SctmConverter::DoubleToString(double num, bool useScientific /*= true*/, int numAfterPoionts /*= 3*/)
 	{
 		stringstream ss;
 		ss << num;
 		return ss.str();
 	}
 
+	double SctmConverter::StringToDouble(const string &strVal)
+	{
+		std::istringstream is(strVal);
+		double ret = 0;
+		if (!(is >> ret))
+		{
+			throw BadParConversion("cannot convert to double(\"" + strVal + "\")");
+		}
+		return ret;
+	}
+
+	int SctmConverter::StringToInt(const string &strVal)
+	{
+		std::istringstream is(strVal);
+		int ret = 0;
+		if (!(is >> ret))
+		{
+			throw BadParConversion("cannot convert to double(\"" + strVal + "\")");
+		}
+		return ret;
+	}
 
 
-	void SctmGlobalControl::setGlobalCntrl()
+
+
+
+	void SctmGlobalControl::setGlobalCntrl_Directly()
 	{
 		Temperature = 300;
 		GateVoltage = 18;
+
 		GateWorkFunction = 4.7; //for TaN gate
 
 		SimStartTime = 1e-15;
@@ -1044,7 +1106,8 @@ namespace SctmUtils
 
 	SctmGlobalControl::SctmGlobalControl()
 	{
-		setGlobalCntrl();
+		//setGlobalCntrl_Directly();
+		setGloblaCntrl_FromParFile();
 	}
 
 	SctmGlobalControl& SctmGlobalControl::Get()
@@ -1052,6 +1115,586 @@ namespace SctmUtils
 		static SctmGlobalControl instance;
 		return instance;
 	}
+
+	void SctmGlobalControl::setGloblaCntrl_FromParFile()
+	{
+		ParamBase *parBase = NULL;
+
+		//Temperature
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::temperature);
+		Temperature = dynamic_cast<Param<double> *>(parBase)->Value();
+		//GateVoltage
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::gate_voltage);
+		GateVoltage = dynamic_cast<Param<double> *>(parBase)->Value();
+		//GateWorkFunction
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::gate_workfunction);
+		GateWorkFunction = dynamic_cast<Param<double> *>(parBase)->Value();
+
+		//SimStartTime
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::time_start);
+		SimStartTime = dynamic_cast<Param<double> *>(parBase)->Value();
+		//SimEndTime
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::time_end);
+		SimEndTime = dynamic_cast<Param<double> *>(parBase)->Value();
+		//SimStepsPerDecade
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::time_stepPerDecade);
+		SimStepsPerDecade = dynamic_cast<Param<int> *>(parBase)->Value();
+
+		//Xlength
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::width_value);
+		XLength = dynamic_cast<Param<double> *>(parBase)->Value();
+		//YLengthTunnel
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::tunnel_height);
+		YLengthTunnel = dynamic_cast<Param<double> *>(parBase)->Value();
+		//YLengthTrap
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_height);
+		YLengthTrap = dynamic_cast<Param<double> *>(parBase)->Value();
+		//YLengthBlock
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::block_height);
+		YLengthBlock = dynamic_cast<Param<double> *>(parBase)->Value();
+		//XGridNum
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::width_grid);
+		XGridNum = dynamic_cast<Param<int> *>(parBase)->Value();
+		//YGridNumTunnel
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::tunnel_grid);
+		YGridNumTunnel = dynamic_cast<Param<int> *>(parBase)->Value();
+		//YGridNumTrap
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_grid);
+		YGridNumTrap = dynamic_cast<Param<int> *>(parBase)->Value();
+		//YGridnumBlock
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::block_grid);
+		YGridNumBlock = dynamic_cast<Param<int> *>(parBase)->Value();
+
+		//TunnelMaterial
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::tunnel_material);
+		TunnelMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
+		//TrapMaterial
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_material);
+		TrapMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
+		//BlockMaterial
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::block_material);
+		BlockMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
+
+		//UniformTrapDens
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_uniDensity);
+		UniformTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		//SubstrateDoping
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::subs_type);
+		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::subs_doping);
+		double doping = dynamic_cast<Param<double> *>(parBase)->Value();
+		SubstrateDoping = doping * (subsType == "N" ? 1 : -1);
+
+		//TrapCaptureModel
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_captureModel);
+		TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
+	}
+
+
+
+
+
+	SctmParameterParser::SctmParameterParser()
+	{
+		defaultParFile = "E:\\PhD Study\\SimCTM\\par.default";
+		userParFile = "E:\\PhD Study\\SimCTM\\user.default";
+		if (!SctmFileStream::FileExisted(defaultParFile))
+		{
+			UtilsMsg.PrintFileError(defaultParFile.c_str(), "The default parameter file is missing.");
+			SCTM_ASSERT(SCTM_ERROR, 10037);
+		}
+		ReadParFile(defaultParFile, defaultParMap);
+		ReadParFile(userParFile, userParMap);
+	}
+
+	bool SctmParameterParser::isCommentOrSpaceLine(string &line)
+	{
+		bool isSpace = (line.find_first_not_of(" \t") == string::npos);
+		bool isComment = false;
+		if (isSpace)
+		{
+			return true;
+		}
+		else
+		{
+			isComment = trimSpace(line).at(0) == '#';
+		}
+		return isComment;
+	}
+
+	string SctmParameterParser::getParToken(string &line)
+	{
+		size_t posBegin = line.find_first_not_of(" \t");
+		if (posBegin == string::npos)
+		{
+			//a space line
+			return "";
+		}
+		size_t posEnd = line.find_first_of(":");
+		if (posBegin == posEnd)
+		{
+			//no valid token before :
+			return "";
+		}
+		string effStr = line.substr(posBegin, posEnd - posBegin);
+		return trimSpace(effStr);
+	}
+
+	string SctmParameterParser::trimSpace(string &line)
+	{
+		size_t posBegin = line.find_first_not_of(" \t");
+		if (posBegin == string::npos)
+		{
+			//a space line
+			return "";
+		}
+		size_t posEnd = line.find_last_not_of(" \t");
+		return line.substr(posBegin, posEnd - posBegin + 1);
+	}
+
+	string SctmParameterParser::trimComment(string &line)
+	{
+		string ret;
+		size_t pos = line.find_first_of("#");
+		ret = line.substr(0, pos);
+		return ret;
+	}
+
+	string SctmParameterParser::getParValStr(string &line)
+	{
+		int posBegin = line.find_first_of(":");
+		if (posBegin == line.length() -1)
+		{
+			//no valid value string after :
+			return "";
+		}
+		string valStr = line.substr(posBegin + 1);
+		return trimSpace(valStr);
+	}
+
+	bool SctmParameterParser::isValid(string &line)
+	{
+		size_t pos = line.find_first_of(":");
+		return pos != string::npos;
+	}
+
+	void SctmParameterParser::parseParValue(std::map<SctmParameterParser::ParName, ParamBase*> &mapToSet, string &name, string &valStr)
+	{
+		using MaterialDB::Mat;
+		static Mat::Name currMat;
+		double valDouble = 0;
+		int valInt = 0;
+
+		if (name == "temperature")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::temperature, valDouble);
+			mapToSet[ParName::temperature] = par;
+			return;
+		}
+		if (name == "time.start")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::time_start, valDouble);
+			mapToSet[ParName::time_start] = par;
+			return;
+		}
+		if (name == "time.end")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::time_end, valDouble);
+			mapToSet[ParName::time_end] = par;
+			return;
+		}
+		if (name == "time.stepPerDecade")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::time_stepPerDecade, valInt);
+			mapToSet[ParName::time_stepPerDecade] = par;
+			return;
+		}
+		if (name == "gate.voltage")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::gate_voltage, valDouble);
+			mapToSet[ParName::gate_voltage] = par;
+			return;
+		}
+		if (name == "gate.workfunction")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::gate_workfunction, valDouble);
+			mapToSet[ParName::gate_workfunction] = par;
+			return;
+		}
+		if (name == "subs.type")
+		{
+			Param<string> *par = new Param<string>(ParName::subs_type, valStr);
+			mapToSet[ParName::subs_type] = par;
+			return;
+		}
+		if (name == "subs.doping")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::subs_doping, valDouble);
+			mapToSet[ParName::subs_doping] = par;
+			return;
+		}
+		if (name == "width.value")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::width_value, valDouble);
+			mapToSet[ParName::width_value] = par;
+			return;
+		}
+		if (name == "width.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::width_grid, valInt);
+			mapToSet[ParName::width_grid] = par;
+			return;
+		}
+		if (name == "tunnel.height")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::tunnel_height, valDouble);
+			mapToSet[ParName::tunnel_height] = par;
+			return;
+		}
+		if (name == "tunnel.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::tunnel_grid, valInt);
+			mapToSet[ParName::tunnel_grid] = par;
+			return;
+		}
+		if (name == "tunnel.material")
+		{
+			Param<string> *par = new Param<string>(ParName::tunnel_material, valStr);
+			mapToSet[ParName::tunnel_material] = par;
+			return;
+		}
+		if (name == "trap.height")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::trap_height, valDouble);
+			mapToSet[ParName::trap_height] = par;
+			return;
+		}
+		if (name == "trap.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::trap_grid, valInt);
+			mapToSet[ParName::trap_grid] = par;
+			return;
+		}
+		if (name == "trap.material")
+		{
+			Param<string> *par = new Param<string>(ParName::trap_material, valStr);
+			mapToSet[ParName::trap_material] = par;
+			return;
+		}
+		if (name == "trap.captureModel")
+		{
+			Param<string> *par = new Param<string>(ParName::trap_captureModel, valStr);
+			mapToSet[ParName::trap_captureModel] = par;
+			return;
+		}
+		if (name == "trap.uniDensity")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::trap_uniDensity, valDouble);
+			mapToSet[ParName::trap_uniDensity] = par;
+			return;
+		}
+		if (name == "block.height")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::block_height, valDouble);
+			mapToSet[ParName::block_height] = par;
+			return;
+		}
+		if (name == "block.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::block_grid, valInt);
+			mapToSet[ParName::block_grid] = par;
+			return;
+		}
+		if (name == "block.material")
+		{
+			Param<string> *par = new Param<string>(ParName::block_material, valStr);
+			mapToSet[ParName::block_material] = par;
+			return;
+		}
+		if (name == "material")
+		{
+			currMat = MaterialDB::Mat::Parse(valStr);
+			return;
+		}
+		if (name == "bandgap")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_bandgap, valDouble);
+				mapToSet[ParName::Si_bandgap] = par;
+				break;
+			case MaterialDB::Mat::SiO2:
+				par = new Param<double>(ParName::SiO2_bandgap, valDouble);
+				mapToSet[ParName::SiO2_bandgap] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_bandgap, valDouble);
+				mapToSet[ParName::Si3N4_bandgap] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_bandgap, valDouble);
+				mapToSet[ParName::HfO2_bandgap] = par;
+				break;
+			case MaterialDB::Mat::Al2O3:
+				par = new Param<double>(ParName::Al2O3_bandgap, valDouble);
+				mapToSet[ParName::Al2O3_bandgap] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "dielectricConstant")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_dielectricConstant, valDouble);
+				mapToSet[ParName::Si_dielectricConstant] = par;
+				break;
+			case MaterialDB::Mat::SiO2:
+				par = new Param<double>(ParName::SiO2_dielectricConstant, valDouble);
+				mapToSet[ParName::SiO2_dielectricConstant] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_dielectricConstant, valDouble);
+				mapToSet[ParName::Si3N4_dielectricConstant] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_dielectricConstant, valDouble);
+				mapToSet[ParName::HfO2_dielectricConstant] = par;
+				break;
+			case MaterialDB::Mat::Al2O3:
+				par = new Param<double>(ParName::Al2O3_dielectricConstant, valDouble);
+				mapToSet[ParName::Al2O3_dielectricConstant] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "electronAffinity")
+		{
+			Param<double> *par = NULL;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_electronAffinity, valDouble);
+				mapToSet[ParName::Si_electronAffinity] = par;
+				break;
+			case MaterialDB::Mat::SiO2:
+				par = new Param<double>(ParName::SiO2_electronAffinity, valDouble);
+				mapToSet[ParName::SiO2_electronAffinity] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_electronAffinity, valDouble);
+				mapToSet[ParName::Si3N4_electronAffinity] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_electronAffinity, valDouble);
+				mapToSet[ParName::HfO2_electronAffinity] = par;
+				break;
+			case MaterialDB::Mat::Al2O3:
+				par = new Param<double>(ParName::Al2O3_electronAffinity, valDouble);
+				mapToSet[ParName::Al2O3_electronAffinity] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "eMass")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_eMass, valDouble);
+				mapToSet[ParName::Si_eMass] = par;
+				break;
+			case MaterialDB::Mat::SiO2:
+				par = new Param<double>(ParName::SiO2_eMass, valDouble);
+				mapToSet[ParName::SiO2_eMass] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eMass, valDouble);
+				mapToSet[ParName::Si3N4_eMass] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eMass, valDouble);
+				mapToSet[ParName::HfO2_eMass] = par;
+				break;
+			case MaterialDB::Mat::Al2O3:
+				par = new Param<double>(ParName::Al2O3_eMass, valDouble);
+				mapToSet[ParName::Al2O3_eMass] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hMass")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_hMass, valDouble);
+				mapToSet[ParName::Si_hMass] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "eMobility")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_eMobility, valDouble);
+				mapToSet[ParName::Si_eMobility] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eMobility, valDouble);
+				mapToSet[ParName::Si3N4_eMobility] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eMobility, valDouble);
+				mapToSet[ParName::HfO2_eMobility] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "eTrapEnergy")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eTrapEnergy, valDouble);
+				mapToSet[ParName::Si3N4_eTrapEnergy] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eTrapEnergy, valDouble);
+				mapToSet[ParName::HfO2_eTrapEnergy] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "eXsection")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eXsection, valDouble);
+				mapToSet[ParName::Si3N4_eXsection] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eXsection, valDouble);
+				mapToSet[ParName::HfO2_eXsection] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+	}
+
+	void SctmParameterParser::ReadParFile(string &file, std::map<ParName, ParamBase*> &mapToSet)
+	{
+		std::ifstream infile(file.c_str());
+		string aLine;
+		string effline; // remove inline comment
+		string parToken;
+		string parValue;
+		int lineCnt = 0;
+
+		while (std::getline(infile, aLine))
+		{
+			lineCnt += 1;
+			if (isCommentOrSpaceLine(aLine))
+			{
+				continue;;
+			}
+			if (!isValid(aLine))
+			{
+				UtilsMsg.PrintInvalidLineInParFile(file.c_str(), lineCnt);
+				SCTM_ASSERT(SCTM_ERROR, 10034);
+			}
+			effline = trimComment(aLine);
+			parToken = getParToken(effline);
+			parValue = getParValStr(effline);
+
+			try
+			{
+				parseParValue(mapToSet, parToken, parValue);
+			}
+			catch (BadParConversion)
+			{
+				UtilsMsg.PrintInvalidLineInParFile(file.c_str(), lineCnt);
+				SCTM_ASSERT(SCTM_ERROR, 10034);
+			}
+		}
+	}
+
+	SctmParameterParser& SctmParameterParser::GetInstance()
+	{
+		static SctmParameterParser parser;
+		return parser;
+	}
+
+	ParamBase * SctmParameterParser::GetPar(ParName name)
+	{
+		if (userParMap.find(name) != userParMap.end())
+		{
+			return userParMap[name];
+		}
+		if (defaultParMap.find(name) != defaultParMap.end())
+		{
+			return defaultParMap[name];
+		}
+		else
+		{
+			//message out
+			SCTM_ASSERT(SCTM_ERROR, 10035);
+		}
+		return NULL;
+	}
+
 
 
 

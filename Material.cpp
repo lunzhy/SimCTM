@@ -19,6 +19,9 @@
 #include "SctmMath.h"
 
 using SctmUtils::Normalization;
+using SctmUtils::SctmParameterParser;
+using SctmUtils::ParamBase;
+using SctmUtils::Param;
 
 namespace MaterialDB
 {
@@ -29,14 +32,14 @@ namespace MaterialDB
 	Material Al2O3_material = Material(Mat::Al2O3);
 	Material HfO2_material = Material(Mat::HfO2);
 	
-	void SetMaterials()
+	void SetMaterials_Directly()
 	{
 		//Silicon
 		Silicon_material.Bandgap(1.12);
 		Silicon_material.DielectricConstant(11.9);
 		Silicon_material.ElectronAffinity(4.05);
 		Silicon_material.ElectronMass(1.08); // need to be revised
-		Silicon_material.HoleMass(1);
+		Silicon_material.HoleMass(0.59);
 		Silicon_material.ElectronMobility(1350);
 
 		//SiO2
@@ -60,7 +63,7 @@ namespace MaterialDB
 		Si3N4_material.ElectronMass(0.42); // need to be revised
 		Si3N4_material.HoleMass(1);
 		Si3N4_material.ElectronMobility(0.1);
-		Si3N4_material.ElecTrapEnergyFromCB(0.7);
+		Si3N4_material.ElecTrapEnergyFromCB(1.2);
 		Si3N4_material.ElecTrapXSection(1e-14);
 
 		//HfO2
@@ -73,10 +76,12 @@ namespace MaterialDB
 		HfO2_material.ElecTrapEnergyFromCB(0.7);
 		HfO2_material.ElecTrapXSection(1e-14);
 
+
 		MaterialMap[Mat::Silicon] = &Silicon_material;
 		MaterialMap[Mat::SiO2] = &SiO2_material;
 		MaterialMap[Mat::Si3N4] = &Si3N4_material;
 		MaterialMap[Mat::Al2O3] = &Al2O3_material;
+		MaterialMap[Mat::HfO2] = &HfO2_material;
 	}
 
 	double GetMatPrpty(Material *theMaterial, MatProperty::Name prptyName)
@@ -250,5 +255,139 @@ namespace MaterialDB
 		elecTrapEnergyFromCB = norm.PushEnergy(val);
 	}
 
+
+	Mat::Name Mat::Parse(const std::string &matStr)
+	{
+		if (matStr == "Silicon" || matStr == "Si")
+		{
+			return Mat::Silicon;
+		}
+		else if (matStr == "SiO2")
+		{
+			return Mat::SiO2;
+		}
+		else if (matStr == "Al2O3")
+		{
+			return Mat::Al2O3;
+		}
+		else if (matStr == "Si3N4")
+		{
+			return Mat::Si3N4;
+		}
+		else if (matStr == "HfO2")
+		{
+			return Mat::HfO2;
+		}
+		return Mat::ErrorMaterial;
+	}
+
+	void SetMaterial_FromParFile()
+	{
+		ParamBase *parBase = NULL;
+		
+		//Silicon
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si_bandgap);
+		Silicon_material.Bandgap(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si_dielectricConstant);
+		Silicon_material.DielectricConstant(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si_electronAffinity);
+		Silicon_material.ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si_eMass);
+		Silicon_material.ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si_hMass);
+		Silicon_material.HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
+		
+		//Silicon_material.HoleMass(1);
+		
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si_eMobility);
+		Silicon_material.ElectronMobility(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		//SiO2
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::SiO2_bandgap);
+		SiO2_material.Bandgap(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::SiO2_dielectricConstant);
+		SiO2_material.DielectricConstant(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::SiO2_electronAffinity);
+		SiO2_material.ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::SiO2_eMass);
+		SiO2_material.ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value()); // need to be revised
+		
+		//SiO2_material.HoleMass(1);
+
+		//Al2O3
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Al2O3_bandgap);
+		Al2O3_material.Bandgap(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Al2O3_dielectricConstant);
+		Al2O3_material.DielectricConstant(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Al2O3_electronAffinity);
+		Al2O3_material.ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Al2O3_eMass);
+		Al2O3_material.ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		//Si3N4
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si3N4_bandgap);
+		Si3N4_material.Bandgap(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si3N4_dielectricConstant);
+		Si3N4_material.DielectricConstant(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si3N4_electronAffinity);
+		Si3N4_material.ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si3N4_eMass);
+		Si3N4_material.ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value()); // need to be revised
+
+		//Si3N4_material.HoleMass(1);
+		
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si3N4_eMobility);
+		Si3N4_material.ElectronMobility(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si3N4_eTrapEnergy);
+		Si3N4_material.ElecTrapEnergyFromCB(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::Si3N4_eXsection);
+		Si3N4_material.ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		//HfO2
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::HfO2_bandgap);
+		HfO2_material.Bandgap(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::HfO2_dielectricConstant);
+		HfO2_material.DielectricConstant(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::HfO2_electronAffinity);
+		HfO2_material.ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::HfO2_eMass);
+		HfO2_material.ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
+		
+		//HfO2_material.HoleMass(1); // need to be revised
+		
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::HfO2_eMobility);
+		HfO2_material.ElectronMobility(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::HfO2_eTrapEnergy);
+		HfO2_material.ElecTrapEnergyFromCB(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::HfO2_eXsection);
+		HfO2_material.ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+
+		MaterialMap[Mat::Silicon] = &Silicon_material;
+		MaterialMap[Mat::SiO2] = &SiO2_material;
+		MaterialMap[Mat::Si3N4] = &Si3N4_material;
+		MaterialMap[Mat::Al2O3] = &Al2O3_material;
+		MaterialMap[Mat::HfO2] = &HfO2_material;
+	}
 
 }

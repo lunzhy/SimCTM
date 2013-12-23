@@ -201,8 +201,9 @@ namespace SctmUtils
 		void PrintWelcomingInformation();
 		void PrintHeader(const char *header);
 		void PrintTimeElapsed(double time);
-		void PrintFileError(const char *filename);
+		void PrintFileError(const char *filename, const char *msg = "");
 		void PrintDirectoryError();
+		void PrintInvalidLineInParFile(const char *filename, int lineNum);
 		void PrintValue(double);
 	protected:
 		void printLine(string &line);
@@ -231,6 +232,7 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
 
 		void WriteLine(string &line);
+		static bool FileExisted(string _filename);
 	private:
 		string fileName;
 	};
@@ -263,11 +265,13 @@ namespace SctmUtils
 	};
 
 
-	class ConvertToString
+	class SctmConverter
 	{
 	public:
-		static string Int(int num);
-		static string Double(double num, bool useScientific = true, int numAfterPoionts = 3);
+		static string IntToString(int num);
+		static string DoubleToString(double num, bool useScientific = true, int numAfterPoionts = 3);
+		static double StringToDouble(const string &strVal);
+		static int StringToInt(const string &strVal);
 	};
 
 
@@ -303,8 +307,130 @@ namespace SctmUtils
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
 
+		string TrapCaptureModel;
 	protected:
-		void setGlobalCntrl();
+		void setGlobalCntrl_Directly();
+		void setGloblaCntrl_FromParFile();
+	};
+
+
+	class ParamBase;
+	class SctmParameterParser
+	{
+	public:
+		enum ParName
+		{
+			temperature,
+			time_start,
+			time_end,
+			time_stepPerDecade,
+			
+			gate_voltage,
+			gate_workfunction,
+			subs_type,
+			subs_doping,
+			
+			width_value,
+			width_grid,
+			
+			tunnel_height,
+			tunnel_grid,
+			tunnel_material,
+			
+			trap_height,
+			trap_grid,
+			trap_material,
+			trap_captureModel,
+			trap_uniDensity,
+			
+			block_height,
+			block_grid,
+			block_material,
+
+			Si_bandgap,
+			Si_dielectricConstant,
+			Si_electronAffinity,
+			Si_eMass,
+			Si_hMass,
+			Si_eMobility,
+
+			SiO2_bandgap,
+			SiO2_dielectricConstant,
+			SiO2_electronAffinity,
+			SiO2_eMass,
+
+			Al2O3_bandgap,
+			Al2O3_dielectricConstant,
+			Al2O3_electronAffinity,
+			Al2O3_eMass,
+
+			Si3N4_bandgap,
+			Si3N4_dielectricConstant,
+			Si3N4_electronAffinity,
+			Si3N4_eMass,
+			Si3N4_eMobility,
+			Si3N4_eTrapEnergy,
+			Si3N4_eXsection,
+
+			HfO2_bandgap,
+			HfO2_dielectricConstant,
+			HfO2_electronAffinity,
+			HfO2_eMass,
+			HfO2_eMobility,
+			HfO2_eTrapEnergy,
+			HfO2_eXsection,
+		};
+
+		SctmParameterParser();
+		static SctmParameterParser& GetInstance();
+		ParamBase *GetPar(ParName name);
+
+	protected:
+		void ReadParFile(string &file, std::map<ParName, ParamBase*> &mapToSet);
+		std::map<ParName, ParamBase*> defaultParMap;
+		std::map<ParName, ParamBase*> userParMap;
+
+		string defaultParFile;
+		string userParFile;
+
+		void parseParValue(std::map<ParName, ParamBase*> &mapToSet, string &name, string &valStr);
+
+		bool isCommentOrSpaceLine(string &line);
+		bool isValid(string &line);
+		string getParToken(string &line);
+		string getParValStr(string &line);
+		string trimSpace(string &line);
+		string trimComment(string &line);
+	};
+
+
+	class ParamBase
+	{
+	public:
+		ParamBase(SctmParameterParser::ParName name) : parName(name) { }
+	protected:
+		SctmParameterParser::ParName parName;
+		// for the requirement of a polymorphic class in dynamic_cast
+		virtual void dummy(){};
+	};
+
+
+	template <typename T>
+	class Param : public ParamBase
+	{
+	public:
+		Param(SctmParameterParser::ParName name, const T &val)
+			:ParamBase(name), parVal(val) { }
+		T Value() { return parVal; }
+	private:
+		T parVal;
+	};
+
+
+	class BadParConversion : public std::runtime_error
+	{
+	public:
+		BadParConversion(const string &s) : std::runtime_error(s) { };
 	};
 
 	extern SctmMessaging UtilsMsg;

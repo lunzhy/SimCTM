@@ -20,7 +20,8 @@ void initialize()
 	UtilsTimer.Start();
 	
 	//the initialization of the simulation goes here
-	MaterialDB::SetMaterials();
+	//MaterialDB::SetMaterials_Directly();
+	MaterialDB::SetMaterial_FromParFile();
 	SctmPhys::SetPhysConstant();
 }
 
@@ -101,9 +102,16 @@ void SubsSolverTest()
 	subsSolver.SolveSurfacePot();
 }
 
+void ParaFileTest()
+{
+	SctmParameterParser parser = SctmParameterParser();
+	double tem = SctmGlobalControl::Get().Temperature;
+}
+
 int main()
 {
 	initialize();
+	//ParaFileTest();
 	//SubsSolverTest();
 	//DomainTest();
 	SolverPackTest();
