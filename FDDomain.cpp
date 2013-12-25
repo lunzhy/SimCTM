@@ -271,7 +271,7 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 
 void FDDomain::BuildDomain()
 {
-	//UtilsTimer.Set();
+	//SctmTimer::GetInstance().Set();
 	//Initialize the vectors in FDDomain
 	vertices.clear();
 	ddVerts.clear();
@@ -296,7 +296,7 @@ void FDDomain::BuildDomain()
 	//Currently, it is done using related parameters.
 	//postProcessOfDomain();
 
-	//UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+	//SctmMessaging::GetInstance().PrintTimeElapsed(SctmTimer::GetInstance().SinceLastSet());
 }
 
 void FDDomain::setVertexPhysProperty()

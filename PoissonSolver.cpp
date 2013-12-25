@@ -305,17 +305,17 @@ void TwoDimPoissonSolver::refreshRhs()
 
 void TwoDimPoissonSolver::SolvePotential()
 {
-	//SctmUtils::UtilsTimer.Set();
+	//SctmUtils::SctmTimer::GetInstance().Set();
 	
 	//the density of different kinds of charge is updated
 	buildRhsVector();
 	refreshRhs();
-	//SctmUtils::UtilsDebug.PrintSparseMatrix(this->matrix);
-	//SctmUtils::UtilsDebug.PrintVector(this->rhsVector, "right-hand side");
+	//SctmUtils::SctmDebug::GetInstance().PrintSparseMatrix(this->matrix);
+	//SctmUtils::SctmDebug::GetInstance().PrintVector(this->rhsVector, "right-hand side");
 	matrixSolver.SolveMatrix(rhsVector, potential);
-	//SctmUtils::UtilsDebug.PrintVector(this->potential, "potential");
+	//SctmUtils::SctmDebug::GetInstance().PrintVector(this->potential, "potential");
 	
-	//SctmUtils::UtilsMsg.PrintTimeElapsed(SctmUtils::UtilsTimer.SinceLastSet());
+	//SctmUtils::SctmMessaging::GetInstance().PrintTimeElapsed(SctmUtils::SctmTimer::GetInstance().SinceLastSet());
 }
 
 void TwoDimPoissonSolver::fillBackPotential()

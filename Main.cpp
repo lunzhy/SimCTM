@@ -10,14 +10,17 @@
 #include "SubstrateSolver.h"
 #include <stdlib.h>
 
+#include <iostream>
+using namespace std;
+
 using namespace SctmUtils;
 
 void initialize()
 {
 	std::system("E:\\\"PhD Study\"\\SimCTM\\PySimFig\\DeleteData.py");
-	UtilsMsg.PrintWelcomingInformation();
-	UtilsMsg.PrintHeader("Initializing the simulator.");
-	UtilsTimer.Start();
+	SctmMessaging::GetInstance().PrintWelcomingInformation();
+	SctmMessaging::GetInstance().PrintHeader("Initializing the simulator.");
+	SctmTimer::GetInstance().Start();
 	
 	//the initialization of the simulation goes here
 	//MaterialDB::SetMaterials_Directly();
@@ -27,54 +30,54 @@ void initialize()
 
 void DomainTest()
 {
-	UtilsMsg.PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
-	UtilsDebug.PrintDomainDetails(aTest);
+	SctmDebug::GetInstance().PrintDomainDetails(aTest);
 }
 
 void PoissonTest()
 {
-	UtilsMsg.PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
-	UtilsDebug.PrintDomainDetails(aTest);
+	SctmDebug::GetInstance().PrintDomainDetails(aTest);
 
-	UtilsMsg.PrintHeader("Solving potential using initial value.");
+	SctmMessaging::GetInstance().PrintHeader("Solving potential using initial value.");
 	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aTest);
 	poisson.SolvePotential();
-	//UtilsDebug.PrintDomainDetails(*aTest);
+	//SctmDebug::GetInstance().PrintDomainDetails(*aTest);
 }
 
 void DDSolverTest()
 {
-	UtilsMsg.PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
-	//UtilsDebug.PrintDomainDetails(*aDomain);
+	//SctmDebug::GetInstance().PrintDomainDetails(*aDomain);
 
-	UtilsMsg.PrintHeader("Solving potential using initial value.");
+	SctmMessaging::GetInstance().PrintHeader("Solving potential using initial value.");
 	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aDomain);
 	//poisson.SolvePotential();
 
-	UtilsMsg.PrintHeader("Testing the drift diffusion solver.");
+	SctmMessaging::GetInstance().PrintHeader("Testing the drift diffusion solver.");
 	DDTest *ddSolver = new DDTest(aDomain);
 
 	int i = 22;
 	while ( i-->0)
 	{
-		UtilsTimeStep.GenerateNext();
+		SctmTimeStep::GetInstance().GenerateNext();
 		ddSolver->SolveDD();
 	}
-	//UtilsDebug.PrintDomainDetails(*aDomain);
-	//UtilsTimeStep.GenerateNext();
+	//SctmDebug::GetInstance().PrintDomainDetails(*aDomain);
+	//SctmTimeStep::GetInstance().GenerateNext();
 	//ddSolver->SolveDD();
-	//UtilsDebug.PrintDomainDetails(*aDomain);
+	//SctmDebug::GetInstance().PrintDomainDetails(*aDomain);
 }
 
 void SolverPackTest()
 {
-	UtilsMsg.PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
 	SolverPack aPack = SolverPack(aDomain);
@@ -84,13 +87,13 @@ void SolverPackTest()
 void TimeStepTest()
 {
 	Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
-	while (!UtilsTimeStep.End())
+	while (!SctmTimeStep::GetInstance().End())
 	{
-		UtilsTimeStep.GenerateNext();
-		UtilsDebug.PrintValue(UtilsTimeStep.StepNumber());
-		UtilsDebug.PrintValue(norm.PullTime(UtilsTimeStep.TimeStep()));
-		UtilsDebug.PrintValue(norm.PullTime(UtilsTimeStep.ElapsedTime()));
-		UtilsDebug.PrintNewLine();
+		SctmTimeStep::GetInstance().GenerateNext();
+		SctmDebug::GetInstance().PrintValue(SctmTimeStep::GetInstance().StepNumber());
+		SctmDebug::GetInstance().PrintValue(norm.PullTime(SctmTimeStep::GetInstance().TimeStep()));
+		SctmDebug::GetInstance().PrintValue(norm.PullTime(SctmTimeStep::GetInstance().ElapsedTime()));
+		SctmDebug::GetInstance().PrintNewLine();
 	}
 }
 
@@ -108,13 +111,14 @@ void ParaFileTest()
 	double tem = SctmGlobalControl::Get().Temperature;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	initialize();
+	cout << argv[0] << endl;
+	//initialize();
 	//ParaFileTest();
 	//SubsSolverTest();
 	//DomainTest();
-	SolverPackTest();
+	//SolverPackTest();
 	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

@@ -65,6 +65,7 @@ namespace SctmUtils
 		/// @return 
 		/// @note
 		SctmTimer(): start_time(0), end_time(0), set_time(0) {}
+		static SctmTimer& GetInstance();
 		/// @brief Start is used to start or restart the timer.
 		/// 
 		///
@@ -120,6 +121,7 @@ namespace SctmUtils
 	{
 	public:
 		SctmTimeStep();
+		static SctmTimeStep& GetInstance();
 		void GenerateNext();
 		double ElapsedTime() const;
 		int StepNumber() const;
@@ -155,6 +157,7 @@ namespace SctmUtils
 		/// @return 
 		/// @note
 		SctmDebug();
+		static SctmDebug& GetInstance();
 		/// @brief PrintErrorInfo is used to output message to console with given message.
 		/// 
 		///
@@ -198,6 +201,7 @@ namespace SctmUtils
 	class SctmMessaging
 	{
 	public:
+		static SctmMessaging& GetInstance();
 		void PrintWelcomingInformation();
 		void PrintHeader(const char *header);
 		void PrintTimeElapsed(double time);
@@ -245,6 +249,7 @@ namespace SctmUtils
 	{
 	public:
 		SctmData();
+		static SctmData& GetInstance();
 		void ReadTunnelParamter();
 		void WriteElecCurrDens(vector<FDVertex *> &vertices);
 		void WriteElecDens(vector<FDVertex *> &vertices);
@@ -279,9 +284,12 @@ namespace SctmUtils
 	{
 	public:
 		static SctmGlobalControl& Get();
-	private:
 		SctmGlobalControl();
 	public:
+		//simulation settings
+		string DefaultParFile;
+
+		//simulation parameters
 		double Temperature; ///< temperature of the simulation, in [K]
 		double GateVoltage; ///< gate voltage, in [V]
 		double GateWorkFunction; ///< the work function of gate material, in [eV]
@@ -433,11 +441,7 @@ namespace SctmUtils
 		BadParConversion(const string &s) : std::runtime_error(s) { };
 	};
 
-	extern SctmMessaging UtilsMsg;
-	extern SctmTimer UtilsTimer;
-	extern SctmDebug UtilsDebug;
-	extern SctmTimeStep UtilsTimeStep;
-	extern SctmData UtilsData;
+
 }
 
 #endif

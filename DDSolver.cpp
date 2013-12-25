@@ -34,7 +34,7 @@ DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), 
 
 void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 {
-	//UtilsTimer.Set();
+	//SctmTimer::GetInstance().Set();
 
 	//set the simulation time step
 	setTimeStep();
@@ -67,8 +67,8 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//fill back electron density to last time density, this is also done in refreshing vertex map
 	fillBackElecDens();
 
-	//UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-	//UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+	//SctmDebug::GetInstance().PrintSparseMatrix(matrixSolver.matrix);
+	//SctmMessaging::GetInstance().PrintTimeElapsed(SctmTimer::GetInstance().SinceLastSet());
 }
 
 void DriftDiffusionSolver::initializeSolver()
@@ -252,7 +252,7 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 
 void DriftDiffusionSolver::setTimeStep()
 {
- 	timeStep = UtilsTimeStep.TimeStep();
+ 	timeStep = SctmTimeStep::GetInstance().TimeStep();
 }
 
 void DriftDiffusionSolver::UpdateElecDens()
@@ -1493,19 +1493,19 @@ void DDTest::setBndCurrent()
 
 void DDTest::SolveDD()
 {
-	UtilsTimer.Set();
+	SctmTimer::GetInstance().Set();
 	//prepareSolver(); //call method from base, DriftDiffusionSolver
 	refreshCoeffMatrixDueToBC();
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
-	UtilsDebug.PrintSparseMatrix(matrixSolver.matrix);
-	//UtilsDebug.PrintVector(this->rhsVector, "right hand side vector");
-	//UtilsDebug.PrintVector(this->elecDensity, "electron density");
+	SctmDebug::GetInstance().PrintSparseMatrix(matrixSolver.matrix);
+	//SctmDebug::GetInstance().PrintVector(this->rhsVector, "right hand side vector");
+	//SctmDebug::GetInstance().PrintVector(this->elecDensity, "electron density");
 	
 	UpdateElecDens();
-	UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+	SctmMessaging::GetInstance().PrintTimeElapsed(SctmTimer::GetInstance().SinceLastSet());
 
-	UtilsData.WriteElecDens(this->ddVertices);
+	SctmData::GetInstance().WriteElecDens(this->ddVertices);
 }
 
 void DDTest::setBndDensity()

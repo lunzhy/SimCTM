@@ -49,29 +49,29 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	while (!UtilsTimeStep.End())
+	while (!SctmTimeStep::GetInstance().End())
 	{
-		UtilsTimeStep.GenerateNext();
-		UtilsTimer.Set();
+		SctmTimeStep::GetInstance().GenerateNext();
+		SctmTimer::GetInstance().Set();
 
 		//solve substrate
 		subsSolver->SolveSurfacePot();
 		fetchSubstrateResult();
-		UtilsData.WriteSubstrateResult(subsSolver);
+		SctmData::GetInstance().WriteSubstrateResult(subsSolver);
 
 		//solver Poisson equation
 		poissonSolver->ReadChannelPotential(mapChannelPotential);
 		poissonSolver->SolvePotential();
 		fetchPoissonResult();
-		UtilsData.WritePotential(domain->GetVertices());
-		UtilsData.WriteBandInfo(domain->GetVertices());
-		UtilsData.WriteElecField(domain->GetVertices());
+		SctmData::GetInstance().WritePotential(domain->GetVertices());
+		SctmData::GetInstance().WriteBandInfo(domain->GetVertices());
+		SctmData::GetInstance().WriteElecField(domain->GetVertices());
 
 		//solve tunneling problem in tunneling oxide
 		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		tunnelOxideSolver->SolveTunnel();
 		fetchTunnelOxideResult();
-		UtilsData.WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
+		SctmData::GetInstance().WriteTunnelCurrentFromSubs(domain, mapCurrDensFromTunnelLayer);
 
 		//solve tunneling problem in blocking oxide
 		blockOxideSolver->SolveTunnel();
@@ -80,20 +80,20 @@ void SolverPack::callIteration()
 		//solve trapping
 		trappingSolver->SolveTrap();
 		fetchTrappingResult();
-		UtilsData.WriteTrapOccupation(domain->GetDDVerts());
+		SctmData::GetInstance().WriteTrapOccupation(domain->GetDDVerts());
 
 		//solver drift-diffusion equation
 		ddSolver->SolveDD(mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
 		fetchDDResult();
-		UtilsData.WriteTunnelCoeff(domain, mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
-		UtilsData.WriteElecDens(domain->GetDDVerts());
-		UtilsData.WriteElecCurrDens(domain->GetDDVerts());
+		SctmData::GetInstance().WriteTunnelCoeff(domain, mapCurrDensFromTunnelLayer, mapCurrDensCoeff);
+		SctmData::GetInstance().WriteElecDens(domain->GetDDVerts());
+		SctmData::GetInstance().WriteElecCurrDens(domain->GetDDVerts());
 
 		//write the final result
-		UtilsData.WriteTotalElecDens(domain->GetDDVerts());
-		UtilsData.WriteFlatBandVoltageShift(domain);
+		SctmData::GetInstance().WriteTotalElecDens(domain->GetDDVerts());
+		SctmData::GetInstance().WriteFlatBandVoltageShift(domain);
 
-		UtilsMsg.PrintTimeElapsed(UtilsTimer.SinceLastSet());
+		SctmMessaging::GetInstance().PrintTimeElapsed(SctmTimer::GetInstance().SinceLastSet());
 	}
 }
 
@@ -106,9 +106,9 @@ void SolverPack::Run()
 {
 	callIteration();
 
-	//UtilsDebug.WritePoisson(domain);
-	//UtilsDebug.WriteBandInfo(domain);
-	//UtilsDebug.WriteDensity(domain);
+	//SctmDebug::GetInstance().WritePoisson(domain);
+	//SctmDebug::GetInstance().WriteBandInfo(domain);
+	//SctmDebug::GetInstance().WriteDensity(domain);
 }
 
 void SolverPack::fetchTunnelOxideResult()

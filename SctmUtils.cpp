@@ -31,12 +31,6 @@ using MaterialDB::Mat;
 
 namespace SctmUtils
 {
-	SctmMessaging UtilsMsg = SctmMessaging();
-	SctmTimer UtilsTimer = SctmTimer();
-	SctmDebug UtilsDebug = SctmDebug();
-	SctmTimeStep UtilsTimeStep = SctmTimeStep();
-	SctmData UtilsData = SctmData();
-
 	void SctmTimer::Start()
 	{
 		start_time = clock();
@@ -72,6 +66,13 @@ namespace SctmUtils
 		time = (double)((end_time - start_time ) / (clock_t)clockPerSecond);
 		return time;
 	}
+
+	SctmTimer& SctmTimer::GetInstance()
+	{
+		static SctmTimer instance;
+		return instance;
+	}
+
 
 
 	void SctmDebug::PrintErrorInfo(string msg)
@@ -381,23 +382,30 @@ namespace SctmUtils
 
 	void SctmDebug::WritePoisson(FDDomain *domain)
 	{
-		UtilsData.WritePotential(domain->GetVertices());
+		SctmData::GetInstance().WritePotential(domain->GetVertices());
 	}
 
 	void SctmDebug::WriteBandInfo(FDDomain *domain)
 	{
-		UtilsData.WriteBandInfo(domain->GetVertices());
+		SctmData::GetInstance().WriteBandInfo(domain->GetVertices());
 	}
 
 	void SctmDebug::WriteDensity(FDDomain *domain)
 	{
-		UtilsData.WriteElecDens(domain->GetDDVerts());
+		SctmData::GetInstance().WriteElecDens(domain->GetDDVerts());
 	}
 
 	SctmDebug::SctmDebug() : enable(SCTM_DEBUG_ENABLE)
 	{
 		this->temperature = SctmGlobalControl::Get().Temperature;
 	}
+
+	SctmDebug& SctmDebug::GetInstance()
+	{
+		static SctmDebug instance;
+		return instance;
+	}
+
 
 
 
@@ -433,7 +441,7 @@ namespace SctmUtils
 	void SctmMessaging::PrintTimeElapsed(double time)
 	{
 		cout << "Simulation time step: ";
-		string timeStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		cout << timeStr << "s" << "\t\t";
 
 		string msg = "Time elapsed: ";
@@ -475,6 +483,13 @@ namespace SctmUtils
 		exit(1);
 	}
 
+	SctmMessaging& SctmMessaging::GetInstance()
+	{
+		static SctmMessaging instance;
+		return instance;
+	}
+
+
 
 
 	SctmFileStream::SctmFileStream(string _filename, FileMode _mode)
@@ -489,7 +504,7 @@ namespace SctmUtils
 				//if the file doesn't exist, create it.
 				file.open(this->fileName.c_str(), std::ios::out);
 				if (!file)
-					UtilsMsg.PrintDirectoryError();
+					SctmMessaging::GetInstance().PrintDirectoryError();
 				else
 					file.close();
 			}
@@ -510,7 +525,7 @@ namespace SctmUtils
 				//if the file doesn't exist, create it.
 				file.open(this->fileName.c_str(), std::ios::out);
 				if (!file)
-					UtilsMsg.PrintDirectoryError();
+					SctmMessaging::GetInstance().PrintDirectoryError();
 				else
 					file.close();
 			}
@@ -524,7 +539,7 @@ namespace SctmUtils
 		{
 			file.open(this->fileName.c_str(), std::ios::in);
 			if (!file.is_open())
-				UtilsMsg.PrintFileError(_filename.c_str());
+				SctmMessaging::GetInstance().PrintFileError(_filename.c_str());
 			else
 				file.close();
 			return;
@@ -757,6 +772,13 @@ namespace SctmUtils
 		return (currStepNumber == totalEffectiveStep);
 	}
 
+	SctmTimeStep& SctmTimeStep::GetInstance()
+	{
+		static SctmTimeStep instance;
+		return instance;
+	}
+
+
 
 
 
@@ -787,7 +809,7 @@ namespace SctmUtils
 			vecDen.push_back(norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
 		}
 
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string title = "electron density of time [" + numStr + "]"; 
 		file.WriteVector(vecX, vecY, vecDen, title.c_str());
 	}
@@ -811,7 +833,7 @@ namespace SctmUtils
 			vecPot.push_back(norm.PullPotential(currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		}
 
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string title = "potential of time [" + numStr + "]"; 
 		file.WriteVector(vecX, vecY, vecPot, title.c_str());
 	}
@@ -819,7 +841,7 @@ namespace SctmUtils
 	string SctmData::generateFileSuffix()
 	{
 		string ret = "";
-		string step = SctmConverter::IntToString(UtilsTimeStep.StepNumber());
+		string step = SctmConverter::IntToString(SctmTimeStep::GetInstance().StepNumber());
 
 		ret = "_s" + step + ".txt";
 		return ret;
@@ -846,7 +868,7 @@ namespace SctmUtils
 			vecVB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy)));
 		}
 
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string title = "band structure of time [" + numStr + "] (x, y, Conduction band, Valence band)"; 
 		file.WriteVector(vecX, vecY, vecCB, vecVB, title.c_str());
 	}
@@ -871,7 +893,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			currDens.push_back(norm.PullCurrDens(it->second));
 		}
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density)";
 		file.WriteVector(vecX, vecY, currDens, title.c_str());
 	}
@@ -894,7 +916,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
 		}
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
@@ -917,7 +939,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
 		}
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string title = "electric field of time [" + numStr + "] (x, y, electric field)";
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
@@ -939,7 +961,7 @@ namespace SctmUtils
 			freeElecDens += area * vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 			trapElecDens += area * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 		}
-		string timeStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string valStrFree = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens));
 		string valStrTrap = SctmConverter::DoubleToString(norm.PullLineDensity(trapElecDens));
 		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
@@ -959,7 +981,7 @@ namespace SctmUtils
 		string currDens = SctmConverter::DoubleToString(norm.PullCurrDens(it->second));
 		it = outCurrCoeff.begin();
 		string tunCoeff = SctmConverter::DoubleToString(norm.PullTunCoeff(it->second));
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 
 		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
 		file.WriteLine(line);
@@ -983,7 +1005,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
 		}
-		string numStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string title = "occupation of electron trap [" + numStr + "] (x, y, trap occupation)";
 		file.WriteVector(vecX, vecY, occupation, title.c_str());
 	}
@@ -998,7 +1020,7 @@ namespace SctmUtils
 
 		VfbShift = SctmPhys::CalculateFlatbandShift(domain);
 
-		string timeStr = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		string valStr = SctmConverter::DoubleToString(norm.PullPotential(VfbShift));
 		string line = timeStr + "\t\t" + valStr;
 		file.WriteLine(line);
@@ -1023,11 +1045,18 @@ namespace SctmUtils
 			firstRun = false;
 		}
 
-		string line = SctmConverter::DoubleToString(UtilsTimeStep.ElapsedTime());
+		string line = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
 		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(channelPot));
 		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermiAbove));
 		file.WriteLine(line);
 	}
+
+	SctmData& SctmData::GetInstance()
+	{
+		static SctmData instance;
+		return instance;
+	}
+
 
 
 
@@ -1118,6 +1147,10 @@ namespace SctmUtils
 
 	void SctmGlobalControl::setGloblaCntrl_FromParFile()
 	{
+		//set simulation global settings
+		DefaultParFile = "E:\\PhD Study\\SimCTM\\par.default";
+
+		//set simulation parameters from file
 		ParamBase *parBase = NULL;
 
 		//Temperature
@@ -1200,7 +1233,7 @@ namespace SctmUtils
 		userParFile = "E:\\PhD Study\\SimCTM\\user.default";
 		if (!SctmFileStream::FileExisted(defaultParFile))
 		{
-			UtilsMsg.PrintFileError(defaultParFile.c_str(), "The default parameter file is missing.");
+			SctmMessaging::GetInstance().PrintFileError(defaultParFile.c_str(), "The default parameter file is missing.");
 			SCTM_ASSERT(SCTM_ERROR, 10037);
 		}
 		ReadParFile(defaultParFile, defaultParMap);
@@ -1652,7 +1685,7 @@ namespace SctmUtils
 			}
 			if (!isValid(aLine))
 			{
-				UtilsMsg.PrintInvalidLineInParFile(file.c_str(), lineCnt);
+				SctmMessaging::GetInstance().PrintInvalidLineInParFile(file.c_str(), lineCnt);
 				SCTM_ASSERT(SCTM_ERROR, 10034);
 			}
 			effline = trimComment(aLine);
@@ -1665,7 +1698,7 @@ namespace SctmUtils
 			}
 			catch (BadParConversion)
 			{
-				UtilsMsg.PrintInvalidLineInParFile(file.c_str(), lineCnt);
+				SctmMessaging::GetInstance().PrintInvalidLineInParFile(file.c_str(), lineCnt);
 				SCTM_ASSERT(SCTM_ERROR, 10034);
 			}
 		}

@@ -18,7 +18,7 @@
 
 using SctmPhys::TrapProperty;
 using SctmUtils::SctmGlobalControl;
-using SctmUtils::UtilsTimeStep;
+using SctmUtils::SctmTimeStep;
 
 TrapSolver::TrapSolver(FDDomain *_domain): domain(_domain), vertices(_domain->GetDDVerts())
 {
@@ -61,7 +61,7 @@ void TrapSolver::setSolverTrapping()
 	static string captureModel = SctmGlobalControl::Get().TrapCaptureModel;
 	//static string captureModel = "J-Model";
 
-	timeStep = UtilsTimeStep.TimeStep();
+	timeStep = SctmTimeStep::GetInstance().TimeStep();
 
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
@@ -160,7 +160,7 @@ void TrapSolver::setSolverDetrapping_BasicSRH()
 	double coeff_detrapping = 0;
 	double eEmission = 0;
 
-	timeStep = UtilsTimeStep.TimeStep();
+	timeStep = SctmTimeStep::GetInstance().TimeStep();
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
