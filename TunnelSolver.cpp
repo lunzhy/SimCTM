@@ -203,7 +203,7 @@ void SubsToTrapElecTunnel::initialize()
 	//TODO: this should be obtained from user input
 	using namespace MaterialDB;
 	//the material for substrate is silicon
-	double effSiMass = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_ElectronMass);
+	double effSiMass = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronMass);
 	this->effTunnelMass = effSiMass; // the effective electron mass, in [m0]
 }
 
@@ -262,7 +262,7 @@ void SubsToTrapElecTunnel::setSolver_Tunnel(FDVertex *startVertex)
 	//set the silicon band edge, because the difference is fixed
 	using namespace MaterialDB;
 	double barrier = 0;
-	barrier = GetMatPrpty(MaterialMap[Mat::Silicon], MatProperty::Mat_ElectronAffinity)
+	barrier = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
 		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
 	barrier = norm.PullEnergy(barrier);
 	cbedgeTunnelFrom = cbEdge.front() - barrier;

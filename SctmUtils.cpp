@@ -67,7 +67,7 @@ namespace SctmUtils
 		return time;
 	}
 
-	SctmTimer& SctmTimer::GetInstance()
+	SctmTimer& SctmTimer::Get()
 	{
 		static SctmTimer instance;
 		return instance;
@@ -382,17 +382,17 @@ namespace SctmUtils
 
 	void SctmDebug::WritePoisson(FDDomain *domain)
 	{
-		SctmData::GetInstance().WritePotential(domain->GetVertices());
+		SctmData::Get().WritePotential(domain->GetVertices());
 	}
 
 	void SctmDebug::WriteBandInfo(FDDomain *domain)
 	{
-		SctmData::GetInstance().WriteBandInfo(domain->GetVertices());
+		SctmData::Get().WriteBandInfo(domain->GetVertices());
 	}
 
 	void SctmDebug::WriteDensity(FDDomain *domain)
 	{
-		SctmData::GetInstance().WriteElecDens(domain->GetDDVerts());
+		SctmData::Get().WriteElecDens(domain->GetDDVerts());
 	}
 
 	SctmDebug::SctmDebug() : enable(SCTM_DEBUG_ENABLE)
@@ -400,7 +400,7 @@ namespace SctmUtils
 		this->temperature = SctmGlobalControl::Get().Temperature;
 	}
 
-	SctmDebug& SctmDebug::GetInstance()
+	SctmDebug& SctmDebug::Get()
 	{
 		static SctmDebug instance;
 		return instance;
@@ -441,7 +441,7 @@ namespace SctmUtils
 	void SctmMessaging::PrintTimeElapsed(double time)
 	{
 		cout << "Simulation time step: ";
-		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		cout << timeStr << "s" << "\t\t";
 
 		string msg = "Time elapsed: ";
@@ -483,7 +483,7 @@ namespace SctmUtils
 		exit(1);
 	}
 
-	SctmMessaging& SctmMessaging::GetInstance()
+	SctmMessaging& SctmMessaging::Get()
 	{
 		static SctmMessaging instance;
 		return instance;
@@ -504,7 +504,7 @@ namespace SctmUtils
 				//if the file doesn't exist, create it.
 				file.open(this->fileName.c_str(), std::ios::out);
 				if (!file)
-					SctmMessaging::GetInstance().PrintDirectoryError();
+					SctmMessaging::Get().PrintDirectoryError();
 				else
 					file.close();
 			}
@@ -525,7 +525,7 @@ namespace SctmUtils
 				//if the file doesn't exist, create it.
 				file.open(this->fileName.c_str(), std::ios::out);
 				if (!file)
-					SctmMessaging::GetInstance().PrintDirectoryError();
+					SctmMessaging::Get().PrintDirectoryError();
 				else
 					file.close();
 			}
@@ -539,7 +539,7 @@ namespace SctmUtils
 		{
 			file.open(this->fileName.c_str(), std::ios::in);
 			if (!file.is_open())
-				SctmMessaging::GetInstance().PrintFileError(_filename.c_str());
+				SctmMessaging::Get().PrintFileError(_filename.c_str());
 			else
 				file.close();
 			return;
@@ -772,7 +772,7 @@ namespace SctmUtils
 		return (currStepNumber == totalEffectiveStep);
 	}
 
-	SctmTimeStep& SctmTimeStep::GetInstance()
+	SctmTimeStep& SctmTimeStep::Get()
 	{
 		static SctmTimeStep instance;
 		return instance;
@@ -786,13 +786,14 @@ namespace SctmUtils
 	SctmData::SctmData()
 	{
 		this->temperature = SctmGlobalControl::Get().Temperature;
-		directoryName = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest\\";
+		//directoryName = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest\\";
+		this->directoryName = SctmGlobalControl::Get().ProjectDirectory;
 	}
 
 
 	void SctmData::WriteElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "Density\\eDensity" + generateFileSuffix();
+		fileName = directoryName + "\\Density\\eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
@@ -809,14 +810,14 @@ namespace SctmUtils
 			vecDen.push_back(norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
 		}
 
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "electron density of time [" + numStr + "]"; 
 		file.WriteVector(vecX, vecY, vecDen, title.c_str());
 	}
 
 	void SctmData::WritePotential(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "Potential\\potential" + generateFileSuffix();
+		fileName = directoryName + "\\Potential\\potential" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
@@ -833,7 +834,7 @@ namespace SctmUtils
 			vecPot.push_back(norm.PullPotential(currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		}
 
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "potential of time [" + numStr + "]"; 
 		file.WriteVector(vecX, vecY, vecPot, title.c_str());
 	}
@@ -841,7 +842,7 @@ namespace SctmUtils
 	string SctmData::generateFileSuffix()
 	{
 		string ret = "";
-		string step = SctmConverter::IntToString(SctmTimeStep::GetInstance().StepNumber());
+		string step = SctmConverter::IntToString(SctmTimeStep::Get().StepNumber());
 
 		ret = "_s" + step + ".txt";
 		return ret;
@@ -849,7 +850,7 @@ namespace SctmUtils
 
 	void SctmData::WriteBandInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "Band\\band" + generateFileSuffix();
+		fileName = directoryName + "\\Band\\band" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
@@ -868,14 +869,14 @@ namespace SctmUtils
 			vecVB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy)));
 		}
 
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "band structure of time [" + numStr + "] (x, y, Conduction band, Valence band)"; 
 		file.WriteVector(vecX, vecY, vecCB, vecVB, title.c_str());
 	}
 
 	void SctmData::WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity)
 	{
-		fileName = directoryName + "Current\\subsCurrent" + generateFileSuffix();
+		fileName = directoryName + "\\Current\\subsCurrent" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 		
 		int vertID = 0;
@@ -893,14 +894,14 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			currDens.push_back(norm.PullCurrDens(it->second));
 		}
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density)";
 		file.WriteVector(vecX, vecY, currDens, title.c_str());
 	}
 
 	void SctmData::WriteElecCurrDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "Current\\eCurrDens" + generateFileSuffix();
+		fileName = directoryName + "\\Current\\eCurrDens" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -916,14 +917,14 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
 		}
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
 
 	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "ElecField\\elecField" + generateFileSuffix();
+		fileName = directoryName + "\\ElecField\\elecField" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -939,14 +940,14 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
 		}
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "electric field of time [" + numStr + "] (x, y, electric field)";
 		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
 	}
 
 	void SctmData::WriteTotalElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "Debug\\totalDensity.txt";
+		fileName = directoryName + "\\Miscellaneous\\totalDensity.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		double area = 0;
@@ -961,7 +962,7 @@ namespace SctmUtils
 			freeElecDens += area * vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 			trapElecDens += area * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 		}
-		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string valStrFree = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens));
 		string valStrTrap = SctmConverter::DoubleToString(norm.PullLineDensity(trapElecDens));
 		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
@@ -970,7 +971,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff)
 	{
-		fileName = directoryName + "Debug\\tunCoeff.txt";
+		fileName = directoryName + "\\Miscellaneous\\tunCoeff.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		int vertID = 0;
@@ -981,7 +982,7 @@ namespace SctmUtils
 		string currDens = SctmConverter::DoubleToString(norm.PullCurrDens(it->second));
 		it = outCurrCoeff.begin();
 		string tunCoeff = SctmConverter::DoubleToString(norm.PullTunCoeff(it->second));
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 
 		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
 		file.WriteLine(line);
@@ -989,7 +990,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTrapOccupation(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "Trap\\trapOccupation" + generateFileSuffix();
+		fileName = directoryName + "\\Trap\\trapOccupation" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -1005,7 +1006,7 @@ namespace SctmUtils
 			vecY.push_back(norm.PullLength(currVert->Y));
 			occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
 		}
-		string numStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "occupation of electron trap [" + numStr + "] (x, y, trap occupation)";
 		file.WriteVector(vecX, vecY, occupation, title.c_str());
 	}
@@ -1015,12 +1016,12 @@ namespace SctmUtils
 		double VfbShift = 0;
 		Normalization norm = Normalization(this->temperature);
 
-		fileName = directoryName + "VfbShift.txt";
+		fileName = directoryName + "\\Miscellaneous\\VfbShift.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		VfbShift = SctmPhys::CalculateFlatbandShift(domain);
 
-		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string valStr = SctmConverter::DoubleToString(norm.PullPotential(VfbShift));
 		string line = timeStr + "\t\t" + valStr;
 		file.WriteLine(line);
@@ -1031,7 +1032,7 @@ namespace SctmUtils
 		static bool firstRun = true;
 		Normalization norm = Normalization(this->temperature);
 
-		fileName = directoryName + "Debug\\substrate.txt";
+		fileName = directoryName + "\\Miscellaneous\\substrate.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		double fermiAbove = 0;
@@ -1045,13 +1046,13 @@ namespace SctmUtils
 			firstRun = false;
 		}
 
-		string line = SctmConverter::DoubleToString(SctmTimeStep::GetInstance().ElapsedTime());
+		string line = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(channelPot));
 		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermiAbove));
 		file.WriteLine(line);
 	}
 
-	SctmData& SctmData::GetInstance()
+	SctmData& SctmData::Get()
 	{
 		static SctmData instance;
 		return instance;
@@ -1106,37 +1107,37 @@ namespace SctmUtils
 
 	void SctmGlobalControl::setGlobalCntrl_Directly()
 	{
-		Temperature = 300;
-		GateVoltage = 18;
+		Get().Temperature = 300;
+		Get().GateVoltage = 18;
 
-		GateWorkFunction = 4.7; //for TaN gate
+		Get().GateWorkFunction = 4.7; //for TaN gate
 
-		SimStartTime = 1e-15;
-		SimEndTime = 1;
-		SimStepsPerDecade = 10;
+		Get().SimStartTime = 1e-15;
+		Get().SimEndTime = 1;
+		Get().SimStepsPerDecade = 10;
 
 		//the length are in nm
-		XLength = 10;
-		YLengthTunnel = 4;
-		YLengthTrap = 6.5;
-		YLengthBlock = 15;
-		XGridNum = 5;
-		YGridNumTunnel = 50;
-		YGridNumTrap = 100;
-		YGridNumBlock = 50;
+		Get().XLength = 10;
+		Get().YLengthTunnel = 4;
+		Get().YLengthTrap = 6.5;
+		Get().YLengthBlock = 15;
+		Get().XGridNum = 5;
+		Get().YGridNumTunnel = 50;
+		Get().YGridNumTrap = 100;
+		Get().YGridNumBlock = 50;
 
-		TunnelMaterial = Mat::SiO2;
-		TrapMaterial = Mat::Si3N4;
-		BlockMaterial = Mat::Al2O3;
+		Get().TunnelMaterial = Mat::SiO2;
+		Get().TrapMaterial = Mat::Si3N4;
+		Get().BlockMaterial = Mat::Al2O3;
 
-		UniformTrapDens = 6e19; // in [cm^-3]
-		SubstrateDoping = -1e17; // negative for P-type
+		Get().UniformTrapDens = 6e19; // in [cm^-3]
+		Get().SubstrateDoping = -1e17; // negative for P-type
 	}
 
 	SctmGlobalControl::SctmGlobalControl()
 	{
 		//setGlobalCntrl_Directly();
-		setGloblaCntrl_FromParFile();
+		//setGloblaCntrl_FromParFile();
 	}
 
 	SctmGlobalControl& SctmGlobalControl::Get()
@@ -1147,81 +1148,88 @@ namespace SctmUtils
 
 	void SctmGlobalControl::setGloblaCntrl_FromParFile()
 	{
-		//set simulation global settings
-		DefaultParFile = "E:\\PhD Study\\SimCTM\\par.default";
-
 		//set simulation parameters from file
 		ParamBase *parBase = NULL;
 
 		//Temperature
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::temperature);
-		Temperature = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::temperature);
+		Get().Temperature = dynamic_cast<Param<double> *>(parBase)->Value();
 		//GateVoltage
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::gate_voltage);
-		GateVoltage = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::gate_voltage);
+		Get().GateVoltage = dynamic_cast<Param<double> *>(parBase)->Value();
 		//GateWorkFunction
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::gate_workfunction);
-		GateWorkFunction = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::gate_workfunction);
+		Get().GateWorkFunction = dynamic_cast<Param<double> *>(parBase)->Value();
 
 		//SimStartTime
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::time_start);
-		SimStartTime = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_start);
+		Get().SimStartTime = dynamic_cast<Param<double> *>(parBase)->Value();
 		//SimEndTime
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::time_end);
-		SimEndTime = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_end);
+		Get().SimEndTime = dynamic_cast<Param<double> *>(parBase)->Value();
 		//SimStepsPerDecade
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::time_stepPerDecade);
-		SimStepsPerDecade = dynamic_cast<Param<int> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_stepPerDecade);
+		Get().SimStepsPerDecade = dynamic_cast<Param<int> *>(parBase)->Value();
 
 		//Xlength
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::width_value);
-		XLength = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::width_value);
+		Get().XLength = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthTunnel
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::tunnel_height);
-		YLengthTunnel = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_height);
+		Get().YLengthTunnel = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthTrap
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_height);
-		YLengthTrap = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_height);
+		Get().YLengthTrap = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthBlock
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::block_height);
-		YLengthBlock = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_height);
+		Get().YLengthBlock = dynamic_cast<Param<double> *>(parBase)->Value();
 		//XGridNum
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::width_grid);
-		XGridNum = dynamic_cast<Param<int> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::width_grid);
+		Get().XGridNum = dynamic_cast<Param<int> *>(parBase)->Value();
 		//YGridNumTunnel
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::tunnel_grid);
-		YGridNumTunnel = dynamic_cast<Param<int> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_grid);
+		Get().YGridNumTunnel = dynamic_cast<Param<int> *>(parBase)->Value();
 		//YGridNumTrap
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_grid);
-		YGridNumTrap = dynamic_cast<Param<int> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_grid);
+		Get().YGridNumTrap = dynamic_cast<Param<int> *>(parBase)->Value();
 		//YGridnumBlock
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::block_grid);
-		YGridNumBlock = dynamic_cast<Param<int> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_grid);
+		Get().YGridNumBlock = dynamic_cast<Param<int> *>(parBase)->Value();
 
 		//TunnelMaterial
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::tunnel_material);
-		TunnelMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_material);
+		Get().TunnelMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
 		//TrapMaterial
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_material);
-		TrapMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_material);
+		Get().TrapMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
 		//BlockMaterial
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::block_material);
-		BlockMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_material);
+		Get().BlockMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
 
 		//UniformTrapDens
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_uniDensity);
-		UniformTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_uniDensity);
+		Get().UniformTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
 		//SubstrateDoping
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::subs_type);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_type);
 		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::subs_doping);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_doping);
 		double doping = dynamic_cast<Param<double> *>(parBase)->Value();
-		SubstrateDoping = doping * (subsType == "N" ? 1 : -1);
+		Get().SubstrateDoping = doping * (subsType == "N" ? 1 : -1);
 
 		//TrapCaptureModel
-		parBase = SctmParameterParser::GetInstance().GetPar(SctmParameterParser::trap_captureModel);
-		TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_captureModel);
+		Get().TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
 	}
+
+	void SctmGlobalControl::SetGlobalControl(string defaultParPath, string prjpath)
+	{
+		SctmGlobalControl::Get().ProjectDirectory = prjpath;
+		SctmGlobalControl::Get().DefaulParFile = defaultParPath;
+		SctmGlobalControl::Get().UserParFile = prjpath + "\\user.param";
+
+		setGloblaCntrl_FromParFile();
+	}
+
 
 
 
@@ -1229,15 +1237,20 @@ namespace SctmUtils
 
 	SctmParameterParser::SctmParameterParser()
 	{
-		defaultParFile = "E:\\PhD Study\\SimCTM\\par.default";
-		userParFile = "E:\\PhD Study\\SimCTM\\user.default";
+		//string prjPath = SctmGlobalControl::Get().ProjectDirectory;
+		defaultParFile = SctmGlobalControl::Get().DefaulParFile;
+		userParFile = SctmGlobalControl::Get().UserParFile;
+
 		if (!SctmFileStream::FileExisted(defaultParFile))
 		{
-			SctmMessaging::GetInstance().PrintFileError(defaultParFile.c_str(), "The default parameter file is missing.");
+			SctmMessaging::Get().PrintFileError(defaultParFile.c_str(), "The default parameter file is missing.");
 			SCTM_ASSERT(SCTM_ERROR, 10037);
 		}
 		ReadParFile(defaultParFile, defaultParMap);
-		ReadParFile(userParFile, userParMap);
+		if (SctmFileStream::FileExisted(userParFile))
+		{
+			ReadParFile(userParFile, userParMap);
+		}
 	}
 
 	bool SctmParameterParser::isCommentOrSpaceLine(string &line)
@@ -1685,7 +1698,7 @@ namespace SctmUtils
 			}
 			if (!isValid(aLine))
 			{
-				SctmMessaging::GetInstance().PrintInvalidLineInParFile(file.c_str(), lineCnt);
+				SctmMessaging::Get().PrintInvalidLineInParFile(file.c_str(), lineCnt);
 				SCTM_ASSERT(SCTM_ERROR, 10034);
 			}
 			effline = trimComment(aLine);
@@ -1698,13 +1711,13 @@ namespace SctmUtils
 			}
 			catch (BadParConversion)
 			{
-				SctmMessaging::GetInstance().PrintInvalidLineInParFile(file.c_str(), lineCnt);
+				SctmMessaging::Get().PrintInvalidLineInParFile(file.c_str(), lineCnt);
 				SCTM_ASSERT(SCTM_ERROR, 10034);
 			}
 		}
 	}
 
-	SctmParameterParser& SctmParameterParser::GetInstance()
+	SctmParameterParser& SctmParameterParser::Get()
 	{
 		static SctmParameterParser parser;
 		return parser;

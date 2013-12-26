@@ -196,11 +196,11 @@ void SimpleONO::setDomainDetails()
 	////////////////////////////////////////////////////////////////////
 	using MaterialDB::MaterialMap;
 	using MaterialDB::Mat;
-	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap[SctmGlobalControl::Get().TunnelMaterial]);
+	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap(SctmGlobalControl::Get().TunnelMaterial));
 	cntRegion++;
-	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap[SctmGlobalControl::Get().TrapMaterial]);
+	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap(SctmGlobalControl::Get().TrapMaterial));
 	cntRegion++;
-	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap[SctmGlobalControl::Get().BlockMaterial]);
+	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap(SctmGlobalControl::Get().BlockMaterial));
 	cntRegion++;
 
 	/////////////////////////////////////////////////////////////////////

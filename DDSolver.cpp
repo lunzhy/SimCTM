@@ -252,7 +252,7 @@ void DriftDiffusionSolver::getDDVertices(FDDomain *domain)
 
 void DriftDiffusionSolver::setTimeStep()
 {
- 	timeStep = SctmTimeStep::GetInstance().TimeStep();
+ 	timeStep = SctmTimeStep::Get().TimeStep();
 }
 
 void DriftDiffusionSolver::UpdateElecDens()
@@ -1493,19 +1493,19 @@ void DDTest::setBndCurrent()
 
 void DDTest::SolveDD()
 {
-	SctmTimer::GetInstance().Set();
+	SctmTimer::Get().Set();
 	//prepareSolver(); //call method from base, DriftDiffusionSolver
 	refreshCoeffMatrixDueToBC();
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
 	
-	SctmDebug::GetInstance().PrintSparseMatrix(matrixSolver.matrix);
+	SctmDebug::Get().PrintSparseMatrix(matrixSolver.matrix);
 	//SctmDebug::GetInstance().PrintVector(this->rhsVector, "right hand side vector");
 	//SctmDebug::GetInstance().PrintVector(this->elecDensity, "electron density");
 	
 	UpdateElecDens();
-	SctmMessaging::GetInstance().PrintTimeElapsed(SctmTimer::GetInstance().SinceLastSet());
+	SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().SinceLastSet());
 
-	SctmData::GetInstance().WriteElecDens(this->ddVertices);
+	SctmData::Get().WriteElecDens(this->ddVertices);
 }
 
 void DDTest::setBndDensity()

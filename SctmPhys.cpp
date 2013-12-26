@@ -529,10 +529,10 @@ namespace SctmPhys
 		using namespace MaterialDB;
 		using SctmUtils::SctmGlobalControl;
 		//the value returned by GetMatPrpty is normalized value
-		double mp = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_HoleMass);
-		double mn = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_ElectronMass);
-		double bandgap = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_Bandgap);
-		double affinity = MaterialDB::GetMatPrpty(MaterialMap[Mat::Silicon], MaterialDB::MatProperty::Mat_ElectronAffinity);
+		double mp = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleMass);
+		double mn = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronMass);
+		double bandgap = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_Bandgap);
+		double affinity = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronAffinity);
 		double temperature = SctmGlobalControl::Get().Temperature;
 		
 		using SctmUtils::Normalization;

@@ -145,7 +145,8 @@ namespace MaterialDB
 	void SetMaterial_FromParFile();
 
 	//TODO: consider the method that accounts for material specification
-	extern std::map<Mat::Name, Material*> MaterialMap;
+	//extern std::map<Mat::Name, Material*> MaterialMap;
+	Material* MaterialMap(Mat::Name matname);
 }
 
 #endif

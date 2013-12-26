@@ -9,18 +9,32 @@
 #include "Normalization.h"
 #include "SubstrateSolver.h"
 #include <stdlib.h>
-
-#include <iostream>
-using namespace std;
+#include <vector>
 
 using namespace SctmUtils;
 
-void initialize()
+void initialize(const char *prjdir ="", const char *defaulParFile = "")
 {
-	std::system("E:\\\"PhD Study\"\\SimCTM\\PySimFig\\DeleteData.py");
-	SctmMessaging::GetInstance().PrintWelcomingInformation();
-	SctmMessaging::GetInstance().PrintHeader("Initializing the simulator.");
-	SctmTimer::GetInstance().Start();
+	string prj(prjdir);
+	string defaultParam(defaulParFile);
+
+	if (prj.empty())
+	{
+		prj = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
+		std::system("E:\\\"PhD Study\"\\SimCTM\\PySimFig\\DeleteData.py");
+	}
+
+	if (defaultParam.empty())
+	{
+		//run from visual studio
+		defaultParam = "E:\\PhD Study\\SimCTM\\default.param";
+	}
+
+	SctmGlobalControl::SetGlobalControl(defaultParam, prj);
+
+	SctmMessaging::Get().PrintWelcomingInformation();
+	SctmMessaging::Get().PrintHeader("Initializing the simulator.");
+	SctmTimer::Get().Start();
 	
 	//the initialization of the simulation goes here
 	//MaterialDB::SetMaterials_Directly();
@@ -30,20 +44,20 @@ void initialize()
 
 void DomainTest()
 {
-	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::Get().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
-	SctmDebug::GetInstance().PrintDomainDetails(aTest);
+	SctmDebug::Get().PrintDomainDetails(aTest);
 }
 
 void PoissonTest()
 {
-	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::Get().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
-	SctmDebug::GetInstance().PrintDomainDetails(aTest);
+	SctmDebug::Get().PrintDomainDetails(aTest);
 
-	SctmMessaging::GetInstance().PrintHeader("Solving potential using initial value.");
+	SctmMessaging::Get().PrintHeader("Solving potential using initial value.");
 	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aTest);
 	poisson.SolvePotential();
 	//SctmDebug::GetInstance().PrintDomainDetails(*aTest);
@@ -51,22 +65,22 @@ void PoissonTest()
 
 void DDSolverTest()
 {
-	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::Get().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
 	//SctmDebug::GetInstance().PrintDomainDetails(*aDomain);
 
-	SctmMessaging::GetInstance().PrintHeader("Solving potential using initial value.");
+	SctmMessaging::Get().PrintHeader("Solving potential using initial value.");
 	TwoDimPoissonSolver poisson = TwoDimPoissonSolver(aDomain);
 	//poisson.SolvePotential();
 
-	SctmMessaging::GetInstance().PrintHeader("Testing the drift diffusion solver.");
+	SctmMessaging::Get().PrintHeader("Testing the drift diffusion solver.");
 	DDTest *ddSolver = new DDTest(aDomain);
 
 	int i = 22;
 	while ( i-->0)
 	{
-		SctmTimeStep::GetInstance().GenerateNext();
+		SctmTimeStep::Get().GenerateNext();
 		ddSolver->SolveDD();
 	}
 	//SctmDebug::GetInstance().PrintDomainDetails(*aDomain);
@@ -77,7 +91,7 @@ void DDSolverTest()
 
 void SolverPackTest()
 {
-	SctmMessaging::GetInstance().PrintHeader("Building a simple ONO domain.");
+	SctmMessaging::Get().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = new SimpleONO();
 	aDomain->BuildDomain();
 	SolverPack aPack = SolverPack(aDomain);
@@ -87,13 +101,13 @@ void SolverPackTest()
 void TimeStepTest()
 {
 	Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
-	while (!SctmTimeStep::GetInstance().End())
+	while (!SctmTimeStep::Get().End())
 	{
-		SctmTimeStep::GetInstance().GenerateNext();
-		SctmDebug::GetInstance().PrintValue(SctmTimeStep::GetInstance().StepNumber());
-		SctmDebug::GetInstance().PrintValue(norm.PullTime(SctmTimeStep::GetInstance().TimeStep()));
-		SctmDebug::GetInstance().PrintValue(norm.PullTime(SctmTimeStep::GetInstance().ElapsedTime()));
-		SctmDebug::GetInstance().PrintNewLine();
+		SctmTimeStep::Get().GenerateNext();
+		SctmDebug::Get().PrintValue(SctmTimeStep::Get().StepNumber());
+		SctmDebug::Get().PrintValue(norm.PullTime(SctmTimeStep::Get().TimeStep()));
+		SctmDebug::Get().PrintValue(norm.PullTime(SctmTimeStep::Get().ElapsedTime()));
+		SctmDebug::Get().PrintNewLine();
 	}
 }
 
@@ -113,12 +127,27 @@ void ParaFileTest()
 
 int main(int argc, char* argv[])
 {
-	cout << argv[0] << endl;
-	//initialize();
+	//cout << argv[0] << endl;
+	switch (argc)
+	{
+	case 1:
+		initialize();
+		break;
+	case 2:
+		initialize(argv[1]);
+		break;
+	case 3:
+		initialize(argv[1], argv[2]);
+		break;
+	default:
+		SctmMessaging::Get().PrintHeader("Argument Error");
+		exit(0);
+		break;
+	}
 	//ParaFileTest();
 	//SubsSolverTest();
 	//DomainTest();
-	//SolverPackTest();
+	SolverPackTest();
 	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

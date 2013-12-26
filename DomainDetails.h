@@ -334,7 +334,7 @@ public:
 		:id(_id), Type(_type), Mat(_mat) {}
 
 	FDRegion::TypeName Type; ///< type of the region, in enum RegionType
-	Material * Mat; ///< the material of current region, a pointer to const material
+	Material *Mat; ///< the material of current region, a pointer to const material
 
 	/// @brief AddElement adds element in current region
 	/// 

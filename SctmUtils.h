@@ -65,7 +65,7 @@ namespace SctmUtils
 		/// @return 
 		/// @note
 		SctmTimer(): start_time(0), end_time(0), set_time(0) {}
-		static SctmTimer& GetInstance();
+		static SctmTimer& Get();
 		/// @brief Start is used to start or restart the timer.
 		/// 
 		///
@@ -121,7 +121,7 @@ namespace SctmUtils
 	{
 	public:
 		SctmTimeStep();
-		static SctmTimeStep& GetInstance();
+		static SctmTimeStep& Get();
 		void GenerateNext();
 		double ElapsedTime() const;
 		int StepNumber() const;
@@ -157,7 +157,7 @@ namespace SctmUtils
 		/// @return 
 		/// @note
 		SctmDebug();
-		static SctmDebug& GetInstance();
+		static SctmDebug& Get();
 		/// @brief PrintErrorInfo is used to output message to console with given message.
 		/// 
 		///
@@ -201,7 +201,7 @@ namespace SctmUtils
 	class SctmMessaging
 	{
 	public:
-		static SctmMessaging& GetInstance();
+		static SctmMessaging& Get();
 		void PrintWelcomingInformation();
 		void PrintHeader(const char *header);
 		void PrintTimeElapsed(double time);
@@ -249,7 +249,7 @@ namespace SctmUtils
 	{
 	public:
 		SctmData();
-		static SctmData& GetInstance();
+		static SctmData& Get();
 		void ReadTunnelParamter();
 		void WriteElecCurrDens(vector<FDVertex *> &vertices);
 		void WriteElecDens(vector<FDVertex *> &vertices);
@@ -285,9 +285,12 @@ namespace SctmUtils
 	public:
 		static SctmGlobalControl& Get();
 		SctmGlobalControl();
+		static void SetGlobalControl(string defaultParPath, string prjpath);
 	public:
 		//simulation settings
-		string DefaultParFile;
+		string ProjectDirectory;
+		string UserParFile;
+		string DefaulParFile;
 
 		//simulation parameters
 		double Temperature; ///< temperature of the simulation, in [K]
@@ -317,8 +320,8 @@ namespace SctmUtils
 
 		string TrapCaptureModel;
 	protected:
-		void setGlobalCntrl_Directly();
-		void setGloblaCntrl_FromParFile();
+		static void setGlobalCntrl_Directly();
+		static void setGloblaCntrl_FromParFile();
 	};
 
 
@@ -390,7 +393,7 @@ namespace SctmUtils
 		};
 
 		SctmParameterParser();
-		static SctmParameterParser& GetInstance();
+		static SctmParameterParser& Get();
 		ParamBase *GetPar(ParName name);
 
 	protected:
