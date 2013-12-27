@@ -155,7 +155,7 @@ namespace MaterialDB
 		case MatProperty::Mat_ElecTrapXSection:
 			ret = theMaterial->ElecTrapXSection();
 			break;
-		defaultPara:
+		default:
 			// use SCTM_CHECK for non-existed property
 			SCTM_ASSERT(SCTM_ERROR, 10002);
 		}

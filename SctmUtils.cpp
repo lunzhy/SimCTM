@@ -726,7 +726,7 @@ namespace SctmUtils
 	void SctmTimeStep::generateTimeSequence()
 	{
 		////////// time sequence parameter //////////
-		double startTimeDefault = 1e-15;
+		double startTimeDefault = 1e-12;
 		if (SctmGlobalControl::Get().SimStartTime < startTimeDefault)
 		{
 			startTimeDefault = SctmGlobalControl::Get().SimStartTime;
@@ -1175,13 +1175,13 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::width_value);
 		Get().XLength = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthTunnel
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_height);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_thick);
 		Get().YLengthTunnel = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthTrap
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_height);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_thick);
 		Get().YLengthTrap = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthBlock
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_height);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_thick);
 		Get().YLengthBlock = dynamic_cast<Param<double> *>(parBase)->Value();
 		//XGridNum
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::width_grid);
@@ -1400,11 +1400,11 @@ namespace SctmUtils
 			mapToSet[ParName::width_grid] = par;
 			return;
 		}
-		if (name == "tunnel.height")
+		if (name == "tunnel.thick")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::tunnel_height, valDouble);
-			mapToSet[ParName::tunnel_height] = par;
+			Param<double> *par = new Param<double>(ParName::tunnel_thick, valDouble);
+			mapToSet[ParName::tunnel_thick] = par;
 			return;
 		}
 		if (name == "tunnel.grid")
@@ -1420,11 +1420,11 @@ namespace SctmUtils
 			mapToSet[ParName::tunnel_material] = par;
 			return;
 		}
-		if (name == "trap.height")
+		if (name == "trap.thick")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::trap_height, valDouble);
-			mapToSet[ParName::trap_height] = par;
+			Param<double> *par = new Param<double>(ParName::trap_thick, valDouble);
+			mapToSet[ParName::trap_thick] = par;
 			return;
 		}
 		if (name == "trap.grid")
@@ -1453,11 +1453,11 @@ namespace SctmUtils
 			mapToSet[ParName::trap_uniDensity] = par;
 			return;
 		}
-		if (name == "block.height")
+		if (name == "block.thick")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::block_height, valDouble);
-			mapToSet[ParName::block_height] = par;
+			Param<double> *par = new Param<double>(ParName::block_thick, valDouble);
+			mapToSet[ParName::block_thick] = par;
 			return;
 		}
 		if (name == "block.grid")

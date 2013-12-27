@@ -344,17 +344,17 @@ namespace SctmUtils
 			width_value,
 			width_grid,
 			
-			tunnel_height,
+			tunnel_thick,
 			tunnel_grid,
 			tunnel_material,
 			
-			trap_height,
+			trap_thick,
 			trap_grid,
 			trap_material,
 			trap_captureModel,
 			trap_uniDensity,
 			
-			block_height,
+			block_thick,
 			block_grid,
 			block_material,
 
