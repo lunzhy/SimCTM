@@ -32,13 +32,13 @@ public:
 
 protected:
 	virtual double getSupplyFunction(double energy);
-	double getTransCoeff(double energy); //Transmission coefficient
+	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge); //Transmission coefficient
 	
 	double calcDTFNtunneling();
 	double calcThermalEmission();
 
 	virtual void setSolver_Tunnel(FDVertex *startOrEndVertex) = 0;
-	double solveCurrDens_Tunnel(); //solver the tunneling current when solver is ready
+	double calcCurrDens_Tunnel(); //solver the tunneling current when solver is ready
 
 protected:
 	double temperature;
@@ -71,9 +71,21 @@ public:
 	void SolveTunnel();
 	void ReturnResult(VertexMapDouble &ret);
 protected:
+	//the additional vertex for solving modified Fowler-Nordheim tunneling
+	vector<double> cbEdge_MFN;
+	vector<double> eMass_MFN;
+	vector<double> deltaX_MFN;
+	vector<FDVertex *> verts_MFN;
+	VertexMapDouble eCurrDens_MFN;
+
 	void initialize(); ///< initialize only exists in derived class
 	double getSupplyFunction(double energy);
 	void setSolver_Tunnel(FDVertex *startVertex);
+
+	void setSolver_MFN(FDVertex *startVertex);
+	void calcCurrDens_MFN();
+
+	FDVertex *findTrapVertex_MFN(double energy);
 };
 
 class TrapToGateElecTunnel : public TunnelSolver
