@@ -23,7 +23,7 @@ using namespace SctmUtils;
 
 DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), totalVertices(domain->GetVertices())
 {
-	this->bcMethod = UsingCurrentDensity;
+	this->bcMethod = UsingCurrentDensity; // this is the correct boundary condition method
 	this->useCrankNicolsonMethod = false; // Crank-Nicolson method isn't complete currently.
 	this->useScharfetterGummelMethod = true;
 	this->lastTimeStep = 0;
@@ -60,6 +60,7 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//some of these considerations update the matrix coefficient and some update rhs vector
 	updateCoeffMatrixForTrapping();
 	updateRhsForDetrapping();
+	updateRhsForMFNTunneling();
 
 	//solve the matrix
 	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
@@ -1291,6 +1292,36 @@ void DriftDiffusionSolver::updateRhsForDetrapping()
 		rhs_detrapping = eEmission * eTrappedDens;
 		// the negative sigh symbolizes moving the addend from right to left of the equation.
 		rhsVector.at(equID) += -rhs_detrapping;
+	}
+}
+
+void DriftDiffusionSolver::updateRhsForMFNTunneling()
+{
+	double deltaX = 0;
+	double deltaY = 0;
+
+	double eCurrDens_MFN_X = 0;
+	double eCurrDens_MFN_Y = 0;
+	double rhs_mfn = 0;
+
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	int equID = 0;
+	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
+	{
+		currVert = this->ddVertices.at(iVert);
+		vertID = currVert->GetID();
+		equID = equationMap[vertID];
+
+		getDeltaXYAtVertex(currVert, deltaX, deltaY);
+		eCurrDens_MFN_X = currVert->Phys->GetPhysPrpty(PhysProperty::eCurrDensMFN_X);
+		eCurrDens_MFN_Y = currVert->Phys->GetPhysPrpty(PhysProperty::eCurrDensMFN_Y);
+
+		//if the electron current density is negative, the electrons flow into the vertex
+		rhs_mfn = -(eCurrDens_MFN_X / deltaX + eCurrDens_MFN_Y / deltaY);
+
+		// the negative sigh symbolizes moving the addend from right to left of the equation.
+		rhsVector.at(equID) += -rhs_mfn;
 	}
 }
 

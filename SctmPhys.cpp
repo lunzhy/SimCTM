@@ -48,6 +48,10 @@ namespace SctmPhys
 		controlArea = 0;
 		epsilon = 0;
 
+		tunnelCoeff = 0;
+		e_currdensMFN_X = 0;
+		e_currdensMFN_Y = 0;
+
 		temperature = SctmUtils::SctmGlobalControl::Get().Temperature;
 	}
 
@@ -81,6 +85,12 @@ namespace SctmPhys
 			break;
 		case DielectricConstant:
 			epsilon = prptyValue;
+			break;
+		case eCurrDensMFN_X:
+			e_currdensMFN_X = prptyValue;
+			break;
+		case eCurrDensMFN_Y:
+			e_currdensMFN_Y = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -388,7 +398,7 @@ namespace SctmPhys
 				ret = norm.PushDensity(ret);
 				break;
 			}
-			case PhysProperty::eThermalVelocity:
+			case eThermalVelocity:
 			{
 				double mass = GetPhysPrpty(PhysProperty::eMass) * SctmPhys::m0;
 				double kT = SctmPhys::k0 * GetPhysPrpty(PhysProperty::Temperature);
@@ -402,9 +412,19 @@ namespace SctmPhys
 				ret = norm.PushVelocity(ret);
 				break;
 			}
-			case PhysProperty::Temperature:
+			case Temperature:
 			{
 				ret = temperature;
+				break;
+			}
+			case eCurrDensMFN_X:
+			{
+				ret = e_currdensMFN_X;
+				break;
+			}
+			case eCurrDensMFN_Y:
+			{
+				ret = e_currdensMFN_Y;
 				break;
 			}
 			default:

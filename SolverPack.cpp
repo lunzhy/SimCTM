@@ -113,6 +113,7 @@ void SolverPack::Run()
 
 void SolverPack::fetchTunnelOxideResult()
 {
+	//deal with direct or FN tunneling result
 	//it is critical to clear the map
 	this->mapCurrDensFromTunnelLayer.clear();
 	tunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
@@ -121,6 +122,20 @@ void SolverPack::fetchTunnelOxideResult()
 	{
 		//does not need to change
 		//it->second = it->second;
+	}
+
+	//deal with MFN tunneling result
+	this->mapCurrDensMFN.clear();
+	tunnelOxideSolver->ReturnResult_MFN(mapCurrDensMFN);
+	int vertID = 0;
+	FDVertex *currVert = NULL;
+	double eCurrDens_MFN = 0;
+	for (VertexMapDouble::iterator it = mapCurrDensMFN.begin(); it != mapCurrDensMFN.end(); ++it)
+	{
+		vertID = it->first;
+		currVert = domain->GetVertex(vertID);
+		eCurrDens_MFN = -it->second;
+		currVert->Phys->SetPhysPrpty(PhysProperty::eCurrDensMFN_Y, eCurrDens_MFN);
 	}
 }
 

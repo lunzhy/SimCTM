@@ -29,6 +29,7 @@ public:
 	void ReadInput(VertexMapDouble &fermi);
 	virtual void SolveTunnel() = 0;
 	virtual void ReturnResult(VertexMapDouble &ret) = 0;
+	virtual void ReturnResult_MFN(VertexMapDouble &ret) {};
 
 protected:
 	virtual double getSupplyFunction(double energy);
@@ -37,8 +38,8 @@ protected:
 	double calcDTFNtunneling();
 	double calcThermalEmission();
 
-	virtual void setSolver_Tunnel(FDVertex *startOrEndVertex) = 0;
-	double calcCurrDens_Tunnel(); //solver the tunneling current when solver is ready
+	virtual void setSolver_DTFN(FDVertex *startOrEndVertex) = 0;
+	double calcCurrDens_DTFN(); //solver the tunneling current when solver is ready
 
 protected:
 	double temperature;
@@ -46,6 +47,7 @@ protected:
 	vector<FDVertex *> vertsStart_Tunnel;
 	vector<FDVertex *> vertsEnd_Tunnel;
 
+	//below vectors are not used.
 	vector<FDVertex *> vertsStart_Trap;
 	vector<FDVertex *> vertsEnd_Trap;
 
@@ -54,14 +56,14 @@ protected:
 	vector<double> cbEdge;
 	vector<double> elecMass;
 	vector<double> deltaX;
-	vector<double> eCurrDens_Tunnel; // the sequence is the same with the vertex in verticsTunnelStart
+	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 
 	double cbedgeTunnelFrom; ///< left electrode conduction band edge
 	double cbedgeTunnelTo;
 	double fermiEnergyTunnelFrom;
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
-	double eCurrDens; ///< the tunneling current density, in [A/cm^2]
+	double eCurrDens; ///< the tunneling current density, in [A/m^2]
 };
 
 class SubsToTrapElecTunnel : public TunnelSolver
@@ -70,17 +72,18 @@ public:
 	SubsToTrapElecTunnel(FDDomain *_domain);
 	void SolveTunnel();
 	void ReturnResult(VertexMapDouble &ret);
+	void ReturnResult_MFN(VertexMapDouble &ret);
 protected:
 	//the additional vertex for solving modified Fowler-Nordheim tunneling
-	vector<double> cbEdge_MFN;
-	vector<double> eMass_MFN;
-	vector<double> deltaX_MFN;
-	vector<FDVertex *> verts_MFN;
-	VertexMapDouble eCurrDens_MFN;
+	vector<double> cbEdgeTrap_MFN;
+	vector<double> eMassTrap_MFN;
+	vector<double> deltaXTrap_MFN;
+	vector<FDVertex *> vertsTrap_MFN;
+	VertexMapDouble eCurrDensMap_MFN;
 
 	void initialize(); ///< initialize only exists in derived class
 	double getSupplyFunction(double energy);
-	void setSolver_Tunnel(FDVertex *startVertex);
+	void setSolver_DTFN(FDVertex *startVertex);
 
 	void setSolver_MFN(FDVertex *startVertex);
 	void calcCurrDens_MFN();
@@ -97,7 +100,7 @@ public:
 protected:
 	void initialize();
 	double getSupplyFunction(double energy);
-	void setSolver_Tunnel(FDVertex *endVertex);
+	void setSolver_DTFN(FDVertex *endVertex);
 };
 
 #endif

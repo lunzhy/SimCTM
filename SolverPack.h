@@ -55,9 +55,10 @@ protected:
 private:
 	VertexMapDouble mapChannelPotential; ///< the potential of channel vertices
 	VertexMapDouble mapSiFermiAboveCBedge; ///< for input in the tunneling solver silicon fermi energy - silicon conduction band edge
-	VertexMapDouble mapPotential;
-	VertexMapDouble mapCurrDensFromTunnelLayer;
+	VertexMapDouble mapPotential; ///< map for potential
+	VertexMapDouble mapCurrDensFromTunnelLayer; ///< the tunneling current density across the tunneling layer, for FN/DT tunneling, in [A/cm^2]
 	VertexMapDouble mapCurrDensCoeff; ///< the coefficient to calculate current density for dd solver, in [A*cm]
+	VertexMapDouble mapCurrDensMFN; ///< the current density tunneling into trapping layer (Modified Fowler-Nordheim), in [A/cm^2]
 };
 
 #endif

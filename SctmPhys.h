@@ -24,14 +24,14 @@ class FDDomain;
 
 /// @brief This namespace contains all the physics used in the simulation 
 ///
-/// The common physical parameters are defined here. And other classes and structs related to
+/// The common physical parameters are defined here. And other classes related to
 /// the physics problems are defined here.
 namespace SctmPhys
 {
 	// Physical constant
 	const double ElementaryCharge			= 1.602176487e-19;		// in [C]
 	const double PlanckConstant				= 6.62606896e-34;		// in [J.s]
-	const double BoltzmanConstant			= 1.3806504e-23;		// in [J/K]
+	const double BoltzmanConstant			= 1.3806504e-23;			// in [J/K]
 	const double ElectronMass				= 9.10938215e-31;		// in [kg]
 	const double VacuumDielectricConstant	= 8.854187817e-12;		// in [F/m]
 	const double RoomTemperature			= 300;					// in [K]
@@ -95,11 +95,15 @@ namespace SctmPhys
 			eCurrentDensity_Y, ///< electron current density in Y direction
 			eCurrentDensity, ///< the magnitude of electron current density
 			DielectricConstant,
-			//CAUTION: currently, the tunneling coefficient stores tunneling-out coefficient of the boundary vertex.
-			TunnelCoeff, ///< the tunneling coefficient of this vertex
 			eEffDOS, ///< effective electron density of states, in [cm^-3]
 			eThermalVelocity, ///< electron thermal velocity
 			Temperature, ///< the lattice temperature
+
+			//the physics properties below are properties needed by the solver pack
+			//CAUTION: currently, the tunneling coefficient stores tunneling-out coefficient of the boundary vertex.
+			TunnelCoeff, ///< the tunneling coefficient of this vertex
+			eCurrDensMFN_X, ///< the x-direction value of MFN tunneling current density of inner vertex 
+			eCurrDensMFN_Y, ///< the y-direction value of MFN tunneling current density of inner vertex 
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -165,6 +169,8 @@ namespace SctmPhys
 		double epsilon; ///< dielectric constant
 		double tunnelCoeff; ///< the tunneling coefficient of this vertex
 		double temperature; ///< the lattice temperature of this vertex
+		double e_currdensMFN_X; ///< the x-direction value of MFN tunneling current density of inner vertex
+		double e_currdensMFN_Y; ///< the y-direction value of MFN tunneling current density of inner vertex
 	};
 
 	class TrapProperty
