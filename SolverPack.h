@@ -59,6 +59,7 @@ private:
 	VertexMapDouble mapCurrDensFromTunnelLayer; ///< the tunneling current density across the tunneling layer, for FN/DT tunneling, in [A/cm^2]
 	VertexMapDouble mapCurrDensCoeff; ///< the coefficient to calculate current density for dd solver, in [A*cm]
 	VertexMapDouble mapCurrDensMFN; ///< the current density tunneling into trapping layer (Modified Fowler-Nordheim), in [A/cm^2]
+	VertexMapDouble mapCurrDensB2T; ///< tunneling current density in band-to-trap tunneling
 };
 
 #endif

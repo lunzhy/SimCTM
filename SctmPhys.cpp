@@ -34,6 +34,8 @@ namespace SctmPhys
 
 	PhysProperty::PhysProperty(FDVertex *_vert)
 	{
+		temperature = SctmUtils::SctmGlobalControl::Get().Temperature;
+
 		vertSelf = _vert;
 		bandgap = 0;
 		electrostaticPotential = 0;
@@ -51,8 +53,7 @@ namespace SctmPhys
 		tunnelCoeff = 0;
 		e_currdensMFN_X = 0;
 		e_currdensMFN_Y = 0;
-
-		temperature = SctmUtils::SctmGlobalControl::Get().Temperature;
+		e_subsCurrDens_B2T = 0;
 	}
 
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
@@ -91,6 +92,9 @@ namespace SctmPhys
 			break;
 		case eCurrDensMFN_Y:
 			e_currdensMFN_Y = prptyValue;
+			break;
+		case eCurrDensB2T:
+			e_subsCurrDens_B2T = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -427,6 +431,11 @@ namespace SctmPhys
 				ret = e_currdensMFN_Y;
 				break;
 			}
+			case eCurrDensB2T:
+			{
+				ret = e_subsCurrDens_B2T;
+				break;
+			}
 			default:
 			{
 				// use SCTM_ASSERT for non-existed property
@@ -716,6 +725,15 @@ namespace SctmPhys
 				ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS * 
 					SctmMath::exp( - trapEnergy / kT_div_q);
 				
+				break;
+			}
+			case eCoeff_B2T:
+			{
+				double q = SctmPhys::q;
+				double eCurrDens = vertSelf->Phys->GetPhysPrpty(PhysProperty::eCurrDensB2T);
+				double eXsecion = GetTrapPrpty(eCrossSection);
+ 
+				ret =  eCurrDens * eXsecion / q;
 				break;
 			}
 			case NetCharge:

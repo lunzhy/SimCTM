@@ -124,19 +124,35 @@ void SolverPack::fetchTunnelOxideResult()
 		//it->second = it->second;
 	}
 
+
+	int vertID = 0;
+	FDVertex *vert = NULL;
+
 	//deal with MFN tunneling result
+	//Assign the calculated current density to the specific vertex.
+	double eCurrDens_MFN = 0; // in normalized value, in [A/cm^2]
 	this->mapCurrDensMFN.clear();
 	tunnelOxideSolver->ReturnResult_MFN(mapCurrDensMFN);
-	int vertID = 0;
-	FDVertex *currVert = NULL;
-	double eCurrDens_MFN = 0;
 	for (VertexMapDouble::iterator it = mapCurrDensMFN.begin(); it != mapCurrDensMFN.end(); ++it)
 	{
 		vertID = it->first;
-		currVert = domain->GetVertex(vertID);
+		vert = domain->GetVertex(vertID);
 		eCurrDens_MFN = -it->second;
-		currVert->Phys->SetPhysPrpty(PhysProperty::eCurrDensMFN_Y, eCurrDens_MFN);
+		vert->Phys->SetPhysPrpty(PhysProperty::eCurrDensMFN_Y, eCurrDens_MFN);
 	}
+
+	//deal with band-to-trap tunneling result
+	double eCurrDens_B2T = 0; // in normalized value, in [A/cm^2]
+	this->mapCurrDensB2T.clear();
+	tunnelOxideSolver->ReturnResult_B2T(mapCurrDensB2T);
+	for (VertexMapDouble::iterator it = mapCurrDensB2T.begin(); it != mapCurrDensB2T.end(); ++it)
+	{
+		vertID = it->first;
+		vert = domain->GetVertex(vertID);
+		eCurrDens_B2T = -it->second;
+		vert->Phys->SetPhysPrpty(PhysProperty::eCurrDensB2T, eCurrDens_B2T);
+	}
+
 }
 
 void SolverPack::fetchDDResult()

@@ -101,9 +101,10 @@ namespace SctmPhys
 
 			//the physics properties below are properties needed by the solver pack
 			//CAUTION: currently, the tunneling coefficient stores tunneling-out coefficient of the boundary vertex.
-			TunnelCoeff, ///< the tunneling coefficient of this vertex
+			TunnelCoeff, ///< the tunneling coefficient of this vertex, in [A*cm]
 			eCurrDensMFN_X, ///< the x-direction value of MFN tunneling current density of inner vertex 
-			eCurrDensMFN_Y, ///< the y-direction value of MFN tunneling current density of inner vertex 
+			eCurrDensMFN_Y, ///< the y-direction value of MFN tunneling current density of inner vertex
+			eCurrDensB2T, ///< electron current density from substrate in calculation of band-to-trap tunneling 
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -167,10 +168,13 @@ namespace SctmPhys
 		double e_density; ///< the electron density
 		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
 		double epsilon; ///< dielectric constant
-		double tunnelCoeff; ///< the tunneling coefficient of this vertex
 		double temperature; ///< the lattice temperature of this vertex
+
+		//the physics properties below are properties needed by the solver pack
+		double tunnelCoeff; ///< the tunneling coefficient of this vertex, in [A*cm]
 		double e_currdensMFN_X; ///< the x-direction value of MFN tunneling current density of inner vertex
 		double e_currdensMFN_Y; ///< the y-direction value of MFN tunneling current density of inner vertex
+		double e_subsCurrDens_B2T; ///< band-to-trap electron current density from substrate in the calculation of band-to-trap tunneling
 	};
 
 	class TrapProperty
@@ -188,6 +192,7 @@ namespace SctmPhys
 			eCaptureCoeff_J_Model,
 			eCaptureCoeff_V_Model,
 			eEmissionCoeff_BasicSRH, ///< the electron emission rate of basic SRH process
+			eCoeff_B2T, ///< electron coefficient in band-to-trap tunneling, in [1/s]
 		};
 		TrapProperty(FDVertex *_vert);
 		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;

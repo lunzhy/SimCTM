@@ -50,7 +50,7 @@ double TunnelSolver::getSupplyFunction(double energy)
 	return supply;
 }
 
-double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge)
+double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size /* = 0 */)
 {
 	double tunnelFactor = 1;
 	// The transmission coefficient is proportional to the integral used in the calculation.
@@ -67,7 +67,13 @@ double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector
 
 	//direct tunneling and Fowler-Nordheim tunneling are included.
 	//the international unit (I.U.) is used in calculating TC
-	for (vector<double>::size_type ix = 0; ix != deltax.size(); ++ ix)
+
+	if (size == 0)
+	{
+		size = deltax.size();
+	}
+
+	for (vector<double>::size_type ix = 0; ix != size; ++ ix)
 	{
 		energyDiff = cbedge.at(ix) - energy;
 		if (energyDiff >= 0)
@@ -317,6 +323,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 	vertsEnd.clear();
 	eCurrDens_DTFN.resize(vertsStart.size());
 	eCurrDensMap_MFN.clear();
+	eCurrDensMap_B2T.clear();
 
 	double currdens = 0;
 	for (size_t iVert = 0; iVert != vertsStart.size(); ++iVert)
@@ -330,9 +337,11 @@ void SubsToTrapElecTunnel::SolveTunnel()
 			//no Modified Fowler-Nordheim tunneling happens
 			continue;
 		}
+
 		//TODO: write debug information for MFN
-		setSolver_MFN(vertsStart.at(iVert));
-		calcCurrDens_MFN();
+
+		setSolver_Trap(vertsStart.at(iVert));
+		calcCurrDens_MFN_B2T();
 	}
 }
 
@@ -354,7 +363,7 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 	}
 }
 
-void SubsToTrapElecTunnel::setSolver_MFN(FDVertex *startVertex)
+void SubsToTrapElecTunnel::setSolver_Trap(FDVertex *startVertex)
 {
 	//the tunneling direction is north
 
@@ -375,6 +384,9 @@ void SubsToTrapElecTunnel::setSolver_MFN(FDVertex *startVertex)
 	double deltaX = 0;
 	double deltaY = 0;
 
+	double trapEnergyLevel = 0;
+	double trapDepth = 0;
+
 	while (true)
 	{
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
@@ -394,20 +406,28 @@ void SubsToTrapElecTunnel::setSolver_MFN(FDVertex *startVertex)
 
 	while (true)
 	{
+		if (currVert->Trap == NULL)
+		{
+			break;
+		}
 		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
 		cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+		trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand);
 
 		DriftDiffusionSolver::getDeltaXYAtVertex(currVert, deltaX, deltaY);
 
+		//the tunneling direction is from south to north, in y direction
 		dx = norm.PullLength(deltaY);
 		cbedge = norm.PullEnergy(cbedge);
+		trapEnergyLevel = cbedge - norm.PullEnergy(trapDepth);
 
+		verts_Trap.push_back(currVert);
 		eMass_Trap.push_back(emass);
 		cbEdge_Trap.push_back(cbedge);
 		deltaX_Trap.push_back(dx);
-		verts_Trap.push_back(currVert);
+		eEnergyLevel_Trap.push_back(trapEnergyLevel);
 
-		if (cbedge < cbedgeTunnelFrom || currVert->Trap == NULL)
+		if ((cbedge < cbedgeTunnelFrom && trapEnergyLevel < cbedgeTunnelFrom))
 		{
 			//this is a temporary method to find the last vertex along the tunneling path
 			//break when the iteration meets the end of trapping layer
@@ -416,9 +436,26 @@ void SubsToTrapElecTunnel::setSolver_MFN(FDVertex *startVertex)
 
 		currVert = currVert->NorthVertex;
 	}
+
+	//reset the vectors
+	cbEdge_Total.clear();
+	eMass_Total.clear();
+	deltaX_Total.clear();
+	//
+	cbEdge_Total.reserve(this->cbEdge_Oxide.size() + this->cbEdge_Trap.size());
+	cbEdge_Total.insert(cbEdge_Total.end(), this->cbEdge_Oxide.begin(), this->cbEdge_Oxide.end());
+	cbEdge_Total.insert(cbEdge_Total.end(), this->cbEdge_Trap.begin(), this->cbEdge_Trap.end());
+
+	deltaX_Total.reserve(this->deltaX_Oxide.size() + this->deltaX_Trap.size());
+	deltaX_Total.insert(deltaX_Total.end(), this->deltaX_Oxide.begin(), this->deltaX_Oxide.end());
+	deltaX_Total.insert(deltaX_Total.end(), this->deltaX_Trap.begin(), this->deltaX_Trap.end());
+
+	eMass_Total.reserve(this->eMass_Oxide.size() + this->eMass_Trap.size());
+	eMass_Total.insert(eMass_Total.end(), this->eMass_Oxide.begin(), this->eMass_Oxide.end());
+	eMass_Total.insert(eMass_Total.end(), this->eMass_Trap.begin(), this->eMass_Trap.end());
 }
 
-void SubsToTrapElecTunnel::calcCurrDens_MFN()
+void SubsToTrapElecTunnel::calcCurrDens_MFN_B2T()
 {
 	//the international unit (I.U.) is used in calculating TC
 
@@ -427,7 +464,6 @@ void SubsToTrapElecTunnel::calcCurrDens_MFN()
 
 	//Emin and Emax are processed with q. (divided by q)
 	//Emin and Emax are real values, in [eV]
-
 	double Emin = cbedgeTunnelFrom;
 	double Emax = cbedgeTunnelTo;
 
@@ -437,73 +473,109 @@ void SubsToTrapElecTunnel::calcCurrDens_MFN()
 	double hbar = SctmPhys::hbar;
 	double q = SctmPhys::ElementaryCharge;
 	double dE = SctmPhys::BoltzmanConstant * T / q; // dE = kT/q, here E is normalized using q
+	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
 
 	double TC = 0; // the tunneling coefficient
 	double supply = 0; // the value of supply function
 
 	double currEnergy = Emax;
+	int vertID = 0;
+	int vSize = 0;
 	FDVertex *vertToAssign = NULL;
-
-	vector<double> deltax_mfn;
-	vector<double> emass_mfn;
-	vector<double> cbedge_mfn;
-
-	deltax_mfn.reserve(this->deltaX_Oxide.size() + this->deltaX_Trap.size());
-	deltax_mfn.insert(deltax_mfn.end(), this->deltaX_Oxide.begin(), this->deltaX_Oxide.end());
-	deltax_mfn.insert(deltax_mfn.end(), this->deltaX_Trap.begin(), this->deltaX_Trap.end());
-
-	emass_mfn.reserve(this->eMass_Oxide.size() + this->eMass_Trap.size());
-	emass_mfn.insert(emass_mfn.end(), this->eMass_Oxide.begin(), this->eMass_Oxide.end());
-	emass_mfn.insert(emass_mfn.end(), this->eMass_Trap.begin(), this->eMass_Trap.end());
-
-	cbedge_mfn.reserve(this->cbEdge_Oxide.size() + this->cbEdge_Trap.size());
-	cbedge_mfn.insert(cbedge_mfn.end(), this->cbEdge_Oxide.begin(), this->cbEdge_Oxide.end());
-	cbedge_mfn.insert(cbedge_mfn.end(), this->cbEdge_Trap.begin(), this->cbEdge_Trap.end());
 
 	while (currEnergy >= Emin)
 	{
-		TC = getTransCoeff(currEnergy, deltax_mfn, emass_mfn, cbedge_mfn);
-		supply = getSupplyFunction(currEnergy);
-		//mass is normalized using m0, E is normalized using q
-		eCurrDens = 0.5 / pi / pi * this->effTunnelMass * m0 * q / hbar / hbar / hbar
-			* TC
-			* supply
-			* q * dE;
-
-		vertToAssign = findTrapVertex_MFN(currEnergy);
-		int vertID = 0;
+		//calculate MFN tunneling current
+		vertToAssign = findTrapVertex_MFN(currEnergy, vSize);
 		if (vertToAssign != NULL)
 		{
-			//TODO: assign the calculated current density to this vertex
+			TC = getTransCoeff(currEnergy, deltaX_Total, eMass_Total, cbEdge_Total, vSize);
+			supply = getSupplyFunction(currEnergy);
+			//mass is normalized using m0, E is normalized using q
+			eCurrDens = 0.5 / pi / pi * this->effTunnelMass * m0 * q / hbar / hbar / hbar
+				* TC
+				* supply
+				* q * dE;
+
+			//[A/m^2] -> [A/cm^2]
+			eCurrDens = eCurrDens * per_m2_in_per_cm2;
+
+			//assign the calculated current density to this vertex is done outside this class in SolverPack.
 			vertID = vertToAssign->GetID();
 			eCurrDensMap_MFN[vertID] += eCurrDens;
 		}
+
+		//calculate trap-to-band tunneling
+		vertToAssign = findTrapVertex_B2T(currEnergy, vSize);
+		if (vertToAssign != NULL)
+		{
+			TC = getTransCoeff(currEnergy, deltaX_Total, eMass_Total, cbEdge_Total, vSize);
+			supply = getSupplyFunction(currEnergy);
+			eCurrDens = q * 0.5 / pi / pi * this->effTunnelMass * m0 / hbar / hbar / hbar
+				* TC
+				* supply
+				* q * dE;
+
+			//[A/m^2] -> [A/cm^2]
+			eCurrDens = eCurrDens * per_m2_in_per_cm2;
+			vertID = vertToAssign->GetID();
+			eCurrDensMap_B2T[vertID] += eCurrDens;
+		}
+
 		//calculate the tunneling current of each energy level from max to min
 		currEnergy -= dE;
 	}
 }
 
-FDVertex * SubsToTrapElecTunnel::findTrapVertex_MFN(double energy)
+FDVertex * SubsToTrapElecTunnel::findTrapVertex_MFN(double energy, int &size)
 {
 	for (size_t iVert = 0; iVert != verts_Trap.size(); ++iVert)
 	{
 		if (cbEdge_Trap.at(iVert) <= energy)
 		{
+			//size = index + 1
+			size = cbEdge_Oxide.size() + iVert + 1;
 			return verts_Trap.at(iVert);
 		}
 	}
+	size = 0;
 	return NULL;
 }
 
 void SubsToTrapElecTunnel::ReturnResult_MFN(VertexMapDouble &ret)
 {
-	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
 	double eCurrDens_in_per_cm2 = 0;
 	Normalization norm = Normalization(this->temperature);
 
 	for (VertexMapDouble::iterator it = eCurrDensMap_MFN.begin(); it != eCurrDensMap_MFN.end(); ++it)
 	{
-		eCurrDens_in_per_cm2 = it->second * per_m2_in_per_cm2;
+		eCurrDens_in_per_cm2 = it->second;
+		ret[it->first] = norm.PushCurrDens(eCurrDens_in_per_cm2);
+	}
+}
+
+FDVertex * SubsToTrapElecTunnel::findTrapVertex_B2T(double energy, int &size)
+{
+	for (size_t iVert = 0; iVert != verts_Trap.size(); ++iVert)
+	{
+		if (eEnergyLevel_Trap.at(iVert) <= energy)
+		{
+			//size = index + 1
+			size = cbEdge_Oxide.size() + iVert + 1;
+			return verts_Trap.at(iVert);
+		}
+	}
+	size = 0;
+	return NULL;
+}
+
+void SubsToTrapElecTunnel::ReturnResult_B2T(VertexMapDouble &ret)
+{
+	double eCurrDens_in_per_cm2 = 0;
+	Normalization norm = Normalization(this->temperature);
+	for (VertexMapDouble::iterator it = eCurrDensMap_B2T.begin(); it != eCurrDensMap_B2T.end(); ++it)
+	{
+		eCurrDens_in_per_cm2 = it->second;
 		ret[it->first] = norm.PushCurrDens(eCurrDens_in_per_cm2);
 	}
 }

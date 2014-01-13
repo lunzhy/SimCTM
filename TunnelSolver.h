@@ -21,6 +21,12 @@ class FDVertex;
 using std::vector;
 typedef std::map<int, double> VertexMapDouble; // <vertID, value>, map of vertex physical value
 
+
+/// @brief TunnelSolver is the base class dealing with tunneling mechanism
+///
+/// It should be note that all the variables in TunnelSolver and its derived class are in real value.
+/// They are transformed to real values after being passed into this solver.
+/// And the result after calculation is in U.I.
 class TunnelSolver
 {
 	//friend class SctmUtils::SctmDebug;
@@ -30,10 +36,11 @@ public:
 	virtual void SolveTunnel() = 0;
 	virtual void ReturnResult(VertexMapDouble &ret) = 0;
 	virtual void ReturnResult_MFN(VertexMapDouble &ret) {};
+	virtual void ReturnResult_B2T(VertexMapDouble &ret) {};
 
 protected:
 	virtual double getSupplyFunction(double energy);
-	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge); //Transmission coefficient
+	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size = 0); //Transmission coefficient
 	
 	double calcDTFNtunneling();
 	double calcThermalEmission();
@@ -69,6 +76,7 @@ public:
 	void SolveTunnel();
 	void ReturnResult(VertexMapDouble &ret);
 	void ReturnResult_MFN(VertexMapDouble &ret);
+	void ReturnResult_B2T(VertexMapDouble &ret);
 protected:
 	/// @brief initialize is used to initialize the solver
 	/// 
@@ -83,17 +91,25 @@ protected:
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *startVertex);
 
-	void setSolver_MFN(FDVertex *startVertex);
-	void calcCurrDens_MFN();
+	void setSolver_Trap(FDVertex *startVertex);
+	void calcCurrDens_MFN_B2T();
 
-	FDVertex *findTrapVertex_MFN(double energy);
+	FDVertex *findTrapVertex_MFN(double energy, int &size);
+	FDVertex *findTrapVertex_B2T(double energy, int &size);
 
 	//the additional vertex for solving modified Fowler-Nordheim tunneling
 	vector<double> cbEdge_Trap;
 	vector<double> eMass_Trap;
 	vector<double> deltaX_Trap;
+	vector<double> eEnergyLevel_Trap; ///< trap energy level
 	vector<FDVertex *> verts_Trap;
-	VertexMapDouble eCurrDensMap_MFN;
+
+	vector<double> cbEdge_Total;
+	vector<double> eMass_Total;
+	vector<double> deltaX_Total;
+
+	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
+	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
 };
 
 class TrapToGateElecTunnel : public TunnelSolver

@@ -1318,6 +1318,7 @@ void DriftDiffusionSolver::updateRhsForMFNTunneling()
 		eCurrDens_MFN_Y = currVert->Phys->GetPhysPrpty(PhysProperty::eCurrDensMFN_Y);
 
 		//if the electron current density is negative, the electrons flow into the vertex
+		//TODO: A temporary method is used here, because the sign is related to the current flow direction.
 		rhs_mfn = -(eCurrDens_MFN_X / deltaX + eCurrDens_MFN_Y / deltaY);
 
 		// the negative sigh symbolizes moving the addend from right to left of the equation.

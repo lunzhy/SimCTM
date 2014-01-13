@@ -118,6 +118,8 @@ void TrapSolver::SolveTrap()
 	refreshSolver();
 	setSolverTrapping();
 	setSolverDetrapping_BasicSRH();
+	setSolverBandToTrap();
+
 	solveEachVertex();
 }
 
@@ -172,8 +174,40 @@ void TrapSolver::setSolverDetrapping_BasicSRH()
 		coeff_detrapping = timeStep * eEmission;
 		coeffMap[vertID] += coeff_detrapping;
 
-		//rhs the equation due to detrapping = 0; none effect
+		//rhs of the equation due to detrapping = 0; none effect
 		rhsMap[vertID] += 0;
+	}
+}
+
+void TrapSolver::setSolverBandToTrap()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double timeStep = SctmTimeStep::Get().TimeStep();
+	double coeff_B2T = 0;
+
+	double coeff = 0;
+	double rhs = 0;
+
+	double eTrapDens = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		//if the electron current density is negative, the electrons flow into the vertex
+		//TODO: A temporary method is used here, because the sign is related to the current flow direction.
+		coeff_B2T = - currVert->Trap->GetTrapPrpty(TrapProperty::eCoeff_B2T);
+		
+		//coeff of nt
+		coeff = coeff_B2T * timeStep;
+		coeffMap[vertID] += coeff;
+
+		//rhs of the equation
+		eTrapDens = eTrapDensMap[vertID];
+		rhs = coeff_B2T * timeStep * eTrapDens;
+		rhsMap[vertID] += rhs;
 	}
 }
 
