@@ -42,8 +42,6 @@ class FDDomain
 	friend class DriftDiffusionSolver;
 	friend class SctmPhys::TrapProperty;
 public:
-	
-public:
 	/// @brief BuildDomain builds the specified domain structures, setting vertices, elements and regions.
 	/// 
 	/// This class depends on some virtual classes which are defined in derived class. The detailed implementation 

@@ -38,24 +38,20 @@ protected:
 	double calcDTFNtunneling();
 	double calcThermalEmission();
 
-	virtual void setSolver_DTFN(FDVertex *startOrEndVertex) = 0;
+	//virtual void setSolver_DTFN(FDVertex *startOrEndVertex) = 0;
 	double calcCurrDens_DTFN(); //solver the tunneling current when solver is ready
 
 protected:
 	double temperature;
 	FDDomain *domain;
-	vector<FDVertex *> vertsStart_Tunnel;
-	vector<FDVertex *> vertsEnd_Tunnel;
-
-	//below vectors are not used.
-	vector<FDVertex *> vertsStart_Trap;
-	vector<FDVertex *> vertsEnd_Trap;
+	vector<FDVertex *> vertsStart;
+	vector<FDVertex *> vertsEnd;
 
 	VertexMapDouble fermiAboveMap; // fermi energy - conduction band 
 
-	vector<double> cbEdge;
-	vector<double> elecMass;
-	vector<double> deltaX;
+	vector<double> cbEdge_Oxide;
+	vector<double> eMass_Oxide;
+	vector<double> deltaX_Oxide;
 	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 
 	double cbedgeTunnelFrom; ///< left electrode conduction band edge
@@ -74,14 +70,16 @@ public:
 	void ReturnResult(VertexMapDouble &ret);
 	void ReturnResult_MFN(VertexMapDouble &ret);
 protected:
-	//the additional vertex for solving modified Fowler-Nordheim tunneling
-	vector<double> cbEdgeTrap_MFN;
-	vector<double> eMassTrap_MFN;
-	vector<double> deltaXTrap_MFN;
-	vector<FDVertex *> vertsTrap_MFN;
-	VertexMapDouble eCurrDensMap_MFN;
-
-	void initialize(); ///< initialize only exists in derived class
+	/// @brief initialize is used to initialize the solver
+	/// 
+	/// The initialization of the solver is called once in the initialization of the
+	/// tunnel solver object, so only the properties which stays unchanged during the
+	/// following simulation is processed in this method.
+	/// 
+	/// @pre
+	/// @return void
+	/// @note initialization only exists in derived class.
+	void initialize();
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *startVertex);
 
@@ -89,6 +87,13 @@ protected:
 	void calcCurrDens_MFN();
 
 	FDVertex *findTrapVertex_MFN(double energy);
+
+	//the additional vertex for solving modified Fowler-Nordheim tunneling
+	vector<double> cbEdge_Trap;
+	vector<double> eMass_Trap;
+	vector<double> deltaX_Trap;
+	vector<FDVertex *> verts_Trap;
+	VertexMapDouble eCurrDensMap_MFN;
 };
 
 class TrapToGateElecTunnel : public TunnelSolver

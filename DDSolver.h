@@ -26,6 +26,7 @@ using SctmMath::SctmSparseMatrixSolver;
 
 class DriftDiffusionSolver
 {
+	friend class SubsToTrapElecTunnel;
 	//friend class SctmUtils::SctmDebug;
 	typedef std::map<int, int> VertexMapInt; // <VertID, equationID> store map for equation ID
 	typedef std::map<int, double> VertexMapDouble; // <vertID, property value>, store the map for physical property
@@ -120,7 +121,7 @@ protected:
 	void setTimeStep();
 	void fillBackElecDens();
 	virtual void processBndCond();
-	void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
+	static void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
 	void handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2);
 	void handleCurrDensBC_in(FDVertex *vert, double currdens);
 	void handleCurrDensBC_out(FDVertex *vert, double tunCoeff);
