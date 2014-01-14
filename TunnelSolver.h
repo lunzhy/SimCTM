@@ -92,7 +92,8 @@ protected:
 	void setSolver_DTFN(FDVertex *startVertex);
 
 	void setSolver_Trap(FDVertex *startVertex);
-	void calcCurrDens_MFN_B2T();
+	void calcCurrDens_MFN();
+	void calcCurrDens_B2T();
 
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);

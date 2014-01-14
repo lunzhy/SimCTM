@@ -733,7 +733,7 @@ namespace SctmPhys
 				double eCurrDens = vertSelf->Phys->GetPhysPrpty(PhysProperty::eCurrDensB2T);
 				double eXsecion = GetTrapPrpty(eCrossSection);
  
-				ret =  eCurrDens * eXsecion / q;
+				ret =  eCurrDens * eXsecion;
 				break;
 			}
 			case NetCharge:
