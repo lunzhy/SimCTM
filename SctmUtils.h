@@ -277,6 +277,7 @@ namespace SctmUtils
 		static string DoubleToString(double num, bool useScientific = true, int numAfterPoionts = 3);
 		static double StringToDouble(const string &strVal);
 		static int StringToInt(const string &strVal);
+		static bool StringToBool(const string &strVal);
 	};
 
 
@@ -319,6 +320,7 @@ namespace SctmUtils
 		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
 
 		string TrapCaptureModel;
+		bool PhysicsMFN;
 	protected:
 		static void setGlobalCntrl_Directly();
 		static void setGloblaCntrl_FromParFile();
@@ -357,6 +359,8 @@ namespace SctmUtils
 			block_thick,
 			block_grid,
 			block_material,
+
+			physics_mfn,
 
 			Si_bandgap,
 			Si_dielectricConstant,

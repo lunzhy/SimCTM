@@ -24,6 +24,7 @@
 using SctmPhys::PhysProperty;
 using SctmUtils::SctmFileStream;
 using SctmUtils::Normalization;
+using SctmUtils::SctmGlobalControl;
 
 double TunnelSolver::getSupplyFunction(double energy)
 {
@@ -337,17 +338,20 @@ void SubsToTrapElecTunnel::SolveTunnel()
 		currdens = calcCurrDens_DTFN();
 		eCurrDens_DTFN.at(iVert) = currdens;
 
+		setSolver_Trap(vertsStart.at(iVert));
+
 		if (cbedgeTunnelFrom > cbedgeTunnelTo)
 		{
 			//no Modified Fowler-Nordheim tunneling happens
 			continue;
 		}
-
 		//TODO: write debug information for MFN
 
-		setSolver_Trap(vertsStart.at(iVert));
-		calcCurrDens_MFN();
-
+		if (SctmGlobalControl::Get().PhysicsMFN)
+		{
+			calcCurrDens_MFN();
+		}
+		
 		calcCurrDens_B2T();
 	}
 }

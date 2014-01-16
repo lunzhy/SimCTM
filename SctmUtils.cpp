@@ -1096,10 +1096,27 @@ namespace SctmUtils
 		int ret = 0;
 		if (!(is >> ret))
 		{
-			throw BadParConversion("cannot convert to double(\"" + strVal + "\")");
+			throw BadParConversion("cannot convert to int(\"" + strVal + "\")");
 		}
 		return ret;
 	}
+
+	bool SctmConverter::StringToBool(const string &strVal)
+	{
+		if (strVal == "True")
+		{
+			return true;
+		}
+		else if (strVal == "False")
+		{
+			return false;
+		}
+		else
+		{
+			throw BadParConversion("cannot convert to bool(\"" + strVal + "\")");
+		}
+	}
+
 
 
 
@@ -1219,6 +1236,11 @@ namespace SctmUtils
 		//TrapCaptureModel
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_captureModel);
 		Get().TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
+
+		//PhysicsMFN
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_mfn);
+		bool mfn = dynamic_cast<Param<bool> *>(parBase)->Value();
+		Get().PhysicsMFN = mfn;
 	}
 
 	void SctmGlobalControl::SetGlobalControl(string defaultParPath, string prjpath)
@@ -1329,6 +1351,7 @@ namespace SctmUtils
 		using MaterialDB::Mat;
 		static Mat::Name currMat;
 		double valDouble = 0;
+		bool valBool = false;
 		int valInt = 0;
 
 		if (name == "temperature")
@@ -1473,6 +1496,15 @@ namespace SctmUtils
 			mapToSet[ParName::block_material] = par;
 			return;
 		}
+		if (name == "physics.mfn")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::physics_mfn, valBool);
+			mapToSet[ParName::physics_mfn] = par;
+			return;
+		}
+
+		//parameters for material properties
 		if (name == "material")
 		{
 			currMat = MaterialDB::Mat::Parse(valStr);
