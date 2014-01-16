@@ -14,6 +14,8 @@
 #define _SCTMPHYS_H_
 
 #include <cmath>
+#include <map>
+#include <vector>
 #include "SctmMath.h"
 #include "Material.h"
 #include "DomainDetails.h"
@@ -21,6 +23,8 @@
 //in order to use the pointer of FDVertex in this head file
 class FDVertex;
 class FDDomain;
+
+typedef std::map<MaterialDB::Mat::Name, double> PrptyMap;
 
 /// @brief This namespace contains all the physics used in the simulation 
 ///
@@ -133,7 +137,7 @@ namespace SctmPhys
 		/// @pre
 		/// @return double
 		/// @note
-		double GetPhysPrpty(Name prptyName) const;
+		double GetPhysPrpty(Name prptyName, MaterialDB::Mat::Name matName = MaterialDB::Mat::ErrorMaterial) const;
 		/// @brief FillVertexPhysUsingMatPropty is used to set vertex-based physical value using material-based property
 		/// 
 		/// Vertex-based physical value is set in consideration of four(or less) adjacent elements of the specific vertex.
@@ -146,12 +150,15 @@ namespace SctmPhys
 		/// @pre
 		/// @return void
 		/// @note This method is not checked until now. || Used.
-		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
+		void FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty);
-		void FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
+		void FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys,
 			MaterialDB::MatProperty::Name matPrpty, FDRegion::TypeName rType);
 		void CalculateDensityControlArea();
 		void UpdateValue(Name prptyName, double val);
+		void SetMultiPrpty(PhysProperty::Name vertPhy, MaterialDB::MatProperty::Name matPrpty);
+		bool HasMultiPrpty(PhysProperty::Name prptyName) const;
+		std::vector<MaterialDB::Mat::Name> const& GetRelatedMaterialNames();
 	private:
 		FDVertex *vertSelf; ///< the vertex this physics property belongs to
 		//TODO : initialize these values when constructing the object. Then we can judge the value when they are used.
@@ -175,6 +182,14 @@ namespace SctmPhys
 		double e_currdensMFN_X; ///< the x-direction value of MFN tunneling current density of inner vertex
 		double e_currdensMFN_Y; ///< the y-direction value of MFN tunneling current density of inner vertex
 		double e_subsCurrDens_B2T; ///< band-to-trap electron current density from substrate in the calculation of band-to-trap tunneling
+
+		//the maps below is used to store the properties of vertex that belongs to different materials
+		PrptyMap multiElectronAffinity;
+		PrptyMap multiBandgap;
+		std::vector<MaterialDB::Mat::Name> relatedMatName;
+
+		double getMultiPrptyValue(PhysProperty::Name vertPhy, MaterialDB::Mat::Name matName) const;
+
 	};
 
 	class TrapProperty

@@ -195,7 +195,16 @@ namespace SctmUtils
 			msg = "[Parameter file] Invalid trap capture model.";
 			break;
 		case 10037:
-			msg = "[Parameter file] Default Parameter file does not exist";
+			msg = "[Parameter file] Default Parameter file does not exist.";
+			break;
+		case 10038:
+			msg = "[SctmPhys.cpp] This kind of vertex physics does not have multi properties";
+			break;
+		case 10039:
+			msg = "[SctmPhy.cpp] This material name is not included in the multi properties map.";
+			break;
+		case 10040:
+			msg = "[SctmPhy.cpp] Error occurs when setting multi properties for vertices.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -860,13 +869,32 @@ namespace SctmUtils
 		vector<double> vecVB;
 
 		FDVertex *currVert = NULL;
+		using MaterialDB::Mat;
+		Mat::Name currMatName = Mat::ErrorMaterial;
+
 		for (size_t iVer = 0; iVer != vertices.size(); ++iVer)
 		{
 			currVert = vertices.at(iVer);
-			vecX.push_back(norm.PullLength(currVert->X));
-			vecY.push_back(norm.PullLength(currVert->Y));
-			vecCB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy)));
-			vecVB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy)));
+
+			if (currVert->Phys->HasMultiPrpty(PhysProperty::ConductionBandEnergy))
+			{
+				vector<Mat::Name> mats = currVert->Phys->GetRelatedMaterialNames();
+				for (size_t in = 0; in != mats.size(); ++in)
+				{
+					currMatName = mats.at(in);
+					vecX.push_back(norm.PullLength(currVert->X));
+					vecY.push_back(norm.PullLength(currVert->Y));
+					vecCB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, currMatName)));
+					vecVB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy, currMatName)));
+				}
+			}
+			else
+			{
+				vecX.push_back(norm.PullLength(currVert->X));
+				vecY.push_back(norm.PullLength(currVert->Y));
+				vecCB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy)));
+				vecVB.push_back(norm.PullEnergy(currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy)));
+			}
 		}
 
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
