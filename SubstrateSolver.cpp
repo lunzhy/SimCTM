@@ -30,15 +30,13 @@ void OneDimSubsSolver::initializeSolver()
 	Normalization norm = Normalization(temperature);
 	
 	//////////calculate the equilibrium electron and hole density
-	//double subsDop = norm.PushDensity(SctmGlobalControl::Get().SubstrateDoping);
 	subsDopConc = norm.PushDensity(SctmGlobalControl::Get().SubstrateDoping);
-	//double ni = SctmPhys::IntrinsicConcentration;
 	if ( subsDopConc > 0)
 	{
 		//N-type
 		subsType = NType;
 		eDensEqui = subsDopConc;
-		hDensEqui = 1 / eDensEqui; // ni*ni/subsDop
+		hDensEqui = 1 / eDensEqui; //in normalized value, i.e. in real value, it is ni*ni/subsDop
 	}
 	else
 	{
@@ -102,7 +100,7 @@ double OneDimSubsSolver::solve_NewtonMethod()
 {
 	static double tolerance = 1e-7;
 	static double eps = 1e-50;
-	static int maxIterations = 500;
+	static int maxIterations = 1000;
 
 	double guessSurfPot = 0; // in [V]
 	if (gateVoltage - flatbandVoltage > 0)
@@ -130,7 +128,7 @@ double OneDimSubsSolver::solve_NewtonMethod()
 			// the denominator is too small
 			SCTM_ASSERT(SCTM_ERROR, 10031);
 		}
-		nextRoot = currRoot - func_SurfPot / funcDeriv_SurfPot;
+		nextRoot = currRoot - 0.5 * func_SurfPot / funcDeriv_SurfPot;
 		if (SctmMath::abs((nextRoot - currRoot) / nextRoot) < tolerance)
 		{
 			rootNotFound = false;
