@@ -26,12 +26,12 @@ namespace MaterialDB
 	public:
 		enum Name
 		{
+			ErrorMaterial,
 			Silicon,
 			SiO2,
 			Si3N4,
 			HfO2,
 			Al2O3,
-			ErrorMaterial,
 		};
 		static Mat::Name Parse(const std::string &matStr);
 	};
@@ -85,6 +85,7 @@ namespace MaterialDB
 		/// @return 
 		/// @note
 		Material(Mat::Name _name);
+		Mat::Name MatName() { return name; }
 
 		//The methods below are used to encapsulate the private members of this class.
 		double		DielectricConstant() const;

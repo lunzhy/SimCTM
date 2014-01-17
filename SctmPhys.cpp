@@ -11,7 +11,6 @@
 * @todo
 */
 
-#pragma once
 #include "SctmPhys.h"
 #include "Material.h"
 #include "SctmUtils.h"
@@ -19,6 +18,7 @@
 #include "FDDomain.h"
 #include "Normalization.h"
 #include "SctmMath.h"
+#include <vector>
 
 namespace SctmPhys
 {
@@ -101,7 +101,7 @@ namespace SctmPhys
 		}
 	}
 
-	double PhysProperty::GetPhysPrpty(Name prptyName) const
+	double PhysProperty::GetPhysPrpty(Name prptyName, MaterialDB::Mat::Name matName /* = Mat::ErrorMaterial */) const
 	{
 		static double RefPotential = SctmPhys::ReferencePotential;
 
@@ -121,7 +121,8 @@ namespace SctmPhys
 			{
 				//Ec = -X-q(phi-phiRef)
 				pot = this->electrostaticPotential;
-				affinity = this->electronAffinity;
+				//affinity = this->electronAffinity;
+				affinity = GetPhysPrpty(ElectronAffinity, matName);
 				energy = -affinity - (pot-RefPotential);
 				ret = energy;
 				break;
@@ -129,7 +130,8 @@ namespace SctmPhys
 			case ValenceBandEnergy:
 			{
 				//Ev = Ev-Eg = -X-q(phi-phiRef)-Eg
-				ret =  GetPhysPrpty(ConductionBandEnergy) - bandgap;
+				
+				ret =  GetPhysPrpty(ConductionBandEnergy, matName) - GetPhysPrpty(Bandgap, matName);
 				break;
 			}
 			case eMass:
@@ -144,12 +146,28 @@ namespace SctmPhys
 			}	
 			case ElectronAffinity:
 			{
-				ret = electronAffinity;
+				if (matName == MaterialDB::Mat::ErrorMaterial)
+				{
+					ret = this->electronAffinity;
+				}
+				else
+				{
+					ret = getMultiPrptyValue(ElectronAffinity, matName);
+				}
+				//ret = electronAffinity;
 				break;
 			}
 			case Bandgap:
 			{
-				ret = bandgap;
+				if (matName == MaterialDB::Mat::ErrorMaterial)
+				{
+					ret = this->bandgap;
+				}
+				else
+				{
+					ret = getMultiPrptyValue(Bandgap, matName);
+				}
+				//ret = bandgap;
 				break;
 			}
 			case NetCharge:
@@ -446,17 +464,16 @@ namespace SctmPhys
 		return ret;
 	}
 
-	void PhysProperty::FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys,
+	void PhysProperty::FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys,
 		MaterialDB::MatProperty::Name matPrpty)
 	{
-		//TODO : need to solve the problem of mutual including.
-		//the problem is solved but with some unknowns.
 		double tot = 0; //total area
 		double sum = 0; //sum corresponds to the integral
 		double physValue = 0; //the final physical value related to vertex
 
 		using MaterialDB::GetMatPrpty;
 		FDElement *currElem = NULL;
+
 		currElem = vertSelf->NortheastElem;
 		tot += ( currElem != NULL ) ? currElem->Area : 0;
 		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
@@ -479,7 +496,7 @@ namespace SctmPhys
 		vertSelf->Phys->SetPhysPrpty(vertexPhys, physValue);
 	}		
 
-	void PhysProperty::FillVertexPhysUsingMatPropty(PhysProperty::Name vertexPhys, 
+	void PhysProperty::FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys, 
 		MaterialDB::MatProperty::Name matPrpty, FDRegion::TypeName rType)
 	{
 		//TODO : need to solve the problem of mutual including.
@@ -551,6 +568,134 @@ namespace SctmPhys
 	{
 		//only several properties are updated
 		SetPhysPrpty(prptyName, val);
+	}
+
+	void PhysProperty::SetMultiPrpty(PhysProperty::Name vertPhy, MaterialDB::MatProperty::Name matPrpty)
+	{
+		using namespace MaterialDB;
+		FDElement *currElem = NULL;
+		Mat::Name currMatName = Mat::ErrorMaterial;
+
+		//load all the elements
+		//Set south elements first. This order will determines the order of band data at vertex belonging to different material.
+		//And it will affect data plotting in PySimFig
+		vector<FDElement *> elems;
+		currElem = vertSelf->SouthwestElem;
+		if (currElem != NULL)
+		{
+			elems.push_back(currElem);
+		}
+		currElem = vertSelf->SoutheastElem;
+		if (currElem != NULL)
+		{
+			elems.push_back(currElem);
+		}
+		currElem = vertSelf->NorthwestElem;
+		if (currElem != NULL)
+		{
+			elems.push_back(currElem);
+		}
+		currElem = vertSelf->NortheastElem;
+		if (currElem != NULL)
+		{
+			elems.push_back(currElem);
+		}
+
+		for (size_t iv = 0; iv != elems.size(); ++iv)
+		{
+			currMatName = elems.at(iv)->Region->Mat->MatName();
+
+			//add the material name to related material name
+			if (std::find(relatedMatName.begin(), relatedMatName.end(), currMatName) == relatedMatName.end())
+			{
+				this->relatedMatName.push_back(currMatName);
+			}
+
+			switch (vertPhy)
+			{
+				case PhysProperty::ElectronAffinity:
+				{
+					if (multiElectronAffinity.find(currMatName) == multiElectronAffinity.end())
+					{
+						multiElectronAffinity[currMatName] = GetMatPrpty(MaterialMap(currMatName), matPrpty);
+					}
+					break;
+				}
+				case PhysProperty::Bandgap:
+				{
+					if (multiBandgap.find(currMatName) == multiBandgap.end())
+					{
+						multiBandgap[currMatName] = GetMatPrpty(MaterialMap(currMatName), matPrpty);
+					}
+					break;
+				}
+				default:
+					SCTM_ASSERT(SCTM_ERROR, 10038);
+					break;
+			}
+		}
+	}
+
+	double PhysProperty::getMultiPrptyValue(PhysProperty::Name verPhy, MaterialDB::Mat::Name matName) const
+	{
+		switch (verPhy)
+		{
+			case ElectronAffinity:
+			{
+				if (multiElectronAffinity.find(matName) != multiElectronAffinity.end())
+				{
+					return multiElectronAffinity.at(matName);
+				}
+				else
+				{
+					SCTM_ASSERT(SCTM_ERROR, 10039);
+				}
+				break;
+			}
+			case Bandgap:
+			{
+				if (multiBandgap.find(matName) != multiBandgap.end())
+				{
+					return multiBandgap.at(matName);
+				}
+				else
+				{
+					SCTM_ASSERT(SCTM_ERROR, 10039);
+				}
+				break;
+			}
+			default:
+				SCTM_ASSERT(SCTM_ERROR, 10038);
+				break;
+		}
+		return 0;
+	}
+
+	bool PhysProperty::HasMultiPrpty(PhysProperty::Name prptyName) const
+	{
+		switch (prptyName)
+		{
+			case ElectronAffinity:
+			case ConductionBandEnergy:
+			case ValenceBandEnergy:
+			case Bandgap:
+			{
+				if (!(multiElectronAffinity.size() == multiBandgap.size() &&
+					multiElectronAffinity.size() == relatedMatName.size()))
+				{
+					SCTM_ASSERT(SCTM_ERROR, 10040);
+				}
+				return (relatedMatName.size() != 1);
+				break;
+			}
+			default:
+				return false;
+		}
+	}
+
+	std::vector<MaterialDB::Mat::Name> const& PhysProperty::GetRelatedMaterialNames()
+	{
+		return relatedMatName;
 	}
 
 	void SetPhysConstant()
