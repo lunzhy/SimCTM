@@ -131,7 +131,7 @@ namespace SctmPhys
 			{
 				//Ev = Ev-Eg = -X-q(phi-phiRef)-Eg
 				
-				ret =  GetPhysPrpty(ConductionBandEnergy) - GetPhysPrpty(Bandgap, matName);
+				ret =  GetPhysPrpty(ConductionBandEnergy, matName) - GetPhysPrpty(Bandgap, matName);
 				break;
 			}
 			case eMass:
@@ -577,13 +577,10 @@ namespace SctmPhys
 		Mat::Name currMatName = Mat::ErrorMaterial;
 
 		//load all the elements
+		//Set south elements first. This order will determines the order of band data at vertex belonging to different material.
+		//And it will affect data plotting in PySimFig
 		vector<FDElement *> elems;
-		currElem = vertSelf->NorthwestElem;
-		if (currElem != NULL)
-		{
-			elems.push_back(currElem);
-		}
-		currElem = vertSelf->NortheastElem;
+		currElem = vertSelf->SouthwestElem;
 		if (currElem != NULL)
 		{
 			elems.push_back(currElem);
@@ -593,7 +590,12 @@ namespace SctmPhys
 		{
 			elems.push_back(currElem);
 		}
-		currElem = vertSelf->SouthwestElem;
+		currElem = vertSelf->NorthwestElem;
+		if (currElem != NULL)
+		{
+			elems.push_back(currElem);
+		}
+		currElem = vertSelf->NortheastElem;
 		if (currElem != NULL)
 		{
 			elems.push_back(currElem);
