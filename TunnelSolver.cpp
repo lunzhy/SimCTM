@@ -16,6 +16,7 @@
 #include "SctmUtils.h"
 #include "SctmPhys.h"
 #include "FDDomain.h"
+#include "DomainDetails.h"
 #include "Normalization.h"
 #include "Material.h"
 #include "DDSolver.h"
@@ -89,7 +90,7 @@ double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector
 	return tc;
 }
 
-double TunnelSolver::calcDTFNtunneling()
+double TunnelSolver::calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge)
 {
 	//direct tunneling and Fowler-Nordheim tunneling are included.
 	//the international unit (I.U.) is used in calculating TC
@@ -98,8 +99,9 @@ double TunnelSolver::calcDTFNtunneling()
 	//Emin and Emax are processed with q. (divided by q)
 	double DTFNdensity = 0; // in [A/m^2]
 	//Emin and Emax are real values, in [eV]
+	//TODO: the choice of Emin determines the tunneling direction
 	double Emin = cbedgeTunnelFrom > cbedgeTunnelTo ? cbedgeTunnelFrom : cbedgeTunnelTo; // in normalized value
-	double Emax = cbEdge_Oxide.front();
+	double Emax = cbedge.front();
 
 	double T = this->temperature;
 	double m0 = SctmPhys::ElectronMass;
@@ -114,7 +116,7 @@ double TunnelSolver::calcDTFNtunneling()
 	double currEnergy = Emin;
 	while (currEnergy <= Emax)
 	{
-		TC = getTransCoeff(currEnergy, this->deltaX_Oxide, this->eMass_Oxide, this->cbEdge_Oxide);
+		TC = getTransCoeff(currEnergy, deltaX, emass, cbedge);
 		supply = getSupplyFunction(currEnergy);
 		//mass is normalized using m0, E is normalized using q
 		DTFNdensity += 0.5 / pi / pi * this->effTunnelMass * m0 * q / hbar / hbar / hbar
@@ -128,10 +130,10 @@ double TunnelSolver::calcDTFNtunneling()
 	return eCurrDens;
 }
 
-double TunnelSolver::calcThermalEmission()
+double TunnelSolver::calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge)
 {
 	double TEdensity = 0; // in [A/m^2]
-	double Emin = cbEdge_Oxide.front(); // in [eV]
+	double Emin = cbedge.front(); // in [eV]
 	double Emax = Emin + 5; // only calculate the energy within 5eV large than the smallest energy to surpass the barrier
 
 	double T = this->temperature;
@@ -162,8 +164,9 @@ double TunnelSolver::calcThermalEmission()
 TunnelSolver::TunnelSolver(FDDomain *_domain): domain(_domain)
 {
 	using SctmUtils::SctmGlobalControl;
-	this->eCurrDens = 0;
 	this->temperature = SctmGlobalControl::Get().Temperature;
+	this->eCurrDens = 0;
+	initialize();
 }
 
 void TunnelSolver::ReadInput(VertexMapDouble &fermi)
@@ -171,9 +174,9 @@ void TunnelSolver::ReadInput(VertexMapDouble &fermi)
 	int vertID = 0;
 	double val = 0;
 	FDVertex *vert = NULL;
-	for (size_t iVert = 0; iVert != vertsStart.size(); ++iVert)
+	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
-		vert = vertsStart.at(iVert);
+		vert = vertsTunnelOxideStart.at(iVert);
 		vertID = vert->GetID();
 
 		SCTM_ASSERT(fermi.find(vertID) != fermi.end(), 10020);
@@ -182,94 +185,197 @@ void TunnelSolver::ReadInput(VertexMapDouble &fermi)
 	}
 }
 
-double TunnelSolver::calcCurrDens_DTFN()
+
+void TunnelSolver::loadBandStructure(FDVertex *startVert)
 {
-	double ret = 0;
-	ret = calcDTFNtunneling();
-	ret += calcThermalEmission();
-	return ret;
-}
-
-
-void SubsToTrapElecTunnel::initialize()
-{
-	//the tunneling start vertex is assigned here, because it only depends on the device structure and
-	//maintains unchanged during the following calculation.
-	this->vertsStart.clear();
-	//this->vertsEnd_Trap.clear();
-
-	FDVertex *currVert = NULL;
-	for (size_t iVert = 0; iVert != this->domain->GetVertices().size(); ++iVert)
-	{
-		//the sequence in the vertices vector is its corresponding vertex index
-		currVert = this->domain->GetVertex(iVert);
-		if ( (currVert->IsAtContact()) && (currVert->Contact->ContactName == "Channel") )
-		{
-			vertsStart.push_back(currVert);
-			//vertsEnd_Trap.push_back(currVert);
-		}
-	}
-	//set the effective tunneling mass
-	using namespace MaterialDB;
-	//the material for substrate is silicon
-	double effSiMass = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronMass);
-	this->effTunnelMass = effSiMass; // the effective electron mass, in [m0]
-}
-
-void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
-{
-	//reset the vectors used in the calculation
+	//clear and reset all the vectors
 	cbEdge_Oxide.clear();
 	eMass_Oxide.clear();
 	deltaX_Oxide.clear();
-	//
+
+	cbEdge_Trap.clear();
+	eMass_Trap.clear();
+	deltaX_Trap.clear();
+	eEnergyLevel_Trap.clear();
+	verts_Trap.clear();
+
+	cbEdge_Block.clear();
+	eMass_Block.clear();
+	deltaX_Block.clear();
+
 	// IMPORTANT! the parameters are in normalization values. They are converted before the calculation. (Not here) !
 	// CAUTION! the tunneling direction is north
 	Normalization norm = Normalization(this->temperature);
 	double dx = 0;
 	double emass = 0;
 	double cbedge = 0;
-	FDVertex *currVert = startVertex;
-	
-	while(true)
-	{
-		//for boundary vertex, the south length equals to 0
-		//CAUTION: the following process is case-dependent.
-		//                 x--------x---------x
-		//            tunneling interface trapping
-		//special treatment has been considered at the interface
+	double trapEnergyLevel = 0;
+	double trapDepth = 0;
+	FDVertex *currVert = startVert;
 
+	using namespace MaterialDB;
+	static Mat::Name tunnelMat = domain->GetRegion(FDRegion::Tunneling)->Mat->MatName();
+	static Mat::Name trapMat = domain->GetRegion(FDRegion::Trapping)->Mat->MatName();
+	static Mat::Name blockMat = domain->GetRegion(FDRegion::Blocking)->Mat->MatName();
+
+	//for boundary vertex, the south length equals to 0
+	//CAUTION: the following process is case-dependent. (south --> north)
+	//                 x--------x---------x
+	//            tunneling interface trapping
+	//special treatment has been considered at the interface
+
+	//set the tunneling oxide
+	while (true)
+	{
 		//finish the including process when the vertex is at the trapping boundary
 		//for boundary vertex of trapping layer, it always at the boundary of eDensity
+
+		//load dx
+		dx = 0;
+		if (currVert->SouthVertex != NULL)
+		{
+			dx += currVert->SouthLength / 2;
+		}
+		if (currVert->Trap == NULL)
+		{
+			dx += currVert->NorthLength / 2;
+		}
+		dx = norm.PullLength(dx);
+
+		//load cbedge
+		if (currVert->Trap == NULL)
+		{
+			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+		}
+		else
+		{
+			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, tunnelMat);
+		}
+		cbedge = norm.PullEnergy(cbedge);
+
+		//load emass
+		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
+
+		deltaX_Oxide.push_back(dx);
+		cbEdge_Oxide.push_back(cbedge);
+		eMass_Oxide.push_back(emass);
+
+		//check if current vertex is the ending vertex for tunneling layer
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
-			vertsEnd.push_back(currVert);
+			vertsTunnelOxideEnd.push_back(currVert);
 			//this tag is important in drift-diffusion solver.
 			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
 			break;
 		}
+		currVert = currVert->NorthVertex;
+	}
 
-		if (currVert->NorthVertex->IsAtBoundary(FDBoundary::eDensity))
+	//set the trapping layer
+	double dy = 0;
+	while (currVert->Trap != NULL)
+	{
+		//load dx
+		DriftDiffusionSolver::getDeltaXYAtVertex(currVert, dx, dy);
+		dx = norm.PullLength(dy); //dy means the tunneling direction is south to north
+
+		//load cbedge
+		if (!currVert->Phys->HasMultiPrpty(PhysProperty::ConductionBandEnergy))
 		{
-			dx = currVert->SouthLength / 2 + currVert->NorthLength;
+			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
 		}
 		else
 		{
-			dx = currVert->SouthLength / 2 + currVert->NorthLength / 2;
+			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, trapMat);
 		}
-		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
-		cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
-		
-		dx = norm.PullLength(dx);
 		cbedge = norm.PullEnergy(cbedge);
 
-		this->deltaX_Oxide.push_back(dx);
-		this->eMass_Oxide.push_back(emass);
-		this->cbEdge_Oxide.push_back(cbedge);
+		//load emass
+		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
 
-		currVert = currVert->NorthVertex; // to run the iteration
+		//load trap energy level
+		trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+		trapEnergyLevel = cbedge - norm.PullEnergy(trapDepth);
+
+		cbEdge_Trap.push_back(cbedge);
+		deltaX_Trap.push_back(dx);
+		eMass_Trap.push_back(emass);
+		eEnergyLevel_Trap.push_back(trapEnergyLevel);
+		verts_Trap.push_back(currVert);
+
+		currVert = currVert->NorthVertex;
 	}
-	//CAUTION this is a temporary method
+	currVert = currVert->SouthVertex; // compensate the last statement in while loop
+
+	//set the blocking oxide
+	vertsBlockOxideStart.push_back(currVert);
+	while (true)
+	{
+		//load dx
+		dx = 0;
+		if (currVert->Trap == NULL)
+		{
+			dx += currVert->SouthLength / 2;
+		}
+		if (currVert->NorthVertex != NULL)
+		{
+			dx += currVert->NorthLength / 2;
+		}
+		dx = norm.PullLength(dx);
+
+		//load cbedge
+		if (currVert->Trap == NULL)
+		{
+			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+		}
+		else
+		{
+			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, blockMat);
+		}
+		cbedge = norm.PullEnergy(cbedge);
+
+		//load emass
+		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
+
+		deltaX_Block.push_back(dx);
+		cbEdge_Block.push_back(cbedge);
+		eMass_Block.push_back(emass);
+
+		if (currVert->IsAtContact()) //the gate contact
+		{
+			vertsBlockOxideEnd.push_back(currVert);
+			break;
+		}
+		currVert = currVert->NorthVertex;
+	}
+}
+
+void TunnelSolver::initialize()
+{
+	//the tunneling start vertex is assigned here, because it only depends on the device structure and
+	//maintains unchanged during the following calculation.
+	this->vertsTunnelOxideStart.clear();
+	this->vertsTunnelOxideEnd.clear();
+	this->vertsBlockOxideStart.clear();
+	this->vertsBlockOxideEnd.clear();
+	//the order of vertices in these for vectors are in correspondence with each other.
+
+	FDVertex *currVert = NULL;
+
+	vector<FDVertex *> channelVerts = this->domain->GetContact("Channel")->GetContactVerts();
+	for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
+	{
+		currVert = channelVerts.at(iVert);
+		//the start vertices of tunneling oxide (channel vertices) are needed to fill the other three vectors.
+		vertsTunnelOxideStart.push_back(currVert);
+	}
+}
+
+
+void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
+{
+	Normalization norm = Normalization(this->temperature);
+
 	//set the silicon band edge, because the difference is fixed
 	//all values of band edge are in real value, so pulling is needed.
 	using namespace MaterialDB;
@@ -280,15 +386,7 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 	cbedgeTunnelFrom = cbEdge_Oxide.front() - barrier;
 
 	//set the conduction band edge in the trapping layer where the tunneling ends.
-	barrier = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronAffinity)
-		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
-	barrier = norm.PullEnergy(barrier);
-	cbedgeTunnelTo = cbEdge_Oxide.back() - barrier;
-
-	//new method
-	//currVert = currVert->NorthVertex;
-	//cbedgeTunnelTo = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
-	//cbedgeTunnelTo = norm.PullEnergy(cbedgeTunnelTo);
+	cbedgeTunnelTo = cbEdge_Trap.front();
 	
 	//set the fermi energy of the tunneling-in vertex
 	//Pulling of the parameters is done here, because TunnelSolver uses real value internally
@@ -298,7 +396,11 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 
 SubsToTrapElecTunnel::SubsToTrapElecTunnel(FDDomain *_domain): TunnelSolver(_domain)
 {
-	initialize();
+	//set the effective tunneling mass
+	using namespace MaterialDB;
+	//the material for substrate is silicon
+	double effSiMass = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronMass);
+	this->effTunnelMass = effSiMass; // the effective electron mass, in [m0]
 }
 
 double SubsToTrapElecTunnel::getSupplyFunction(double energy)
@@ -325,20 +427,31 @@ double SubsToTrapElecTunnel::getSupplyFunction(double energy)
 
 void SubsToTrapElecTunnel::SolveTunnel()
 {
+	//the following containers are filled when loading band structure, so they are cleared at the beginning of
+	//a new turn to solve tunnel problems.
+	//Only vertsTunnelOxideStart exists.
+	vertsTunnelOxideEnd.clear();
+	vertsBlockOxideStart.clear();
+	vertsBlockOxideEnd.clear();
+
 	//clear the results of last calculation
-	vertsEnd.clear();
-	eCurrDens_DTFN.resize(vertsStart.size());
+	eCurrDens_DTFN.resize(vertsTunnelOxideStart.size());
 	eCurrDensMap_MFN.clear();
 	eCurrDensMap_B2T.clear();
 
 	double currdens = 0;
-	for (size_t iVert = 0; iVert != vertsStart.size(); ++iVert)
+	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
-		setSolver_DTFN(vertsStart.at(iVert));
-		currdens = calcCurrDens_DTFN();
+		loadBandStructure(vertsTunnelOxideStart.at(iVert));
+		setTunnelTag();
+
+		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
+
+		currdens = calcDTFNtunneling(deltaX_Oxide, eMass_Oxide, cbEdge_Oxide);
+		currdens += calcThermalEmission(deltaX_Oxide, eMass_Oxide, cbEdge_Oxide);
 		eCurrDens_DTFN.at(iVert) = currdens;
 
-		setSolver_Trap(vertsStart.at(iVert));
+		setSolver_Trap(vertsTunnelOxideStart.at(iVert));
 
 		if (cbedgeTunnelFrom > cbedgeTunnelTo)
 		{
@@ -349,10 +462,10 @@ void SubsToTrapElecTunnel::SolveTunnel()
 
 		if (SctmGlobalControl::Get().PhysicsMFN)
 		{
-			calcCurrDens_MFN();
+			//calcCurrDens_MFN();
 		}
 		
-		calcCurrDens_B2T();
+		//calcCurrDens_B2T();
 	}
 }
 
@@ -364,9 +477,10 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
 
 	Normalization norm = Normalization(this->temperature);
-	for (size_t iVert = 0; iVert != vertsEnd.size(); ++iVert)
+	for (size_t iVert = 0; iVert != vertsTunnelOxideEnd.size(); ++iVert)
 	{
-		currVert = vertsEnd.at(iVert);
+		//currVert = vertsEnd.at(iVert);
+		currVert = vertsTunnelOxideEnd.at(iVert);
 		vertID = currVert->GetID();
 		//currently the eCurrDens_Tunnel saves the current density, which is in A/m2
 		currDens = eCurrDens_DTFN.at(iVert) * per_m2_in_per_cm2;
@@ -376,100 +490,6 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 
 void SubsToTrapElecTunnel::setSolver_Trap(FDVertex *startVertex)
 {
-	//the tunneling direction is north
-
-	//reset the vectors used in the calculation
-	cbEdge_Trap.clear();
-	eMass_Trap.clear();
-	deltaX_Trap.clear();
-	verts_Trap.clear();
-	eEnergyLevel_Trap.clear();
-	//
-
-	//cbedgeTunnelTo has to be set before this method, i.e. setSolver_Tunnel is called.
-	Normalization norm = Normalization(this->temperature);
-	double dx = 0;
-	double emass = 0;
-	double cbedge = 0;
-	FDVertex *currVert = startVertex;
-
-	double deltaX = 0;
-	double deltaY = 0;
-
-	double trapEnergyLevel = 0;
-	double trapDepth = 0;
-
-	while (true)
-	{
-		if (currVert->IsAtBoundary(FDBoundary::eDensity))
-		{
-			break;
-		}
-		currVert = currVert->NorthVertex;
-	}
-	//currVert points to the vertex at trapping layer boundary now
-
-	//cbedge = cbedgeTunnelTo; //the cbedge of first vertex along the trapping layer
-	//emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
-	//dx = norm.PullLength(deltaY);
-	
-	//move to next vertex in the trapping layer
-	//currVert = currVert->NorthVertex;
-
-	
-	emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
-	cbedge = cbedgeTunnelTo;
-	trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand);
-
-	DriftDiffusionSolver::getDeltaXYAtVertex(currVert, deltaX, deltaY);
-	
-	//the tunneling direction is from south to north, in y direction
-	dx = norm.PullLength(deltaY);
-	cbedge = norm.PullEnergy(cbedge);
-	trapEnergyLevel = cbedge - norm.PullEnergy(trapDepth);
-
-	verts_Trap.push_back(currVert);
-	eMass_Trap.push_back(emass);
-	cbEdge_Trap.push_back(cbedge);
-	deltaX_Trap.push_back(dx);
-	eEnergyLevel_Trap.push_back(trapEnergyLevel);
-
-	currVert = currVert->NorthVertex;
-	
-
-	while (true)
-	{
-		if (currVert->Trap == NULL)
-		{
-			break;
-		}
-		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
-		cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
-		trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand);
-
-		DriftDiffusionSolver::getDeltaXYAtVertex(currVert, deltaX, deltaY);
-
-		//the tunneling direction is from south to north, in y direction
-		dx = norm.PullLength(deltaY);
-		cbedge = norm.PullEnergy(cbedge);
-		trapEnergyLevel = cbedge - norm.PullEnergy(trapDepth);
-
-		verts_Trap.push_back(currVert);
-		eMass_Trap.push_back(emass);
-		cbEdge_Trap.push_back(cbedge);
-		deltaX_Trap.push_back(dx);
-		eEnergyLevel_Trap.push_back(trapEnergyLevel);
-
-		if ((cbedge < cbedgeTunnelFrom && trapEnergyLevel < cbedgeTunnelFrom))
-		{
-			//this is a temporary method to find the last vertex along the tunneling path
-			//break when the iteration meets the end of trapping layer
-			break;
-		}
-
-		currVert = currVert->NorthVertex;
-	}
-
 	//reset the vectors
 	cbEdge_Total.clear();
 	eMass_Total.clear();
@@ -646,10 +666,29 @@ void SubsToTrapElecTunnel::calcCurrDens_B2T()
 	}
 }
 
+void SubsToTrapElecTunnel::setTunnelTag()
+{
+	double elecField = 0;
+	FDVertex *currVert = NULL;
+	for (size_t iVert = 0; iVert != vertsTunnelOxideEnd.size(); ++iVert)
+	{
+		currVert = vertsTunnelOxideEnd.at(iVert);
+		//TODO: this is a temporary method to set the tunnel tags for vertices at interface.
+		elecField = currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y);
+		if (elecField < 0)
+		{
+			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
+		}
+	}
+}
+
 
 TrapToGateElecTunnel::TrapToGateElecTunnel(FDDomain *_domain): TunnelSolver(_domain)
 {
-	initialize();
+	//set the effective tunneling mass
+	using namespace MaterialDB;
+	double effMass = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronMass);
+	this->effTunnelMass = effMass; // the effective electron mass, in [m0]
 }
 
 double TrapToGateElecTunnel::getSupplyFunction(double energy)
@@ -677,91 +716,11 @@ double TrapToGateElecTunnel::getSupplyFunction(double energy)
 	return ret;
 }
 
-void TrapToGateElecTunnel::initialize()
-{
-	vertsEnd.clear();
-
-	FDVertex *currVert = NULL;
-	for (size_t iVert = 0; iVert != this->domain->GetVertices().size(); ++iVert)
-	{
-		//the sequence in the vertices vector is its corresponding vertex index
-		currVert = this->domain->GetVertex(iVert);
-		if (currVert->IsAtContact() && currVert->Contact->ContactName == "Gate")
-		{
-			vertsEnd.push_back(currVert);
-			//vertsEnd_Trap.push_back(currVert);
-		}
-	}
-	//set the effective tunneling mass
-	//TODO: this should be obtained from user input
-	using namespace MaterialDB;
-	double effMass = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronMass);
-	this->effTunnelMass = effMass; // the effective electron mass, in [m0]
-}
 
 void TrapToGateElecTunnel::setSolver_DTFN(FDVertex *endVertex)
 {
-	//reset the vectors used in the calculation
-	cbEdge_Oxide.clear();
-	eMass_Oxide.clear();
-	deltaX_Oxide.clear();
-	//
-	// IMPORTANT! the parameters are in normalization values. They are converted before the calculation. (Not here) !
-	// the tunneling direction is north, but the vertex find direction is south
-	Normalization norm = Normalization(this->temperature);
-	double dx = 0;
-	double emass = 0;
-	double cbedge = 0;
-	FDVertex *currVert = endVertex;
+	cbedgeTunnelFrom = cbEdge_Trap.back();
 
-	while(true)
-	{
-		//for boundary vertex, the north length equals to 0
-		//CAUTION: the following process is case-dependent.
-		//                 x----------x----------x
-		//              trapping  interface   blocking
-		//special treatment has been considered at the interface
-
-		//finish the including process when the vertex is at the trapping boundary
-		if (currVert->IsAtBoundary(FDBoundary::eDensity))
-		{
-			vertsStart.push_back(currVert);
-			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
-			break;
-		}
-
-		if (currVert->SouthVertex->IsAtBoundary(FDBoundary::eDensity))
-		{
-			dx = currVert->SouthLength + currVert->NorthLength / 2;
-		}
-		else
-		{
-			dx = currVert->SouthLength / 2 + currVert->NorthLength / 2;
-		}
-		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
-		cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
-
-		dx = norm.PullLength(dx);
-		cbedge = norm.PullEnergy(cbedge);
-
-		this->deltaX_Oxide.push_back(dx);
-		this->eMass_Oxide.push_back(emass);
-		this->cbEdge_Oxide.push_back(cbedge);
-
-		currVert = currVert->SouthVertex; // to run the iteration
-	}
-
-	std::reverse(deltaX_Oxide.begin(), deltaX_Oxide.end());
-	std::reverse(eMass_Oxide.begin(), eMass_Oxide.end());
-	std::reverse(cbEdge_Oxide.begin(), cbEdge_Oxide.end());
-
-	//CAUTION this is a temporary method
-	using namespace MaterialDB;
-	double barrier = 0;
-	barrier = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronAffinity)
-		- GetMatPrpty(domain->GetRegion(FDRegion::Blocking)->Mat, MatProperty::Mat_ElectronAffinity);
-	barrier = norm.PullEnergy(barrier);
-	cbedgeTunnelFrom = cbEdge_Oxide.front() - barrier;
 
 	//TODO: read this from simulation configuration
 	//band energy of metal contact, equals to minus applied voltage.
@@ -774,14 +733,27 @@ void TrapToGateElecTunnel::setSolver_DTFN(FDVertex *endVertex)
 
 void TrapToGateElecTunnel::SolveTunnel()
 {
-	eCurrDens_DTFN.resize(vertsEnd.size());
-	vertsStart.clear();
+	//the following containers are filled when loading band structure, so they are cleared at the beginning of
+	//a new turn to solve tunnel problems.
+	//Only vertsTunnelOxideStart exists.
+	vertsTunnelOxideEnd.clear();
+	vertsBlockOxideStart.clear();
+	vertsBlockOxideEnd.clear();
+
+	//clear the results of last calculation
+	eCurrDens_DTFN.resize(vertsTunnelOxideStart.size());
+	eCurrDensMap_T2B.clear();
 
 	double currdens = 0;
-	for (size_t iVert = 0; iVert != vertsEnd.size(); ++iVert)
+	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
-		setSolver_DTFN(vertsEnd.at(iVert));
-		currdens = calcCurrDens_DTFN();
+		loadBandStructure(vertsTunnelOxideStart.at(iVert));
+		setTunnelTag();
+
+		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
+
+		currdens = calcDTFNtunneling(deltaX_Block, eMass_Block, cbEdge_Block);
+		currdens += calcThermalEmission(deltaX_Block, eMass_Block, cbEdge_Block);
 		eCurrDens_DTFN.at(iVert) = currdens;
 	}
 }
@@ -794,14 +766,31 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 	double cm_in_m = SctmPhys::cm_in_m;
 
 	Normalization norm = Normalization(this->temperature);
-	for (size_t iVert = 0; iVert != vertsEnd.size(); ++iVert)
+	for (size_t iVert = 0; iVert != vertsBlockOxideStart.size(); ++iVert)
 	{
-		currVert = vertsStart.at(iVert);
+		//currVert = vertsStart.at(iVert);
+		currVert = vertsBlockOxideStart.at(iVert);
 		vertID = currVert->GetID();
 		//currently the eCurrDens_Tunnel stores the coefficient to calculate current density
 		//the calculated coefficient has a dimension of A*m, and should be converted to A*cm
 		//this value[A*cm] * eDensity[cm^-3] = current density[A/cm^2]
 		tunCoeff = eCurrDens_DTFN.at(iVert) / cm_in_m;
 		ret[vertID] = norm.PushTunCoeff(tunCoeff);
+	}
+}
+
+void TrapToGateElecTunnel::setTunnelTag()
+{
+	double elecField = 0;
+	FDVertex *currVert = NULL;
+	for (size_t iVert = 0; iVert != vertsBlockOxideStart.size(); ++iVert)
+	{
+		currVert = vertsBlockOxideStart.at(iVert);
+		//TODO: this is a temporary method to set the tunnel tags for vertices at interface.
+		elecField = currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y);
+		if (elecField < 0)
+		{
+			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
+		}
 	}
 }

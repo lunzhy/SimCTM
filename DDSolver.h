@@ -26,6 +26,7 @@ using SctmMath::SctmSparseMatrixSolver;
 
 class DriftDiffusionSolver
 {
+	friend class TunnelSolver;
 	friend class SubsToTrapElecTunnel;
 	//friend class SctmUtils::SctmDebug;
 	typedef std::map<int, int> VertexMapInt; // <VertID, equationID> store map for equation ID

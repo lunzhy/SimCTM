@@ -39,14 +39,28 @@ public:
 	virtual void ReturnResult_B2T(VertexMapDouble &ret) {};
 
 protected:
+	/// @brief initialize is used to initialize the solver
+	/// 
+	/// The initialization of the solver is called once in the initialization of the
+	/// tunnel solver (base class) object, so only the properties which stays unchanged 
+	/// during the following simulation is processed in this method.
+	/// Initialization is used to find the starting vertices for tunneling, i.e., the 
+	/// vertices at substrate. The other corresponding vertices is set when loading
+	/// the band structures.
+	///
+	/// @pre
+	/// @return void
+	/// @note initialization is done in the base solver, so for each specific tunnel solver,
+	/// the method to find tunneling start/end vertices are the same. That means vertices at
+	/// channel and gate must appear in pairs.
+	void initialize();
 	virtual double getSupplyFunction(double energy);
 	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size = 0); //Transmission coefficient
 	
-	double calcDTFNtunneling();
-	double calcThermalEmission();
+	double calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
+	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
 
-	//virtual void setSolver_DTFN(FDVertex *startOrEndVertex) = 0;
-	double calcCurrDens_DTFN(); //solver the tunneling current when solver is ready
+	void loadBandStructure(FDVertex *startVert);
 
 protected:
 	double temperature;
@@ -54,11 +68,29 @@ protected:
 	vector<FDVertex *> vertsStart;
 	vector<FDVertex *> vertsEnd;
 
+	vector<FDVertex *> vertsTunnelOxideStart;
+	vector<FDVertex *> vertsTunnelOxideEnd;
+	vector<FDVertex *> vertsBlockOxideStart;
+	vector<FDVertex *> vertsBlockOxideEnd;
+
 	VertexMapDouble fermiAboveMap; // fermi energy - conduction band 
 
 	vector<double> cbEdge_Oxide;
 	vector<double> eMass_Oxide;
 	vector<double> deltaX_Oxide;
+
+	//the additional vertex for solving modified Fowler-Nordheim tunneling
+	vector<double> cbEdge_Trap;
+	vector<double> eMass_Trap;
+	vector<double> deltaX_Trap;
+	vector<double> eEnergyLevel_Trap; ///< trap energy level
+	vector<FDVertex *> verts_Trap;
+
+
+	vector<double> cbEdge_Block;
+	vector<double> eMass_Block;
+	vector<double> deltaX_Block;
+
 	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 
 	double cbedgeTunnelFrom; ///< left electrode conduction band edge
@@ -78,32 +110,23 @@ public:
 	void ReturnResult_MFN(VertexMapDouble &ret);
 	void ReturnResult_B2T(VertexMapDouble &ret);
 protected:
-	/// @brief initialize is used to initialize the solver
-	/// 
-	/// The initialization of the solver is called once in the initialization of the
-	/// tunnel solver object, so only the properties which stays unchanged during the
-	/// following simulation is processed in this method.
-	/// 
-	/// @pre
-	/// @return void
-	/// @note initialization only exists in derived class.
-	void initialize();
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *startVertex);
-
+	/// @brief setSolver_Trap is used to set the vectors for solving mechanisms including trapping layer.
+	/// 
+	/// Setting solver of trapping layer is the preparation for solve MFN and B2T tunneling problems.
+	/// 
+	/// @param FDVertex * startVertex
+	/// @pre
+	/// @return void
+	/// @note
 	void setSolver_Trap(FDVertex *startVertex);
+	void setTunnelTag();
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
 
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);
-
-	//the additional vertex for solving modified Fowler-Nordheim tunneling
-	vector<double> cbEdge_Trap;
-	vector<double> eMass_Trap;
-	vector<double> deltaX_Trap;
-	vector<double> eEnergyLevel_Trap; ///< trap energy level
-	vector<FDVertex *> verts_Trap;
 
 	vector<double> cbEdge_Total;
 	vector<double> eMass_Total;
@@ -120,9 +143,11 @@ public:
 	void SolveTunnel();
 	void ReturnResult(VertexMapDouble &ret);
 protected:
-	void initialize();
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *endVertex);
+	void setTunnelTag();
+
+	vector<double> eCurrDensMap_T2B;
 };
 
 #endif
