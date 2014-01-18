@@ -52,7 +52,7 @@ double TunnelSolver::getSupplyFunction(double energy)
 	return supply;
 }
 
-double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size /* = 0 */)
+double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size /* = 0 */, int startindex /* = 0 */)
 {
 	double tunnelFactor = 1;
 	// The transmission coefficient is proportional to the integral used in the calculation.
@@ -75,7 +75,7 @@ double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector
 		size = deltax.size();
 	}
 
-	for (vector<double>::size_type ix = 0; ix != size; ++ ix)
+	for (vector<double>::size_type ix = startindex; ix != size; ++ ix)
 	{
 		energyDiff = cbedge.at(ix) - energy;
 		if (energyDiff >= 0)
@@ -451,7 +451,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 		currdens += calcThermalEmission(deltaX_Tunnel, eMass_Tunnel, cbEdge_Tunnel);
 		eCurrDens_DTFN.at(iVert) = currdens;
 
-		setSolver_Trap(vertsTunnelOxideStart.at(iVert));
+		setSolver_Trap();
 
 		if (cbedgeTunnelFrom > cbedgeTunnelTo)
 		{
@@ -488,7 +488,7 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 	}
 }
 
-void SubsToTrapElecTunnel::setSolver_Trap(FDVertex *startVertex)
+void SubsToTrapElecTunnel::setSolver_Trap()
 {
 	//reset the vectors
 	cbEdge_TunnelTrap.clear();
@@ -740,7 +740,7 @@ void TrapToGateElecTunnel::SolveTunnel()
 
 	//clear the results of last calculation
 	eCurrDens_DTFN.resize(vertsTunnelOxideStart.size());
-	eCurrDensMap_T2B.clear();
+	eTransCoeffMap_T2B.clear();
 
 	double currdens = 0;
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
@@ -753,6 +753,9 @@ void TrapToGateElecTunnel::SolveTunnel()
 		currdens = calcDTFNtunneling(deltaX_Block, eMass_Block, cbEdge_Block);
 		currdens += calcThermalEmission(deltaX_Block, eMass_Block, cbEdge_Block);
 		eCurrDens_DTFN.at(iVert) = currdens;
+
+		setSolver_Trap();
+		calcTransCoeff_T2B();
 	}
 }
 
@@ -790,5 +793,57 @@ void TrapToGateElecTunnel::setTunnelTag()
 		{
 			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
 		}
+	}
+}
+
+void TrapToGateElecTunnel::calcTransCoeff_T2B()
+{
+	double Emin = cbEdge_Trap.back();
+	double trapEnergyLevel = 0;
+	double TC = 0;
+	int vertID = 0;
+	int startindex = 0;
+	FDVertex *currVert = NULL;
+
+	for (size_t iVert = 0; iVert != verts_Trap.size(); ++iVert)
+	{
+		trapEnergyLevel = eEnergyLevel_Trap.at(iVert);
+		if (trapEnergyLevel < Emin)
+		{
+			startindex = iVert;
+			currVert = verts_Trap.at(iVert);
+			TC = getTransCoeff(trapEnergyLevel, deltaX_TrapBlock, eMass_TrapBlock, cbEdge_TrapBlock, 0, startindex);
+
+			vertID = currVert->GetID();
+			eTransCoeffMap_T2B[vertID] = TC;
+		}
+	}
+}
+
+void TrapToGateElecTunnel::setSolver_Trap()
+{
+	//clear the containers
+	cbEdge_TrapBlock.clear();
+	eMass_TrapBlock.clear();
+	deltaX_TrapBlock.clear();
+
+	cbEdge_TrapBlock.reserve(cbEdge_Trap.size() + cbEdge_Block.size());
+	cbEdge_TrapBlock.insert(cbEdge_TrapBlock.end(), cbEdge_Trap.begin(), cbEdge_Trap.end());
+	cbEdge_TrapBlock.insert(cbEdge_TrapBlock.end(), cbEdge_Block.begin(), cbEdge_Block.end());
+
+	eMass_TrapBlock.reserve(eMass_Trap.size() + eMass_Block.size());
+	eMass_TrapBlock.insert(eMass_TrapBlock.end(), eMass_Trap.begin(), eMass_Trap.end());
+	eMass_TrapBlock.insert(eMass_TrapBlock.end(), eMass_Block.begin(), eMass_Block.end());
+
+	deltaX_TrapBlock.reserve(deltaX_Trap.size() + deltaX_Block.size());
+	deltaX_TrapBlock.insert(deltaX_TrapBlock.end(), deltaX_Trap.begin(), deltaX_Trap.end());
+	deltaX_TrapBlock.insert(deltaX_TrapBlock.end(), deltaX_Block.begin(), deltaX_Block.end());
+}
+
+void TrapToGateElecTunnel::ReturnResult_T2B(VertexMapDouble &ret)
+{
+	for (VertexMapDouble::iterator it = eTransCoeffMap_T2B.begin(); it != eTransCoeffMap_T2B.end(); ++it)
+	{
+		ret[it->first] = it->second;
 	}
 }

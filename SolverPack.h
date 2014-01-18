@@ -56,10 +56,11 @@ private:
 	VertexMapDouble mapChannelPotential; ///< the potential of channel vertices
 	VertexMapDouble mapSiFermiAboveCBedge; ///< for input in the tunneling solver silicon fermi energy - silicon conduction band edge
 	VertexMapDouble mapPotential; ///< map for potential
-	VertexMapDouble mapCurrDensFromTunnelLayer; ///< the tunneling current density across the tunneling layer, for FN/DT tunneling, in [A/cm^2]
-	VertexMapDouble mapCurrDensCoeff; ///< the coefficient to calculate current density for dd solver, in [A*cm]
-	VertexMapDouble mapCurrDensMFN; ///< the current density tunneling into trapping layer (Modified Fowler-Nordheim), in [A/cm^2]
-	VertexMapDouble mapCurrDensB2T; ///< tunneling current density in band-to-trap tunneling
+	VertexMapDouble mapCurrDensFromTunnelLayer; ///< the tunneling current density across the tunneling layer, for FN/DT tunneling, in [A/cm^2], in subs-to-trapLayer tunnel solver
+	VertexMapDouble mapCurrDensCoeff; ///< the coefficient to calculate current density for dd solver, in [A*cm], in trap-to-gate tunnel solver
+	VertexMapDouble mapCurrDensMFN; ///< the current density tunneling into trapping layer (Modified Fowler-Nordheim), in [A/cm^2], in subs-to-trapLayer tunnel solver
+	VertexMapDouble mapCurrDensB2T; ///< tunneling current density in band-to-trap tunneling, in subs-to-trapLayer tunnel solver
+	VertexMapDouble mapTransCoeffT2B; ///< transmission coefficient in Trap-to-Band tunneling out, in trapLayer-to-gate tunnel solver
 };
 
 #endif

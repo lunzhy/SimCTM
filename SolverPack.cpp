@@ -178,6 +178,8 @@ void SolverPack::fetchBlockOxideResult()
 		//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
 		currVert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
 	}
+
+	//TODO: set corresponding physical property
 }
 
 void SolverPack::fetchTrappingResult()

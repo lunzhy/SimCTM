@@ -37,6 +37,7 @@ public:
 	virtual void ReturnResult(VertexMapDouble &ret) = 0;
 	virtual void ReturnResult_MFN(VertexMapDouble &ret) {};
 	virtual void ReturnResult_B2T(VertexMapDouble &ret) {};
+	virtual void ReturnResult_T2B(VertexMapDouble &ret) {};
 
 protected:
 	/// @brief initialize is used to initialize the solver
@@ -55,7 +56,7 @@ protected:
 	/// channel and gate must appear in pairs.
 	void initialize();
 	virtual double getSupplyFunction(double energy);
-	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size = 0); //Transmission coefficient
+	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size = 0, int startindex = 0); //Transmission coefficient
 	
 	double calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
 	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
@@ -65,8 +66,6 @@ protected:
 protected:
 	double temperature;
 	FDDomain *domain;
-	vector<FDVertex *> vertsStart;
-	vector<FDVertex *> vertsEnd;
 
 	vector<FDVertex *> vertsTunnelOxideStart;
 	vector<FDVertex *> vertsTunnelOxideEnd;
@@ -118,11 +117,10 @@ protected:
 	/// 
 	/// Setting solver of trapping layer is the preparation for solve MFN and B2T tunneling problems.
 	/// 
-	/// @param FDVertex * startVertex
-	/// @pre
+	/// @pre the band edge / emass / deltax containers are filled.
 	/// @return void
 	/// @note
-	void setSolver_Trap(FDVertex *startVertex);
+	void setSolver_Trap();
 	void setTunnelTag();
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
@@ -144,12 +142,19 @@ public:
 	TrapToGateElecTunnel(FDDomain *_domain);
 	void SolveTunnel();
 	void ReturnResult(VertexMapDouble &ret);
+	void ReturnResult_T2B(VertexMapDouble &ret);
 protected:
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *endVertex);
-	void setTunnelTag();
+	void setTunnelTag(); 
+	void setSolver_Trap();
+	void calcTransCoeff_T2B();
 
-	vector<double> eCurrDensMap_T2B;
+	vector<double> cbEdge_TrapBlock;
+	vector<double> eMass_TrapBlock;
+	vector<double> deltaX_TrapBlock;
+
+	VertexMapDouble eTransCoeffMap_T2B;
 };
 
 #endif
