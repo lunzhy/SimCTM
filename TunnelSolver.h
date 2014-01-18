@@ -75,10 +75,12 @@ protected:
 
 	VertexMapDouble fermiAboveMap; // fermi energy - conduction band 
 
-	vector<double> cbEdge_Oxide;
-	vector<double> eMass_Oxide;
-	vector<double> deltaX_Oxide;
+	//for tunneling layer
+	vector<double> cbEdge_Tunnel;
+	vector<double> eMass_Tunnel;
+	vector<double> deltaX_Tunnel;
 
+	//for trapping layer
 	//the additional vertex for solving modified Fowler-Nordheim tunneling
 	vector<double> cbEdge_Trap;
 	vector<double> eMass_Trap;
@@ -86,7 +88,7 @@ protected:
 	vector<double> eEnergyLevel_Trap; ///< trap energy level
 	vector<FDVertex *> verts_Trap;
 
-
+	//for blocking layer
 	vector<double> cbEdge_Block;
 	vector<double> eMass_Block;
 	vector<double> deltaX_Block;
@@ -128,9 +130,9 @@ protected:
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);
 
-	vector<double> cbEdge_Total;
-	vector<double> eMass_Total;
-	vector<double> deltaX_Total;
+	vector<double> cbEdge_TunnelTrap;
+	vector<double> eMass_TunnelTrap;
+	vector<double> deltaX_TunnelTrap;
 
 	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
 	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
