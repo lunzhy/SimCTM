@@ -804,7 +804,8 @@ void TrapToGateElecTunnel::setTunnelTag()
 
 void TrapToGateElecTunnel::calcTransCoeff_T2B()
 {
-	double Emin = cbEdge_Trap.back();
+	double cbedge_min = cbEdge_Trap.back();
+	double gateEdge = cbedgeTunnelTo;
 	double trapEnergyLevel = 0;
 	double TC = 0;
 	int vertID = 0;
@@ -814,7 +815,7 @@ void TrapToGateElecTunnel::calcTransCoeff_T2B()
 	for (size_t iVert = 0; iVert != verts_Trap.size(); ++iVert)
 	{
 		trapEnergyLevel = eEnergyLevel_Trap.at(iVert);
-		if (trapEnergyLevel < Emin)
+		if (trapEnergyLevel < cbedge_min && trapEnergyLevel > gateEdge)
 		{
 			startindex = iVert;
 			currVert = verts_Trap.at(iVert);
