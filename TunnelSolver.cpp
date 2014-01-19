@@ -103,6 +103,15 @@ double TunnelSolver::calcDTFNtunneling(vector<double> &deltaX, vector<double> &e
 	double Emin = cbedgeTunnelFrom > cbedgeTunnelTo ? cbedgeTunnelFrom : cbedgeTunnelTo; // in normalized value
 	double Emax = cbedge.front();
 
+
+	///////Emax should be changed according to situation.
+
+
+
+
+
+
+
 	double T = this->temperature;
 	double m0 = SctmPhys::ElectronMass;
 	double pi = SctmMath::PI;
@@ -371,6 +380,55 @@ void TunnelSolver::initialize()
 	}
 }
 
+double TunnelSolver::supplyFunction_forCurrDens(double energy)
+{
+	//in this calculation, it is assumed that the band where tunneling ends is almost empty.
+	double T = this->temperature;
+	double EfTunnelFrom = this->fermiEnergyTunnelFrom;
+
+	double kB = SctmPhys::BoltzmanConstant;
+	double q = SctmPhys::ElementaryCharge;
+	double integralTunnelFrom = 1;
+	double integralTunnelTo = 0; // assume the energy level in CB of trapping layer is always empty
+
+	double energyDiff = 0; // in [eV], energy - Fermi energy tunneling from
+	energyDiff = energy - EfTunnelFrom;
+
+	if (energy - EfTunnelFrom > 5 * kB * T / q)
+		integralTunnelFrom = kB * T * SctmMath::exp(-q * energyDiff / kB / T);
+	else
+		integralTunnelFrom = kB * T * SctmMath::ln(1 + SctmMath::exp(-q * energyDiff / kB / T));
+
+	double supply = integralTunnelFrom - integralTunnelTo;
+	//the supply function has a dimension of [J]
+	return supply;
+}
+
+double TunnelSolver::supplyFunction_forTunCoeff(double energy)
+{
+	//in this class, the supply function is the coefficient of the electron density
+	//i.e. the real supply function = ret * eDensity
+	double ret = 0;
+
+	double T = this->temperature;
+	double kB = SctmPhys::k0;
+	double h = SctmPhys::h;
+	double q = SctmPhys::q;
+	double pi = SctmMath::PI;
+	double m0 = SctmPhys::ElectronMass;
+
+	// prefactor A in f(E) = A*exp(-E/KT), and A is a dimensionless value
+	// here, the prefactor lacks n (density), the dimension is m^3
+	static double prefactor = h * h * h / 4 / pi / (SctmMath::sqrt(pi) / 2) /
+		(kB*T) / SctmMath::sqrt(kB * T) /
+		SctmMath::sqrt(2 * effTunnelMass*m0*effTunnelMass*m0*effTunnelMass*m0);
+
+
+	//the supply function has a dimension of m^3 * J
+	ret = prefactor * kB * T * SctmMath::exp(-q * (energy - cbedgeTunnelFrom) / kB / T);
+	return ret;
+}
+
 
 void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 {
@@ -379,20 +437,37 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 	//set the silicon band edge, because the difference is fixed
 	//all values of band edge are in real value, so pulling is needed.
 	using namespace MaterialDB;
-	double barrier = 0;
-	barrier = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
+	double subsBarrier = 0;
+	subsBarrier = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
 		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
-	barrier = norm.PullEnergy(barrier);
-	cbedgeTunnelFrom = cbEdge_Tunnel.front() - barrier;
+	subsBarrier = norm.PullEnergy(subsBarrier);
 
-	//set the conduction band edge in the trapping layer where the tunneling ends.
-	cbedgeTunnelTo = cbEdge_Trap.front();
-	
 	//set the fermi energy of the tunneling-in vertex
 	//Pulling of the parameters is done here, because TunnelSolver uses real value internally
 	double fermiAbove = norm.PullEnergy(fermiAboveMap[startVertex->GetID()]);
-	fermiEnergyTunnelFrom = cbedgeTunnelFrom + fermiAbove;
+
+	if (eTunDirection == TunnelDirection::North)
+	{
+		cbedgeTunnelFrom = cbEdge_Tunnel.front() - subsBarrier;
+
+		//set the conduction band edge in the trapping layer where the tunneling ends.
+		cbedgeTunnelTo = cbEdge_Trap.front();
+
+		fermiEnergyTunnelFrom = cbedgeTunnelFrom + fermiAbove;
+	}
+	else if (eTunDirection == TunnelDirection::South)
+	{
+		cbedgeTunnelFrom = cbEdge_Trap.front();
+		cbedgeTunnelTo = cbEdge_Tunnel.front() - subsBarrier;
+		//TODO: this is useless calculation tunneling coefficient.
+		fermiEnergyTunnelFrom = 0;
+	}
+	else
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10041);
+	}
 }
+	
 
 SubsToTrapElecTunnel::SubsToTrapElecTunnel(FDDomain *_domain): TunnelSolver(_domain)
 {
@@ -405,24 +480,19 @@ SubsToTrapElecTunnel::SubsToTrapElecTunnel(FDDomain *_domain): TunnelSolver(_dom
 
 double SubsToTrapElecTunnel::getSupplyFunction(double energy)
 {
-	double T = this->temperature;
-	double EfTunnelFrom = this->fermiEnergyTunnelFrom;
-
-	double kB = SctmPhys::BoltzmanConstant;
-	double q = SctmPhys::ElementaryCharge;
-	double integralTunnelFrom = 1;
-	double integralTunnelTo = 0; // assume the energy level in CB of trapping layer is always empty
-
-	double energyDiff = 0; // in [eV], energy - fermi energy tunneling from
-	energyDiff = energy - EfTunnelFrom;
-
-	if (energy - EfTunnelFrom > 5 * kB * T / q)
-		integralTunnelFrom =  kB * T * SctmMath::exp(- q * energyDiff / kB / T);
+	if (eTunDirection == TunnelDirection::North)
+	{
+		return TunnelSolver::supplyFunction_forCurrDens(energy);
+	}
+	else if (eTunDirection == TunnelDirection::South)
+	{
+		return TunnelSolver::supplyFunction_forTunCoeff(energy);
+	}
 	else
-		integralTunnelFrom = kB * T * SctmMath::ln(1 + SctmMath::exp(- q * energyDiff / kB / T));
-
-	double supply = integralTunnelFrom - integralTunnelTo;
-	return supply;
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10041);
+	}
+	return 0;
 }
 
 void SubsToTrapElecTunnel::SolveTunnel()
@@ -443,6 +513,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
 		loadBandStructure(vertsTunnelOxideStart.at(iVert));
+		setTunnelDirection();
 		setTunnelTag();
 
 		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
@@ -474,10 +545,15 @@ void SubsToTrapElecTunnel::SolveTunnel()
 
 void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 {
+	//Result returning does not care the direction of the tunneling current.
+	//So the sign of the result is not determined here, it is set in solver pack.
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	double currDens = 0;
 	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
+
+	double coeff = 0;
+	double cm_in_m = SctmPhys::cm_in_m;
 
 	Normalization norm = Normalization(this->temperature);
 	for (size_t iVert = 0; iVert != vertsTunnelOxideEnd.size(); ++iVert)
@@ -485,9 +561,25 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 		//currVert = vertsEnd.at(iVert);
 		currVert = vertsTunnelOxideEnd.at(iVert);
 		vertID = currVert->GetID();
-		//currently the eCurrDens_Tunnel saves the current density, which is in A/m2
-		currDens = eCurrDens_DTFN.at(iVert) * per_m2_in_per_cm2;
-		ret[vertID] = norm.PushCurrDens(currDens);
+		
+		if (eTunDirection == TunnelDirection::North)
+		{
+			//currently the eCurrDens_Tunnel saves the current density, which is in A/m2
+			currDens = eCurrDens_DTFN.at(iVert) * per_m2_in_per_cm2;
+			ret[vertID] = norm.PushCurrDens(currDens);
+		}
+		else if (eTunDirection == TunnelDirection::South)
+		{
+			//currently the eCurrDens_Tunnel saves the coefficient to calculate current density,
+			//which has a dimension of A*m.
+			coeff = eCurrDens_DTFN.at(iVert) / cm_in_m;
+			ret[vertID] = norm.PushTunCoeff(coeff);
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10041);
+		}
+		
 	}
 }
 
@@ -673,6 +765,22 @@ void SubsToTrapElecTunnel::calcCurrDens_B2T()
 
 void SubsToTrapElecTunnel::setTunnelTag()
 {
+	using namespace SctmUtils;
+	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
+	if (eTunDirection == TunnelDirection::North)
+	{
+		verts->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
+	}
+	else if (eTunDirection == TunnelDirection::South)
+	{
+		verts->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
+	}
+	else
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10041);
+	}
+
+	/*
 	double elecField = 0;
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != vertsTunnelOxideEnd.size(); ++iVert)
@@ -684,6 +792,25 @@ void SubsToTrapElecTunnel::setTunnelTag()
 		{
 			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
 		}
+	}
+	*/
+}
+
+void SubsToTrapElecTunnel::setTunnelDirection()
+{
+	//CAUTION!! this is currently structure-dependent
+	double elecField = 0;
+	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
+	elecField = verts->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y);
+	if (elecField < 0)
+	{
+		//for electrons, this means program situation.
+		eTunDirection = TunnelDirection::North;
+	}
+	else
+	{
+		//for electrons, this means retention situation.
+		eTunDirection = TunnelDirection::South;
 	}
 }
 

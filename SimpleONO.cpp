@@ -497,11 +497,18 @@ void SimpleONO::setTrapDistribution()
 	Normalization norm = Normalization(this->temperature);
 	double unifromTrapDens = SctmGlobalControl::Get().UniformTrapDens;
 	double eTrapDens = norm.PushDensity(unifromTrapDens); // in [cm^-3]
+
+	bool fullTrap = SctmGlobalControl::Get().FullTrap;
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
+
+		if (fullTrap)
+		{
+			currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrapDens);
+		}
 	}
 }
 

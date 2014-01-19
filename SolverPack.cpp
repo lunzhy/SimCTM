@@ -113,20 +113,29 @@ void SolverPack::Run()
 
 void SolverPack::fetchTunnelOxideResult()
 {
+	int vertID = 0;
+	FDVertex *vert = NULL;
+
 	//deal with direct or FN tunneling result
 	//it is critical to clear the map
 	this->mapCurrDensFromTunnelLayer.clear();
 	tunnelOxideSolver->ReturnResult(mapCurrDensFromTunnelLayer);
 	//set the sign of boundary current for dd solver.
 	for (VertexMapDouble::iterator it = mapCurrDensFromTunnelLayer.begin(); it != mapCurrDensFromTunnelLayer.end(); ++it)
-	{
-		//does not need to change
-		//it->second = it->second;
+	{	
+		vertID = it->first;
+		vert = domain->GetVertex(vertID);
+		if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+		{
+			//does not need to change
+			//it->second = it->second;	
+		}
+		else // eTunnelOut electron tunnel out of the trapping layer
+		{
+			it->second = -it->second;
+		}
 	}
 
-
-	int vertID = 0;
-	FDVertex *vert = NULL;
 
 	//deal with MFN tunneling result
 	//Assign the calculated current density to the specific vertex.
@@ -176,7 +185,7 @@ void SolverPack::fetchBlockOxideResult()
 		it->second = - it->second;
 		vertID = it->first;
 		currVert = domain->GetVertex(vertID);
-		//save the tunneling-out coefficient in this physics property, to be used in calculating the tunneling out current
+		//save the tunneling-out coefficient in the physics property, to be used in calculating the tunneling out current
 		//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
 		currVert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
 	}

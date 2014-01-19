@@ -31,6 +31,13 @@ class TunnelSolver
 {
 	//friend class SctmUtils::SctmDebug;
 public:
+	enum TunnelDirection
+	{
+		North,
+		South,
+		East,
+		West,
+	};
 	TunnelSolver(FDDomain *_domain);
 	void ReadInput(VertexMapDouble &fermi);
 	virtual void SolveTunnel() = 0;
@@ -62,6 +69,8 @@ protected:
 	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
 
 	void loadBandStructure(FDVertex *startVert);
+	double supplyFunction_forCurrDens(double energy);
+	double supplyFunction_forTunCoeff(double energy);
 
 protected:
 	double temperature;
@@ -100,6 +109,8 @@ protected:
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
 	double eCurrDens; ///< the tunneling current density, in [A/m^2]
+
+	TunnelDirection eTunDirection;
 };
 
 class SubsToTrapElecTunnel : public TunnelSolver
@@ -122,6 +133,7 @@ protected:
 	/// @note
 	void setSolver_Trap();
 	void setTunnelTag();
+	void setTunnelDirection();
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
 

@@ -206,6 +206,9 @@ namespace SctmUtils
 		case 10040:
 			msg = "[SctmPhy.cpp] Error occurs when setting multi properties for vertices.";
 			break;
+		case 10041:
+			msg = "[TunnelSolver.cpp] This direction has not been considered.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -1193,7 +1196,7 @@ namespace SctmUtils
 		return instance;
 	}
 
-	void SctmGlobalControl::setGloblaCntrl_FromParFile()
+	void SctmGlobalControl::setGlobalCntrl_FromParFile()
 	{
 		//set simulation parameters from file
 		ParamBase *parBase = NULL;
@@ -1271,16 +1274,18 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_mfn);
 		bool mfn = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsMFN = mfn;
-
 		//PhysicsB2T
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_b2t);
 		bool b2t = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsB2T = b2t;
-
 		//PhyscisT2B
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_t2b);
 		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsT2B = t2b;
+
+		//FullTrap
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_fullTrap);
+		Get().FullTrap = dynamic_cast<Param<bool> *>(parBase)->Value();
 	}
 
 	void SctmGlobalControl::SetGlobalControl(string defaultParPath, string prjpath)
@@ -1289,7 +1294,7 @@ namespace SctmUtils
 		SctmGlobalControl::Get().DefaulParFile = defaultParPath;
 		SctmGlobalControl::Get().UserParFile = prjpath + "\\user.param";
 
-		setGloblaCntrl_FromParFile();
+		setGlobalCntrl_FromParFile();
 	}
 
 
@@ -1557,6 +1562,14 @@ namespace SctmUtils
 			mapToSet[ParName::physics_t2b] = par;
 			return;
 		}
+		if (name == "debug.fullTrap")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::debug_fullTrap, valBool);
+			mapToSet[ParName::debug_fullTrap] = par;
+			return;
+		}
+
 
 		//parameters for material properties
 		if (name == "material")

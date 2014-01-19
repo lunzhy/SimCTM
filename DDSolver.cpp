@@ -1123,8 +1123,8 @@ void DriftDiffusionSolver::handleCurrDensBC_in(FDVertex *vert, double currdens)
 	SCTM_ASSERT(vert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
 	vert->BndCond.RefreshBndCond(FDBoundary::eDensity, currdens);
-	//for tunneling-in electron current, the current density direction is the same with the boundary condition.
-	//so currDens should be positive value.
+	//it should be noticed that for tunneling-in electron current, the current density direction is the 
+	//same with the boundary condition, so currDens should be positive value.
 	//and the method for building Rhs vector will handle the in-tunneling current density
 }
 
