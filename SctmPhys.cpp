@@ -53,7 +53,9 @@ namespace SctmPhys
 		tunnelCoeff = 0;
 		e_currdensMFN_X = 0;
 		e_currdensMFN_Y = 0;
-		e_subsCurrDens_B2T = 0;
+		e_subsCurrDensB2T = 0;
+
+		//all the vectors and maps are initialized with 0 size
 	}
 
 	void PhysProperty::SetPhysPrpty(Name prptyName, double prptyValue)
@@ -93,8 +95,8 @@ namespace SctmPhys
 		case eCurrDensMFN_Y:
 			e_currdensMFN_Y = prptyValue;
 			break;
-		case eCurrDensB2T:
-			e_subsCurrDens_B2T = prptyValue;
+		case eSubsCurrDensB2T:
+			e_subsCurrDensB2T = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -449,9 +451,9 @@ namespace SctmPhys
 				ret = e_currdensMFN_Y;
 				break;
 			}
-			case eCurrDensB2T:
+			case eSubsCurrDensB2T:
 			{
-				ret = e_subsCurrDens_B2T;
+				ret = e_subsCurrDensB2T;
 				break;
 			}
 			default:
@@ -728,6 +730,8 @@ namespace SctmPhys
 		e_trapped = 0;
 		e_crossSection = 0;
 		energyFromCondBand = 0;
+		e_frequencyT2B = 0;
+		e_transCoeffT2B = 0;
 	}
 
 	void TrapProperty::FillTrapPrptyUsingMatPrpty(TrapProperty::Name trapPrpty, MaterialDB::MatProperty::Name matPrpty)
@@ -797,6 +801,12 @@ namespace SctmPhys
 			break;
 		case eTrapped:
 			e_trapped = val;
+			break;
+		case eTransCoeffT2B:
+			e_transCoeffT2B = val;
+			break;
+		case eFrequencyT2B:
+			e_frequencyT2B = val;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10028);
@@ -875,7 +885,7 @@ namespace SctmPhys
 			case eCoeff_B2T:
 			{
 				double q = SctmPhys::q;
-				double eCurrDens = vertSelf->Phys->GetPhysPrpty(PhysProperty::eCurrDensB2T);
+				double eCurrDens = vertSelf->Phys->GetPhysPrpty(PhysProperty::eSubsCurrDensB2T);
 				double eXsecion = GetTrapPrpty(eCrossSection);
  
 				ret =  eCurrDens * eXsecion;
@@ -885,6 +895,23 @@ namespace SctmPhys
 			{
 				// there should be 2 parts here
 				ret = - GetTrapPrpty(eTrapped);
+				break;
+			}
+			case eTransCoeffT2B:
+			{
+				ret = e_transCoeffT2B;
+				break;
+			}
+			case eFrequencyT2B:
+			{
+				ret = e_frequencyT2B;
+				break;
+			}
+			case eEmissionCoeff_T2B:
+			{
+				double frequency = GetTrapPrpty(eFrequencyT2B);
+				double transCoeff = GetTrapPrpty(eTransCoeffT2B);
+				ret = frequency * transCoeff;
 				break;
 			}
 			default:

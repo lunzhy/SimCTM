@@ -142,15 +142,15 @@ void SolverPack::fetchTunnelOxideResult()
 	}
 
 	//deal with band-to-trap tunneling result
-	double eCurrDens_B2T = 0; // in normalized value, in [A/cm^2]
+	double eSubsCurrDens_B2T = 0; // in normalized value, in [A/cm^2]
 	this->mapCurrDensB2T.clear();
 	tunnelOxideSolver->ReturnResult_B2T(mapCurrDensB2T);
 	for (VertexMapDouble::iterator it = mapCurrDensB2T.begin(); it != mapCurrDensB2T.end(); ++it)
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
-		eCurrDens_B2T = -it->second;
-		vert->Phys->SetPhysPrpty(PhysProperty::eCurrDensB2T, eCurrDens_B2T);
+		eSubsCurrDens_B2T = -it->second;
+		vert->Phys->SetPhysPrpty(PhysProperty::eSubsCurrDensB2T, eSubsCurrDens_B2T);
 	}
 
 }
@@ -169,6 +169,8 @@ void SolverPack::fetchBlockOxideResult()
 	//so, reversed value is used to calculate current density
 	FDVertex *currVert = NULL;
 	int vertID = 0;
+	
+	//set the tunneling coefficient in DT/FN tunneling out of electrons in conduction band
 	for (VertexMapDouble::iterator it = mapCurrDensCoeff.begin(); it != mapCurrDensCoeff.end(); ++it)
 	{
 		it->second = - it->second;
@@ -179,7 +181,15 @@ void SolverPack::fetchBlockOxideResult()
 		currVert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
 	}
 
-	//TODO: set corresponding physical property
+	this->mapTransCoeffT2B.clear();
+	blockOxideSolver->ReturnResult_T2B(mapTransCoeffT2B);
+	//set the trap-to-band tunneling out coefficient
+	for (VertexMapDouble::iterator it = mapTransCoeffT2B.begin(); it != mapTransCoeffT2B.end(); ++it)
+	{
+		vertID = it->first;
+		currVert = domain->GetVertex(vertID);
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTransCoeffT2B, it->second);
+	}
 }
 
 void SolverPack::fetchTrappingResult()

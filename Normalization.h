@@ -231,7 +231,17 @@ namespace SctmUtils
 		}
 		inline double PullVelocity(double velocity)
 		{
-			return velocity * ( lengthFactor * timeFactor );
+			return velocity * ( lengthFactor / timeFactor );
+		}
+
+		//frequency, in [1/s]
+		inline double PushFrequency(double frequency)
+		{
+			return frequency / (1 / timeFactor);
+		}
+		inline double PullFrequency(double frequency)
+		{
+			return frequency * (1 / timeFactor);
 		}
 
 		//capacitance per area, in [F/cm2]

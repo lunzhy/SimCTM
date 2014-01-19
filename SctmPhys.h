@@ -108,7 +108,7 @@ namespace SctmPhys
 			TunnelCoeff, ///< the tunneling coefficient of this vertex, in [A*cm]
 			eCurrDensMFN_X, ///< the x-direction value of MFN tunneling current density of inner vertex 
 			eCurrDensMFN_Y, ///< the y-direction value of MFN tunneling current density of inner vertex
-			eCurrDensB2T, ///< electron current density from substrate in calculation of band-to-trap tunneling 
+			eSubsCurrDensB2T, ///< electron current density from substrate in calculation of band-to-trap tunneling 
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -181,7 +181,7 @@ namespace SctmPhys
 		double tunnelCoeff; ///< the tunneling coefficient of this vertex, in [A*cm]
 		double e_currdensMFN_X; ///< the x-direction value of MFN tunneling current density of inner vertex
 		double e_currdensMFN_Y; ///< the y-direction value of MFN tunneling current density of inner vertex
-		double e_subsCurrDens_B2T; ///< band-to-trap electron current density from substrate in the calculation of band-to-trap tunneling
+		double e_subsCurrDensB2T; ///< band-to-trap electron current density from substrate in the calculation of band-to-trap tunneling 
 
 		//the maps below is used to store the properties of vertex that belongs to different materials
 		PrptyMap multiElectronAffinity;
@@ -208,6 +208,10 @@ namespace SctmPhys
 			eCaptureCoeff_V_Model,
 			eEmissionCoeff_BasicSRH, ///< the electron emission rate of basic SRH process
 			eCoeff_B2T, ///< electron coefficient in band-to-trap tunneling, in [1/s]
+			eFrequencyT2B, ///< electron trap-to-band tunneling out frequency
+			eEmissionCoeff_T2B, ///< electron trap-to-band tunneling out coefficient
+			eTransCoeffT2B, ///< electron trap-to-band tunneling out transmission coefficient
+
 		};
 		TrapProperty(FDVertex *_vert);
 		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;
@@ -221,6 +225,8 @@ namespace SctmPhys
 		double e_trapDensity;
 		double e_crossSection;
 		double energyFromCondBand;
+		double e_frequencyT2B; ///< electron Trap-to-Band tunneling-out frequency
+		double e_transCoeffT2B; ///< electron transmission coefficient in trap-to-band tunneling
 	};
 }
 

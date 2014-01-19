@@ -518,6 +518,7 @@ void FDDomain::setVertexTrapProperty()
 		currVert = ddVerts.at(iVert);
 		currVert->Trap = new TrapProperty(currVert);
 
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequencyT2B, MatProperty::Mat_ElecFrequencyT2B);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eCrossSection, MatProperty::Mat_ElecTrapXSection);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
 	}

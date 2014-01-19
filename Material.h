@@ -52,6 +52,7 @@ namespace MaterialDB
 			Mat_HoleMobility, ///< hole mobility of the material
 			Mat_ElecTrapXSection, ///< electron trap cross section
 			Mat_ElecTrapEnergyFromCB, ///< electron trap energy from conduction band
+			Mat_ElecFrequencyT2B, ///< electron Trap-to-Band tunneling out frequency
 		};
 	};
 
@@ -74,6 +75,7 @@ namespace MaterialDB
 		double holeMobility; ///< hole mobility, in [cm^2/V/s]
 		double elecTrapXSection; ///< electron trap cross section, in [cm^2]
 		double elecTrapEnergyFromCB; ///< electron trap energy from conduction band, in eV
+		double elecFrequencyT2B; ///< electron Trap-to-Band tunneling out frequency
 
 	public:
 		/// @brief Material is the construction method of this class
@@ -110,6 +112,8 @@ namespace MaterialDB
 		void		ElecTrapXSection(double val);
 		double		ElecTrapEnergyFromCB() const;
 		void		ElecTrapEnergyFromCB(double val);
+		double		ElecFrequencyT2B() const;
+		void		ElecFrequencyT2B(double val);
 	};
 
 	/// @brief GetMatPrpty is called to get the value of material property with given material
@@ -134,7 +138,7 @@ namespace MaterialDB
 	/// @return void
 	/// @note
 	void SetMatPrpty(Material *theMaterial, MatProperty::Name prptyName);
-	/// @brief SetMaterials is used to set the values of material properties.
+	/// @brief SetMaterials_Directly is used to set the values of material properties directly for debugging.
 	/// 
 	///
 	/// 

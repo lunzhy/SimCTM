@@ -119,6 +119,7 @@ void TrapSolver::SolveTrap()
 	setSolverTrapping();
 	setSolverDetrapping_BasicSRH();
 	setSolverBandToTrap();
+	setSolverTrapToBand();
 
 	solveEachVertex();
 }
@@ -208,6 +209,32 @@ void TrapSolver::setSolverBandToTrap()
 		eTrapDens = eTrapDensMap[vertID];
 		rhs = coeff_B2T * timeStep * eTrapDens;
 		rhsMap[vertID] += rhs;
+	}
+}
+
+void TrapSolver::setSolverTrapToBand()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double coeff_T2B = 0;
+	double coeff = 0;
+	double rhs = 0;
+	double timeStep = SctmTimeStep::Get().TimeStep();
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		//Trap-to-Band tunneling out always leads to the decrease of trapped charge
+		coeff_T2B = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_T2B);
+
+		//coeff of nt due to Trap-to-Band tunneling
+		coeff = coeff_T2B * timeStep;
+		coeffMap[vertID] += coeff;
+
+		//rhs of the equation
+		rhsMap[vertID] += 0;
 	}
 }
 

@@ -33,6 +33,7 @@ protected:
 	void setSolverTrapping();
 	void setSolverDetrapping_BasicSRH();
 	void setSolverBandToTrap();
+	void setSolverTrapToBand();
 	void solveEachVertex();
 
 protected:

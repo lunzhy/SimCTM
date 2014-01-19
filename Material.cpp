@@ -155,6 +155,9 @@ namespace MaterialDB
 		case MatProperty::Mat_ElecTrapXSection:
 			ret = theMaterial->ElecTrapXSection();
 			break;
+		case MatProperty::Mat_ElecFrequencyT2B:
+			ret = theMaterial->ElecFrequencyT2B();
+			break;
 		default:
 			// use SCTM_CHECK for non-existed property
 			SCTM_ASSERT(SCTM_ERROR, 10002);
@@ -287,6 +290,17 @@ namespace MaterialDB
 		elecTrapEnergyFromCB = norm.PushEnergy(val);
 	}
 
+	double Material::ElecFrequencyT2B() const
+	{
+		return elecFrequencyT2B;
+	}
+
+	void Material::ElecFrequencyT2B(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		elecFrequencyT2B = norm.PushFrequency(val);
+	}
+
 
 	Mat::Name Mat::Parse(const std::string &matStr)
 	{
@@ -380,7 +394,7 @@ namespace MaterialDB
 		MaterialMap(Mat::Si3N4)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value()); // need to be revised
 
 		//MaterialMap(Mat::Si3N4)->HoleMass(1);
-		
+
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eMobility);
 		MaterialMap(Mat::Si3N4)->ElectronMobility(dynamic_cast<Param<double> *>(parBase)->Value());
 
@@ -389,6 +403,9 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eXsection);
 		MaterialMap(Mat::Si3N4)->ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eFrequencyT2B);
+		MaterialMap(Mat::Si3N4)->ElecFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//HfO2
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_bandgap);
@@ -414,6 +431,8 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eXsection);
 		MaterialMap(Mat::HfO2)->ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
 
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eFrequencyT2B);
+		MaterialMap(Mat::HfO2)->ElecFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//MaterialMap[Mat::Silicon] = &MaterialMap(Mat::Silicon);
 		//MaterialMap[Mat::SiO2] = &SiO2_material;

@@ -1738,6 +1738,25 @@ namespace SctmUtils
 			}
 			return;
 		}
+		if (name == "eFrequencyT2B")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eFrequencyT2B, valDouble);
+				mapToSet[ParName::Si3N4_eFrequencyT2B] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eFrequencyT2B, valDouble);
+				mapToSet[ParName::HfO2_eFrequencyT2B] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
 	}
 
 	void SctmParameterParser::ReadParFile(string &file, std::map<ParName, ParamBase*> &mapToSet)
