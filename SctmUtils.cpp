@@ -1177,6 +1177,8 @@ namespace SctmUtils
 
 		Get().UniformTrapDens = 6e19; // in [cm^-3]
 		Get().SubstrateDoping = -1e17; // negative for P-type
+
+		//lack of newly-added parameters
 	}
 
 	SctmGlobalControl::SctmGlobalControl()
@@ -1269,6 +1271,16 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_mfn);
 		bool mfn = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsMFN = mfn;
+
+		//PhysicsB2T
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_b2t);
+		bool b2t = dynamic_cast<Param<bool> *>(parBase)->Value();
+		Get().PhysicsB2T = b2t;
+
+		//PhyscisT2B
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_t2b);
+		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
+		Get().PhysicsT2B = t2b;
 	}
 
 	void SctmGlobalControl::SetGlobalControl(string defaultParPath, string prjpath)
@@ -1529,6 +1541,20 @@ namespace SctmUtils
 			valBool = SctmConverter::StringToBool(valStr);
 			Param<bool> *par = new Param<bool>(ParName::physics_mfn, valBool);
 			mapToSet[ParName::physics_mfn] = par;
+			return;
+		}
+		if (name == "physics.b2t")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::physics_b2t, valBool);
+			mapToSet[ParName::physics_b2t] = par;
+			return;
+		}
+		if (name == "physics.t2b")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::physics_t2b, valBool);
+			mapToSet[ParName::physics_t2b] = par;
 			return;
 		}
 

@@ -116,10 +116,17 @@ void TrapSolver::refreshSolver()
 void TrapSolver::SolveTrap()
 {
 	refreshSolver();
+
 	setSolverTrapping();
 	setSolverDetrapping_BasicSRH();
-	setSolverBandToTrap();
-	setSolverTrapToBand();
+	if (SctmGlobalControl::Get().PhysicsB2T)
+	{
+		setSolverBandToTrap();
+	}
+	if (SctmGlobalControl::Get().PhysicsT2B)
+	{
+		setSolverTrapToBand();
+	}
 
 	solveEachVertex();
 }

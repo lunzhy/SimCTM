@@ -453,19 +453,22 @@ void SubsToTrapElecTunnel::SolveTunnel()
 
 		setSolver_Trap();
 
-		if (cbedgeTunnelFrom > cbedgeTunnelTo)
-		{
-			//no Modified Fowler-Nordheim tunneling happens
-			continue;
-		}
-		//TODO: write debug information for MFN
-
 		if (SctmGlobalControl::Get().PhysicsMFN)
 		{
+			if (cbedgeTunnelFrom > cbedgeTunnelTo)
+			{
+				//no Modified Fowler-Nordheim tunneling happens
+				continue;
+			}
+			//TODO: write debug information for MFN
+
 			calcCurrDens_MFN();
 		}
 		
-		calcCurrDens_B2T();
+		if (SctmGlobalControl::Get().PhysicsB2T)
+		{
+			calcCurrDens_B2T();
+		}
 	}
 }
 
@@ -754,8 +757,11 @@ void TrapToGateElecTunnel::SolveTunnel()
 		currdens += calcThermalEmission(deltaX_Block, eMass_Block, cbEdge_Block);
 		eCurrDens_DTFN.at(iVert) = currdens;
 
-		setSolver_Trap();
-		calcTransCoeff_T2B();
+		if (SctmGlobalControl::Get().PhysicsT2B)
+		{
+			setSolver_Trap();
+			calcTransCoeff_T2B();
+		}
 	}
 }
 

@@ -320,7 +320,9 @@ namespace SctmUtils
 		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
 
 		string TrapCaptureModel;
-		bool PhysicsMFN;
+		bool PhysicsMFN; ///< Modified Fowler-Nordheim tunneling
+		bool PhysicsB2T; ///< Band-to-Trap tunneling in
+		bool PhysicsT2B; ///< Trap-to-Band tunneling out
 	protected:
 		static void setGlobalCntrl_Directly();
 		static void setGloblaCntrl_FromParFile();
@@ -361,6 +363,8 @@ namespace SctmUtils
 			block_material,
 
 			physics_mfn,
+			physics_b2t,
+			physics_t2b,
 
 			Si_bandgap,
 			Si_dielectricConstant,
