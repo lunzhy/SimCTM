@@ -738,11 +738,12 @@ namespace SctmUtils
 	void SctmTimeStep::generateTimeSequence()
 	{
 		////////// time sequence parameter //////////
-		double startTimeDefault = 1e-12;
-		if (SctmGlobalControl::Get().SimStartTime < startTimeDefault)
-		{
-			startTimeDefault = SctmGlobalControl::Get().SimStartTime;
-		}
+		//double startTimeDefault = 1e-12; // previously, 1e-12
+		//if (SctmGlobalControl::Get().SimStartTime < startTimeDefault)
+		//{
+		//	startTimeDefault = SctmGlobalControl::Get().SimStartTime;
+		//}
+		double startTime = SctmGlobalControl::Get().SimStartTime;
 		double endTime = SctmGlobalControl::Get().SimEndTime;
 		double stepPerDecade = SctmGlobalControl::Get().SimStepsPerDecade;
 		/////////////////////////////////////////////
@@ -751,10 +752,10 @@ namespace SctmUtils
 		double time = 0;
 		double increase = 0;
 		
-		time = startTimeDefault;
+		time = startTime;
 		increase = SctmMath::exp10( 1 / stepPerDecade );
 		timeSequence.push_back(0);
-		timeSequence.push_back(norm.PushTime(startTimeDefault));
+		timeSequence.push_back(norm.PushTime(startTime));
 		while (!isEndTime(time, endTime))
 		{
 			time = time * increase;

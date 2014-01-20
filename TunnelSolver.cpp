@@ -532,19 +532,17 @@ void SubsToTrapElecTunnel::SolveTunnel()
 
 		if (SctmGlobalControl::Get().PhysicsMFN)
 		{
-			if (cbedgeTunnelFrom > cbedgeTunnelTo)
-			{
-				//no Modified Fowler-Nordheim tunneling happens
-				continue;
-			}
-			//TODO: write debug information for MFN
-
 			calcCurrDens_MFN();
 		}
 		
 		if (SctmGlobalControl::Get().PhysicsB2T)
 		{
 			calcCurrDens_B2T();
+		}
+
+		if (SctmGlobalControl::Get().PhysicsT2B)
+		{
+			calcTransCoeff_T2B();
 		}
 	}
 }
@@ -611,6 +609,13 @@ void SubsToTrapElecTunnel::setSolver_Trap()
 
 void SubsToTrapElecTunnel::calcCurrDens_MFN()
 {
+	//TODO: write debug information for MFN
+	if (cbedgeTunnelFrom > cbedgeTunnelTo)
+	{
+		//no Modified Fowler-Nordheim tunneling happens
+		return;
+	}
+
 	//the international unit (I.U.) is used in calculating TC
 
 	//the unit of calculated current density is [A/m^2]
@@ -698,7 +703,7 @@ FDVertex * SubsToTrapElecTunnel::findTrapVertex_B2T(double energy, int &size)
 	{
 		if ((eEnergyLevel_Trap.at(iVert) >= energy) && (eEnergyLevel_Trap.at(iVert + 1) < energy))
 		{
-			//size = index + 1
+			//size = vertices size of tunneling oxide + index + 1
 			size = cbEdge_Tunnel.size() + iVert + 1;
 			return verts_Trap.at(iVert);
 		}
@@ -819,6 +824,40 @@ void SubsToTrapElecTunnel::setTunnelDirection()
 	{
 		//for electrons, this means retention situation.
 		eTunDirection = TunnelDirection::South;
+	}
+}
+
+void SubsToTrapElecTunnel::calcTransCoeff_T2B()
+{
+	double cbedgeTrap_min = cbEdge_Trap.front();
+	double cbedgeSubs = cbedgeTunnelTo;
+	double trapEnergyLevel = 0;
+	double TC = 0;
+	int vertID = 0;
+	int size = 0;
+	FDVertex *currVert = NULL;
+
+	for (size_t iVert = 0; iVert != verts_Trap.size(); ++iVert)
+	{
+		trapEnergyLevel = eEnergyLevel_Trap.at(iVert);
+		if (trapEnergyLevel < cbedgeTrap_min && trapEnergyLevel > cbedgeSubs)
+		{
+			//size = vertices size of tunneling oxide + index + 1
+			size = cbEdge_Tunnel.size() + iVert + 1;
+			currVert = verts_Trap.at(iVert);
+			TC = getTransCoeff(trapEnergyLevel, deltaX_TunnelTrap, eMass_TunnelTrap, cbEdge_TunnelTrap, size);
+
+			vertID = currVert->GetID();
+			eTransCoeffMap_T2B[vertID] = TC;
+		}
+	}
+}
+
+void SubsToTrapElecTunnel::ReturnResult_T2B(VertexMapDouble &ret)
+{
+	for (VertexMapDouble::iterator it = eTransCoeffMap_T2B.begin(); it != eTransCoeffMap_T2B.end(); ++it)
+	{
+		ret[it->first] = it->second;
 	}
 }
 
@@ -954,6 +993,7 @@ void TrapToGateElecTunnel::calcTransCoeff_T2B()
 		{
 			startindex = iVert;
 			currVert = verts_Trap.at(iVert);
+			//the index is same for container of Trap vertices and TrapBlock vertices.
 			TC = getTransCoeff(trapEnergyLevel, deltaX_TrapBlock, eMass_TrapBlock, cbEdge_TrapBlock, 0, startindex);
 
 			vertID = currVert->GetID();

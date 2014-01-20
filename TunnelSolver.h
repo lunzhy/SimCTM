@@ -121,6 +121,7 @@ public:
 	void ReturnResult(VertexMapDouble &ret);
 	void ReturnResult_MFN(VertexMapDouble &ret);
 	void ReturnResult_B2T(VertexMapDouble &ret);
+	void ReturnResult_T2B(VertexMapDouble &ret);
 protected:
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *startVertex);
@@ -136,6 +137,7 @@ protected:
 	void setTunnelDirection();
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
+	void calcTransCoeff_T2B();
 
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);
@@ -146,6 +148,7 @@ protected:
 
 	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
 	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
+	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
 };
 
 class TrapToGateElecTunnel : public TunnelSolver
