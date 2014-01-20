@@ -65,8 +65,8 @@ protected:
 	virtual double getSupplyFunction(double energy);
 	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size = 0, int startindex = 0); //Transmission coefficient
 	
-	double calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
-	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
+	double calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMax);
+	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMin);
 
 	void loadBandStructure(FDVertex *startVert);
 	double supplyFunction_forCurrDens(double energy);

@@ -90,7 +90,7 @@ double TunnelSolver::getTransCoeff(double energy, vector<double> &deltax, vector
 	return tc;
 }
 
-double TunnelSolver::calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge)
+double TunnelSolver::calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMax)
 {
 	//direct tunneling and Fowler-Nordheim tunneling are included.
 	//the international unit (I.U.) is used in calculating TC
@@ -101,16 +101,8 @@ double TunnelSolver::calcDTFNtunneling(vector<double> &deltaX, vector<double> &e
 	//Emin and Emax are real values, in [eV]
 	//TODO: the choice of Emin determines the tunneling direction
 	double Emin = cbedgeTunnelFrom > cbedgeTunnelTo ? cbedgeTunnelFrom : cbedgeTunnelTo; // in normalized value
-	double Emax = cbedge.front();
-
-
-	///////Emax should be changed according to situation.
-
-
-
-
-
-
+	//double Emax = cbedge.front();
+	double Emax = cbedgeMax;
 
 	double T = this->temperature;
 	double m0 = SctmPhys::ElectronMass;
@@ -139,10 +131,11 @@ double TunnelSolver::calcDTFNtunneling(vector<double> &deltaX, vector<double> &e
 	return eCurrDens;
 }
 
-double TunnelSolver::calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge)
+double TunnelSolver::calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMin)
 {
 	double TEdensity = 0; // in [A/m^2]
-	double Emin = cbedge.front(); // in [eV]
+	//double Emin = cbedge.front(); // in [eV]
+	double Emin = cbedgeMin;
 	double Emax = Emin + 5; // only calculate the energy within 5eV large than the smallest energy to surpass the barrier
 
 	double T = this->temperature;
@@ -273,8 +266,6 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 		if (currVert->IsAtBoundary(FDBoundary::eDensity))
 		{
 			vertsTunnelOxideEnd.push_back(currVert);
-			//this tag is important in drift-diffusion solver.
-			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
 			break;
 		}
 		currVert = currVert->NorthVertex;
@@ -509,6 +500,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 	eCurrDensMap_MFN.clear();
 	eCurrDensMap_B2T.clear();
 
+	double cbedge = 0;
 	double currdens = 0;
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
@@ -518,8 +510,22 @@ void SubsToTrapElecTunnel::SolveTunnel()
 
 		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
 
-		currdens = calcDTFNtunneling(deltaX_Tunnel, eMass_Tunnel, cbEdge_Tunnel);
-		currdens += calcThermalEmission(deltaX_Tunnel, eMass_Tunnel, cbEdge_Tunnel);
+
+		if (eTunDirection == TunnelDirection::North) // tunneling in
+		{
+			cbedge = cbEdge_Tunnel.front();
+		}
+		else if (eTunDirection == TunnelDirection::South) // TunnelDirection::South
+		{
+			cbedge = cbEdge_Tunnel.back();
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10041);
+		}
+
+		currdens = calcDTFNtunneling(deltaX_Tunnel, eMass_Tunnel, cbEdge_Tunnel, cbedge);
+		currdens += calcThermalEmission(deltaX_Tunnel, eMass_Tunnel, cbEdge_Tunnel, cbedge);
 		eCurrDens_DTFN.at(iVert) = currdens;
 
 		setSolver_Trap();
@@ -767,17 +773,19 @@ void SubsToTrapElecTunnel::setTunnelTag()
 {
 	using namespace SctmUtils;
 	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
-	if (eTunDirection == TunnelDirection::North)
+	switch (eTunDirection)
 	{
-		verts->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
-	}
-	else if (eTunDirection == TunnelDirection::South)
-	{
-		verts->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
-	}
-	else
-	{
-		SCTM_ASSERT(SCTM_ERROR, 10041);
+		case TunnelSolver::North:
+			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
+			break;
+		case TunnelSolver::South:
+			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
+			break;
+		case TunnelSolver::East:
+		case TunnelSolver::West:
+		default:
+			SCTM_ASSERT(SCTM_ERROR, 10041);
+			break;
 	}
 
 	/*
@@ -880,8 +888,8 @@ void TrapToGateElecTunnel::SolveTunnel()
 
 		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
 
-		currdens = calcDTFNtunneling(deltaX_Block, eMass_Block, cbEdge_Block);
-		currdens += calcThermalEmission(deltaX_Block, eMass_Block, cbEdge_Block);
+		currdens = calcDTFNtunneling(deltaX_Block, eMass_Block, cbEdge_Block, cbEdge_Block.front());
+		currdens += calcThermalEmission(deltaX_Block, eMass_Block, cbEdge_Block, cbEdge_Block.front());
 		eCurrDens_DTFN.at(iVert) = currdens;
 
 		if (SctmGlobalControl::Get().PhysicsT2B)
