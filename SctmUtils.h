@@ -281,6 +281,10 @@ namespace SctmUtils
 	};
 
 
+	
+	/// @brief SctmGlobalControl stores and manages the global parameters used in the simulation
+	///
+	/// All the parameters stores in this class are in input value. (not real value)
 	class SctmGlobalControl
 	{
 	public:

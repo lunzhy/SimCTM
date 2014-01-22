@@ -143,6 +143,9 @@ private:
 	/// @return void
 	/// @note
 	void refreshBandEnergy();
+
+	void setTrapDistribution_Uniform();
+	void setTrapDistribution_2DSim();
 };
 
 #endif
