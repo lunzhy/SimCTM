@@ -281,6 +281,10 @@ namespace SctmUtils
 	};
 
 
+	
+	/// @brief SctmGlobalControl stores and manages the global parameters used in the simulation
+	///
+	/// All the parameters stores in this class are in input value. (not real value)
 	class SctmGlobalControl
 	{
 	public:
@@ -302,6 +306,7 @@ namespace SctmUtils
 		double SimEndTime; ///< simulation end time
 		int SimStepsPerDecade; ///< simulation steps per time decade
 		
+		//device structure
 		//the length are in [nm]
 		double XLength;
 		double YLengthTunnel;
@@ -311,21 +316,25 @@ namespace SctmUtils
 		int YGridNumTunnel;
 		int YGridNumTrap;
 		int YGridNumBlock;
-
 		Mat::Name TunnelMaterial;
 		Mat::Name TrapMaterial;
 		Mat::Name BlockMaterial;
 
+		//density parameters
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
 
+		//physics models
 		string TrapCaptureModel;
 		bool PhysicsMFN; ///< Modified Fowler-Nordheim tunneling
 		bool PhysicsB2T; ///< Band-to-Trap tunneling in
 		bool PhysicsT2B; ///< Trap-to-Band tunneling out
+
+		//for debug
+		bool FullTrap; ///< set the trap to full
 	protected:
 		static void setGlobalCntrl_Directly();
-		static void setGloblaCntrl_FromParFile();
+		static void setGlobalCntrl_FromParFile();
 	};
 
 
@@ -366,6 +375,9 @@ namespace SctmUtils
 			physics_b2t,
 			physics_t2b,
 
+			debug_fullTrap,
+
+			//material parameters
 			Si_bandgap,
 			Si_dielectricConstant,
 			Si_electronAffinity,

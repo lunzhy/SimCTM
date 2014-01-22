@@ -491,21 +491,73 @@ void SimpleONO::postProcessOfDomain()
 
 void SimpleONO::setTrapDistribution()
 {
+	setTrapDistribution_Uniform();
+}
+
+SimpleONO::SimpleONO()
+{
+	this->temperature = SctmGlobalControl::Get().Temperature;
+}
+
+void SimpleONO::setTrapDistribution_Uniform()
+{
 	//TODO: Setting the distribution of trap density is temporarily considered here
 	using SctmPhys::TrapProperty;
 
 	Normalization norm = Normalization(this->temperature);
 	double unifromTrapDens = SctmGlobalControl::Get().UniformTrapDens;
 	double eTrapDens = norm.PushDensity(unifromTrapDens); // in [cm^-3]
+
+	bool fullTrap = SctmGlobalControl::Get().FullTrap;
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
+
+		if (fullTrap)
+		{
+			currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrapDens);
+		}
 	}
 }
 
-SimpleONO::SimpleONO()
+void SimpleONO::setTrapDistribution_2DSim()
 {
-	this->temperature = SctmGlobalControl::Get().Temperature;
+	double nm_in_cm = SctmPhys::nm_in_cm;
+
+	//the values in SctmGlobalControl are in input value
+	double left_x = 0;
+	double right_x = SctmGlobalControl::Get().XLength * nm_in_cm;
+	double top_y = (SctmGlobalControl::Get().YLengthTunnel + SctmGlobalControl::Get().YLengthTrap) * nm_in_cm;
+	double bottom_y = SctmGlobalControl::Get().YLengthTunnel * nm_in_cm;
+
+	
+	Normalization norm = Normalization(this->temperature);
+	left_x = norm.PushLength(left_x);
+	right_x = norm.PushLength(right_x);
+	top_y = norm.PushLength(top_y);
+	bottom_y = norm.PushLength(bottom_y);
+
+	//the parameters of the Gaussian Distribution
+	double sigma = 0; //variance
+	sigma = SctmGlobalControl::Get().XLength > SctmGlobalControl::Get().YLengthTrap ? 
+		SctmGlobalControl::Get().YLengthTrap : SctmGlobalControl::Get().XLength;
+
+	//the coefficient 0.1 and 10 is just used in this case
+	sigma = norm.PushLength(sigma * 0.1 * nm_in_cm);
+	double uniformDensity = norm.PushDensity(SctmGlobalControl::Get().UniformTrapDens);
+	double gaussDensity = uniformDensity * 10;
+
+	FDVertex *currVert = 0;
+	double xCoords = 0;
+	double yCoords = 0;
+	double gaussCoords = 0;
+	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	{
+		currVert = GetVertex(iVert);
+		xCoords = currVert->X;
+		yCoords = currVert->Y;
+	}
+
 }

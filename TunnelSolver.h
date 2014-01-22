@@ -31,6 +31,13 @@ class TunnelSolver
 {
 	//friend class SctmUtils::SctmDebug;
 public:
+	enum TunnelDirection
+	{
+		North,
+		South,
+		East,
+		West,
+	};
 	TunnelSolver(FDDomain *_domain);
 	void ReadInput(VertexMapDouble &fermi);
 	virtual void SolveTunnel() = 0;
@@ -58,10 +65,12 @@ protected:
 	virtual double getSupplyFunction(double energy);
 	double getTransCoeff(double energy, vector<double> &deltax, vector<double> &emass, vector<double> &cbedge, int size = 0, int startindex = 0); //Transmission coefficient
 	
-	double calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
-	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge);
+	double calcDTFNtunneling(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMax);
+	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMin);
 
 	void loadBandStructure(FDVertex *startVert);
+	double supplyFunction_forCurrDens(double energy);
+	double supplyFunction_forTunCoeff(double energy);
 
 protected:
 	double temperature;
@@ -100,6 +109,8 @@ protected:
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
 	double eCurrDens; ///< the tunneling current density, in [A/m^2]
+
+	TunnelDirection eTunDirection;
 };
 
 class SubsToTrapElecTunnel : public TunnelSolver
@@ -110,6 +121,7 @@ public:
 	void ReturnResult(VertexMapDouble &ret);
 	void ReturnResult_MFN(VertexMapDouble &ret);
 	void ReturnResult_B2T(VertexMapDouble &ret);
+	void ReturnResult_T2B(VertexMapDouble &ret);
 protected:
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *startVertex);
@@ -122,8 +134,10 @@ protected:
 	/// @note
 	void setSolver_Trap();
 	void setTunnelTag();
+	void setTunnelDirection();
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
+	void calcTransCoeff_T2B();
 
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);
@@ -134,6 +148,7 @@ protected:
 
 	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
 	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
+	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
 };
 
 class TrapToGateElecTunnel : public TunnelSolver
