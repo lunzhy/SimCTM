@@ -186,6 +186,7 @@ namespace SctmPhys
 		//the maps below is used to store the properties of vertex that belongs to different materials
 		PrptyMap multiElectronAffinity;
 		PrptyMap multiBandgap;
+		PrptyMap multiDielectricConstant; //not used
 		std::vector<MaterialDB::Mat::Name> relatedMatName;
 
 		double getMultiPrptyValue(PhysProperty::Name vertPhy, MaterialDB::Mat::Name matName) const;
@@ -197,6 +198,7 @@ namespace SctmPhys
 	public:
 		enum Name
 		{
+			EpsilonTrapping, ///< dielectric constant for trapping layer
 			eTrapped,
 			eTrapDensity,
 			eCrossSection,
@@ -208,12 +210,22 @@ namespace SctmPhys
 			eCaptureCoeff_V_Model,
 			eEmissionCoeff_BasicSRH, ///< the electron emission rate of basic SRH process
 			eCoeff_B2T, ///< electron coefficient in band-to-trap tunneling, in [1/s]
-			eFrequencyT2B, ///< electron trap-to-band tunneling out frequency
+			eFrequency_T2B, ///< electron trap-to-band tunneling out frequency
 			eEmissionCoeff_T2B, ///< electron trap-to-band tunneling out coefficient
 			eTransCoeffT2B, ///< electron trap-to-band tunneling out transmission coefficient
-
+			eEmissionCoeff_PF, ///< electron emission coefficient of Poole-Frenkel  effect
+			eFrequency_PF, ///< electron emission frequency of Poole-Frenkel effect
+			eTrapEnergyDecreasePF, ///< electron trap energy decrease due to Poole-Frenkel effect
 		};
 		TrapProperty(FDVertex *_vert);
+		/// @brief GetTrapPrpty is used to get the specific trap property value.
+		/// 
+		///
+		/// 
+		/// @param TrapProperty::Name trapPrpty
+		/// @pre
+		/// @return double, the return value is in normalized value.
+		/// @note
 		double GetTrapPrpty(TrapProperty::Name trapPrpty) const;
 		void SetTrapPrpty(TrapProperty::Name trapPrpty, double val);
 
@@ -221,12 +233,14 @@ namespace SctmPhys
 
 	private:
 		FDVertex *vertSelf;
+		double epsTrapping;
 		double e_trapped;
 		double e_trapDensity;
 		double e_crossSection;
 		double energyFromCondBand;
 		double e_frequencyT2B; ///< electron Trap-to-Band tunneling-out frequency
 		double e_transCoeffT2B; ///< electron transmission coefficient in trap-to-band tunneling
+		double e_frequencyPF; ///< electron emission frequency of Poole - Frenkel effect
 	};
 }
 

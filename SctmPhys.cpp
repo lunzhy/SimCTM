@@ -631,6 +631,14 @@ namespace SctmPhys
 					}
 					break;
 				}
+				case PhysProperty::DielectricConstant:
+				{
+					if (multiDielectricConstant.find(currMatName) == multiDielectricConstant.end())
+					{
+						multiDielectricConstant[currMatName] = GetMatPrpty(MaterialMap(currMatName), matPrpty);
+					}
+					break;
+				}
 				default:
 					SCTM_ASSERT(SCTM_ERROR, 10038);
 					break;
@@ -790,6 +798,9 @@ namespace SctmPhys
 	{
 		switch (trapPrpty)
 		{
+		case EpsilonTrapping:
+			epsTrapping = val;
+			break;
 		case eCrossSection:
 			e_crossSection = val;
 			break;
@@ -805,8 +816,11 @@ namespace SctmPhys
 		case eTransCoeffT2B:
 			e_transCoeffT2B = val;
 			break;
-		case eFrequencyT2B:
+		case eFrequency_T2B:
 			e_frequencyT2B = val;
+			break;
+		case eFrequency_PF:
+			e_frequencyPF = val;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10028);
@@ -818,6 +832,11 @@ namespace SctmPhys
 		double ret = 0;
 		switch (trapPrpty)
 		{
+			case EpsilonTrapping:
+			{
+				ret = epsTrapping;
+				break;
+			}
 			case eTrapped:
 			{
 				ret = e_trapped;
@@ -867,18 +886,30 @@ namespace SctmPhys
 			{
 				double eVelocity = 0;
 				double eEffectiveDOS = 0;
-				double temperature = vertSelf->Phys->GetPhysPrpty(PhysProperty::Temperature);
 
-				double kT_div_q = SctmPhys::k0 * temperature / SctmPhys::q;
 				eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity);
 				eEffectiveDOS = vertSelf->Phys->GetPhysPrpty(PhysProperty::eEffDOS);
 
-				using SctmUtils::Normalization;
-				Normalization norm = Normalization(temperature);
-				double trapEnergy = norm.PullEnergy(GetTrapPrpty(TrapProperty::EnergyFromCondBand));
+				double trapEnergy = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
 
-				ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS * 
-					SctmMath::exp( - trapEnergy / kT_div_q);
+				using SctmUtils::SctmGlobalControl;
+				static string pfModel = SctmGlobalControl::Get().PhysicsPFModel;
+				
+				if (pfModel == "None" || pfModel == "Frequency")
+				{
+					ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS *
+						SctmMath::exp(-trapEnergy); // kT/q will disappear with normalized energy
+				}
+				else if (pfModel == "EtDecrease")
+				{
+					double pfDecrease = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF);
+					ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS *
+						SctmMath::exp(-(trapEnergy - pfDecrease)); // kT/q will disappear with normalized energy
+				}
+				else
+				{
+					SCTM_ASSERT(SCTM_ERROR, 10045);
+				}
 				
 				break;
 			}
@@ -902,17 +933,47 @@ namespace SctmPhys
 				ret = e_transCoeffT2B;
 				break;
 			}
-			case eFrequencyT2B:
+			case eFrequency_T2B:
 			{
 				ret = e_frequencyT2B;
 				break;
 			}
 			case eEmissionCoeff_T2B:
 			{
-				double frequency = GetTrapPrpty(eFrequencyT2B);
+				double frequency = GetTrapPrpty(eFrequency_T2B);
 				double transCoeff = GetTrapPrpty(eTransCoeffT2B);
 				ret = frequency * transCoeff;
 				break;
+			}
+			case eFrequency_PF:
+			{
+				ret = e_frequencyPF;
+				break;
+			}
+			case eTrapEnergyDecreasePF:
+			{
+				double temperature = vertSelf->Phys->GetPhysPrpty(PhysProperty::Temperature);
+				using SctmUtils::Normalization;
+				Normalization norm = Normalization(temperature);
+				double q = SctmPhys::q;
+
+				double elecField = norm.PullElecField(vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField)); // in [V/cm], real value
+				double eps = GetTrapPrpty(TrapProperty::EpsilonTrapping) *
+					SctmPhys::VacuumDielectricConstant / (1 / SctmPhys::cm_in_m); // in [F/cm]
+
+
+				double deltaEt = SctmMath::sqrt(q * q * q / SctmMath::PI / eps) * SctmMath::sqrt(elecField) / q; // in [eV], real value.
+				return norm.PushEnergy(deltaEt);
+			}
+			case eEmissionCoeff_PF:
+			{
+				double deltaEt = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF); // in [eV], normalized value
+				double frequency = GetTrapPrpty(TrapProperty::eFrequency_PF);
+				double temperature = vertSelf->Phys->GetPhysPrpty(PhysProperty::Temperature);
+				double trapDepth = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+
+				double coeff = frequency * SctmMath::exp(-(trapDepth - deltaEt));
+				return coeff;
 			}
 			default:
 			{

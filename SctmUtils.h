@@ -331,6 +331,7 @@ namespace SctmUtils
 		bool PhysicsMFN; ///< Modified Fowler-Nordheim tunneling
 		bool PhysicsB2T; ///< Band-to-Trap tunneling in
 		bool PhysicsT2B; ///< Trap-to-Band tunneling out
+		string PhysicsPFModel; ///< Poole-Frenkel model
 
 		//for debug
 		string TrapOccupation; ///< Trap occupation status
@@ -350,26 +351,26 @@ namespace SctmUtils
 			time_start,
 			time_end,
 			time_stepPerDecade,
-			
+
 			gate_voltage,
 			gate_workfunction,
 			subs_type,
 			subs_doping,
-			
+
 			width_value,
 			width_grid,
-			
+
 			tunnel_thick,
 			tunnel_grid,
 			tunnel_material,
-			
+
 			trap_thick,
 			trap_grid,
 			trap_material,
 			trap_captureModel,
 			trap_uniDensity,
 			trap_distribution,
-			
+
 			block_thick,
 			block_grid,
 			block_material,
@@ -377,6 +378,7 @@ namespace SctmUtils
 			physics_mfn,
 			physics_b2t,
 			physics_t2b,
+			physics_pfModel,
 
 			debug_trap_occupy,
 
@@ -406,6 +408,7 @@ namespace SctmUtils
 			Si3N4_eTrapEnergy,
 			Si3N4_eXsection,
 			Si3N4_eFrequencyT2B,
+			Si3N4_eFrequencyPF,
 
 			HfO2_bandgap,
 			HfO2_dielectricConstant,
@@ -415,6 +418,7 @@ namespace SctmUtils
 			HfO2_eTrapEnergy,
 			HfO2_eXsection,
 			HfO2_eFrequencyT2B,
+			HfO2_eFrequencyPF
 		};
 
 		SctmParameterParser();

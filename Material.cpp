@@ -158,6 +158,9 @@ namespace MaterialDB
 		case MatProperty::Mat_ElecFrequencyT2B:
 			ret = theMaterial->ElecFrequencyT2B();
 			break;
+		case MatProperty::Mat_ElecFrequencyPF:
+			ret = theMaterial->ElecFrequencyPF();
+			break;
 		default:
 			// use SCTM_CHECK for non-existed property
 			SCTM_ASSERT(SCTM_ERROR, 10002);
@@ -301,6 +304,17 @@ namespace MaterialDB
 		elecFrequencyT2B = norm.PushFrequency(val);
 	}
 
+	double Material::ElecFrequencyPF() const
+	{
+		return elecFrequencyPF;
+	}
+
+	void Material::ElecFrequencyPF(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		elecFrequencyPF = norm.PushFrequency(val);
+	}
+
 
 	Mat::Name Mat::Parse(const std::string &matStr)
 	{
@@ -407,6 +421,9 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eFrequencyT2B);
 		MaterialMap(Mat::Si3N4)->ElecFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
 
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eFrequencyPF);
+		MaterialMap(Mat::Si3N4)->ElecFrequencyPF(dynamic_cast<Param<double> *>(parBase)->Value());
+
 		//HfO2
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_bandgap);
 		MaterialMap(Mat::HfO2)->Bandgap(dynamic_cast<Param<double> *>(parBase)->Value());
@@ -433,6 +450,9 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eFrequencyT2B);
 		MaterialMap(Mat::HfO2)->ElecFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eFrequencyPF);
+		MaterialMap(Mat::HfO2)->ElecFrequencyPF(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//MaterialMap[Mat::Silicon] = &MaterialMap(Mat::Silicon);
 		//MaterialMap[Mat::SiO2] = &SiO2_material;

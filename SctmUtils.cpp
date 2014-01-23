@@ -218,6 +218,9 @@ namespace SctmUtils
 		case 10044:
 			msg = "[Parameter file] Invalid trap occupation status.";
 			break;
+		case 10045:
+			msg = "[Parameter file] Invalid Poole-Frenkel model name.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -1321,6 +1324,9 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_t2b);
 		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsT2B = t2b;
+		//PhysicsPFModel
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_pfModel);
+		Get().PhysicsPFModel = dynamic_cast<Param<string> *>(parBase)->Value();
 
 		//TrapOccupation
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
@@ -1606,6 +1612,12 @@ namespace SctmUtils
 			mapToSet[ParName::physics_t2b] = par;
 			return;
 		}
+		if (name == "physics.pfModel")
+		{
+			Param<string> *par = new Param<string>(ParName::physics_pfModel, valStr);
+			mapToSet[ParName::physics_pfModel] = par;
+			return;
+		}
 		if (name == "debug.trap.occupy")
 		{
 			Param<string> *par = new Param<string>(ParName::debug_trap_occupy, valStr);
@@ -1833,6 +1845,25 @@ namespace SctmUtils
 			case MaterialDB::Mat::HfO2:
 				par = new Param<double>(ParName::HfO2_eFrequencyT2B, valDouble);
 				mapToSet[ParName::HfO2_eFrequencyT2B] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "eFrequencyPF")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eFrequencyPF, valDouble);
+				mapToSet[ParName::Si3N4_eFrequencyPF] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eFrequencyPF, valDouble);
+				mapToSet[ParName::HfO2_eFrequencyPF] = par;
 				break;
 			default:
 				break;

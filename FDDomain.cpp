@@ -336,8 +336,10 @@ void FDDomain::setVertexPhysProperty()
 			currVertex->Phys->CalculateDensityControlArea();
 
 			//the below is added for storing the properties of vertex belonging to different materials.
+			//the weighted average value is also stored.
 			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronAffinity
-				|| matPrptys.at(iPrpty) == MatProperty::Mat_Bandgap)
+				|| matPrptys.at(iPrpty) == MatProperty::Mat_Bandgap
+				|| matPrptys.at(iPrpty) == MatProperty::Mat_DielectricConstant)
 			{
 				currVertex->Phys->SetMultiPrpty(verPrptys.at(iPrpty), matPrptys.at(iPrpty));
 			}
@@ -518,7 +520,9 @@ void FDDomain::setVertexTrapProperty()
 		currVert = ddVerts.at(iVert);
 		currVert->Trap = new TrapProperty(currVert);
 
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequencyT2B, MatProperty::Mat_ElecFrequencyT2B);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EpsilonTrapping, MatProperty::Mat_DielectricConstant);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_T2B, MatProperty::Mat_ElecFrequencyT2B);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_PF, MatProperty::Mat_ElecFrequencyPF);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eCrossSection, MatProperty::Mat_ElecTrapXSection);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
 	}
