@@ -38,6 +38,7 @@ namespace SctmMath
 	inline double sqrt(double val);
 	inline double ln(double val);
 	inline double exp(double val);
+	inline double min_val(double val1, double val2);
 	double Bernoulli_Potential(double potVal);
 
 	// =====================================================================================
@@ -51,6 +52,7 @@ namespace SctmMath
 	inline double exp10(double val) { return std::pow(10, val); }
 	inline double pow(double val, double arg) { return std::pow(val, arg); }
 	inline double asinh(double val) { return std::asinh(val); }
+	inline double min_val(double val1, double val2) { return val1 < val2 ? val1 : val2; }
 
 	class VectorValue
 	{

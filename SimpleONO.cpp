@@ -17,6 +17,8 @@
 #include <iostream>
 #include "SctmPhys.h"
 #include "Normalization.h"
+#include "SctmMath.h"
+
 using SctmPhys::PhysProperty;
 using namespace SctmUtils;
 
@@ -491,7 +493,49 @@ void SimpleONO::postProcessOfDomain()
 
 void SimpleONO::setTrapDistribution()
 {
-	setTrapDistribution_Uniform();
+	string trapDistr = SctmGlobalControl::Get().TrapDistribution;
+	if ( trapDistr == "Uniform")
+	{
+		setTrapDistribution_Uniform();
+	}
+	else if (trapDistr == "2D")
+	{
+		setTrapDistribution_2DSim();
+	}
+	else
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10043);
+	}
+
+	FDVertex *currVert = NULL;
+	double trapDens = 0;
+	double eTrappedDens = 0;
+	string trapOccupy = SctmGlobalControl::Get().TrapOccupation;
+	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	{
+		currVert = ddVerts.at(iVert);
+		trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
+
+		if (trapOccupy == "None")
+		{
+			eTrappedDens = 0;
+		}
+		else if (trapOccupy == "Full")
+		{
+			eTrappedDens = trapDens;
+		}
+		else if (trapOccupy == "Half")
+		{
+			eTrappedDens = trapDens / 2.0;
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10044);
+		}
+
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+	}
+
 }
 
 SimpleONO::SimpleONO()
@@ -505,20 +549,14 @@ void SimpleONO::setTrapDistribution_Uniform()
 	using SctmPhys::TrapProperty;
 
 	Normalization norm = Normalization(this->temperature);
-	double unifromTrapDens = SctmGlobalControl::Get().UniformTrapDens;
+	double unifromTrapDens = SctmGlobalControl::Get().UniformTrapDens; 
 	double eTrapDens = norm.PushDensity(unifromTrapDens); // in [cm^-3]
 
-	bool fullTrap = SctmGlobalControl::Get().FullTrap;
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
-
-		if (fullTrap)
-		{
-			currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrapDens);
-		}
 	}
 }
 
@@ -526,38 +564,52 @@ void SimpleONO::setTrapDistribution_2DSim()
 {
 	double nm_in_cm = SctmPhys::nm_in_cm;
 
-	//the values in SctmGlobalControl are in input value
+	//the values in SctmGlobalControl are in input value, in [nm]
 	double left_x = 0;
-	double right_x = SctmGlobalControl::Get().XLength * nm_in_cm;
-	double top_y = (SctmGlobalControl::Get().YLengthTunnel + SctmGlobalControl::Get().YLengthTrap) * nm_in_cm;
-	double bottom_y = SctmGlobalControl::Get().YLengthTunnel * nm_in_cm;
+	double right_x = SctmGlobalControl::Get().XLength;
+	double top_y = (SctmGlobalControl::Get().YLengthTunnel + SctmGlobalControl::Get().YLengthTrap);
+	double bottom_y = SctmGlobalControl::Get().YLengthTunnel;
 
 	
 	Normalization norm = Normalization(this->temperature);
-	left_x = norm.PushLength(left_x);
-	right_x = norm.PushLength(right_x);
-	top_y = norm.PushLength(top_y);
-	bottom_y = norm.PushLength(bottom_y);
 
 	//the parameters of the Gaussian Distribution
 	double sigma = 0; //variance
-	sigma = SctmGlobalControl::Get().XLength > SctmGlobalControl::Get().YLengthTrap ? 
-		SctmGlobalControl::Get().YLengthTrap : SctmGlobalControl::Get().XLength;
-
+	sigma = 0.1 * SctmMath::min_val(SctmGlobalControl::Get().XLength, SctmGlobalControl::Get().YLengthTrap);
+	sigma = 1;
 	//the coefficient 0.1 and 10 is just used in this case
-	sigma = norm.PushLength(sigma * 0.1 * nm_in_cm);
+	//sigma = norm.PushLength(sigma * 0.1 * nm_in_cm);
 	double uniformDensity = norm.PushDensity(SctmGlobalControl::Get().UniformTrapDens);
-	double gaussDensity = uniformDensity * 10;
+	//double uniformDensity = SctmGlobalControl::Get().UniformTrapDens;
+	double extraDensity = uniformDensity;
+	//double gaussDensity = uniformDensity * (right_x - left_x)*(top_y - bottom_y);
 
 	FDVertex *currVert = 0;
 	double xCoords = 0;
 	double yCoords = 0;
 	double gaussCoords = 0;
+	double trapDensity = 0;
+	double gaussDens = 0;
+
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{
-		currVert = GetVertex(iVert);
-		xCoords = currVert->X;
-		yCoords = currVert->Y;
+		currVert = ddVerts.at(iVert);
+		xCoords = norm.PullLength(currVert->X) / nm_in_cm;// convert to [nm]
+		yCoords = norm.PullLength(currVert->Y) / nm_in_cm;// convert to [nm]
+
+		double x_min = SctmMath::min_val(SctmMath::abs(xCoords - left_x), SctmMath::abs(xCoords - right_x));
+		double y_min = SctmMath::min_val(SctmMath::abs(yCoords - top_y), SctmMath::abs(yCoords - bottom_y));
+		gaussCoords = SctmMath::min_val(x_min, y_min);
+
+		trapDensity = uniformDensity;
+		gaussDens = uniformDensity / SctmMath::sqrt(2.0 * SctmMath::PI * sigma * sigma) *
+			SctmMath::exp(-gaussCoords * gaussCoords / 2.0 / sigma / sigma);
+
+		trapDensity += gaussDens;
+
+		SCTM_ASSERT(currVert->Trap != NULL, 10042);
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, trapDensity);
 	}
 
+	SctmData::Get().WriteTrapDensity(ddVerts);
 }

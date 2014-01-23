@@ -259,9 +259,10 @@ namespace SctmUtils
 		void WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity);
 		void WriteTotalElecDens(vector<FDVertex *> &vertices);
 		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
-		void WriteTrapOccupation(vector<FDVertex *> &vertices);
+		void WriteTrappedInfo(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
+		void WriteTrapDensity(vector<FDVertex *> &vertices);
 	protected:
 		double temperature;
 		string fileName;
@@ -323,6 +324,7 @@ namespace SctmUtils
 		//density parameters
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double UniformTrapDens; ///< the uniform trap density, in [cm^-3]
+		string TrapDistribution; ///< the distribution 
 
 		//physics models
 		string TrapCaptureModel;
@@ -331,7 +333,7 @@ namespace SctmUtils
 		bool PhysicsT2B; ///< Trap-to-Band tunneling out
 
 		//for debug
-		bool FullTrap; ///< set the trap to full
+		string TrapOccupation; ///< Trap occupation status
 	protected:
 		static void setGlobalCntrl_Directly();
 		static void setGlobalCntrl_FromParFile();
@@ -366,6 +368,7 @@ namespace SctmUtils
 			trap_material,
 			trap_captureModel,
 			trap_uniDensity,
+			trap_distribution,
 			
 			block_thick,
 			block_grid,
@@ -375,7 +378,7 @@ namespace SctmUtils
 			physics_b2t,
 			physics_t2b,
 
-			debug_fullTrap,
+			debug_trap_occupy,
 
 			//material parameters
 			Si_bandgap,

@@ -209,6 +209,15 @@ namespace SctmUtils
 		case 10041:
 			msg = "[TunnelSolver.cpp] This direction has not been considered.";
 			break;
+		case 10042:
+			msg = "[SimpleONO.cpp] Error occurred in setting trap distribution.";
+			break;
+		case 10043:
+			msg = "[Parameter file] Invalid type of trap distribution.";
+			break;
+		case 10044:
+			msg = "[Parameter file] Invalid trap occupation status.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -1020,13 +1029,14 @@ namespace SctmUtils
 		file.WriteLine(line);
 	}
 
-	void SctmData::WriteTrapOccupation(vector<FDVertex *> &vertices)
+	void SctmData::WriteTrappedInfo(vector<FDVertex *> &vertices)
 	{
 		fileName = directoryName + "\\Trap\\trapOccupation" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
 		vector<double> vecY;
+		vector<double> eTrappedDens;
 		vector<double> occupation;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
@@ -1036,11 +1046,12 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
+			eTrappedDens.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped)));
 			occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "occupation of electron trap [" + numStr + "] (x, y, trap occupation)";
-		file.WriteVector(vecX, vecY, occupation, title.c_str());
+		file.WriteVector(vecX, vecY, eTrappedDens, occupation, title.c_str());
 	}
 
 	void SctmData::WriteFlatBandVoltageShift(FDDomain *domain)
@@ -1089,6 +1100,30 @@ namespace SctmUtils
 		static SctmData instance;
 		return instance;
 	}
+
+	void SctmData::WriteTrapDensity(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "\\Miscellaneous\\TrapInfo.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> trapDens;
+
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *currVert = NULL;
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			trapDens.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
+		}
+
+		string title = "trap distribution information";
+		file.WriteVector(vecX, vecY, trapDens, title.c_str());
+	}
+
 
 
 
@@ -1266,6 +1301,9 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_doping);
 		double doping = dynamic_cast<Param<double> *>(parBase)->Value();
 		Get().SubstrateDoping = doping * (subsType == "N" ? 1 : -1);
+		//TrapDistributino
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_distribution);
+		Get().TrapDistribution = dynamic_cast<Param<string> *>(parBase)->Value();
 
 		//TrapCaptureModel
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_captureModel);
@@ -1284,9 +1322,9 @@ namespace SctmUtils
 		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsT2B = t2b;
 
-		//FullTrap
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_fullTrap);
-		Get().FullTrap = dynamic_cast<Param<bool> *>(parBase)->Value();
+		//TrapOccupation
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
+		Get().TrapOccupation = dynamic_cast<Param<string> *>(parBase)->Value();
 	}
 
 	void SctmGlobalControl::SetGlobalControl(string defaultParPath, string prjpath)
@@ -1522,6 +1560,11 @@ namespace SctmUtils
 			mapToSet[ParName::trap_uniDensity] = par;
 			return;
 		}
+		if (name == "trap.distribution")
+		{
+			Param<string> *par = new Param<string>(ParName::trap_distribution, valStr);
+			mapToSet[ParName::trap_distribution] = par;
+		}
 		if (name == "block.thick")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -1563,11 +1606,10 @@ namespace SctmUtils
 			mapToSet[ParName::physics_t2b] = par;
 			return;
 		}
-		if (name == "debug.fullTrap")
+		if (name == "debug.trap.occupy")
 		{
-			valBool = SctmConverter::StringToBool(valStr);
-			Param<bool> *par = new Param<bool>(ParName::debug_fullTrap, valBool);
-			mapToSet[ParName::debug_fullTrap] = par;
+			Param<string> *par = new Param<string>(ParName::debug_trap_occupy, valStr);
+			mapToSet[ParName::debug_trap_occupy] = par;
 			return;
 		}
 

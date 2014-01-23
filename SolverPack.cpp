@@ -80,7 +80,7 @@ void SolverPack::callIteration()
 		//solve trapping
 		trappingSolver->SolveTrap();
 		fetchTrappingResult();
-		SctmData::Get().WriteTrapOccupation(domain->GetDDVerts());
+		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
 
 		//solver drift-diffusion equation
 		ddSolver->SolveDD(mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
