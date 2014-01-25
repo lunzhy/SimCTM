@@ -49,6 +49,8 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
+	SctmTimer::Get().Set();
+
 	while (!SctmTimeStep::Get().End())
 	{
 		SctmTimeStep::Get().GenerateNext();
@@ -60,8 +62,10 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteSubstrateResult(subsSolver);
 
 		//solver Poisson equation
+		SctmTimer::Get().Set();
 		poissonSolver->ReadChannelPotential(mapChannelPotential);
 		poissonSolver->SolvePotential();
+		SctmTimer::Get().Timeit("Poisson", SctmTimer::Get().SinceLastSet());
 		fetchPoissonResult();
 		SctmData::Get().WritePotential(domain->GetVertices());
 		SctmData::Get().WriteBandInfo(domain->GetVertices());
@@ -78,12 +82,16 @@ void SolverPack::callIteration()
 		fetchBlockOxideResult();
 
 		//solve trapping
+		SctmTimer::Get().Set();
 		trappingSolver->SolveTrap();
+		SctmTimer::Get().Timeit("DriftDiffusion", SctmTimer::Get().SinceLastSet());
 		fetchTrappingResult();
 		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
 
 		//solver drift-diffusion equation
+		SctmTimer::Get().Set();
 		ddSolver->SolveDD(mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
+		SctmTimer::Get().Timeit("DriftDiffusion", SctmTimer::Get().SinceLastSet());
 		fetchDDResult();
 		SctmData::Get().WriteTunnelCoeff(domain, mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
 		SctmData::Get().WriteElecDens(domain->GetDDVerts());
@@ -95,6 +103,9 @@ void SolverPack::callIteration()
 
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().SinceLastSet());
 	}
+
+	SctmTimer::Get().Timeit("Total", SctmTimer::Get().SinceLastSet());
+	SctmData::Get().WriteTimerInfo(SctmTimer::Get());
 }
 
 void SolverPack::fetchPoissonResult()
