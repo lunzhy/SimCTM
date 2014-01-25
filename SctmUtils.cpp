@@ -56,14 +56,14 @@ namespace SctmUtils
 		double time = 0;
 		clock_t current_time = clock();
 		//TODO: is this conversion correct?
-		time = (double)((current_time - set_time) / (clock_t)clockPerSecond);
+		time = (double)((double)(current_time - set_time) / (clock_t)clockPerSecond);
 		return time;
 	}
 
 	double SctmTimer::TotalTime()
 	{
 		double time = 0;
-		time = (double)((end_time - start_time ) / (clock_t)clockPerSecond);
+		time = (double)((double)(end_time - start_time ) / (clock_t)clockPerSecond);
 		return time;
 	}
 
