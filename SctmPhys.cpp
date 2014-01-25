@@ -905,6 +905,7 @@ namespace SctmPhys
 					double pfDecrease = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF);
 					ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS *
 						SctmMath::exp(-(trapEnergy - pfDecrease)); // kT/q will disappear with normalized energy
+					//TODO: warning when pfDecrease > trapEnergy
 				}
 				else
 				{

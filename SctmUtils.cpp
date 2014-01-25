@@ -1328,9 +1328,18 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_pfModel);
 		Get().PhysicsPFModel = dynamic_cast<Param<string> *>(parBase)->Value();
 
+		//for debug
 		//TrapOccupation
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
 		Get().TrapOccupation = dynamic_cast<Param<string> *>(parBase)->Value();
+
+		//RetentionAfterPrgrm
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
+		Get().RetentionAfterPrgrm = dynamic_cast<Param<bool> *>(parBase)->Value();
+
+		//RetentionEndTime
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rEndTime);
+		Get().RetentionEndTime = dynamic_cast<Param<double> *>(parBase)->Value();
 	}
 
 	void SctmGlobalControl::SetGlobalControl(string defaultParPath, string prjpath)
@@ -1624,7 +1633,18 @@ namespace SctmUtils
 			mapToSet[ParName::debug_trap_occupy] = par;
 			return;
 		}
-
+		if (name == "debug.rAfterP")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::debug_rAfterP, valBool);
+			mapToSet[ParName::debug_rAfterP] = par;
+		}
+		if (name == "debug.rEndTime")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::debug_rEndTime, valDouble);
+			mapToSet[ParName::debug_rEndTime] = par;
+		}
 
 		//parameters for material properties
 		if (name == "material")

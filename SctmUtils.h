@@ -123,6 +123,7 @@ namespace SctmUtils
 		SctmTimeStep();
 		static SctmTimeStep& Get();
 		void GenerateNext();
+		void Reset();
 		double ElapsedTime() const;
 		int StepNumber() const;
 		double TimeStep() const;
@@ -134,6 +135,7 @@ namespace SctmUtils
 		double currTimeStep; /// current simulation time step
 		
 		vector<double> timeSequence;
+		vector<double> VgSequency;
 	protected:
 		double getTimeStep();
 		double getTimeStep_old();
@@ -335,6 +337,8 @@ namespace SctmUtils
 
 		//for debug
 		string TrapOccupation; ///< Trap occupation status
+		bool RetentionAfterPrgrm; ///< Retention after program
+		double RetentionEndTime; ///< Retention end time after program
 	protected:
 		static void setGlobalCntrl_Directly();
 		static void setGlobalCntrl_FromParFile();
@@ -381,6 +385,8 @@ namespace SctmUtils
 			physics_pfModel,
 
 			debug_trap_occupy,
+			debug_rAfterP,
+			debug_rEndTime,
 
 			//material parameters
 			Si_bandgap,
