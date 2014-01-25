@@ -502,6 +502,10 @@ void SimpleONO::setTrapDistribution()
 	{
 		setTrapDistribution_2DSim();
 	}
+	else if (trapDistr == "Interface")
+	{
+		setTrapDistribution_1D_Interface();
+	}
 	else
 	{
 		SCTM_ASSERT(SCTM_ERROR, 10043);
@@ -559,6 +563,59 @@ void SimpleONO::setTrapDistribution_Uniform()
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
 	}
 }
+
+
+void SimpleONO::setTrapDistribution_1D_Interface()
+{
+	double nm_in_cm = SctmPhys::nm_in_cm;
+
+	//the values in SctmGlobalControl are in input value, in [nm]
+	double top_y = (SctmGlobalControl::Get().YLengthTunnel + SctmGlobalControl::Get().YLengthTrap);
+	double bottom_y = SctmGlobalControl::Get().YLengthTunnel;
+
+
+	Normalization norm = Normalization(this->temperature);
+
+	//the parameters of the Gaussian Distribution
+	double sigma = 0; //variance
+	sigma = 0.1 * SctmMath::min_val(SctmGlobalControl::Get().XLength, SctmGlobalControl::Get().YLengthTrap);
+	sigma = 1;
+	//the coefficient 0.1 and 10 is just used in this case
+	//sigma = norm.PushLength(sigma * 0.1 * nm_in_cm);
+	double uniformDensity = norm.PushDensity(SctmGlobalControl::Get().UniformTrapDens);
+	//double uniformDensity = SctmGlobalControl::Get().UniformTrapDens;
+	double extraDensity = uniformDensity;
+	//double gaussDensity = uniformDensity * (right_x - left_x)*(top_y - bottom_y);
+
+	FDVertex *currVert = 0;
+	double xCoords = 0;
+	double yCoords = 0;
+	double gaussCoords = 0;
+	double trapDensity = 0;
+	double gaussDens = 0;
+
+	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	{
+		currVert = ddVerts.at(iVert);
+		xCoords = norm.PullLength(currVert->X) / nm_in_cm;// convert to [nm]
+		yCoords = norm.PullLength(currVert->Y) / nm_in_cm;// convert to [nm]
+
+		gaussCoords = SctmMath::abs(yCoords - bottom_y);
+
+		trapDensity = uniformDensity;
+
+		gaussDens = uniformDensity * 10 / SctmMath::sqrt(2.0 * SctmMath::PI * sigma * sigma) *
+			SctmMath::exp(-gaussCoords * gaussCoords / 2.0 / sigma / sigma);
+
+		trapDensity += gaussDens;
+
+		SCTM_ASSERT(currVert->Trap != NULL, 10042);
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, trapDensity);
+	}
+
+	SctmData::Get().WriteTrapDensity(ddVerts);
+}
+
 
 void SimpleONO::setTrapDistribution_2DSim()
 {

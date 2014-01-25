@@ -146,6 +146,7 @@ private:
 
 	void setTrapDistribution_Uniform();
 	void setTrapDistribution_2DSim();
+	void setTrapDistribution_1D_Interface();
 };
 
 #endif
