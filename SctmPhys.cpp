@@ -985,11 +985,57 @@ namespace SctmPhys
 		return ret;
 	}
 
-	double CalculateFlatbandShift(FDDomain *domain)
+	double CalculateFlatbandShift_domain(FDDomain *domain)
 	{
-		static FDContact *subsContact = domain->GetContact("Channel");
 		//TODO: this is a temporary method used in one dimensional problems to get the start vertex in the calculation
-		static FDVertex *startVert = subsContact->GetContactVerts().at(0);
+		//now the domain flatband voltage shift calculation method is 
+		//to compute the weighted-average flat voltage shift of each slice with respect to its control length.
+		//However, this method is still a structure-dependent method. The pre-knowledge of the structure has to been known.
+		static FDContact *subsContact = domain->GetContact("Channel");
+		static vector<FDVertex *> &startVertices = subsContact->GetContactVerts();
+
+		double VfbShift_slice = 0;
+		double controlLength = 0;
+		double sum = 0;
+		double length = 0;
+		FDVertex *channelVert = NULL;
+
+		FDVertex *eastVert = NULL;
+		FDVertex *westVert = NULL;
+		for (size_t iVert = 0; iVert != startVertices.size(); ++iVert)
+		{
+			channelVert = startVertices.at(iVert);
+			VfbShift_slice = CalculateFlatbandShift_slice(channelVert);
+			
+			eastVert = channelVert->EastVertex;
+			westVert = channelVert->WestVertex;
+			
+			controlLength = 0;
+			if (eastVert != NULL)
+			{
+				if (std::find(startVertices.begin(), startVertices.end(), eastVert) != startVertices.end())
+				{
+					controlLength += channelVert->EastLength / 2;
+				}
+			}
+			if (westVert != NULL)
+			{
+				if (std::find(startVertices.begin(), startVertices.end(), westVert) != startVertices.end())
+				{
+					controlLength += channelVert->WestLength / 2;
+				}
+			}
+			length += controlLength;
+
+			sum += VfbShift_slice * controlLength;
+		}
+		
+		return sum / length; // in normalized value
+	}
+
+	double CalculateFlatbandShift_slice(FDVertex *channelVert)
+	{
+		FDVertex *startVert = channelVert;
 
 		using namespace SctmUtils;
 		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
@@ -1005,7 +1051,8 @@ namespace SctmPhys
 		double wide = 0;
 		double delta_d = 0;
 		double VfbShift = 0;
-
+		
+		//begin to calculate flatband voltage shift in the specific slice.
 		currVert = startVert;
 		while (currVert != NULL)
 		{
@@ -1034,7 +1081,7 @@ namespace SctmPhys
 			currVert = currVert->NorthVertex;
 		}
 
-		return VfbShift; // in normalized value
+		return VfbShift;
 	}
 
 }

@@ -68,7 +68,8 @@ namespace SctmPhys
 	/// @note
 	void SetPhysConstant();
 
-	double CalculateFlatbandShift(FDDomain *domain);
+	double CalculateFlatbandShift_domain(FDDomain *domain);
+	double CalculateFlatbandShift_slice(FDVertex *channelVert);
 
 	/// @brief This class is a data structure to store the physical parameters of the specified vertex
 	///

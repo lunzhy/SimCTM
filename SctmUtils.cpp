@@ -1082,7 +1082,7 @@ namespace SctmUtils
 		fileName = directoryName + "\\Miscellaneous\\VfbShift.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
-		VfbShift = SctmPhys::CalculateFlatbandShift(domain);
+		VfbShift = SctmPhys::CalculateFlatbandShift_domain(domain);
 
 		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string valStr = SctmConverter::DoubleToString(norm.PullPotential(VfbShift));
