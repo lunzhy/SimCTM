@@ -238,20 +238,5 @@ void SolverPack::fetchTrappingResult()
 
 void SolverPack::fetchSubstrateResult()
 {
-	double fermiAbove = 0;
-	double channelPot = 0;
-	subsSolver->ReturnResult(fermiAbove, channelPot);
-	
-	FDContact *channelContact = NULL;
-	int vertID = 0;
-
-	channelContact = domain->GetContact("Channel");
-	std::vector<FDVertex *> &channelVerts = channelContact->GetContactVerts();
-	
-	for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
-	{
-		vertID = channelVerts.at(iVert)->GetID();
-		mapChannelPotential[vertID] = channelPot;
-		mapSiFermiAboveCBedge[vertID] = fermiAbove;
-	}
+	subsSolver->ReturnResult(mapSiFermiAboveCBedge, mapChannelPotential);
 }

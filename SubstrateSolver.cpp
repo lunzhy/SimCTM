@@ -47,29 +47,6 @@ void OneDimSubsSolver::initializeSolver()
 		eDensEqui = 1 / hDensEqui;
 	}
 
-	//////////calculate the gate capacitance
-	FDContact *channelCont = NULL;
-	channelCont = domain->GetContact("Channel");
-
-	//TODO: this is an temporary method to get the required vertex
-	FDVertex *startVert = channelCont->GetContactVerts().at(0);
-	FDVertex *currVert = startVert;
-
-	double epsilon = 0;
-	double delta_d = 0;
-	double cap_reciprocal = 0;
-
-	while (currVert != NULL)
-	{
-		epsilon = currVert->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
-		delta_d = (currVert->NorthLength + currVert->SouthLength) / 2;
-		cap_reciprocal += delta_d / epsilon;
-
-		currVert = currVert->NorthVertex;
-	}
-	this->gateCapacitance = 1 / cap_reciprocal;
-	
-	//double gateCap = norm.PullCapacitancePerArea(gateCapacitance);
 }
 
 void OneDimSubsSolver::calcFuncAndItsDeriv(double surfpot)
@@ -149,13 +126,26 @@ double OneDimSubsSolver::solve_NewtonMethod()
 
 void OneDimSubsSolver::SolveSurfacePot()
 {
+	//clear previous result
+	fermiAboveMap.clear();
+	channelPotMap.clear();
+	
+	//CAUTION! TODO: this should be revised according to the change of gate voltage during the simulation 
 	gateVoltage = domain->GetContact("Gate")->Voltage;
-	calcFlatbandVoltage();
-	this->surfacePotBend = solve_NewtonMethod();
-	Normalization norm = Normalization(temperature);
-	//double pot = norm.PullPotential(surfacePot);
-	calcFermiAboveCB();
-	calcChannelPotential();
+
+	static FDContact *subsContact = domain->GetContact("Channel");
+	static vector<FDVertex *> &channelVerts = subsContact->GetContactVerts();
+
+	FDVertex *vert = NULL;
+	for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
+	{
+		vert = channelVerts.at(iVert);
+		this->gateCapacitance = calcGateCapacitance(vert);
+		this->flatbandVoltage = calcFlatbandVoltage(vert);
+		this->surfacePotBend = solve_NewtonMethod();
+		setFermiAboveCB(vert);
+		setChannelPotential(vert);
+	}
 }
 
 OneDimSubsSolver::OneDimSubsSolver(FDDomain *_domain) : domain(_domain)
@@ -163,26 +153,29 @@ OneDimSubsSolver::OneDimSubsSolver(FDDomain *_domain) : domain(_domain)
 	initializeSolver();
 }
 
-void OneDimSubsSolver::calcFermiAboveCB()
+void OneDimSubsSolver::setFermiAboveCB(FDVertex *channelVert)
 {
 	using namespace MaterialDB;
 	double bandgap = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_Bandgap);
 	//double kT = SctmPhys::k0 * temperature;
-	
+	double fermi_above = 0;
+
 	if (subsType == PType)
 	{
-		fermiAbove = -(bandgap / 2 + SctmMath::ln(subsDopConc)) + surfacePotBend;
+		fermi_above = -(bandgap / 2 + SctmMath::ln(subsDopConc)) + surfacePotBend;
 	}
 	else
 	{
-		fermiAbove = -(bandgap / 2 - SctmMath::ln(subsDopConc)) + surfacePotBend;
+		fermi_above = -(bandgap / 2 - SctmMath::ln(subsDopConc)) + surfacePotBend;
 	}
 	// todo with the normalization problem
+	fermiAboveMap[channelVert->GetID()] = fermi_above;
 }
 
-void OneDimSubsSolver::calcChannelPotential()
+void OneDimSubsSolver::setChannelPotential(FDVertex *channelVert)
 {
 	double subsPot = 0; // the potential at the substrate contact
+	double channel_pot = 0;
 	if (subsType = PType)
 	{
 		subsPot = SctmMath::asinh(-subsDopConc / 2.0);
@@ -191,23 +184,57 @@ void OneDimSubsSolver::calcChannelPotential()
 	{
 		subsPot = SctmMath::asinh(subsDopConc / 2);
 	}
-	channelPot = subsPot + surfacePotBend;
+	channel_pot = subsPot + this->surfacePotBend;
+	channelPotMap[channelVert->GetID()] = channel_pot;
 }
 
-void OneDimSubsSolver::calcFlatbandVoltage()
+double OneDimSubsSolver::calcFlatbandVoltage(FDVertex *channelVert)
 {
 	using namespace SctmUtils;
 	Normalization norm = Normalization(temperature);
 	double gateWorkFunction = norm.PushPotential(SctmGlobalControl::Get().GateWorkFunction);
 	double workFuncDifference = gateWorkFunction - SctmPhys::ReferencePotential;
 
-	double vfbShift_charge = SctmPhys::CalculateFlatbandShift_domain(domain);
+	double vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice(channelVert);
 
-	this->flatbandVoltage = vfbShift_charge + workFuncDifference;
+	return vfbShift_charge + workFuncDifference;
+	//this->flatbandVoltage = vfbShift_charge + workFuncDifference;
 }
 
-void OneDimSubsSolver::ReturnResult(double &fermiAbove, double &channelPot)
+void OneDimSubsSolver::ReturnResult(VertexMapDouble &_fermiAboveMap, VertexMapDouble &_channelPotMap)
 {
-	fermiAbove = this->fermiAbove;
-	channelPot = this->channelPot;
+	for (VertexMapDouble::iterator it = this->fermiAboveMap.begin(); it != this->fermiAboveMap.end(); ++it)
+	{
+		_fermiAboveMap[it->first] = it->second;
+	}
+	for (VertexMapDouble::iterator it = this->channelPotMap.begin(); it != this->channelPotMap.end(); ++it)
+	{
+		_channelPotMap[it->first] = it->second;
+	}
+
+}
+
+double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
+{
+
+	//////////calculate the gate capacitance in the slice
+	FDVertex *currVert = channelVert;
+
+	double epsilon = 0;
+	double delta_d = 0;
+	double cap_reciprocal = 0;
+
+	while (currVert != NULL)
+	{
+		epsilon = currVert->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
+		delta_d = (currVert->NorthLength + currVert->SouthLength) / 2;
+		cap_reciprocal += delta_d / epsilon;
+
+		currVert = currVert->NorthVertex;
+	}
+
+	return 1.0 / cap_reciprocal;
+
+	//this->gateCapacitance = 1 / cap_reciprocal;
+	//double gateCap = norm.PullCapacitancePerArea(gateCapacitance);
 }

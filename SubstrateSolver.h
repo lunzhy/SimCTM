@@ -13,11 +13,21 @@
 
 #ifndef _SUBSTRATESOLVER_H_
 #define _SUBSTRATESOLVER_H_
+#include <map>
+
+typedef std::map<int, double> VertexMapDouble; // <vertID, value>, map of vertex physical value
 
 class FDDomain;
+class FDVertex;
+
+namespace SctmUtils
+{
+	class SctmData;
+}
 
 class OneDimSubsSolver
 {
+	friend class SctmUtils::SctmData;
 public:
 	enum DopType
 	{
@@ -26,7 +36,7 @@ public:
 	};
 	OneDimSubsSolver(FDDomain *_domain);
 	void SolveSurfacePot();
-	void ReturnResult(double &fermiAbove, double &channelPot);
+	void ReturnResult(VertexMapDouble &_fermiAboveMap, VertexMapDouble &_channelPotMap);
 protected:
 	FDDomain *domain;
 	double temperature;
@@ -43,16 +53,18 @@ protected:
 	double func_SurfPot;
 	double funcDeriv_SurfPot;
 	double surfacePotBend;
-	double fermiAbove;
-	double channelPot;
 
 	void initializeSolver(); 
 	void calcFuncAndItsDeriv(double surfpot);
-	void calcFlatbandVoltage();
+	double calcFlatbandVoltage(FDVertex *channelVert);
+	double calcGateCapacitance(FDVertex *channelVert);
 	double solve_NewtonMethod();
 
-	void calcFermiAboveCB();
-	void calcChannelPotential();
+	void setFermiAboveCB(FDVertex *channelVert);
+	void setChannelPotential(FDVertex *channelVert);
+
+	VertexMapDouble fermiAboveMap;
+	VertexMapDouble channelPotMap;
 };
 
 #endif
