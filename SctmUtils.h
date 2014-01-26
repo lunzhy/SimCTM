@@ -49,12 +49,15 @@ class FDDomain;
 class OneDimSubsSolver;
 
 typedef std::map<int, double> VertexMapDouble; // <vertID, phyValue>
+typedef std::map<string, double> KeywordsTimerMap; // keywords timer
 
 namespace SctmUtils
 {
+	class SctmData;
 	/// @brief This class is used to deal with the timing problems in the simulation
 	class SctmTimer
 	{
+		friend class SctmData;
 		static const int clockPerSecond = CLOCKS_PER_SEC; ///< the number of inner clock times per second. CLOCKS_PER_SEC is in ctime
 	public:
 		/// @brief SctmTimer is the construction method of the SctmTimer.
@@ -107,10 +110,14 @@ namespace SctmUtils
 		/// @return double
 		/// @note
 		double TotalTime();
+		void Timeit(string keywords, double time);
 	protected:
 		std::clock_t start_time; ///< the start time of the timer, in inner clock unit
 		std::clock_t end_time; ///< the end time of the timer, in inner clock unit
 		std::clock_t set_time; ///< the time of setting the timer, in inner clock unit
+
+		KeywordsTimerMap keywordTimer;
+		vector<double> setList;
 	};
 	
 	
@@ -265,6 +272,7 @@ namespace SctmUtils
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
+		void WriteTimerInfo(SctmTimer &timer);
 	protected:
 		double temperature;
 		string fileName;

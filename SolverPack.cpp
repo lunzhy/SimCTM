@@ -49,6 +49,8 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
+	SctmTimer::Get().Set();
+
 	while (!SctmTimeStep::Get().End())
 	{
 		SctmTimeStep::Get().GenerateNext();
@@ -60,8 +62,10 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteSubstrateResult(subsSolver);
 
 		//solver Poisson equation
+		SctmTimer::Get().Set();
 		poissonSolver->ReadChannelPotential(mapChannelPotential);
 		poissonSolver->SolvePotential();
+		SctmTimer::Get().Timeit("Poisson", SctmTimer::Get().SinceLastSet());
 		fetchPoissonResult();
 		SctmData::Get().WritePotential(domain->GetVertices());
 		SctmData::Get().WriteBandInfo(domain->GetVertices());
@@ -69,21 +73,29 @@ void SolverPack::callIteration()
 
 		//solve tunneling problem in tunneling oxide
 		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
+		SctmTimer::Get().Set();
 		tunnelOxideSolver->SolveTunnel();
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
 		fetchTunnelOxideResult();
 		SctmData::Get().WriteTunnelCurrentFromSubs(domain, mapCurrDens_Tunnel);
 
 		//solve tunneling problem in blocking oxide
+		SctmTimer::Get().Set();
 		blockOxideSolver->SolveTunnel();
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
 		fetchBlockOxideResult();
 
 		//solve trapping
+		SctmTimer::Get().Set();
 		trappingSolver->SolveTrap();
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
 		fetchTrappingResult();
 		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
 
 		//solver drift-diffusion equation
+		SctmTimer::Get().Set();
 		ddSolver->SolveDD(mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
 		fetchDDResult();
 		SctmData::Get().WriteTunnelCoeff(domain, mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
 		SctmData::Get().WriteElecDens(domain->GetDDVerts());
@@ -95,6 +107,9 @@ void SolverPack::callIteration()
 
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().SinceLastSet());
 	}
+
+	SctmTimer::Get().Timeit("Total", SctmTimer::Get().SinceLastSet());
+	SctmData::Get().WriteTimerInfo(SctmTimer::Get());
 }
 
 void SolverPack::fetchPoissonResult()

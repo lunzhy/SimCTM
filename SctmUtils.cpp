@@ -41,7 +41,9 @@ namespace SctmUtils
 
 	void SctmTimer::Set()
 	{
-		set_time = clock();
+		//set_time = clock();
+		clock_t current_time = clock();
+		setList.push_back(current_time);
 		return;
 	}
 
@@ -55,8 +57,15 @@ namespace SctmUtils
 	{
 		double time = 0;
 		clock_t current_time = clock();
+		if (setList.size() == 0)
+		{
+			return -1;
+		}
+		double lastSet = setList.back();
+		setList.pop_back();
 		//TODO: is this conversion correct?
-		time = (double)((double)(current_time - set_time) / (clock_t)clockPerSecond);
+		//time = (double)((current_time - set_time) / (clock_t)clockPerSecond);
+		time = (double)((current_time - lastSet) / (clock_t)clockPerSecond);
 		return time;
 	}
 
@@ -72,6 +81,12 @@ namespace SctmUtils
 		static SctmTimer instance;
 		return instance;
 	}
+
+	void SctmTimer::Timeit(string keywords, double time)
+	{
+		keywordTimer[keywords] += time;
+	}
+
 
 
 
@@ -1126,6 +1141,26 @@ namespace SctmUtils
 		string title = "trap distribution information";
 		file.WriteVector(vecX, vecY, trapDens, title.c_str());
 	}
+
+	void SctmData::WriteTimerInfo(SctmTimer &timer)
+	{
+		fileName = directoryName + "\\Miscellaneous\\Timing.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		double totalTime = timer.keywordTimer["Total"];
+		double poissonTime = timer.keywordTimer["Poisson"];
+		double ddTime = timer.keywordTimer["Transport"];
+
+		string line = "";
+		line = "Total time: " + SctmConverter::DoubleToString(totalTime) + "s";
+		file.WriteLine(line);
+		line = "Poisson time: " + SctmConverter::DoubleToString(poissonTime) + "s";
+		file.WriteLine(line);
+		line = "Drift-Diffusion time: " + SctmConverter::DoubleToString(ddTime) + "s";
+		file.WriteLine(line);
+
+	}
+
 
 
 
