@@ -1149,7 +1149,7 @@ namespace SctmUtils
 
 		double totalTime = timer.keywordTimer["Total"];
 		double poissonTime = timer.keywordTimer["Poisson"];
-		double ddTime = timer.keywordTimer["DriftDiffusion"];
+		double ddTime = timer.keywordTimer["Transport"];
 
 		string line = "";
 		line = "Total time: " + SctmConverter::DoubleToString(totalTime) + "s";
