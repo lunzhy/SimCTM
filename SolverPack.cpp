@@ -65,7 +65,7 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Set();
 		poissonSolver->ReadChannelPotential(mapChannelPotential);
 		poissonSolver->SolvePotential();
-		SctmTimer::Get().Timeit("Poisson", SctmTimer::Get().SinceLastSet());
+		SctmTimer::Get().Timeit("Poisson", SctmTimer::Get().PopLastSet());
 		fetchPoissonResult();
 		SctmData::Get().WritePotential(domain->GetVertices());
 		SctmData::Get().WriteBandInfo(domain->GetVertices());
@@ -75,27 +75,27 @@ void SolverPack::callIteration()
 		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		SctmTimer::Get().Set();
 		tunnelOxideSolver->SolveTunnel();
-		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchTunnelOxideResult();
 		SctmData::Get().WriteTunnelCurrentFromSubs(domain, mapCurrDens_Tunnel);
 
 		//solve tunneling problem in blocking oxide
 		SctmTimer::Get().Set();
 		blockOxideSolver->SolveTunnel();
-		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchBlockOxideResult();
 
 		//solve trapping
 		SctmTimer::Get().Set();
 		trappingSolver->SolveTrap();
-		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchTrappingResult();
 		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
 
 		//solver drift-diffusion equation
 		SctmTimer::Get().Set();
 		ddSolver->SolveDD(mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
-		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().SinceLastSet());
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchDDResult();
 		SctmData::Get().WriteTunnelCoeff(domain, mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
 		SctmData::Get().WriteElecDens(domain->GetDDVerts());
@@ -105,10 +105,10 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteFlatBandVoltageShift(domain);
 
-		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().SinceLastSet());
+		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
 	}
 
-	SctmTimer::Get().Timeit("Total", SctmTimer::Get().SinceLastSet());
+	SctmTimer::Get().Timeit("Total", SctmTimer::Get().PopLastSet());
 	SctmData::Get().WriteTimerInfo(SctmTimer::Get());
 }
 

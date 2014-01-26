@@ -53,26 +53,26 @@ namespace SctmUtils
 		return;
 	}
 
-	double SctmTimer::SinceLastSet()
+	double SctmTimer::PopLastSet()
 	{
 		double time = 0;
 		clock_t current_time = clock();
 		if (setList.size() == 0)
 		{
-			return -1;
+			SCTM_ASSERT(SCTM_ERROR, 10046);
 		}
 		double lastSet = setList.back();
 		setList.pop_back();
 		//TODO: is this conversion correct?
 		//time = (double)((current_time - set_time) / (clock_t)clockPerSecond);
-		time = (double)((current_time - lastSet) / (clock_t)clockPerSecond);
+		time = (double)(current_time - lastSet) / (clock_t)clockPerSecond;
 		return time;
 	}
 
 	double SctmTimer::TotalTime()
 	{
 		double time = 0;
-		time = (double)((double)(end_time - start_time ) / (clock_t)clockPerSecond);
+		time = (double)(end_time - start_time ) / (clock_t)clockPerSecond;
 		return time;
 	}
 
@@ -236,6 +236,8 @@ namespace SctmUtils
 		case 10045:
 			msg = "[Parameter file] Invalid Poole-Frenkel model name.";
 			break;
+		case 10046:
+			msg = "[SctmUtils.cpp] Time solver meets unpaired set/popset methods.";
 		default:
 			msg = "Untracked error";
 		}

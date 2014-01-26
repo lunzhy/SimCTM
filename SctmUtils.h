@@ -101,7 +101,7 @@ namespace SctmUtils
 		/// @pre
 		/// @return double
 		/// @note
-		double SinceLastSet();
+		double PopLastSet();
 		/// @brief TotalTime is used to return the total time elapsed.
 		/// 
 		/// This method should be called after End() is called. 

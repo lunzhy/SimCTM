@@ -1535,7 +1535,7 @@ void DDTest::SolveDD()
 	//SctmDebug::GetInstance().PrintVector(this->elecDensity, "electron density");
 	
 	UpdateElecDens();
-	SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().SinceLastSet());
+	SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
 
 	SctmData::Get().WriteElecDens(this->ddVertices);
 }
