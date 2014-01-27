@@ -992,37 +992,37 @@ namespace SctmPhys
 		//to compute the weighted-average flat voltage shift of each slice with respect to its control length.
 		//However, this method is still a structure-dependent method. The pre-knowledge of the structure has to been known.
 		static FDContact *subsContact = domain->GetContact("Channel");
-		static vector<FDVertex *> &startVertices = subsContact->GetContactVerts();
+		static vector<FDVertex *> &channelVerts = subsContact->GetContactVerts();
 
 		double VfbShift_slice = 0;
 		double controlLength = 0;
 		double sum = 0;
 		double length = 0;
-		FDVertex *channelVert = NULL;
+		FDVertex *vert = NULL;
 
 		FDVertex *eastVert = NULL;
 		FDVertex *westVert = NULL;
-		for (size_t iVert = 0; iVert != startVertices.size(); ++iVert)
+		for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
 		{
-			channelVert = startVertices.at(iVert);
-			VfbShift_slice = CalculateFlatbandShift_slice(channelVert);
+			vert = channelVerts.at(iVert);
+			VfbShift_slice = CalculateFlatbandShift_slice(vert);
 			
-			eastVert = channelVert->EastVertex;
-			westVert = channelVert->WestVertex;
+			eastVert = vert->EastVertex;
+			westVert = vert->WestVertex;
 			
 			controlLength = 0;
 			if (eastVert != NULL)
 			{
-				if (std::find(startVertices.begin(), startVertices.end(), eastVert) != startVertices.end())
+				if (std::find(channelVerts.begin(), channelVerts.end(), eastVert) != channelVerts.end())
 				{
-					controlLength += channelVert->EastLength / 2;
+					controlLength += vert->EastLength / 2;
 				}
 			}
 			if (westVert != NULL)
 			{
-				if (std::find(startVertices.begin(), startVertices.end(), westVert) != startVertices.end())
+				if (std::find(channelVerts.begin(), channelVerts.end(), westVert) != channelVerts.end())
 				{
-					controlLength += channelVert->WestLength / 2;
+					controlLength += vert->WestLength / 2;
 				}
 			}
 			length += controlLength;

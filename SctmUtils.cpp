@@ -1098,9 +1098,12 @@ namespace SctmUtils
 		fileName = directoryName + "\\Miscellaneous\\substrate.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
-		double fermiAbove = 0;
-		double channelPot = 0;
-		subsSolver->ReturnResult(fermiAbove, channelPot);
+		VertexMapDouble fermi_above_map;
+		VertexMapDouble channel_potential_map;
+		double fermi_above = 0;
+		double channel_potential = 0;
+
+		subsSolver->ReturnResult(fermi_above_map, channel_potential_map);
 
 		if (firstRun)
 		{
@@ -1109,10 +1112,19 @@ namespace SctmUtils
 			firstRun = false;
 		}
 
-		string line = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(channelPot));
-		line += "\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermiAbove));
-		file.WriteLine(line);
+		string time = "time = [" + SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime()) + "s]";
+		file.WriteLine(time);
+		int vertID = 0;
+		string line = "";
+		for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
+		{
+			vertID = it->first;
+			fermi_above = it->second;
+			channel_potential = channel_potential_map[vertID];
+			line = SctmConverter::DoubleToString(norm.PullPotential(channel_potential)) +
+				"\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermi_above));
+			file.WriteLine(line);
+		}
 	}
 
 	SctmData& SctmData::Get()
