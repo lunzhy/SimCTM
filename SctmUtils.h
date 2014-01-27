@@ -465,7 +465,7 @@ namespace SctmUtils
 	protected:
 		SctmParameterParser::ParName parName;
 		// for the requirement of a polymorphic class in dynamic_cast
-		virtual void dummy(){};
+		virtual void dummy(){}
 	};
 
 
@@ -484,7 +484,7 @@ namespace SctmUtils
 	class BadParConversion : public std::runtime_error
 	{
 	public:
-		BadParConversion(const string &s) : std::runtime_error(s) { };
+		BadParConversion(const string &s) : std::runtime_error(s) { }
 	};
 
 
