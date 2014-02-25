@@ -447,6 +447,12 @@ namespace SctmUtils
 		return instance;
 	}
 
+	void SctmDebug::WritePooleFrenkel(FDDomain *domain)
+	{
+		SctmData::Get().WritePooleFrenkelDecrease(domain->GetDDVerts());
+	}
+
+
 
 
 
@@ -1158,7 +1164,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTimerInfo(SctmTimer &timer)
 	{
-		fileName = directoryName + "\\Miscellaneous\\Timing.txt";
+		fileName = directoryName + "\\Miscellaneous\\timing.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		double totalTime = timer.keywordTimer["Total"];
@@ -1174,6 +1180,45 @@ namespace SctmUtils
 		file.WriteLine(line);
 
 	}
+
+	void SctmData::WritePooleFrenkelInfo()
+	{
+		fileName = directoryName + "\\Miscellaneous\\simInfo.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+		double time = norm.PullTime(SctmTimeStep::Get().ElapsedTime());
+
+		string line = "Energy decrease of Poole-Frenkel effect surpasses trap energy at " +
+			SctmConverter::DoubleToString(time) + "s.";
+		file.WriteLine(line);
+	}
+
+	void SctmData::WritePooleFrenkelDecrease(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "\\Trap\\PooleFrenkelDecrease" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> PF_decrease;
+
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			PF_decrease.push_back(norm.PullEnergy(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF)));
+		}
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "energy decrease of Poole-Frenkel effect at [" + numStr + "] (x, y, energy decrease)";
+		file.WriteVector(vecX, vecY, PF_decrease, title.c_str());
+	}
+
+
 
 
 

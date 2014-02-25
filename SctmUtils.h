@@ -200,6 +200,7 @@ namespace SctmUtils
 		void WritePoisson(FDDomain *domain);
 		void WriteBandInfo(FDDomain *domain);
 		void WriteDensity(FDDomain *domain);
+		void WritePooleFrenkel(FDDomain *domain);
 	private:
 		bool enable;
 		double temperature;
@@ -259,7 +260,6 @@ namespace SctmUtils
 	public:
 		SctmData();
 		static SctmData& Get();
-		void ReadTunnelParamter();
 		void WriteElecCurrDens(vector<FDVertex *> &vertices);
 		void WriteElecDens(vector<FDVertex *> &vertices);
 		void WritePotential(vector<FDVertex *> &vertices);
@@ -273,6 +273,9 @@ namespace SctmUtils
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		void WriteTimerInfo(SctmTimer &timer);
+		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);
+		
+		void WritePooleFrenkelInfo();
 	protected:
 		double temperature;
 		string fileName;
