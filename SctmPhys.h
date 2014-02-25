@@ -215,6 +215,7 @@ namespace SctmPhys
 			eEmissionCoeff_T2B, ///< electron trap-to-band tunneling out coefficient
 			eTransCoeffT2B, ///< electron trap-to-band tunneling out transmission coefficient
 			eEmissionCoeff_PF, ///< electron emission coefficient of Poole-Frenkel  effect
+			//below are parameters to store
 			eFrequency_PF, ///< electron emission frequency of Poole-Frenkel effect
 			eTrapEnergyDecreasePF, ///< electron trap energy decrease due to Poole-Frenkel effect
 		};

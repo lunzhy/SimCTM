@@ -127,7 +127,10 @@ void TrapSolver::SolveTrap()
 	{
 		setSolverTrapToBand();
 	}
-
+	if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
+	{
+		setSolverPooleFrenkel_Frequency();
+	}
 	solveEachVertex();
 }
 
@@ -167,7 +170,9 @@ void TrapSolver::setSolverDetrapping_BasicSRH()
 	int vertID = 0;
 	double timeStep = 0;	
 
-	double coeff_detrapping = 0;
+	double coeff = 0;
+	double rhs = 0;
+	
 	double eEmission = 0;
 
 	timeStep = SctmTimeStep::Get().TimeStep();
@@ -176,11 +181,12 @@ void TrapSolver::setSolverDetrapping_BasicSRH()
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
 
+		//if PhysicsPFModel == EtDecrease, PF effect is included in the emission coefficient
 		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
 		
 		//coeff of nt due to detrapping = emission rate * dalta_time
-		coeff_detrapping = timeStep * eEmission;
-		coeffMap[vertID] += coeff_detrapping;
+		coeff = timeStep * eEmission;
+		coeffMap[vertID] += coeff;
 
 		//rhs of the equation due to detrapping = 0; none effect
 		rhsMap[vertID] += 0;
@@ -242,6 +248,34 @@ void TrapSolver::setSolverTrapToBand()
 
 		//rhs of the equation
 		rhsMap[vertID] += 0;
+	}
+}
+
+void TrapSolver::setSolverPooleFrenkel_Frequency()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double timeStep = 0;
+
+	double coeff = 0;
+	double rhs = 0;
+
+	double eEmission_pf = 0;
+
+	timeStep = SctmTimeStep::Get().TimeStep();
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+		eEmission_pf = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_PF);
+
+		//coeff of nt due to detrapping = emission rate * dalta_time
+		coeff = timeStep * eEmission_pf;
+		coeffMap[vertID] += coeff;
+
+		//rhs of the equation due to detrapping = 0; none effect
+		rhs = 0;
+		rhsMap[vertID] += rhs;
 	}
 }
 

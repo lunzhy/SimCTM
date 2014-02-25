@@ -891,23 +891,23 @@ namespace SctmPhys
 				eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity);
 				eEffectiveDOS = vertSelf->Phys->GetPhysPrpty(PhysProperty::eEffDOS);
 
-				double trapEnergy = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+				double trapDepth = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
 
 				using SctmUtils::SctmGlobalControl;
 				static string pfModel = SctmGlobalControl::Get().PhysicsPFModel;
 				
-				if (pfModel == "None" || pfModel == "Frequency")
+				if (pfModel == "None" || pfModel == "Frequency") //ordinary temperature-based emission
 				{
 					ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS *
-						SctmMath::exp(-trapEnergy); // kT/q will disappear with normalized energy
+						SctmMath::exp(-trapDepth); // kT/q will disappear with normalized energy
 				}
 				else if (pfModel == "EtDecrease")
 				{
 					double pfDecrease = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF);
 					ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS *
-						SctmMath::exp(-(trapEnergy - pfDecrease)); // kT/q will disappear with normalized energy
+						SctmMath::exp(-(trapDepth - pfDecrease)); // kT/q will disappear with normalized energy
 					//TODO: warning when pfDecrease > trapEnergy
-					if (pfDecrease > trapEnergy)
+					if (pfDecrease > trapDepth)
 					{
 						SctmData::Get().WritePooleFrenkelInfo();
 					}
@@ -975,10 +975,13 @@ namespace SctmPhys
 			{
 				double deltaEt = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF); // in [eV], normalized value
 				double frequency = GetTrapPrpty(TrapProperty::eFrequency_PF);
-				double temperature = vertSelf->Phys->GetPhysPrpty(PhysProperty::Temperature);
 				double trapDepth = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
 
 				double coeff = frequency * SctmMath::exp(-(trapDepth - deltaEt));
+				if (deltaEt > trapDepth)
+				{
+					SctmData::Get().WritePooleFrenkelInfo();
+				}
 				return coeff;
 			}
 			default:

@@ -1276,8 +1276,11 @@ void DriftDiffusionSolver::updateRhsForDetrapping()
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	int equID = 0;
-	double eEmission = 0;
+
+	double eEmission_SRH = 0;
+	double eEmission_PF = 0;
 	double eTrappedDens = 0;
+	
 	double rhs_detrapping = 0;
 
 	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
@@ -1286,10 +1289,17 @@ void DriftDiffusionSolver::updateRhsForDetrapping()
 		vertID = currVert->GetID();
 		equID = equationMap[vertID];
 
-		eEmission = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
+		eEmission_SRH = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
+
+		if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
+		{
+			//consider Poole-Frenkel detrapping
+			eEmission_PF = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_PF);
+		}
+
 		eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 
-		rhs_detrapping = eEmission * eTrappedDens;
+		rhs_detrapping = (eEmission_SRH + eEmission_PF) * eTrappedDens;
 		// the negative sigh symbolizes moving the addend from right to left of the equation.
 		rhsVector.at(equID) += -rhs_detrapping;
 	}

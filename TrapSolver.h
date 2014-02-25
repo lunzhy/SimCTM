@@ -34,6 +34,7 @@ protected:
 	void setSolverDetrapping_BasicSRH();
 	void setSolverBandToTrap();
 	void setSolverTrapToBand();
+	void setSolverPooleFrenkel_Frequency();
 	void solveEachVertex();
 
 protected:
