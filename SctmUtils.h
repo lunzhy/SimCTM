@@ -218,6 +218,7 @@ namespace SctmUtils
 		void PrintFileError(const char *filename, const char *msg = "");
 		void PrintDirectoryError();
 		void PrintInvalidLineInParFile(const char *filename, int lineNum);
+		void PrintInvalidParameterName(string& name);
 		void PrintValue(double);
 	protected:
 		void printLine(string &line);

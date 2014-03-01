@@ -204,7 +204,7 @@ namespace SctmUtils
 			msg = "[Parameter file] Invalid line in parameter file or invalid parameter value.";
 			break;
 		case 10035:
-			msg = "[SctmUtils.cpp] Non-exist parameter is required.";
+			msg = "[SctmUtils.cpp] Non-existed parameter is required.";
 			break;
 		case 10036:
 			msg = "[Parameter file] Invalid trap capture model.";
@@ -237,7 +237,11 @@ namespace SctmUtils
 			msg = "[Parameter file] Invalid Poole-Frenkel model name.";
 			break;
 		case 10046:
-			msg = "[SctmUtils.cpp] Time solver meets unpaired set/popset methods.";
+			msg = "[SctmUtils.cpp] Time solver meets unpaired set/pop methods.";
+			break;
+		case 10047:
+			msg = "[SctmUtils.cpp] Wrong parameter name in param file.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -535,6 +539,13 @@ namespace SctmUtils
 		static SctmMessaging instance;
 		return instance;
 	}
+
+	void SctmMessaging::PrintInvalidParameterName(string& name)
+	{
+		cout << endl << "XXXXX=>" << "Invalid parameter name: " << name << endl;
+		exit(1);
+	}
+
 
 
 
@@ -1984,6 +1995,10 @@ namespace SctmUtils
 			}
 			return;
 		}
+
+		//fall to match the above names
+		SctmMessaging::Get().PrintInvalidParameterName(name);
+		SCTM_ASSERT(SCTM_ERROR, 10047);
 	}
 
 	void SctmParameterParser::ReadParFile(string &file, std::map<ParName, ParamBase*> &mapToSet)
