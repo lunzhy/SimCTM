@@ -1349,10 +1349,10 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::temperature);
 		Get().Temperature = dynamic_cast<Param<double> *>(parBase)->Value();
 		//GateVoltage
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::gate_voltage);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_voltage);
 		Get().GateVoltage = dynamic_cast<Param<double> *>(parBase)->Value();
 		//GateWorkFunction
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::gate_workfunction);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_workfunction);
 		Get().GateWorkFunction = dynamic_cast<Param<double> *>(parBase)->Value();
 
 		//SimStartTime
@@ -1366,38 +1366,38 @@ namespace SctmUtils
 		Get().SimStepsPerDecade = dynamic_cast<Param<int> *>(parBase)->Value();
 
 		//Xlength
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::width_value);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_width_value);
 		Get().XLength = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthTunnel
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_thick);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_tunnel_thick);
 		Get().YLengthTunnel = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthTrap
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_thick);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_trap_thick);
 		Get().YLengthTrap = dynamic_cast<Param<double> *>(parBase)->Value();
 		//YLengthBlock
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_thick);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_block_thick);
 		Get().YLengthBlock = dynamic_cast<Param<double> *>(parBase)->Value();
 		//XGridNum
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::width_grid);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_width_grid);
 		Get().XGridNum = dynamic_cast<Param<int> *>(parBase)->Value();
 		//YGridNumTunnel
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_grid);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_tunnel_grid);
 		Get().YGridNumTunnel = dynamic_cast<Param<int> *>(parBase)->Value();
 		//YGridNumTrap
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_grid);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_trap_grid);
 		Get().YGridNumTrap = dynamic_cast<Param<int> *>(parBase)->Value();
 		//YGridnumBlock
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_grid);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_block_grid);
 		Get().YGridNumBlock = dynamic_cast<Param<int> *>(parBase)->Value();
 
 		//TunnelMaterial
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tunnel_material);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_tunnel_material);
 		Get().TunnelMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
 		//TrapMaterial
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_material);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_trap_material);
 		Get().TrapMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
 		//BlockMaterial
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::block_material);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_block_material);
 		Get().BlockMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
 
 		//UniformTrapDens
@@ -1414,7 +1414,7 @@ namespace SctmUtils
 		Get().TrapDistribution = dynamic_cast<Param<string> *>(parBase)->Value();
 
 		//TrapCaptureModel
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_captureModel);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_capture);
 		Get().TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
 
 		//PhysicsMFN
@@ -1430,7 +1430,7 @@ namespace SctmUtils
 		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsT2B = t2b;
 		//PhysicsPFModel
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_pfModel);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_pf);
 		Get().PhysicsPFModel = dynamic_cast<Param<string> *>(parBase)->Value();
 
 		//for debug
@@ -1558,6 +1558,13 @@ namespace SctmUtils
 		bool valBool = false;
 		int valInt = 0;
 
+		if (name == "structure")
+		{
+			ParName pName = ParName::structure;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
+		}
 		if (name == "temperature")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -1586,18 +1593,18 @@ namespace SctmUtils
 			mapToSet[ParName::time_stepPerDecade] = par;
 			return;
 		}
-		if (name == "gate.voltage")
+		if (name == "sc.gate.voltage")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::gate_voltage, valDouble);
-			mapToSet[ParName::gate_voltage] = par;
+			Param<double> *par = new Param<double>(ParName::sc_gate_voltage, valDouble);
+			mapToSet[ParName::sc_gate_voltage] = par;
 			return;
 		}
-		if (name == "gate.workfunction")
+		if (name == "sc.gate.workfunction")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::gate_workfunction, valDouble);
-			mapToSet[ParName::gate_workfunction] = par;
+			Param<double> *par = new Param<double>(ParName::sc_gate_workfunction, valDouble);
+			mapToSet[ParName::sc_gate_workfunction] = par;
 			return;
 		}
 		if (name == "subs.type")
@@ -1613,66 +1620,6 @@ namespace SctmUtils
 			mapToSet[ParName::subs_doping] = par;
 			return;
 		}
-		if (name == "width.value")
-		{
-			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::width_value, valDouble);
-			mapToSet[ParName::width_value] = par;
-			return;
-		}
-		if (name == "width.grid")
-		{
-			valInt = SctmConverter::StringToInt(valStr);
-			Param<int> *par = new Param<int>(ParName::width_grid, valInt);
-			mapToSet[ParName::width_grid] = par;
-			return;
-		}
-		if (name == "tunnel.thick")
-		{
-			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::tunnel_thick, valDouble);
-			mapToSet[ParName::tunnel_thick] = par;
-			return;
-		}
-		if (name == "tunnel.grid")
-		{
-			valInt = SctmConverter::StringToInt(valStr);
-			Param<int> *par = new Param<int>(ParName::tunnel_grid, valInt);
-			mapToSet[ParName::tunnel_grid] = par;
-			return;
-		}
-		if (name == "tunnel.material")
-		{
-			Param<string> *par = new Param<string>(ParName::tunnel_material, valStr);
-			mapToSet[ParName::tunnel_material] = par;
-			return;
-		}
-		if (name == "trap.thick")
-		{
-			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::trap_thick, valDouble);
-			mapToSet[ParName::trap_thick] = par;
-			return;
-		}
-		if (name == "trap.grid")
-		{
-			valInt = SctmConverter::StringToInt(valStr);
-			Param<int> *par = new Param<int>(ParName::trap_grid, valInt);
-			mapToSet[ParName::trap_grid] = par;
-			return;
-		}
-		if (name == "trap.material")
-		{
-			Param<string> *par = new Param<string>(ParName::trap_material, valStr);
-			mapToSet[ParName::trap_material] = par;
-			return;
-		}
-		if (name == "trap.captureModel")
-		{
-			Param<string> *par = new Param<string>(ParName::trap_captureModel, valStr);
-			mapToSet[ParName::trap_captureModel] = par;
-			return;
-		}
 		if (name == "trap.uniDensity")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -1685,24 +1632,10 @@ namespace SctmUtils
 			Param<string> *par = new Param<string>(ParName::trap_distribution, valStr);
 			mapToSet[ParName::trap_distribution] = par;
 		}
-		if (name == "block.thick")
+		if (name == "trap.capture")
 		{
-			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::block_thick, valDouble);
-			mapToSet[ParName::block_thick] = par;
-			return;
-		}
-		if (name == "block.grid")
-		{
-			valInt = SctmConverter::StringToInt(valStr);
-			Param<int> *par = new Param<int>(ParName::block_grid, valInt);
-			mapToSet[ParName::block_grid] = par;
-			return;
-		}
-		if (name == "block.material")
-		{
-			Param<string> *par = new Param<string>(ParName::block_material, valStr);
-			mapToSet[ParName::block_material] = par;
+			Param<string> *par = new Param<string>(ParName::trap_capture, valStr);
+			mapToSet[ParName::trap_capture] = par;
 			return;
 		}
 		if (name == "physics.mfn")
@@ -1726,10 +1659,10 @@ namespace SctmUtils
 			mapToSet[ParName::physics_t2b] = par;
 			return;
 		}
-		if (name == "physics.pfModel")
+		if (name == "physics.pf")
 		{
-			Param<string> *par = new Param<string>(ParName::physics_pfModel, valStr);
-			mapToSet[ParName::physics_pfModel] = par;
+			Param<string> *par = new Param<string>(ParName::physics_pf, valStr);
+			mapToSet[ParName::physics_pf] = par;
 			return;
 		}
 		if (name == "debug.trap.occupy")
@@ -1749,6 +1682,303 @@ namespace SctmUtils
 			valDouble = SctmConverter::StringToDouble(valStr);
 			Param<double> *par = new Param<double>(ParName::debug_rEndTime, valDouble);
 			mapToSet[ParName::debug_rEndTime] = par;
+		}
+		//parameters for simulation structure
+		//single cell
+		if (name == "sc.width.value")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::sc_width_value, valDouble);
+			mapToSet[ParName::sc_width_value] = par;
+			return;
+		}
+		if (name == "sc.width.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::sc_width_grid, valInt);
+			mapToSet[ParName::sc_width_grid] = par;
+			return;
+		}
+		if (name == "sc.tunnel.thick")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::sc_tunnel_thick, valDouble);
+			mapToSet[ParName::sc_tunnel_thick] = par;
+			return;
+		}
+		if (name == "sc.tunnel.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::sc_tunnel_grid, valInt);
+			mapToSet[ParName::sc_tunnel_grid] = par;
+			return;
+		}
+		if (name == "sc.tunnel.material")
+		{
+			Param<string> *par = new Param<string>(ParName::sc_tunnel_material, valStr);
+			mapToSet[ParName::sc_tunnel_material] = par;
+			return;
+		}
+		if (name == "sc.trap.thick")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::sc_trap_thick, valDouble);
+			mapToSet[ParName::sc_trap_thick] = par;
+			return;
+		}
+		if (name == "sc.trap.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::sc_trap_grid, valInt);
+			mapToSet[ParName::sc_trap_grid] = par;
+			return;
+		}
+		if (name == "sc.trap.material")
+		{
+			Param<string> *par = new Param<string>(ParName::sc_trap_material, valStr);
+			mapToSet[ParName::sc_trap_material] = par;
+			return;
+		}
+		if (name == "sc.block.thick")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::sc_block_thick, valDouble);
+			mapToSet[ParName::sc_block_thick] = par;
+			return;
+		}
+		if (name == "sc.block.grid")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::sc_block_grid, valInt);
+			mapToSet[ParName::sc_block_grid] = par;
+			return;
+		}
+		if (name == "sc.block.material")
+		{
+			Param<string> *par = new Param<string>(ParName::sc_block_material, valStr);
+			mapToSet[ParName::sc_block_material] = par;
+			return;
+		}
+		//triple cell
+		if (name == "tc.gate1.voltage")
+		{
+			ParName pName = ParName::tc_gate1_voltage;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate1.workfunction")
+		{
+			ParName pName = ParName::tc_gate1_workfunction;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate1.width")
+		{
+			ParName pName = ParName::tc_gate1_width;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate1.width.grid")
+		{
+			ParName pName = ParName::tc_gate1_width_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate2.voltage")
+		{
+			ParName pName = ParName::tc_gate2_voltage;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate2.workfunction")
+		{
+			ParName pName = ParName::tc_gate2_workfunction;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate2.width")
+		{
+			ParName pName = ParName::tc_gate2_width;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate2.width.grid")
+		{
+			ParName pName = ParName::tc_gate2_width_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate3.voltage")
+		{
+			ParName pName = ParName::tc_gate3_voltage;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate3.workfunction")
+		{
+			ParName pName = ParName::tc_gate3_workfunction;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate3.width")
+		{
+			ParName pName = ParName::tc_gate3_width;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.gate3.width.grid")
+		{
+			ParName pName = ParName::tc_gate3_width_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso.material")
+		{
+			ParName pName = ParName::tc_iso_material;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso.thick")
+		{
+			ParName pName = ParName::tc_iso_thick;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso.thick.grid")
+		{
+			ParName pName = ParName::tc_iso_thick_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso2.width")
+		{
+			ParName pName = ParName::tc_iso2_width;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso2.width.grid")
+		{
+			ParName pName = ParName::tc_iso2_width_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso3.width")
+		{
+			ParName pName = ParName::tc_iso3_width;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso3.width.grid")
+		{
+			ParName pName = ParName::tc_iso3_width_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.tunnel.thick")
+		{
+			ParName pName = ParName::tc_tunnel_thick;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.tunnel.thick.grid")
+		{
+			ParName pName = ParName::tc_tunnel_thick_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.tunnel.material")
+		{
+			ParName pName = ParName::tc_tunnel_material;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.trap.thick")
+		{
+			ParName pName = ParName::tc_trap_thick;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.trap.thick.grid")
+		{
+			ParName pName = ParName::tc_trap_thick_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.trap.material")
+		{
+			ParName pName = ParName::tc_trap_material;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.block.thick")
+		{
+			ParName pName = ParName::tc_block_thick;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.block.thick.grid")
+		{
+			ParName pName = ParName::tc_block_thick_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.block.material")
+		{
+			ParName pName = ParName::tc_block_material;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
 		}
 
 		//parameters for material properties

@@ -363,42 +363,82 @@ namespace SctmUtils
 	public:
 		enum ParName
 		{
+			structure,
 			temperature,
 			time_start,
 			time_end,
 			time_stepPerDecade,
 
-			gate_voltage,
-			gate_workfunction,
 			subs_type,
 			subs_doping,
-
-			width_value,
-			width_grid,
-
-			tunnel_thick,
-			tunnel_grid,
-			tunnel_material,
-
-			trap_thick,
-			trap_grid,
-			trap_material,
-			trap_captureModel,
 			trap_uniDensity,
 			trap_distribution,
-
-			block_thick,
-			block_grid,
-			block_material,
-
+			
+			trap_capture,
 			physics_mfn,
 			physics_b2t,
 			physics_t2b,
-			physics_pfModel,
+			physics_pf,
 
+			//for debugging
 			debug_trap_occupy,
 			debug_rAfterP,
 			debug_rEndTime,
+
+			//single cell structure
+			sc_gate_voltage,
+			sc_gate_workfunction,
+
+			sc_width_value,
+			sc_width_grid,
+
+			sc_tunnel_thick,
+			sc_tunnel_grid,
+			sc_tunnel_material,
+
+			sc_trap_thick,
+			sc_trap_grid,
+			sc_trap_material,
+			
+			sc_block_thick,
+			sc_block_grid,
+			sc_block_material,
+
+			//triple cell structure
+			tc_gate1_voltage,
+			tc_gate1_workfunction,
+			tc_gate1_width,
+			tc_gate1_width_grid,
+
+			tc_gate2_voltage,
+			tc_gate2_workfunction,
+			tc_gate2_width,
+			tc_gate2_width_grid,
+
+			tc_gate3_voltage,
+			tc_gate3_workfunction,
+			tc_gate3_width,
+			tc_gate3_width_grid,
+
+			tc_iso_material,
+			tc_iso_thick,
+			tc_iso_thick_grid,
+			tc_iso2_width,
+			tc_iso2_width_grid,
+			tc_iso3_width,
+			tc_iso3_width_grid,
+			
+			tc_tunnel_thick,
+			tc_tunnel_thick_grid,
+			tc_tunnel_material,
+
+			tc_trap_thick,
+			tc_trap_thick_grid,
+			tc_trap_material,
+
+			tc_block_thick,
+			tc_block_thick_grid,
+			tc_block_material,
 
 			//material parameters
 			Si_bandgap,
