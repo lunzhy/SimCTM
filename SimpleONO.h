@@ -122,9 +122,13 @@ private:
 	FDRegion * thisRegion( int elemY);
 
 	void setTrapDistribution();
+	void setTrapDistribution_Uniform();
+	void setTrapDistribution_2DSim();
+	void setTrapDistribution_1D_Interface();
+
+	//methods below are not used.
 	void postProcessOfDomain();
 	void refreshPotential();
-
 	/// @brief stuffPotential is used to stuff potential obtained from calculation results
 	/// 
 	/// This is a temporary method for initializing the potential. The potential is calculated with
@@ -143,10 +147,6 @@ private:
 	/// @return void
 	/// @note
 	void refreshBandEnergy();
-
-	void setTrapDistribution_Uniform();
-	void setTrapDistribution_2DSim();
-	void setTrapDistribution_1D_Interface();
 };
 
 #endif

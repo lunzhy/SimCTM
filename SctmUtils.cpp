@@ -242,6 +242,12 @@ namespace SctmUtils
 		case 10047:
 			msg = "[SctmUtils.cpp] Wrong parameter name in param file.";
 			break;
+		case 10048:
+			msg = "[FDDomain.cpp] Can not find the required region.";
+			break;
+		case 10049:
+			msg = "[Material.cpp] Invalid material name to parse";
+			break;
 		default:
 			msg = "Untracked error";
 		}

@@ -429,7 +429,7 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 	//all values of band edge are in real value, so pulling is needed.
 	using namespace MaterialDB;
 	double subsBarrier = 0;
-	subsBarrier = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
+	subsBarrier = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
 		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
 	subsBarrier = norm.PullEnergy(subsBarrier);
 
@@ -465,7 +465,7 @@ SubsToTrapElecTunnel::SubsToTrapElecTunnel(FDDomain *_domain): TunnelSolver(_dom
 	//set the effective tunneling mass
 	using namespace MaterialDB;
 	//the material for substrate is silicon
-	double effSiMass = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_ElectronMass);
+	double effSiMass = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElectronMass);
 	this->effTunnelMass = effSiMass; // the effective electron mass, in [m0]
 }
 

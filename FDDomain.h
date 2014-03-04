@@ -59,7 +59,7 @@ protected:
 	std::vector<FDVertex *> ddVerts; ///< the vertices related to trapping layers in the domain
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
 	std::map<FDRegion::TypeName, FDRegion*> regionMap;
-	//std::vector<FDRegion *> regions; ///< the regions contained in the domain
+	std::vector<FDRegion *> regions; ///< the regions contained in the domain
 	std::vector<FDContact *> contacts; ///< the contacts contained in the domain
 
 public:
@@ -70,7 +70,7 @@ public:
 	/// @pre
 	/// @return std::vector<FDVertex *> &
 	/// @note
-	std::vector<FDVertex *> &GetVertices();
+	std::vector<FDVertex *>& GetVertices();
 	/// @brief GetDDVerts returns the vertices related to drift-diffusion process, for the use of DriftDiffusionSolver
 	/// 
 	///
@@ -78,7 +78,7 @@ public:
 	/// @pre
 	/// @return std::vector<FDVertex *> &
 	/// @note
-	std::vector<FDVertex *> &GetDDVerts();
+	std::vector<FDVertex *>& GetDDVerts();
 	/// @brief GetVertex can get the vertex object with given id
 	/// 
 	/// This method returns the pointer of specified vertex object. In practice, a pointer with same type is
@@ -88,7 +88,7 @@ public:
 	/// @pre
 	/// @return FDVertex *
 	/// @note
-	FDVertex * GetVertex(unsigned int id);
+	FDVertex* GetVertex(unsigned int id);
 	/// @brief GetElement can get the element object with given id
 	/// 
 	/// This method returns the pointer of specified element object. In practice, a pointer with same type is
@@ -97,7 +97,7 @@ public:
 	/// @pre
 	/// @return FDElement *
 	/// @note
-	FDElement * GetElement(unsigned int id);
+	FDElement* GetElement(unsigned int id);
 	/// @brief GetRegion can get the region object with given id
 	/// 
 	/// This method returns the pointer of specified region object. In practice, a pointer with same type is
@@ -106,7 +106,9 @@ public:
 	/// @pre
 	/// @return FDRegion *
 	/// @note
-	FDRegion * GetRegion(FDRegion::TypeName reg);
+	FDRegion* GetRegion(FDRegion::TypeName reg);
+	FDRegion* GetRegion(unsigned int id);
+	FDRegion* GetRegion(std::string regionName);
 	/// @brief GetContact can get the contact object with given id
 	/// 
 	/// This method returns the pointer of specified contact object. In practice, a pointer with same type is
@@ -116,8 +118,8 @@ public:
 	/// @pre
 	/// @return FDContact *
 	/// @note
-	FDContact * GetContact(unsigned int id);
-	FDContact * GetContact(std::string contactName);
+	FDContact* GetContact(unsigned int id);
+	FDContact* GetContact(std::string contactName);
 protected:
 	void virtual buildStructure() = 0;
 	void virtual postProcessOfDomain() = 0;
@@ -158,6 +160,7 @@ private:
 ///                    12..13..14..15..16..17
 ///                    6...7...8...9...10..11
 ///                    0...1...2...3...4...5
+/// So, the iteration sequence of vertices must follows: iterate iy --> iterate ix 
 ///
 class FDDomainHelper
 {

@@ -97,10 +97,10 @@ void SimpleONO::printStructure()
 			<< '\t' << (vertices.at(ix)->SouthVertex == NULL ? -1 : vertices.at(ix)->SouthVertex->GetID())
 			<< '\t' << (vertices.at(ix)->EastVertex == NULL ? -1 : vertices.at(ix)->EastVertex->GetID())
 			<< '\t' << (vertices.at(ix)->NorthVertex == NULL ? -1 : vertices.at(ix)->NorthVertex->GetID())
-			<< '\t' << (vertices.at(ix)->SouthwestElem == NULL ? -1 : vertices.at(ix)->SouthwestElem->GetInternalID())
-			<< '\t' << (vertices.at(ix)->SoutheastElem == NULL ? -1 : vertices.at(ix)->SoutheastElem->GetInternalID())
-			<< '\t' << (vertices.at(ix)->NortheastElem == NULL ? -1 : vertices.at(ix)->NortheastElem->GetInternalID())
-			<< '\t' << (vertices.at(ix)->NorthwestElem == NULL ? -1 : vertices.at(ix)->NorthwestElem->GetInternalID())
+			<< '\t' << (vertices.at(ix)->SouthwestElem == NULL ? -1 : vertices.at(ix)->SouthwestElem->GetID())
+			<< '\t' << (vertices.at(ix)->SoutheastElem == NULL ? -1 : vertices.at(ix)->SoutheastElem->GetID())
+			<< '\t' << (vertices.at(ix)->NortheastElem == NULL ? -1 : vertices.at(ix)->NortheastElem->GetID())
+			<< '\t' << (vertices.at(ix)->NorthwestElem == NULL ? -1 : vertices.at(ix)->NorthwestElem->GetID())
 			<< '\t' << vertices.at(ix)->WestLength
 			<< '\t' << vertices.at(ix)->SouthLength
 			<< '\t' << vertices.at(ix)->EastLength
@@ -110,7 +110,7 @@ void SimpleONO::printStructure()
 
 	for (std::vector<FDElement *>::size_type ix = 0; ix != this->elements.size(); ++ix)
 	{
-		std::cout << "id=" << elements.at(ix)->GetInternalID() << '\t' << elements.at(ix)->Region->Type
+		std::cout << "id=" << elements.at(ix)->GetID() << '\t' << elements.at(ix)->Region->Type
 			<< '\t' << elements.at(ix)->SouthwestVertex->GetID()
 			<< '\t' << elements.at(ix)->SoutheastVertex->GetID()
 			<< '\t' << elements.at(ix)->NortheastVertex->GetID()
@@ -196,13 +196,13 @@ void SimpleONO::setDomainDetails()
 	/////////////////////////////////////////////////////////////////////
 	//set regions
 	////////////////////////////////////////////////////////////////////
-	using MaterialDB::MaterialMap;
+	using MaterialDB::GetMaterial;
 	using MaterialDB::Mat;
-	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, MaterialMap(SctmGlobalControl::Get().TunnelMaterial));
+	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, GetMaterial(SctmGlobalControl::Get().TunnelMaterial));
 	cntRegion++;
-	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, MaterialMap(SctmGlobalControl::Get().TrapMaterial));
+	regionMap[FDRegion::Trapping] = new FDRegion(cntRegion, FDRegion::Trapping, GetMaterial(SctmGlobalControl::Get().TrapMaterial));
 	cntRegion++;
-	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, MaterialMap(SctmGlobalControl::Get().BlockMaterial));
+	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, GetMaterial(SctmGlobalControl::Get().BlockMaterial));
 	cntRegion++;
 
 	/////////////////////////////////////////////////////////////////////
@@ -292,7 +292,7 @@ void SimpleONO::setAdjacency()
 			}									
 			//////////////////////
 			//set adjacent element
-			if ( (ix-1 >= 0) && (iy-1 >=0) )						{ currVertex->SouthwestElem = GetElement(elementHelper.IdAt(ix-1, iy-1)); }
+			if ( (ix-1 >= 0) && (iy-1 >=0) )							{ currVertex->SouthwestElem = GetElement(elementHelper.IdAt(ix-1, iy-1)); }
 			else													{ currVertex->SouthwestElem = NULL; }
 			if ( (ix < vertexHelper.GetMaxX()) && (iy-1 >= 0) )		{ currVertex->SoutheastElem = GetElement(elementHelper.IdAt(ix, iy-1)); }
 			else													{ currVertex->SoutheastElem = NULL; }

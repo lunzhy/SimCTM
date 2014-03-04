@@ -155,7 +155,7 @@ namespace MaterialDB
 
 	//TODO: consider the method that accounts for material specification
 	//extern std::map<Mat::Name, Material*> MaterialMap;
-	Material* MaterialMap(Mat::Name matname);
+	Material* GetMaterial(Mat::Name matname);
 }
 
 #endif

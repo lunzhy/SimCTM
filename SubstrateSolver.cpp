@@ -52,7 +52,7 @@ void OneDimSubsSolver::initializeSolver()
 void OneDimSubsSolver::calcFuncAndItsDeriv(double surfpot)
 {
 	using namespace MaterialDB;
-	static double eps_Si = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_DielectricConstant);
+	static double eps_Si = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_DielectricConstant);
 
 	//double kT_div_q = SctmPhys::k0 * this->temperature / SctmPhys::q;
 	double item_in_square_bracket = SctmMath::sqrt(hDensEqui * (SctmMath::exp(-surfpot) + surfpot - 1) + 
@@ -156,7 +156,7 @@ OneDimSubsSolver::OneDimSubsSolver(FDDomain *_domain) : domain(_domain)
 void OneDimSubsSolver::setFermiAboveCB(FDVertex *channelVert)
 {
 	using namespace MaterialDB;
-	double bandgap = GetMatPrpty(MaterialMap(Mat::Silicon), MatProperty::Mat_Bandgap);
+	double bandgap = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_Bandgap);
 	//double kT = SctmPhys::k0 * temperature;
 	double fermi_above = 0;
 

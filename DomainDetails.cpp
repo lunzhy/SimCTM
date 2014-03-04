@@ -179,6 +179,14 @@ FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex,
 	SCTM_ASSERT(relError < 0.01, 10003);
 }
 
+void FDElement::SetVertexAdjacent()
+{
+	this->SouthwestVertex->NortheastElem = this;
+	this->SoutheastVertex->NorthwestElem = this;
+	this->NortheastVertex->SouthwestElem = this;
+	this->NorthwestVertex->SoutheastElem = this;
+}
+
 std::vector<FDVertex *> & FDContact::GetContactVerts()
 {
 	return vertices;

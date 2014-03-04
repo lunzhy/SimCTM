@@ -620,7 +620,7 @@ namespace SctmPhys
 				{
 					if (multiElectronAffinity.find(currMatName) == multiElectronAffinity.end())
 					{
-						multiElectronAffinity[currMatName] = GetMatPrpty(MaterialMap(currMatName), matPrpty);
+						multiElectronAffinity[currMatName] = GetMatPrpty(GetMaterial(currMatName), matPrpty);
 					}
 					break;
 				}
@@ -628,7 +628,7 @@ namespace SctmPhys
 				{
 					if (multiBandgap.find(currMatName) == multiBandgap.end())
 					{
-						multiBandgap[currMatName] = GetMatPrpty(MaterialMap(currMatName), matPrpty);
+						multiBandgap[currMatName] = GetMatPrpty(GetMaterial(currMatName), matPrpty);
 					}
 					break;
 				}
@@ -636,7 +636,7 @@ namespace SctmPhys
 				{
 					if (multiDielectricConstant.find(currMatName) == multiDielectricConstant.end())
 					{
-						multiDielectricConstant[currMatName] = GetMatPrpty(MaterialMap(currMatName), matPrpty);
+						multiDielectricConstant[currMatName] = GetMatPrpty(GetMaterial(currMatName), matPrpty);
 					}
 					break;
 				}
@@ -714,10 +714,10 @@ namespace SctmPhys
 		using namespace MaterialDB;
 		using SctmUtils::SctmGlobalControl;
 		//the value returned by GetMatPrpty is normalized value
-		double mp = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleMass);
-		double mn = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronMass);
-		double bandgap = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_Bandgap);
-		double affinity = MaterialDB::GetMatPrpty(MaterialMap(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronAffinity);
+		double mp = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleMass);
+		double mn = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronMass);
+		double bandgap = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_Bandgap);
+		double affinity = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronAffinity);
 		double temperature = SctmGlobalControl::Get().Temperature;
 		
 		using SctmUtils::Normalization;

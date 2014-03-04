@@ -21,31 +21,51 @@
 using SctmPhys::PhysProperty;
 using namespace SctmUtils;
 
-FDElement * FDDomain::GetElement(unsigned int id)
+FDElement* FDDomain::GetElement(unsigned int id)
 {
 	//need to judge if the id is appropriate
 	return elements.at(id);
 	//return elements[id];
 }
 
-FDVertex * FDDomain::GetVertex(unsigned int id)
+FDVertex* FDDomain::GetVertex(unsigned int id)
 {
 	return vertices.at(id);
 	//return vertices[id];
 }
 
-FDRegion * FDDomain::GetRegion(FDRegion::TypeName reg)
+FDRegion* FDDomain::GetRegion(unsigned int id)
+{
+	return regions.at(id);
+}
+
+FDRegion* FDDomain::GetRegion(FDRegion::TypeName reg)
 {
 	return regionMap[reg];
 	//return regions[id];
 }
 
-FDContact * FDDomain::GetContact(unsigned int id)
+FDRegion* FDDomain::GetRegion(std::string regionName)
+{
+	FDRegion *currRegion = NULL;
+	for (size_t iReg = 0; iReg != this->regions.size(); ++iReg)
+	{
+		currRegion = GetRegion(iReg);
+		if (currRegion->RegName == regionName)
+		{
+			break;
+		}
+	}
+	SCTM_ASSERT(currRegion != NULL, 10048);
+	return currRegion;
+}
+
+FDContact* FDDomain::GetContact(unsigned int id)
 {
 	return contacts.at(id);
 }
 
-FDContact * FDDomain::GetContact(std::string contactName)
+FDContact* FDDomain::GetContact(std::string contactName)
 {
 	FDContact *currCont = NULL;
 	for (size_t iCont = 0; iCont != contacts.size(); ++iCont)
@@ -60,12 +80,12 @@ FDContact * FDDomain::GetContact(std::string contactName)
 	return currCont;
 }
 
-std::vector<FDVertex *> & FDDomain::GetVertices()
+std::vector<FDVertex *>& FDDomain::GetVertices()
 {
 	return this->vertices;
 }
 
-std::vector<FDVertex *> & FDDomain::GetDDVerts()
+std::vector<FDVertex *>& FDDomain::GetDDVerts()
 {
 	return this->ddVerts;
 }
@@ -91,7 +111,7 @@ void FDDomain::setBoundary()
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
 	{
 		currVertex = GetVertex(iVer);//in FDDomain, the index of vertex in the vertices vector in the vertexID.
-		setBndVert_Potential(currVertex);
+		setBndVert_Potential(currVertex);// this method will check if the vertex is a boundary vertex
 		setBndVert_eDensity(currVertex);
 	}
 }

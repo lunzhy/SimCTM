@@ -293,7 +293,7 @@ public:
 	/// @pre
 	/// @return int
 	/// @note
-	int GetInternalID() { return id; }
+	int GetID() { return id; }
 
 	/// @brief SetRegion sets the region of this element.
 	/// 
@@ -304,6 +304,7 @@ public:
 	/// @return void
 	/// @note
 	void SetRegion( FDRegion *region ) {this->Region = region;}
+	void SetVertexAdjacent();
 protected:
 	unsigned int id; ///< the internal id of the element
 };
@@ -314,6 +315,8 @@ protected:
 class FDRegion
 {
 public:
+	string RegName;
+
 	/// @brief The type of the region 
 	enum TypeName
 	{
@@ -332,6 +335,8 @@ public:
 	/// @note
 	FDRegion(unsigned int _id, FDRegion::TypeName _type, Material *_mat)
 		:id(_id), Type(_type), Mat(_mat) {}
+	FDRegion(unsigned int _id, string _name, Material *_mat)
+		:id(_id), RegName(_name), Mat(_mat) {}
 
 	FDRegion::TypeName Type; ///< type of the region, in enum RegionType
 	Material *Mat; ///< the material of current region, a pointer to const material
@@ -357,6 +362,7 @@ class FDContact
 public:
 	string ContactName; ///< contact name
 	double Voltage; ///< the contact voltage
+	double Workfunction;
 	/// @brief FDContact is the construction method of the class.
 	/// 
 	/// A FDContact is initialized with given contact internal id, contact name and the applied voltage.
@@ -367,7 +373,10 @@ public:
 	/// @pre
 	/// @return 
 	/// @note
-	FDContact(unsigned int _id, string _name, double _voltage):id(_id), ContactName(_name), Voltage(_voltage){}
+	FDContact(unsigned int _id, string _name, double _voltage)
+		: id(_id), ContactName(_name), Voltage(_voltage){}
+	FDContact(unsigned int _id, string _name, double _voltage, double _workfunction)
+		: id(_id), ContactName(_name), Voltage(_voltage), Workfunction(_workfunction){}
 	/// @brief AddVertex is used to add the vertex that belongs to the specific contact.
 	/// 
 	///
