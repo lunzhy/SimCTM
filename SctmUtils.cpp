@@ -1351,16 +1351,13 @@ namespace SctmUtils
 		//set simulation parameters from file
 		ParamBase *parBase = NULL;
 
+		//Structure
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::structure);
+		Get().Structure = dynamic_cast<Param<string> *>(parBase)->Value();
+
 		//Temperature
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::temperature);
 		Get().Temperature = dynamic_cast<Param<double> *>(parBase)->Value();
-		//GateVoltage
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_voltage);
-		Get().GateVoltage = dynamic_cast<Param<double> *>(parBase)->Value();
-		//GateWorkFunction
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_workfunction);
-		Get().GateWorkFunction = dynamic_cast<Param<double> *>(parBase)->Value();
-
 		//SimStartTime
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_start);
 		Get().SimStartTime = dynamic_cast<Param<double> *>(parBase)->Value();
@@ -1370,6 +1367,59 @@ namespace SctmUtils
 		//SimStepsPerDecade
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_stepPerDecade);
 		Get().SimStepsPerDecade = dynamic_cast<Param<int> *>(parBase)->Value();
+
+		//UniformTrapDens
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_uniDensity);
+		Get().UniformTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		//SubstrateDoping
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_type);
+		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_doping);
+		double doping = dynamic_cast<Param<double> *>(parBase)->Value();
+		Get().SubstrateDoping = doping * (subsType == "N" ? 1 : -1);
+		//TrapDistribution
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_distribution);
+		Get().TrapDistribution = dynamic_cast<Param<string> *>(parBase)->Value();
+
+		//TrapCaptureModel
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_capture);
+		Get().TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
+		//PhysicsMFN
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_mfn);
+		bool mfn = dynamic_cast<Param<bool> *>(parBase)->Value();
+		Get().PhysicsMFN = mfn;
+		//PhysicsB2T
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_b2t);
+		bool b2t = dynamic_cast<Param<bool> *>(parBase)->Value();
+		Get().PhysicsB2T = b2t;
+		//PhyscisT2B
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_t2b);
+		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
+		Get().PhysicsT2B = t2b;
+		//PhysicsPFModel
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_pf);
+		Get().PhysicsPFModel = dynamic_cast<Param<string> *>(parBase)->Value();
+
+		//for debug
+		//TrapOccupation
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
+		Get().TrapOccupation = dynamic_cast<Param<string> *>(parBase)->Value();
+
+		//RetentionAfterPrgrm
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
+		Get().RetentionAfterPrgrm = dynamic_cast<Param<bool> *>(parBase)->Value();
+
+		//RetentionEndTime
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rEndTime);
+		Get().RetentionEndTime = dynamic_cast<Param<double> *>(parBase)->Value();
+
+		//parameters below are used for the construction of SimpleONO domain
+		//GateVoltage
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_voltage);
+		Get().GateVoltage = dynamic_cast<Param<double> *>(parBase)->Value();
+		//GateWorkFunction
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_workfunction);
+		Get().GateWorkFunction = dynamic_cast<Param<double> *>(parBase)->Value();
 
 		//Xlength
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_width_value);
@@ -1405,52 +1455,6 @@ namespace SctmUtils
 		//BlockMaterial
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_block_material);
 		Get().BlockMaterial = Mat::Parse(dynamic_cast<Param<string> *>(parBase)->Value());
-
-		//UniformTrapDens
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_uniDensity);
-		Get().UniformTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
-		//SubstrateDoping
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_type);
-		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_doping);
-		double doping = dynamic_cast<Param<double> *>(parBase)->Value();
-		Get().SubstrateDoping = doping * (subsType == "N" ? 1 : -1);
-		//TrapDistributino
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_distribution);
-		Get().TrapDistribution = dynamic_cast<Param<string> *>(parBase)->Value();
-
-		//TrapCaptureModel
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_capture);
-		Get().TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
-
-		//PhysicsMFN
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_mfn);
-		bool mfn = dynamic_cast<Param<bool> *>(parBase)->Value();
-		Get().PhysicsMFN = mfn;
-		//PhysicsB2T
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_b2t);
-		bool b2t = dynamic_cast<Param<bool> *>(parBase)->Value();
-		Get().PhysicsB2T = b2t;
-		//PhyscisT2B
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_t2b);
-		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
-		Get().PhysicsT2B = t2b;
-		//PhysicsPFModel
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_pf);
-		Get().PhysicsPFModel = dynamic_cast<Param<string> *>(parBase)->Value();
-
-		//for debug
-		//TrapOccupation
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
-		Get().TrapOccupation = dynamic_cast<Param<string> *>(parBase)->Value();
-
-		//RetentionAfterPrgrm
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
-		Get().RetentionAfterPrgrm = dynamic_cast<Param<bool> *>(parBase)->Value();
-
-		//RetentionEndTime
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rEndTime);
-		Get().RetentionEndTime = dynamic_cast<Param<double> *>(parBase)->Value();
 	}
 
 	void SctmGlobalControl::SetGlobalControl(string defaultParPath, string prjpath)

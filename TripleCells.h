@@ -23,6 +23,18 @@ class TripleCells : public FDDomain
 public:
 	TripleCells();
 protected:
+	double voltageGate1;
+	double workfunctionGate1;
+	double voltageGate2;
+	double workfunctionGate2;
+	double voltageGate3;
+	double workfunctionGate3;
+
+	string matNameStrIso;
+	string matNameStrTunnel;
+	string matNameStrTrap;
+	string matNameStrBlock;
+
 	double widthGate1;
 	double widthIso2; //no isolation 1 in SimCTM structure
 	double widthGate2;
@@ -46,26 +58,18 @@ protected:
 	int gridThickTunnel;
 
 	double temperature;
-	double voltageGate1;
-	double workfunctionGate1;
-	double voltageGate2;
-	double workfunctionGate2;
-	double voltageGate3;
-	double workfunctionGate3;
 
-	string materialIso;
-	string materialTunnel;
-	string materialTrap;
-	string materialBlock;
 protected:
+	void buildStructure();
 	void setParametersFromParamParser();
 	void setDomainDetails();
-	void setAdjacent();
+	void setAdjacency();
+	void setTrapDistribution();
 
 	//the methods below are used to calculate the coordinates of specific vertex.
 	double getCoordX(int idX, int idY);
 	double getCoordY(int idX, int idY);
-
+	bool isValidVertex(int idX, int idY);
 	void setSingleElement(int idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend);
 
 };

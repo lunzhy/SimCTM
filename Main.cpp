@@ -8,6 +8,7 @@
 #include "SolverPack.h"
 #include "Normalization.h"
 #include "SubstrateSolver.h"
+#include "TripleCells.h"
 #include <stdlib.h>
 #include <vector>
 
@@ -48,6 +49,11 @@ void DomainTest()
 	FDDomain *aTest = new SimpleONO();
 	aTest->BuildDomain();
 	SctmDebug::Get().PrintDomainDetails(aTest);
+}
+
+void TripleCellsDomainTest()
+{
+	FDDomain *tripleCells = new TripleCells();
 }
 
 void PoissonTest()
@@ -147,7 +153,7 @@ int main(int argc, char* argv[])
 	//ParaFileTest();
 	//SubsSolverTest();
 	//DomainTest();
-	SolverPackTest();
+	//SolverPackTest();
 	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

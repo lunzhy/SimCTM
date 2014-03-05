@@ -302,14 +302,14 @@ void FDDomain::BuildDomain()
 	//build the data and mesh structure of simulated region, this is a pure virtual method
 	buildStructure();
 	//fill the vertices belonging to drift-diffusion process
-	fillDDVerts();
+	/////fillDDVerts();
 	//set the physics value related to vertex, when the vertex is related to trapping layer, set the trap property
-	setVertexPhysProperty();
-	setVertexTrapProperty();
-	setTrapDistribution();
+	/////setVertexPhysProperty();
+	/////setVertexTrapProperty();
+	/////setTrapDistribution();
 	//set the boundary condition, the specific value is not considered in this class.
-	setBoundary();
-	updateBndCond();
+	/////setBoundary();
+	/////updateBndCond();
 	
 	//in case the specific domain has some special post-procedure
 	//This is used because previously the gate and channel potential is directly set using global control

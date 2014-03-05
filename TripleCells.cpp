@@ -26,6 +26,131 @@ TripleCells::TripleCells()
 	this->temperature = SctmGlobalControl::Get().Temperature;
 }
 
+void TripleCells::buildStructure()
+{
+	setParametersFromParamParser();
+	setDomainDetails();
+	setAdjacency();
+}
+
+void TripleCells::setParametersFromParamParser()
+{
+	ParamBase *parBase = NULL;
+	
+	//gate 1 voltage
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_voltage);
+	voltageGate1 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 1 work function
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_workfunction);
+	workfunctionGate1 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 2 voltage
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate2_voltage);
+	voltageGate2 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 2 work function
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate2_workfunction);
+	workfunctionGate2 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 3 voltage
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate3_voltage);
+	voltageGate3 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 3 work function
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate3_workfunction);
+	workfunctionGate3 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//isolation layer material name
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_iso_material);
+	matNameStrIso = dynamic_cast<Param<string> *>(parBase)->Value();
+
+	//tunnel layer material name
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_tunnel_material);
+	matNameStrTunnel = dynamic_cast<Param<string> *>(parBase)->Value();
+
+	//trap layer material name
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_trap_material);
+	matNameStrTrap = dynamic_cast<Param<string> *>(parBase)->Value();
+
+	//block layer material name
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_block_material);
+	matNameStrBlock = dynamic_cast<Param<string> *>(parBase)->Value();
+
+	//gate 1 width
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_width);
+	widthGate1 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//isolation 2 width
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_iso2_width);
+	widthIso2 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 2 width
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate2_width);
+	widthGate2 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//isolation 3 width
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_iso3_width);
+	widthIso3 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 3 width
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate3_width);
+	widthGate3 = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//gate 1 grid number in width direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_width_grid);
+	gridWidthGate1 = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//isolation 2 grid number in width direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_iso2_width_grid);
+	gridWidthIso2 = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//gate 2 grid number in width direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate2_width_grid);
+	gridWidthGate2 = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//isolation 3 grid number in width direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_iso3_width_grid);
+	gridWidthIso3 = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//gate 3 grid number in width direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate3_width_grid);
+	gridWidthGate3 = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//isolation layer thick
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_iso_thick);
+	thickIso = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//block layer thick
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_block_thick);
+	thickBlock = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//trap layer thick
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_trap_thick);
+	thickTrap = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//tunnel layer thick
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_tunnel_thick);
+	thickTunnel = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//grid number of isolation in thick direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_iso_thick_grid);
+	gridThickIso = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//grid number of block layer in thick direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_block_thick_grid);
+	gridThickBlock = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//grid number of trap layer in thick direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_trap_thick_grid);
+	gridThickTrap = dynamic_cast<Param<int> *>(parBase)->Value();
+
+	//grid number of tunnel layer in thick direction
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_tunnel_thick_grid);
+	gridThickTunnel = dynamic_cast<Param<int> *>(parBase)->Value();
+
+}
+
 void TripleCells::setDomainDetails()
 {
 	double nm_in_cm = SctmPhys::nm_in_cm;
@@ -46,9 +171,9 @@ void TripleCells::setDomainDetails()
 	//////////////////////////////////////////////////////////////////
 	int xIndexMax = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3;
 	int yIndexMax = gridThickTunnel + gridThickTrap + gridThickBlock + gridThickIso;
-	for (size_t iy = 0; iy <= yIndexMax; ++iy)
+	for (int iy = 0; iy <= yIndexMax; ++iy)
 	{
-		for (size_t ix = 0; ix <= xIndexMax; ++ix)
+		for (int ix = 0; ix <= xIndexMax; ++ix)
 		{
 			//the iteration sequence guarantees the use of FDDomainHelper
 			coordX_in_nm = getCoordX(ix, iy);
@@ -91,7 +216,7 @@ void TripleCells::setDomainDetails()
 	currContact = this->GetContact("Gate1");
 	//gate1, x direction
 	indexY = gridThickTunnel + gridThickTrap + gridThickBlock;
-	for (size_t ix = 0; ix <= gridWidthGate1; ++ix)
+	for (int ix = 0; ix <= gridWidthGate1; ++ix)
 	{
 		indexX = ix;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -101,7 +226,7 @@ void TripleCells::setDomainDetails()
 	}
 	//gate1, y direction
 	indexX = gridWidthGate1;
-	for (size_t iy = 1; iy <= gridThickIso; ++iy)
+	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -114,7 +239,7 @@ void TripleCells::setDomainDetails()
 	currContact = this->GetContact("Gate2");
 	//gate2, y direction, left side
 	indexX = gridWidthGate1 + gridWidthIso2;
-	for (size_t iy = 1; iy <= gridThickIso; ++iy)
+	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -124,7 +249,7 @@ void TripleCells::setDomainDetails()
 	}
 	//gate2, x direction
 	indexY = gridThickTunnel + gridThickTrap + gridThickBlock;
-	for (size_t ix = 0; ix <= gridWidthGate2; ++ix)
+	for (int ix = 0; ix <= gridWidthGate2; ++ix)
 	{
 		indexX = gridWidthGate1 + gridWidthIso2 + ix;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -134,7 +259,7 @@ void TripleCells::setDomainDetails()
 	}
 	//gate2, y direction, right side
 	indexX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2;
-	for (size_t iy = 1; iy <= gridThickIso; ++iy)
+	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -147,7 +272,7 @@ void TripleCells::setDomainDetails()
 	currContact = this->GetContact("Gate3");
 	//gate3, y direction
 	indexX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso2;
-	for (size_t iy = 1; iy <= gridThickIso; ++iy)
+	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -157,7 +282,7 @@ void TripleCells::setDomainDetails()
 	}
 	//gate 3, x direction
 	indexY = gridThickTunnel + gridThickTrap + gridThickBlock;
-	for (size_t ix = 0; ix <= gridWidthGate3; ++ix)
+	for (int ix = 0; ix <= gridWidthGate3; ++ix)
 	{
 		indexX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + ix;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -169,7 +294,7 @@ void TripleCells::setDomainDetails()
 	/////channel
 	currContact = this->GetContact("Channel");
 	indexY = 0;
-	for (size_t ix = 0; ix <= xIndexMax; ++ix)
+	for (int ix = 0; ix <= xIndexMax; ++ix)
 	{
 		indexX = ix;
 		vertID = vertexHelper.IdAt(indexX, indexY);
@@ -184,17 +309,17 @@ void TripleCells::setDomainDetails()
 	using MaterialDB::GetMaterial;
 	using MaterialDB::Mat;
 	Mat::Name currMatName;//ErrorMaterial
-	currMatName = Mat::Parse(materialTunnel);
+	currMatName = Mat::Parse(matNameStrTunnel);
 	regions.push_back(new FDRegion(indexRegion++, "Tunnel", GetMaterial(currMatName)));
-	currMatName = Mat::Parse(materialTrap);
+	currMatName = Mat::Parse(matNameStrTrap);
 	regions.push_back(new FDRegion(indexRegion++, "Trap.Gate1", GetMaterial(currMatName)));
 	regions.push_back(new FDRegion(indexRegion++, "Trap.Iso2", GetMaterial(currMatName)));
 	regions.push_back(new FDRegion(indexRegion++, "Trap.Gate2", GetMaterial(currMatName)));
 	regions.push_back(new FDRegion(indexRegion++, "Trap.Iso3", GetMaterial(currMatName)));
 	regions.push_back(new FDRegion(indexRegion++, "Trap.Gate3", GetMaterial(currMatName)));
-	currMatName = Mat::Parse(materialBlock);
+	currMatName = Mat::Parse(matNameStrBlock);
 	regions.push_back(new FDRegion(indexRegion++, "Block", GetMaterial(currMatName)));
-	currMatName = Mat::Parse(materialIso);
+	currMatName = Mat::Parse(matNameStrIso);
 	regions.push_back(new FDRegion(indexRegion++, "Iso2", GetMaterial(currMatName)));
 	regions.push_back(new FDRegion(indexRegion++, "Iso3", GetMaterial(currMatName)));
 
@@ -274,8 +399,8 @@ double TripleCells::getCoordX(int idX, int idY)
 	static double lengthPerGridIso3 = widthIso3 / gridWidthIso3;
 	static double lengthPerGridGate3 = widthGate3 / gridWidthGate3;
 
+	/*
 	int yBndIndexMain = gridThickTunnel + gridThickTrap + gridThickBlock; // the top boundary index in y direction for the layers except isolation
-
 	if (idY > yBndIndexMain) //invalid vertex
 	{
 		if (((idX >= gridWidthGate1) && (idX <= gridWidthGate1 + gridWidthIso2)) ||
@@ -288,6 +413,13 @@ double TripleCells::getCoordX(int idX, int idY)
 			return -1;// negative values means that no vertex exists at this point.
 		}
 	}
+	*/
+
+	if (isValidVertex(idX, idY))
+	{
+		return -1;
+	}
+
 	// up to here, invalid point is wiped out.
 	if (idX <= gridWidthGate1)
 	{
@@ -383,9 +515,9 @@ void TripleCells::setSingleElement(int idElem, FDRegion *region, int xbegin, int
 	FDVertex *nwVertex = NULL;
 	FDVertex *neVertex = NULL;
 
-	for (size_t iyElem = ybegin; iyElem != yend; ++iyElem)
+	for (int iyElem = ybegin; iyElem != yend; ++iyElem)
 	{
-		for (size_t ixElem = xbegin; ixElem != xend; ++ixElem)
+		for (int ixElem = xbegin; ixElem != xend; ++ixElem)
 		{
 			swVertex = GetVertex(vertexHelper.IdAt(ixElem, iyElem));
 			seVertex = GetVertex(vertexHelper.IdAt(ixElem + 1, iyElem));
@@ -399,4 +531,93 @@ void TripleCells::setSingleElement(int idElem, FDRegion *region, int xbegin, int
 		}
 	}
 }
+
+bool TripleCells::isValidVertex(int idX, int idY)
+{
+	bool ret = true;
+	static int gridTotalX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3;
+	static int gridMainY = gridThickTunnel + gridThickTrap + gridThickBlock; // the top boundary index in y direction for the layers except isolation
+	static int gridTotalY = gridMainY + gridThickIso;
+	if (idX < 0 || idX > gridTotalX)
+	{
+		ret = false;
+	}
+	if (idY < 0 || idY > gridTotalY)
+	{
+		ret = false;
+	}
+	if (idY > gridMainY)
+	{
+		//check gate1 region
+		if (idX >= 0 && idX < gridWidthGate1)
+		{
+			ret = false;
+		}
+		//check gate2 region
+		if (idX > gridWidthGate1 + gridWidthIso2 && idX < gridWidthGate1 + gridWidthIso2 + gridWidthGate2)
+		{
+			ret = false;
+		}
+		//check gate3 region
+		if (idX>gridTotalX - gridWidthGate3 && idX <= gridTotalX)
+		{
+			ret = false;
+		}
+	}
+	return ret;
+
+}
+
+void TripleCells::setAdjacency()
+{
+	int gridTotalX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3;
+	int gridTotalY = gridThickTunnel + gridThickTrap + gridThickBlock + gridThickIso;
+	FDDomainHelper vertexHelper = FDDomainHelper(gridTotalX + 1, gridTotalY + 1);
+	FDVertex *currVert = NULL;
+	FDVertex *adjacentVert = NULL;
+
+	int vertID = 0;
+	for (int iy = 0; iy <= gridTotalY; ++iy)
+	{
+		for (int ix = 0; ix <= gridTotalX; ++ix)
+		{
+			vertID = vertexHelper.IdAt(ix, iy);
+			currVert = this->GetVertex(vertID);
+			//west vertex
+			if (isValidVertex(ix - 1, iy))
+			{
+				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix - 1, iy));
+				currVert->WestVertex = adjacentVert;
+				currVert->WestLength = FDVertex::Distance(currVert, currVert->WestVertex);
+			}
+			//north vertex
+			if (isValidVertex(ix, iy + 1))
+			{
+				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix, iy + 1));
+				currVert->NorthVertex = adjacentVert;
+				currVert->NorthLength = FDVertex::Distance(currVert, currVert->NorthVertex);
+			}
+			//east vertex
+			if (isValidVertex(ix + 1, iy))
+			{
+				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix + 1, iy));
+				currVert->EastVertex = adjacentVert;
+				currVert->EastLength = FDVertex::Distance(currVert, currVert->EastVertex);
+			}
+			//south vertex
+			if (isValidVertex(ix, iy - 1))
+			{
+				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix, iy - 1));
+				currVert->SouthVertex = adjacentVert;
+				currVert->SouthLength = FDVertex::Distance(currVert, currVert->SouthVertex);
+			}
+		}
+	}
+}
+
+void TripleCells::setTrapDistribution()
+{
+
+}
+
 

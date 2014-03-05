@@ -122,7 +122,7 @@ public:
 	FDContact* GetContact(std::string contactName);
 protected:
 	void virtual buildStructure() = 0;
-	void virtual postProcessOfDomain() = 0;
+	void virtual postProcessOfDomain() {}
 	void virtual setTrapDistribution() = 0;
 	/// @brief setVertexPhysics is used to set the physical value related to the specific vertex.
 	/// 

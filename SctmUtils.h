@@ -313,27 +313,12 @@ namespace SctmUtils
 		string DefaulParFile;
 
 		//simulation parameters
-		double Temperature; ///< temperature of the simulation, in [K]
-		double GateVoltage; ///< gate voltage, in [V]
-		double GateWorkFunction; ///< the work function of gate material, in [eV]
+		string Structure;
 
+		double Temperature; ///< temperature of the simulation, in [K]
 		double SimStartTime; ///< simulation start time
 		double SimEndTime; ///< simulation end time
 		int SimStepsPerDecade; ///< simulation steps per time decade
-		
-		//device structure
-		//the length are in [nm]
-		double XLength;
-		double YLengthTunnel;
-		double YLengthTrap;
-		double YLengthBlock;
-		int XGridNum;
-		int YGridNumTunnel;
-		int YGridNumTrap;
-		int YGridNumBlock;
-		Mat::Name TunnelMaterial;
-		Mat::Name TrapMaterial;
-		Mat::Name BlockMaterial;
 
 		//density parameters
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
@@ -351,6 +336,24 @@ namespace SctmUtils
 		string TrapOccupation; ///< Trap occupation status
 		bool RetentionAfterPrgrm; ///< Retention after program
 		double RetentionEndTime; ///< Retention end time after program
+
+
+		//device structure
+		//this part should be in the class derived from FDDomain, i.e. SimpleONO class
+		//the length are in [nm]
+		double GateVoltage; ///< gate voltage, in [V]
+		double GateWorkFunction; ///< the work function of gate material, in [eV]
+		double XLength;
+		double YLengthTunnel;
+		double YLengthTrap;
+		double YLengthBlock;
+		int XGridNum;
+		int YGridNumTunnel;
+		int YGridNumTrap;
+		int YGridNumBlock;
+		Mat::Name TunnelMaterial;
+		Mat::Name TrapMaterial;
+		Mat::Name BlockMaterial;
 	protected:
 		static void setGlobalCntrl_Directly();
 		static void setGlobalCntrl_FromParFile();
