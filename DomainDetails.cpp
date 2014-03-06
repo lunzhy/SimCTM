@@ -96,7 +96,8 @@ double FDBoundary::GetBCValue(BCName bcName)
 
 bool FDBoundary::Valid(BCName bcName)
 {
-	return bnd_valid[bcName];
+	bool valid = bnd_valid.find(bcName) != bnd_valid.end();
+	return valid;
 	//map<BCName, bool>::iterator iter;
 	//iter = this->bc_valid.find(bcName);
 	//SCTM_ASSERT(iter!=this->bc_valid.end(), 10010);
@@ -105,14 +106,14 @@ bool FDBoundary::Valid(BCName bcName)
 
 void FDBoundary::RefreshBndCond(BCName bcName, double newValue, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
-	SCTM_ASSERT(bnd_valid.find(bcName)!=bnd_valid.end(), 10014); //make sure bcName exists
+	SCTM_ASSERT(bnd_valid.find(bcName)!=bnd_valid.end(), 10014); //make sure bcName exists, i.e. this vertex is set to be boundary
 
 	bc_values[bcName] = newValue;
 }
 
 void FDBoundary::RefreshBndCond(BCName bcName, BCType bcType, double bcVal /*= 0*/, VectorValue bcNormVec /*= VectorValue(0, 0)*/)
 {
-	SCTM_ASSERT(bnd_valid.find(bcName)!=bnd_valid.end(), 10014); //make sure bcName exists
+	SCTM_ASSERT(bnd_valid.find(bcName)!=bnd_valid.end(), 10014); //make sure bcName exists, i.e. this vertex is set to be boundary
 	SCTM_ASSERT( bcType == BC_Dirichlet || bcNormVec.DirectionValid(), 10016 );
 
 	bc_types[bcName] = bcType;

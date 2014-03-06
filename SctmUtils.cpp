@@ -282,8 +282,11 @@ namespace SctmUtils
 			//PrintValue(currVert->IsAtContact());
 			//PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
-			//if (currVert->BndCond.Valid(FDBoundary::eCurrentDensity)) { PrintBCType(currVert->BndCond); }
-			/*
+			PrintValue(currVert->WestVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->WestVertex->GetID()));
+			PrintValue(currVert->NorthVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthVertex->GetID()));
+			PrintValue(currVert->EastVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->EastVertex->GetID()));
+			PrintValue(currVert->SouthVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthVertex->GetID()));
+			cout << " -- ";
 			PrintValue(currVert->IsAtBoundary(FDBoundary::Potential));
 			if (currVert->IsAtBoundary(FDBoundary::Potential))
 			{
@@ -315,22 +318,15 @@ namespace SctmUtils
 					PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity));
 				}
 			}
-			*/
-			//if (currVert->BndCond.Valid(FDBoundary::eDensity)) { PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity)); }
-			PrintValue(currVert->WestVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->WestVertex->GetID()));
-			PrintValue(currVert->NorthVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthVertex->GetID()));
-			PrintValue(currVert->EastVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->EastVertex->GetID()));
-			PrintValue(currVert->SouthVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthVertex->GetID()));
+			//PrintValue(norm.PullLength(currVert->WestLength));
+			//PrintValue(norm.PullLength(currVert->NorthLength));
+			//PrintValue(norm.PullLength(currVert->EastLength));
+			//PrintValue(norm.PullLength(currVert->SouthLength));
 			cout << " -- ";
-			PrintValue(norm.PullLength(currVert->WestLength));
-			PrintValue(norm.PullLength(currVert->NorthLength));
-			PrintValue(norm.PullLength(currVert->EastLength));
-			PrintValue(norm.PullLength(currVert->SouthLength));
-			cout << " -- ";
-			PrintValue(currVert->NorthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthwestElem->GetID()));
-			PrintValue(currVert->NortheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NortheastElem->GetID()));
-			PrintValue(currVert->SoutheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SoutheastElem->GetID()));
-			PrintValue(currVert->SouthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthwestElem->GetID()));
+			//PrintValue(currVert->NorthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthwestElem->GetID()));
+			//PrintValue(currVert->NortheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NortheastElem->GetID()));
+			//PrintValue(currVert->SoutheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SoutheastElem->GetID()));
+			//PrintValue(currVert->SouthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthwestElem->GetID()));
 			cout << " -- ";
 			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea));
 			cout << " -- ";
@@ -423,7 +419,7 @@ namespace SctmUtils
 
 	void SctmDebug::PrintDirectionVector(VectorValue &dv)
 	{
-		cout << dv;
+		cout << dv << " ";
 	}
 
 	void SctmDebug::WritePoisson(FDDomain *domain)

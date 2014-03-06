@@ -337,7 +337,7 @@ public:
 	FDRegion(unsigned int _id, FDRegion::TypeName _type, Material *_mat)
 		:id(_id), Type(_type), Mat(_mat) {}
 	FDRegion(unsigned int _id, string _name, Material *_mat)
-		:id(_id), RegName(_name), Mat(_mat) {}
+		:id(_id), RegName(_name), Mat(_mat), Type(NoType) {}
 
 	FDRegion::TypeName Type; ///< type of the region, in enum RegionType
 	Material *Mat; ///< the material of current region, a pointer to const material

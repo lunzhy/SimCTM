@@ -101,12 +101,20 @@ bool FDDomain::isValidElem(FDElement *elem)
 
 bool FDDomain::isNotTrappingElem(FDElement *elem)
 {
+	//TODO: deal with the trap
 	if (elem == NULL)
 		return true;
-	else
+	bool ret = false;
+	if (elem->Region->Type != FDRegion::NoType)//for SimpleONO
 	{
 		return elem->Region->Type != FDRegion::Trapping;
 	}
+	else//for TripleCells                                                                                   
+	{
+		string regionname = elem->Region->RegName;
+		ret = (regionname.find("Trap") > regionname.size());
+	}
+	return ret;
 }
 
 void FDDomain::setBoundary()
@@ -115,7 +123,7 @@ void FDDomain::setBoundary()
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
 	{
 		currVertex = GetVertex(iVer);//in FDDomain, the index of vertex in the vertices vector in the vertexID.
-		setBndVert_Potential(currVertex);// this method will check if the vertex is a boundary vertex
+		setBndVert_Potential(currVertex);//set the boundary (not boundary condition). This method will check if the vertex is a boundary vertex
 		setBndVert_eDensity(currVertex);
 	}
 }
@@ -203,6 +211,38 @@ void FDDomain::setBndVert_Potential(FDVertex *vert)
 	{
 		//vert->BndCond.SetBndCond(FDBoundary::Potential, FDBoundary::BC_Neumann, 0, VectorValue(-1, 0));
 		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(-1, 0));
+		return;
+	}
+
+	//lack of NorthWest corner
+	if (!isValid_NW && isValid_NE &&
+		isValid_SW && isValid_SE)
+	{
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(-vert->WestLength, vert->NorthLength));
+		return;
+	}
+
+	//lack of NorthEast corner
+	if (isValid_NW && !isValid_NE &&
+		isValid_SW && isValid_SE)
+	{
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(vert->EastLength, vert->NorthLength));
+		return;
+	}
+
+	//lack of SouthEast corner
+	if (isValid_NW && isValid_NE &&
+		isValid_SW && !isValid_SE)
+	{
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(vert->EastLength, -vert->SouthLength));
+		return;
+	}
+
+	//lack of SouthWest corner
+	if (isValid_NW && isValid_NE &&
+		!isValid_SW && isValid_SE)
+	{
+		vert->BndCond.SetBnd(bcToSet, defaultBCType, VectorValue(-vert->WestLength, vert->SouthLength));
 		return;
 	}
 }
@@ -306,14 +346,14 @@ void FDDomain::BuildDomain()
 	//build the data and mesh structure of simulated region, this is a pure virtual method
 	buildStructure();
 	//fill the vertices belonging to drift-diffusion process
-	/////fillDDVerts();
+	fillDDVerts();
 	//set the physics value related to vertex, when the vertex is related to trapping layer, set the trap property
-	/////setVertexPhysProperty();
-	/////setVertexTrapProperty();
-	/////setTrapDistribution();
+	setVertexPhysProperty();
+	setVertexTrapProperty();
+	setTrapDistribution();
 	//set the boundary condition, the specific value is not considered in this class.
-	/////setBoundary();
-	/////updateBndCond();
+	setBoundary();
+	updateBndCond();
 	
 	//in case the specific domain has some special post-procedure
 	//This is used because previously the gate and channel potential is directly set using global control
@@ -402,6 +442,7 @@ void FDDomain::updateBndCond()
 	for (std::size_t iVer = 0; iVer != vertices.size(); ++iVer)
 	{
 		currVertex = GetVertex(iVer);//in FDDomain, the index of vertex in the vertices vector in the vertexID.
+		//CAUTION! assume all vertices belong to contact are at boundary
 		if (currVertex->IsAtBoundary(FDBoundary::Potential))
 		{
 			updateBCVert_Potential(currVertex);
@@ -416,29 +457,32 @@ void FDDomain::updateBndCond()
 void FDDomain::updateBCVert_Potential(FDVertex *vert)
 {
 	Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
-	static double workFunction_Si = SctmPhys::ReferencePotential;
-	static double gateWorkFunction = norm.PushPotential(SctmGlobalControl::Get().GateWorkFunction);
+	static double workFunction_Si = SctmPhys::ReferencePotential;//already in normalized value
+
+	FDContact *contact = NULL;
 	double gateVoltage = 0;
+	double gateWorkfunction = 0;
 	double gatePotential = 0;
 
 	//to decide if the vertex is at a contact.
-	if ( vert->IsAtContact() )
+	if (vert->IsAtContact())
 	{
-		//the gate name is in accordance with the name specified in setting domain details
-		if (vert->Contact->ContactName == "Gate")
-		{
-			//change the boundary condition type to BC_Dirichlet
-			//set the gate potential using gate voltage and work function.
-			gateVoltage = this->GetContact("Gate")->Voltage;
-			gatePotential = gateVoltage - ( gateWorkFunction - workFunction_Si);
-			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, gatePotential);
-			return;
-		}
-		else if (vert->Contact->ContactName == "Channel")
+		contact = vert->Contact;
+		if (contact->ContactName == "Channel")
 		{
 			//change the boundary condition type to BC_Dirichlet, not care about the value
 			//because the channel potential is set after solving substrate.
 			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet);
+			return;
+		}
+		else//the gate name is in accordance with the name specified in setting domain details
+		{
+			//change the boundary condition type to BC_Dirichlet
+			//set the gate potential using gate voltage and work function.
+			gateVoltage = contact->Voltage;
+			gateWorkfunction = contact->Workfunction;
+			gatePotential = gateVoltage - (gateWorkfunction - workFunction_Si);
+			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, gatePotential);
 			return;
 		}
 	}
