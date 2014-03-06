@@ -216,9 +216,9 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 	FDVertex *currVert = startVert;
 
 	using namespace MaterialDB;
-	static Mat::Name tunnelMat = domain->GetRegion(FDRegion::Tunneling)->Mat->MatName();
-	static Mat::Name trapMat = domain->GetRegion(FDRegion::Trapping)->Mat->MatName();
-	static Mat::Name blockMat = domain->GetRegion(FDRegion::Blocking)->Mat->MatName();
+	static Mat::Name tunnelMat = domain->GetRegion("Tunnel")->Mat->MatName();
+	static Mat::Name trapMat = domain->GetTrapMatName();//trap region name is different in different cases
+	static Mat::Name blockMat = domain->GetRegion("Block")->Mat->MatName();
 
 	//for boundary vertex, the south length equals to 0
 	//CAUTION: the following process is case-dependent. (south --> north)
@@ -343,7 +343,13 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 
 		if (currVert->IsAtContact()) //the gate contact
 		{
+			tunnelTrapToGateEnable = true;
 			vertsBlockOxideEnd.push_back(currVert);
+			break;
+		}
+		if (currVert->NorthVertex == NULL) // the north boundary, within the isolation region
+		{
+			tunnelTrapToGateEnable = false;
 			break;
 		}
 		currVert = currVert->NorthVertex;
@@ -430,7 +436,7 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 	using namespace MaterialDB;
 	double subsBarrier = 0;
 	subsBarrier = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
-		- GetMatPrpty(domain->GetRegion(FDRegion::Tunneling)->Mat, MatProperty::Mat_ElectronAffinity);
+		- GetMatPrpty(domain->GetRegion("Tunnel")->Mat, MatProperty::Mat_ElectronAffinity);
 	subsBarrier = norm.PullEnergy(subsBarrier);
 
 	//set the fermi energy of the tunneling-in vertex
@@ -780,14 +786,18 @@ void SubsToTrapElecTunnel::setTunnelTag()
 	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
 	switch (eTunDirection)
 	{
-		case TunnelSolver::North:
+		case TunnelDirection::North:
+		{
 			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
 			break;
-		case TunnelSolver::South:
+		}
+		case TunnelDirection::South:
+		{
 			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
 			break;
-		case TunnelSolver::East:
-		case TunnelSolver::West:
+		}
+		case TunnelDirection::East:
+		case TunnelDirection::West:
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10041);
 			break;
@@ -866,7 +876,7 @@ TrapToGateElecTunnel::TrapToGateElecTunnel(FDDomain *_domain): TunnelSolver(_dom
 {
 	//set the effective tunneling mass
 	using namespace MaterialDB;
-	double effMass = GetMatPrpty(domain->GetRegion(FDRegion::Trapping)->Mat, MatProperty::Mat_ElectronMass);
+	double effMass = GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_ElectronMass);
 	this->effTunnelMass = effMass; // the effective electron mass, in [m0]
 }
 
@@ -923,6 +933,11 @@ void TrapToGateElecTunnel::SolveTunnel()
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
 		loadBandStructure(vertsTunnelOxideStart.at(iVert));
+		if (!this->tunnelTrapToGateEnable)
+		{
+			continue;
+		}
+		setTunnelDirection();
 		setTunnelTag();
 
 		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
@@ -962,19 +977,49 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 
 void TrapToGateElecTunnel::setTunnelTag()
 {
-	double elecField = 0;
-	FDVertex *currVert = NULL;
-	for (size_t iVert = 0; iVert != vertsBlockOxideStart.size(); ++iVert)
+	using namespace SctmUtils;
+	FDVertex *verts = verts_Trap.back(); //the back element is vertex at trappingLayer/blockingLayer interface
+	switch (eTunDirection)
 	{
-		currVert = vertsBlockOxideStart.at(iVert);
-		//TODO: this is a temporary method to set the tunnel tags for vertices at interface.
-		elecField = currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y);
-		if (elecField < 0)
+		case TunnelDirection::North:
 		{
-			currVert->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
+			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
+			break;
 		}
+		case TunnelDirection::South:
+		{
+			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
+			break;
+		}
+		case TunnelDirection::East:
+		case TunnelDirection::West:
+		default:
+		SCTM_ASSERT(SCTM_ERROR, 10041);
+		break;
 	}
 }
+
+
+void TrapToGateElecTunnel::setTunnelDirection()
+{
+	double elecField = 0;
+	FDVertex *currVert = NULL;
+
+	currVert = verts_Trap.back(); //the back element is vertex at trappingLayer/blockingLayer interface
+	//TODO: this is a temporary method to set the tunnel tags for vertices at interface.
+	elecField = currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y);
+	if (elecField < 0)
+	{
+		//for electrons, this means program and retention situation
+		eTunDirection = TunnelSolver::North;
+	}
+	else
+	{
+		//for electrons, this means erase situation.
+		eTunDirection = TunnelDirection::South;
+	}
+}
+
 
 void TrapToGateElecTunnel::calcTransCoeff_T2B()
 {

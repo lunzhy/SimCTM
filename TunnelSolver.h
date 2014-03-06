@@ -75,6 +75,7 @@ protected:
 protected:
 	double temperature;
 	FDDomain *domain;
+	bool tunnelTrapToGateEnable;
 
 	vector<FDVertex *> vertsTunnelOxideStart;
 	vector<FDVertex *> vertsTunnelOxideEnd;
@@ -161,7 +162,8 @@ public:
 protected:
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *endVertex);
-	void setTunnelTag(); 
+	void setTunnelTag();
+	void setTunnelDirection();
 	void setSolver_Trap();
 	void calcTransCoeff_T2B();
 

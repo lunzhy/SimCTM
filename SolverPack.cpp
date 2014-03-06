@@ -36,10 +36,10 @@ void SolverPack::initialize()
 {
 	subsSolver = new OneDimSubsSolver(domain);
 	poissonSolver = new TwoDimPoissonSolver(domain);
-	//tunnelOxideSolver = new SubsToTrapElecTunnel(domain);
-	//blockOxideSolver = new TrapToGateElecTunnel(domain);
-	//ddSolver = new DriftDiffusionSolver(domain);
-	//trappingSolver = new TrapSolver(domain);
+	tunnelOxideSolver = new SubsToTrapElecTunnel(domain);
+	blockOxideSolver = new TrapToGateElecTunnel(domain);
+	ddSolver = new DriftDiffusionSolver(domain);
+	trappingSolver = new TrapSolver(domain);
 
 	mapPotential.clear();
 	mapCurrDens_Tunnel.clear();
@@ -79,7 +79,7 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteBandInfo(domain->GetVertices());
 		SctmData::Get().WriteElecField(domain->GetVertices());
 
-		/*
+		
 		//solve tunneling problem in tunneling oxide
 		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		SctmTimer::Get().Set();
@@ -94,13 +94,14 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchBlockOxideResult();
 
+		
 		//solve trapping
 		SctmTimer::Get().Set();
 		trappingSolver->SolveTrap();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchTrappingResult();
 		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
-
+		
 		//solver drift-diffusion equation
 		SctmTimer::Get().Set();
 		ddSolver->SolveDD(mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
@@ -109,11 +110,11 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteTunnelCoeff(domain, mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
 		SctmData::Get().WriteElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteElecCurrDens(domain->GetDDVerts());
-
+		
 		//write the final result
 		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteFlatBandVoltageShift(domain);
-		*/
+		
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
 	}
 

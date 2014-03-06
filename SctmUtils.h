@@ -245,7 +245,7 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
-		void ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3);
+		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
 
 		void WriteLine(string &line);
 

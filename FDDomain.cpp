@@ -39,12 +39,6 @@ FDRegion* FDDomain::GetRegion(unsigned int id)
 	return regions.at(id);
 }
 
-FDRegion* FDDomain::GetRegion(FDRegion::TypeName reg)
-{
-	return regionMap[reg];
-	//return regions[id];
-}
-
 FDRegion* FDDomain::GetRegion(std::string regionName)
 {
 	FDRegion *currRegion = NULL;
@@ -595,3 +589,21 @@ void FDDomain::setVertexTrapProperty()
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
 	}
 }
+
+MaterialDB::Mat::Name FDDomain::GetTrapMatName()
+{
+	//CAUTION!!! This method is relative to the region name assigned during building the domain.
+	MaterialDB::Mat::Name matname;
+	string simStructure = SctmGlobalControl::Get().Structure;
+	if (simStructure == "Single")
+	{
+		matname = GetRegion("Trap")->Mat->MatName();
+	}
+	else if (simStructure == "Triple")
+	{
+		matname = GetRegion("Trap.Gate2")->Mat->MatName();
+	}
+	return matname;
+}
+
+

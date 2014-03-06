@@ -196,6 +196,8 @@ void SimpleONO::setDomainDetails()
 	/////////////////////////////////////////////////////////////////////
 	//set regions
 	////////////////////////////////////////////////////////////////////
+
+	/*
 	using MaterialDB::GetMaterial;
 	using MaterialDB::Mat;
 	regionMap[FDRegion::Tunneling] = new FDRegion(cntRegion, FDRegion::Tunneling, GetMaterial(SctmGlobalControl::Get().TunnelMaterial));
@@ -204,6 +206,21 @@ void SimpleONO::setDomainDetails()
 	cntRegion++;
 	regionMap[FDRegion::Blocking] = new FDRegion(cntRegion, FDRegion::Blocking, GetMaterial(SctmGlobalControl::Get().BlockMaterial));
 	cntRegion++;
+	*/
+
+	/////////////////////////////////////////////////////////////////////
+	//set regions (new method)
+	////////////////////////////////////////////////////////////////////
+	using MaterialDB::GetMaterial;
+	using MaterialDB::Mat;
+	Mat::Name currMatName;
+	currMatName = SctmGlobalControl::Get().TunnelMaterial;
+	regions.push_back(new FDRegion(cntRegion++, "Tunnel", GetMaterial(currMatName)));
+	currMatName = SctmGlobalControl::Get().TrapMaterial;
+	regions.push_back(new FDRegion(cntRegion++, "Trap", GetMaterial(currMatName)));
+	currMatName = SctmGlobalControl::Get().BlockMaterial;
+	regions.push_back(new FDRegion(cntRegion++, "Block", GetMaterial(currMatName)));
+
 
 	/////////////////////////////////////////////////////////////////////
 	//set elements with specified region
@@ -348,18 +365,21 @@ double SimpleONO::xNextGridLength(int vertexX)
 
 FDRegion * SimpleONO::thisRegion(int elemY)
 {
-	if ( elemY < yCntVertexTunnel - 1 ) //transfer the vertex count into element count
-		return GetRegion(FDRegion::Tunneling);
+	if (elemY < yCntVertexTunnel - 1) //transfer the vertex count into element count
+		//return GetRegion(FDRegion::Tunneling);
+		return GetRegion("Tunnel");
 	else
 		elemY -= yCntVertexTunnel - 1;
 
-	if ( elemY < yCntVertexTrap - 1 )
-		return GetRegion(FDRegion::Trapping);
+	if (elemY < yCntVertexTrap - 1)
+		//return GetRegion(FDRegion::Trapping);
+		return GetRegion("Trap");
 	else
 		elemY -= yCntVertexTrap - 1;
 
-	if ( elemY < yCntVertexBlock - 1)
-		return GetRegion(FDRegion::Blocking);
+	if (elemY < yCntVertexBlock - 1)
+		//return GetRegion(FDRegion::Blocking);
+		return GetRegion("Block");
 	else
 		return NULL;
 }

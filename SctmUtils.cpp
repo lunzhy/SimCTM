@@ -667,7 +667,7 @@ namespace SctmUtils
 		}
 	}
 
-	void SctmFileStream::ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3)
+	void SctmFileStream::ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3)
 	{
 		std::ifstream infile(this->fileName.c_str(), std::ios::in);
 		int vertID = 0;
@@ -1248,9 +1248,9 @@ namespace SctmUtils
 
 	void SctmData::ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap)
 	{
-		fileName = directoryName + "\\subs.in";
+		fileName = directoryName + "\\substrate.in";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Read);
-		vector<double> vertID;
+		vector<int> vertID;
 		vector<double> pot;
 		vector<double> fermiAbove;
 		int id = 0;

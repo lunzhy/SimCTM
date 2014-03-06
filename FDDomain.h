@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include "DomainDetails.h"
+#include "Material.h"
 
 namespace SctmUtils
 {
@@ -30,7 +31,6 @@ namespace SctmPhys
 	class PhysProperty;
 	class TrapProperty;
 }
-
 /// @brief FDDomain describes the simulation domain in finite differential method.
 ///
 /// This class is used as a base class for FD domain. It only contains the general properties in FD domain
@@ -106,7 +106,6 @@ public:
 	/// @pre
 	/// @return FDRegion *
 	/// @note
-	FDRegion* GetRegion(FDRegion::TypeName reg);
 	FDRegion* GetRegion(unsigned int id);
 	FDRegion* GetRegion(std::string regionName);
 	/// @brief GetContact can get the contact object with given id
@@ -120,6 +119,8 @@ public:
 	/// @note
 	FDContact* GetContact(unsigned int id);
 	FDContact* GetContact(std::string contactName);
+
+	MaterialDB::Mat::Name GetTrapMatName();
 protected:
 	void virtual buildStructure() = 0;
 	void virtual postProcessOfDomain() {}
