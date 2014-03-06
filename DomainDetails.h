@@ -320,6 +320,7 @@ public:
 	/// @brief The type of the region 
 	enum TypeName
 	{
+		NoType,
 		Tunneling, ///< tunneling oxide
 		Trapping, ///< trapping layer
 		Blocking ///< blocking oxide

@@ -39,6 +39,10 @@ FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
 	NorthwestElem = NULL;
 	SoutheastElem = NULL;
 	SouthwestElem = NULL;
+	WestLength = 0;
+	NorthLength = 0;
+	EastLength = 0;
+	SouthLength = 0;
 	Contact = NULL;
 	Phys = new PhysProperty(this);
 	Trap = NULL; // initially no trap property is attached to the vertex, trap property is set in the specific method in FDDomain

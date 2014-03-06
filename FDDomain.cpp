@@ -48,15 +48,17 @@ FDRegion* FDDomain::GetRegion(FDRegion::TypeName reg)
 FDRegion* FDDomain::GetRegion(std::string regionName)
 {
 	FDRegion *currRegion = NULL;
+	bool found = false;
 	for (size_t iReg = 0; iReg != this->regions.size(); ++iReg)
 	{
 		currRegion = GetRegion(iReg);
 		if (currRegion->RegName == regionName)
 		{
+			found = true;
 			break;
 		}
 	}
-	SCTM_ASSERT(currRegion != NULL, 10048);
+	SCTM_ASSERT(found, 10048);
 	return currRegion;
 }
 
@@ -68,15 +70,17 @@ FDContact* FDDomain::GetContact(unsigned int id)
 FDContact* FDDomain::GetContact(std::string contactName)
 {
 	FDContact *currCont = NULL;
+	bool found = false;
 	for (size_t iCont = 0; iCont != contacts.size(); ++iCont)
 	{
 		currCont = GetContact(iCont);
 		if (currCont->ContactName == contactName)
 		{
+			found = true;
 			break;
 		}
 	}
-	SCTM_ASSERT(currCont != NULL, 10030);
+	SCTM_ASSERT(found, 10030);
 	return currCont;
 }
 

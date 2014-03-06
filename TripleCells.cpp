@@ -171,16 +171,17 @@ void TripleCells::setDomainDetails()
 	//////////////////////////////////////////////////////////////////
 	int xIndexMax = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3;
 	int yIndexMax = gridThickTunnel + gridThickTrap + gridThickBlock + gridThickIso;
+	//the iteration sequence determined the method to get id width specific (idx, idy)
 	for (int iy = 0; iy <= yIndexMax; ++iy)
 	{
 		for (int ix = 0; ix <= xIndexMax; ++ix)
 		{
 			//the iteration sequence guarantees the use of FDDomainHelper
-			coordX_in_nm = getCoordX(ix, iy);
-			coordY_in_nm = getCoordY(ix, iy);
+			coordX_in_nm = getVertCoordX(ix, iy);
+			coordY_in_nm = getVertCoordY(ix, iy);
 			if (coordX_in_nm < 0 ) //so coordY_in_nm will be less than o
 			{
-				indexVertex++; 
+				//indexVertex++; 
 				//count this vertex as well, so FDDomainHelper can be used to position the vertex by idX and idY.
 				//so the indexes of the vertices are not coherent.
 				continue;
@@ -204,6 +205,7 @@ void TripleCells::setDomainDetails()
 	voltage = voltageGate3;
 	workfun = workfunctionGate3;
 	contacts.push_back(new FDContact(indexContact++, "Gate3", norm.PushPotential(voltage), norm.PushPotential(workfun)));
+	contacts.push_back(new FDContact(indexContact++, "Channel", 0, 0));//explicitly set voltage and workfunction to be 0 
 
 	FDDomainHelper vertexHelper = FDDomainHelper(xIndexMax + 1, yIndexMax + 1);
 	FDContact *currContact = NULL;
@@ -219,7 +221,7 @@ void TripleCells::setDomainDetails()
 	for (int ix = 0; ix <= gridWidthGate1; ++ix)
 	{
 		indexX = ix;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -229,7 +231,7 @@ void TripleCells::setDomainDetails()
 	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -242,7 +244,7 @@ void TripleCells::setDomainDetails()
 	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -252,7 +254,7 @@ void TripleCells::setDomainDetails()
 	for (int ix = 0; ix <= gridWidthGate2; ++ix)
 	{
 		indexX = gridWidthGate1 + gridWidthIso2 + ix;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -262,7 +264,7 @@ void TripleCells::setDomainDetails()
 	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -275,7 +277,7 @@ void TripleCells::setDomainDetails()
 	for (int iy = 1; iy <= gridThickIso; ++iy)
 	{
 		indexY = gridThickTunnel + gridThickTrap + gridThickBlock + iy;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -285,7 +287,7 @@ void TripleCells::setDomainDetails()
 	for (int ix = 0; ix <= gridWidthGate3; ++ix)
 	{
 		indexX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + ix;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -297,7 +299,7 @@ void TripleCells::setDomainDetails()
 	for (int ix = 0; ix <= xIndexMax; ++ix)
 	{
 		indexX = ix;
-		vertID = vertexHelper.IdAt(indexX, indexY);
+		vertID = getVertIdAt(indexX, indexY);
 		currVertex = this->GetVertex(vertID);
 		currVertex->SetContact(currContact);
 		currContact->AddVertex(currVertex);
@@ -335,61 +337,60 @@ void TripleCells::setDomainDetails()
 	currRegion = this->GetRegion("Tunnel");
 	ixBegin = 0; ixEnd = gridTotalWidth;
 	iyBegin = 0; iyEnd = gridThickTunnel;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Trap.Gate1
 	currRegion = this->GetRegion("Trap.Gate1");
 	ixBegin = 0; ixEnd = gridWidthGate1;
 	iyBegin = gridThickTunnel; iyEnd = iyBegin + gridThickTrap;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Trap.Iso2
 	currRegion = this->GetRegion("Trap.Iso2");
 	ixBegin = gridWidthGate1; ixEnd = gridWidthGate1 + gridWidthIso2;
 	iyBegin = gridThickTunnel; iyEnd = iyBegin + gridThickTrap;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Trap.Gate2
 	currRegion = this->GetRegion("Trap.Gate2");
 	ixBegin = gridWidthGate1 + gridWidthIso2; ixEnd = ixBegin + gridWidthGate2;
 	iyBegin = gridThickTunnel; iyEnd = iyBegin + gridThickTrap;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Trap.Iso3
 	currRegion = this->GetRegion("Trap.Iso3");
 	ixBegin = gridWidthGate1 + gridWidthIso2 + gridWidthGate2; ixEnd = ixBegin + gridWidthIso3;
 	iyBegin = gridThickTunnel; iyEnd = iyBegin + gridThickTrap;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Trap.Gate3
 	currRegion = this->GetRegion("Trap.Gate3");
 	ixBegin = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3; ixEnd = ixBegin + gridWidthGate3;
 	iyBegin = gridThickTunnel; iyEnd = iyBegin + gridThickTrap;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Block
 	currRegion = this->GetRegion("Block");
 	ixBegin = 0; ixEnd = gridTotalWidth;
 	iyBegin = gridThickTunnel + gridThickTrap; iyEnd = iyBegin + gridThickBlock;
-	iyBegin = gridThickTunnel; iyEnd = iyBegin + gridThickTrap;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Iso2
 	currRegion = this->GetRegion("Iso2");
 	ixBegin = gridWidthGate1; ixEnd = ixBegin + gridWidthIso2;
 	iyBegin = gridThickTunnel + gridThickTrap + gridThickBlock; iyEnd = iyBegin + gridThickIso;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Iso3
 	currRegion = this->GetRegion("Iso3");
 	ixBegin = gridWidthGate1 + gridWidthIso2 + gridWidthGate2; ixEnd = ixBegin + gridWidthIso3;
 	iyBegin = gridThickTunnel + gridThickTrap + gridThickBlock; iyEnd = iyBegin + gridThickIso;
-	setSingleElement(indexElement++, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
+	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 
 }
 
-double TripleCells::getCoordX(int idX, int idY)
+double TripleCells::getVertCoordX(int idX, int idY)
 {
 	double currdX = 0; // the coordinate in x-direction, in [nm], without normalization 
 
@@ -399,23 +400,7 @@ double TripleCells::getCoordX(int idX, int idY)
 	static double lengthPerGridIso3 = widthIso3 / gridWidthIso3;
 	static double lengthPerGridGate3 = widthGate3 / gridWidthGate3;
 
-	/*
-	int yBndIndexMain = gridThickTunnel + gridThickTrap + gridThickBlock; // the top boundary index in y direction for the layers except isolation
-	if (idY > yBndIndexMain) //invalid vertex
-	{
-		if (((idX >= gridWidthGate1) && (idX <= gridWidthGate1 + gridWidthIso2)) ||
-			((idX >= gridWidthGate1 + gridWidthIso2 + gridWidthGate2) && (idX <= gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3)))
-		{
-			//continue the process
-		}
-		else
-		{
-			return -1;// negative values means that no vertex exists at this point.
-		}
-	}
-	*/
-
-	if (isValidVertex(idX, idY))
+	if (!isValidVertex(idX, idY))
 	{
 		return -1;
 	}
@@ -454,7 +439,7 @@ double TripleCells::getCoordX(int idX, int idY)
 	return currdX;
 }
 
-double TripleCells::getCoordY(int idX, int idY)
+double TripleCells::getVertCoordY(int idX, int idY)
 {
 	double currdY = 0; // the coordinate in y-direction, in [nm], without normalization
 	static double lengthPerGridTunnel = thickTunnel / gridThickTunnel;
@@ -462,20 +447,11 @@ double TripleCells::getCoordY(int idX, int idY)
 	static double lengthPerGridBlock = thickBlock / gridThickBlock;
 	static double lengthPerGridIso = thickIso / gridThickIso;
 
-	int yBndIndexMain = gridThickTunnel + gridThickTrap + gridThickBlock; // the top boundary index in y direction for the layers except isolation
-
-	if (idY > yBndIndexMain) //invalid vertex
+	if (!isValidVertex(idX, idY))
 	{
-		if (((idX >= gridWidthGate1) && (idX <= gridWidthGate1 + gridWidthIso2)) ||
-			((idX >= gridWidthGate1 + gridWidthIso2 + gridWidthGate2) && (idX <= gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3)))
-		{
-			//continue the process
-		}
-		else
-		{
-			return -1;// negative values means that no vertex exists at this point.
-		}
+		return -1;
 	}
+
 	// up to here, invalid point is wiped out.
 	if (idY <= gridThickTunnel)
 	{
@@ -503,11 +479,10 @@ double TripleCells::getCoordY(int idX, int idY)
 	return currdY;
 }
 
-void TripleCells::setSingleElement(int idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend)
+void TripleCells::setSingleElement(int &idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend)
 {
 	static int gridTotalX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3;
 	static int gridTotalY = gridThickTunnel + gridThickTrap + gridThickBlock + gridThickIso;
-	static FDDomainHelper vertexHelper = FDDomainHelper(gridTotalX + 1, gridTotalY + 1);
 
 	FDElement *currElem = NULL;
 	FDVertex *swVertex = NULL;
@@ -519,11 +494,11 @@ void TripleCells::setSingleElement(int idElem, FDRegion *region, int xbegin, int
 	{
 		for (int ixElem = xbegin; ixElem != xend; ++ixElem)
 		{
-			swVertex = GetVertex(vertexHelper.IdAt(ixElem, iyElem));
-			seVertex = GetVertex(vertexHelper.IdAt(ixElem + 1, iyElem));
-			neVertex = GetVertex(vertexHelper.IdAt(ixElem + 1, iyElem + 1));
-			nwVertex = GetVertex(vertexHelper.IdAt(ixElem, iyElem + 1));
-			currElem = new FDElement(idElem, swVertex, seVertex, neVertex, nwVertex);
+			swVertex = GetVertex(getVertIdAt(ixElem, iyElem));
+			seVertex = GetVertex(getVertIdAt(ixElem + 1, iyElem));
+			neVertex = GetVertex(getVertIdAt(ixElem + 1, iyElem + 1));
+			nwVertex = GetVertex(getVertIdAt(ixElem, iyElem + 1));
+			currElem = new FDElement(idElem++, swVertex, seVertex, neVertex, nwVertex);
 			this->elements.push_back(currElem);
 			currElem->SetVertexAdjacent();
 			currElem->SetRegion(region);
@@ -559,7 +534,7 @@ bool TripleCells::isValidVertex(int idX, int idY)
 			ret = false;
 		}
 		//check gate3 region
-		if (idX>gridTotalX - gridWidthGate3 && idX <= gridTotalX)
+		if (idX > gridTotalX - gridWidthGate3 && idX <= gridTotalX)
 		{
 			ret = false;
 		}
@@ -572,42 +547,51 @@ void TripleCells::setAdjacency()
 {
 	int gridTotalX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3;
 	int gridTotalY = gridThickTunnel + gridThickTrap + gridThickBlock + gridThickIso;
-	FDDomainHelper vertexHelper = FDDomainHelper(gridTotalX + 1, gridTotalY + 1);
+	
 	FDVertex *currVert = NULL;
 	FDVertex *adjacentVert = NULL;
 
 	int vertID = 0;
+	int adjacentID = 0;
 	for (int iy = 0; iy <= gridTotalY; ++iy)
 	{
 		for (int ix = 0; ix <= gridTotalX; ++ix)
 		{
-			vertID = vertexHelper.IdAt(ix, iy);
+			vertID = getVertIdAt(ix, iy);
+			if (vertID < 0)//(ix, iy) does not corresponds to a valid vertex
+			{
+				continue;
+			}
 			currVert = this->GetVertex(vertID);
 			//west vertex
-			if (isValidVertex(ix - 1, iy))
+			adjacentID = getVertIdAt(ix - 1, iy);
+			if (adjacentID >= 0)
 			{
-				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix - 1, iy));
+				adjacentVert = this->GetVertex(adjacentID);
 				currVert->WestVertex = adjacentVert;
 				currVert->WestLength = FDVertex::Distance(currVert, currVert->WestVertex);
 			}
 			//north vertex
-			if (isValidVertex(ix, iy + 1))
+			adjacentID = getVertIdAt(ix, iy + 1);
+			if (adjacentID >= 0)
 			{
-				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix, iy + 1));
+				adjacentVert = this->GetVertex(adjacentID);
 				currVert->NorthVertex = adjacentVert;
 				currVert->NorthLength = FDVertex::Distance(currVert, currVert->NorthVertex);
 			}
 			//east vertex
-			if (isValidVertex(ix + 1, iy))
+			adjacentID = getVertIdAt(ix + 1, iy);
+			if (adjacentID >= 0)
 			{
-				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix + 1, iy));
+				adjacentVert = this->GetVertex(adjacentID);
 				currVert->EastVertex = adjacentVert;
 				currVert->EastLength = FDVertex::Distance(currVert, currVert->EastVertex);
 			}
 			//south vertex
-			if (isValidVertex(ix, iy - 1))
+			adjacentID = getVertIdAt(ix, iy - 1);
+			if (adjacentID >= 0)
 			{
-				adjacentVert = this->GetVertex(vertexHelper.IdAt(ix, iy - 1));
+				adjacentVert = this->GetVertex(adjacentID);
 				currVert->SouthVertex = adjacentVert;
 				currVert->SouthLength = FDVertex::Distance(currVert, currVert->SouthVertex);
 			}
@@ -618,6 +602,56 @@ void TripleCells::setAdjacency()
 void TripleCells::setTrapDistribution()
 {
 
+}
+
+int TripleCells::getVertIdAt(int idX, int idY)
+{
+	int vertID = 0;
+	static int gridTotalX = gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3;
+	static int gridMainY = gridThickTunnel + gridThickTrap + gridThickBlock; // the top boundary index in y direction for the layers except isolation
+	static int gridTotalY = gridMainY + gridThickIso;
+
+	//out of boundary
+	if (idX < 0 || idX > gridTotalX)
+	{
+		return -1;
+	}
+	if (idY < 0 || idY > gridTotalY)
+	{
+		return -1;
+	}
+
+	if (idY <= gridMainY)// the vertex is in the main part
+	{
+		vertID = (gridTotalX + 1)*idY + idX;
+	}
+	else// the vertex is in the isolation layer 
+	{
+		vertID = (gridTotalX + 1)*(gridMainY + 1);//count the main part
+		vertID += (gridWidthIso2 + 1 + gridWidthIso3 + 1)*(idY - gridMainY - 1);//count the isolation vertex
+		if (idX<gridWidthGate1)
+		{
+			return -1;//-1 means invalid id
+		}
+		else if (idX <= gridWidthGate1 + gridWidthIso2)//in isolation 1
+		{
+			vertID += idX - gridWidthGate1;
+		}
+		else if (idX < gridWidthGate1 + gridWidthIso2 + gridWidthGate2)
+		{
+			return -1;
+		}
+		else if (idX <= gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3)//in isolation 2
+		{
+			vertID += gridWidthIso2 + 1;
+			vertID += idX - (gridWidthGate1 + gridWidthIso2 + gridWidthGate2);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	return vertID;
 }
 
 

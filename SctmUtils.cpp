@@ -264,22 +264,21 @@ namespace SctmUtils
 		for (size_t iVert = 0; iVert != domain->vertices.size(); ++iVert)
 		{
 			currVert = domain->GetVertex(iVert);
-			PrintValue(currVert->GetID());
-			cout << " -- ";
-			if (currVert->Trap == NULL)
-			{
+			PrintValue(currVert->GetID()); cout << " -- ";
+			//if (currVert->Trap == NULL)
+			//{
 				
-				cout << "not related to trapping layer";
-			}
-			else
-			{
-				PrintValue(norm.PullArea(currVert->Trap->GetTrapPrpty(TrapProperty::eCrossSection)));
-				cout << " -- ";
-				PrintValue(norm.PullEnergy(currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand)));
-				cout << " -- ";
-				PrintValue(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
-			}
-			PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DielectricConstant));
+			//	cout << "not related to trapping layer";
+			//}
+			//else
+			//{
+			//	PrintValue(norm.PullArea(currVert->Trap->GetTrapPrpty(TrapProperty::eCrossSection)));
+			//	cout << " -- ";
+			//	PrintValue(norm.PullEnergy(currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand)));
+			//	cout << " -- ";
+			//	PrintValue(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
+			//}
+			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DielectricConstant));
 			//PrintValue(currVert->IsAtContact());
 			//PrintValue(currVert->IsAtBoundary(FDBoundary::eCurrentDensity));
 			//PrintValue(currVert->BndCond.Valid(FDBoundary::eCurrentDensity));
@@ -318,24 +317,20 @@ namespace SctmUtils
 			}
 			*/
 			//if (currVert->BndCond.Valid(FDBoundary::eDensity)) { PrintDirectionVector(currVert->BndCond.GetBCNormVector(FDBoundary::eDensity)); }
-			//PrintValue(currVert->EastLength);
-			//PrintValue(currVert->WestLength);
-			//PrintValue(currVert->SouthLength);
-			//PrintValue(currVert->NorthLength);
-			//PrintValue(currVert->EastVertex==NULL ? -1 : currVert->EastVertex->GetID());
-			//PrintValue(currVert->WestVertex==NULL ? -1 : currVert->WestVertex->GetID());
-			//PrintValue(currVert->SouthVertex==NULL ? -1 : currVert->SouthVertex->GetID());
-			//PrintValue(currVert->NorthVertex==NULL ? -1 : currVert->NorthVertex->GetID());
-			//cout << " -- ";
-			//PrintValue(norm.PullLength(currVert->EastLength));
-			//PrintValue(norm.PullLength(currVert->WestLength));
-			//PrintValue(norm.PullLength(currVert->SouthLength));
-			//PrintValue(norm.PullLength(currVert->NorthLength));
-			//cout << " -- ";
-			//PrintValue(currVert->NorthwestElem==NULL ? -1 : currVert->NorthwestElem->GetInternalID());
-			//PrintValue(currVert->NortheastElem==NULL ? -1 : currVert->NortheastElem->GetInternalID());
-			//PrintValue(currVert->SouthwestElem==NULL ? -1 : currVert->SouthwestElem->GetInternalID());
-			//PrintValue(currVert->SoutheastElem==NULL ? -1 : currVert->SoutheastElem->GetInternalID());
+			PrintValue(currVert->WestVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->WestVertex->GetID()));
+			PrintValue(currVert->NorthVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthVertex->GetID()));
+			PrintValue(currVert->EastVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->EastVertex->GetID()));
+			PrintValue(currVert->SouthVertex == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthVertex->GetID()));
+			cout << " -- ";
+			PrintValue(norm.PullLength(currVert->WestLength));
+			PrintValue(norm.PullLength(currVert->NorthLength));
+			PrintValue(norm.PullLength(currVert->EastLength));
+			PrintValue(norm.PullLength(currVert->SouthLength));
+			cout << " -- ";
+			PrintValue(currVert->NorthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthwestElem->GetID()));
+			PrintValue(currVert->NortheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NortheastElem->GetID()));
+			PrintValue(currVert->SoutheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SoutheastElem->GetID()));
+			PrintValue(currVert->SouthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthwestElem->GetID()));
 			cout << " -- ";
 			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea));
 			cout << " -- ";
@@ -1641,6 +1636,7 @@ namespace SctmUtils
 		{
 			Param<string> *par = new Param<string>(ParName::trap_distribution, valStr);
 			mapToSet[ParName::trap_distribution] = par;
+			return;
 		}
 		if (name == "trap.capture")
 		{
@@ -1686,12 +1682,14 @@ namespace SctmUtils
 			valBool = SctmConverter::StringToBool(valStr);
 			Param<bool> *par = new Param<bool>(ParName::debug_rAfterP, valBool);
 			mapToSet[ParName::debug_rAfterP] = par;
+			return;
 		}
 		if (name == "debug.rEndTime")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
 			Param<double> *par = new Param<double>(ParName::debug_rEndTime, valDouble);
 			mapToSet[ParName::debug_rEndTime] = par;
+			return;
 		}
 		//parameters for simulation structure
 		//single cell

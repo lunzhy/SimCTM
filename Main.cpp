@@ -53,7 +53,9 @@ void DomainTest()
 
 void TripleCellsDomainTest()
 {
-	FDDomain *tripleCells = new TripleCells();
+	FDDomain *aTriple = new TripleCells();
+	aTriple->BuildDomain();
+	SctmDebug::Get().PrintDomainDetails(aTriple);
 }
 
 void PoissonTest()
@@ -150,6 +152,7 @@ int main(int argc, char* argv[])
 		exit(0);
 		break;
 	}
+	TripleCellsDomainTest();
 	//ParaFileTest();
 	//SubsSolverTest();
 	//DomainTest();

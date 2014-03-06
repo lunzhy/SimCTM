@@ -67,10 +67,11 @@ protected:
 	void setTrapDistribution();
 
 	//the methods below are used to calculate the coordinates of specific vertex.
-	double getCoordX(int idX, int idY);
-	double getCoordY(int idX, int idY);
+	double getVertCoordX(int idX, int idY);
+	double getVertCoordY(int idX, int idY);
+	int getVertIdAt(int idX, int idY);
 	bool isValidVertex(int idX, int idY);
-	void setSingleElement(int idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend);
+	void setSingleElement(int &idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend);
 
 };
 
