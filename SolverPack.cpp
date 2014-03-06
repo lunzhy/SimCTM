@@ -27,6 +27,7 @@ using namespace SctmUtils;
 SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
 {
 	this->temperature = SctmGlobalControl::Get().Temperature;
+	simStructure = SctmGlobalControl::Get().Structure;
 	initialize();
 	//fakeFermiEnergy();
 }
@@ -35,10 +36,10 @@ void SolverPack::initialize()
 {
 	subsSolver = new OneDimSubsSolver(domain);
 	poissonSolver = new TwoDimPoissonSolver(domain);
-	tunnelOxideSolver = new SubsToTrapElecTunnel(domain);
-	blockOxideSolver = new TrapToGateElecTunnel(domain);
-	ddSolver = new DriftDiffusionSolver(domain);
-	trappingSolver = new TrapSolver(domain);
+	//tunnelOxideSolver = new SubsToTrapElecTunnel(domain);
+	//blockOxideSolver = new TrapToGateElecTunnel(domain);
+	//ddSolver = new DriftDiffusionSolver(domain);
+	//trappingSolver = new TrapSolver(domain);
 
 	mapPotential.clear();
 	mapCurrDens_Tunnel.clear();
@@ -56,10 +57,17 @@ void SolverPack::callIteration()
 		SctmTimeStep::Get().GenerateNext();
 		SctmTimer::Get().Set();
 
-		//solve substrate
-		subsSolver->SolveSurfacePot();
-		fetchSubstrateResult();
-		SctmData::Get().WriteSubstrateResult(subsSolver);
+		if (simStructure == "Single")
+		{
+			//solve substrate
+			subsSolver->SolveSurfacePot();
+			fetchSubstrateResult();
+			SctmData::Get().WriteSubstrateResult(subsSolver);
+		}
+		else if (simStructure == "Triple")
+		{
+			readSubstrateFromFile();
+		}
 
 		//solver Poisson equation
 		SctmTimer::Get().Set();
@@ -71,6 +79,7 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteBandInfo(domain->GetVertices());
 		SctmData::Get().WriteElecField(domain->GetVertices());
 
+		/*
 		//solve tunneling problem in tunneling oxide
 		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		SctmTimer::Get().Set();
@@ -104,7 +113,7 @@ void SolverPack::callIteration()
 		//write the final result
 		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteFlatBandVoltageShift(domain);
-
+		*/
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
 	}
 
@@ -186,7 +195,7 @@ void SolverPack::fetchTunnelOxideResult()
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
 		eTransCoeff_T2B = vert->Trap->GetTrapPrpty(TrapProperty::eTransCoeffT2B);
-		eTransCoeff_T2B = eTransCoeff_T2B + it->second;
+		eTransCoeff_T2B = eTransCoeff_T2B + it->second;//T2B occurs in two directions
 		vert->Trap->SetTrapPrpty(TrapProperty::eTransCoeffT2B, eTransCoeff_T2B);
 	}
 }
@@ -239,4 +248,9 @@ void SolverPack::fetchTrappingResult()
 void SolverPack::fetchSubstrateResult()
 {
 	subsSolver->ReturnResult(mapSiFermiAboveCBedge, mapChannelPotential);
+}
+
+void SolverPack::readSubstrateFromFile()
+{
+	SctmData::Get().ReadSubsInfoFromFile(mapSiFermiAboveCBedge, mapChannelPotential);
 }

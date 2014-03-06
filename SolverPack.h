@@ -32,6 +32,7 @@ public:
 	void Run();
 protected:
 	double temperature;
+	string simStructure;
 	FDDomain *domain;
 
 	OneDimSubsSolver *subsSolver;
@@ -51,6 +52,7 @@ protected:
 	void fetchBlockOxideResult();
 	void fetchDDResult();
 	void fetchTrappingResult();
+	void readSubstrateFromFile();
 
 private:
 	VertexMapDouble mapChannelPotential; ///< the potential of channel vertices

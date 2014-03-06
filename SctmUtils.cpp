@@ -667,6 +667,26 @@ namespace SctmUtils
 		}
 	}
 
+	void SctmFileStream::ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3)
+	{
+		std::ifstream infile(this->fileName.c_str(), std::ios::in);
+		int vertID = 0;
+		double val1 = 0;
+		double val2 = 0;
+		string title = "";
+		std::getline(infile, title);
+
+		vec1.clear(); vec2.clear(); vec3.clear();
+		while (infile >> vertID >> val2 >> val1)
+		{
+			vec1.push_back(vertID);
+			vec2.push_back(val1);
+			vec3.push_back(val2);
+		}
+		return;
+	}
+
+
 
 
 
@@ -1225,6 +1245,26 @@ namespace SctmUtils
 		string title = "energy decrease of Poole-Frenkel effect at [" + numStr + "] (x, y, energy decrease)";
 		file.WriteVector(vecX, vecY, PF_decrease, title.c_str());
 	}
+
+	void SctmData::ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap)
+	{
+		fileName = directoryName + "\\subs.in";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Read);
+		vector<double> vertID;
+		vector<double> pot;
+		vector<double> fermiAbove;
+		int id = 0;
+
+		file.ReadVector(vertID, pot, fermiAbove);
+		Normalization norm = Normalization(this->temperature);
+		for (size_t iVert = 0; iVert != vertID.size(); ++iVert)
+		{
+			id = vertID.at(iVert);
+			channelPotMap[id] = norm.PushPotential(pot.at(iVert));
+			fermiAboveMap[id] = norm.PushPotential(fermiAbove.at(iVert));
+		}
+	}
+
 
 
 

@@ -22,7 +22,7 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 	if (prj.empty())
 	{
 		prj = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
-		std::system("E:\\\"PhD Study\"\\SimCTM\\PySimFig\\DeleteData.py");
+		std::system("E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py");
 	}
 
 	if (defaultParam.empty())
@@ -97,10 +97,18 @@ void DDSolverTest()
 	//SctmDebug::GetInstance().PrintDomainDetails(*aDomain);
 }
 
-void SolverPackTest()
+void RunSolverPack()
 {
 	SctmMessaging::Get().PrintHeader("Building a simple ONO domain.");
-	FDDomain *aDomain = new SimpleONO();
+	FDDomain *aDomain = NULL;
+	if (SctmGlobalControl::Get().Structure == "Triple")
+	{
+		aDomain = new TripleCells();
+	}
+	if (SctmGlobalControl::Get().Structure == "Single")
+	{
+		aDomain = new SimpleONO();
+	}
 	aDomain->BuildDomain();
 	SolverPack aPack = SolverPack(aDomain);
 	aPack.Run();
@@ -152,11 +160,11 @@ int main(int argc, char* argv[])
 		exit(0);
 		break;
 	}
-	TripleCellsDomainTest();
+	RunSolverPack();
+	//TripleCellsDomainTest();
 	//ParaFileTest();
 	//SubsSolverTest();
 	//DomainTest();
-	//SolverPackTest();
 	//TimeStepTest();
 	//DDSolverTest();
 	//TunnelSolverTest();

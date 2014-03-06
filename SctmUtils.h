@@ -245,8 +245,10 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
+		void ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3);
 
 		void WriteLine(string &line);
+
 		static bool FileExisted(string _filename);
 	private:
 		string fileName;
@@ -275,8 +277,9 @@ namespace SctmUtils
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		void WriteTimerInfo(SctmTimer &timer);
 		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);
-		
 		void WritePooleFrenkelInfo();
+		
+		void ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap);
 	protected:
 		double temperature;
 		string fileName;
