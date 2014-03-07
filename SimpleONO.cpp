@@ -110,7 +110,7 @@ void SimpleONO::printStructure()
 
 	for (std::vector<FDElement *>::size_type ix = 0; ix != this->elements.size(); ++ix)
 	{
-		std::cout << "id=" << elements.at(ix)->GetID() << '\t' << elements.at(ix)->Region->Type
+		std::cout << "id=" << elements.at(ix)->GetID() << '\t' << elements.at(ix)->Region->RegName
 			<< '\t' << elements.at(ix)->SouthwestVertex->GetID()
 			<< '\t' << elements.at(ix)->SoutheastVertex->GetID()
 			<< '\t' << elements.at(ix)->NortheastVertex->GetID()
@@ -530,36 +530,6 @@ void SimpleONO::setTrapDistribution()
 	{
 		SCTM_ASSERT(SCTM_ERROR, 10043);
 	}
-
-	FDVertex *currVert = NULL;
-	double trapDens = 0;
-	double eTrappedDens = 0;
-	string trapOccupy = SctmGlobalControl::Get().TrapOccupation;
-	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
-	{
-		currVert = ddVerts.at(iVert);
-		trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
-
-		if (trapOccupy == "None")
-		{
-			eTrappedDens = 0;
-		}
-		else if (trapOccupy == "Full")
-		{
-			eTrappedDens = trapDens;
-		}
-		else if (trapOccupy == "Half")
-		{
-			eTrappedDens = trapDens / 2.0;
-		}
-		else
-		{
-			SCTM_ASSERT(SCTM_ERROR, 10044);
-		}
-
-		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
-	}
-
 }
 
 SimpleONO::SimpleONO()

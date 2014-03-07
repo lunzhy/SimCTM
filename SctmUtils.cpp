@@ -231,7 +231,7 @@ namespace SctmUtils
 			msg = "[Parameter file] Invalid type of trap distribution.";
 			break;
 		case 10044:
-			msg = "[Parameter file] Invalid trap occupation status.";
+			msg = "[Parameter file] Invalid trap occupation status (occupation not in [0, 1]).";
 			break;
 		case 10045:
 			msg = "[Parameter file] Invalid Poole-Frenkel model name.";
@@ -247,6 +247,9 @@ namespace SctmUtils
 			break;
 		case 10049:
 			msg = "[Material.cpp] Invalid material name to parse";
+			break;
+		case 10050:
+			msg = "[TunnelSolver] The last vertex is not at contact in TrapToGateTunnelSolver";
 			break;
 		default:
 			msg = "Untracked error";
@@ -1434,7 +1437,7 @@ namespace SctmUtils
 		//for debug
 		//TrapOccupation
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
-		Get().TrapOccupation = dynamic_cast<Param<string> *>(parBase)->Value();
+		Get().TrapOccupation = dynamic_cast<Param<double> *>(parBase)->Value();
 
 		//RetentionAfterPrgrm
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
@@ -1709,7 +1712,8 @@ namespace SctmUtils
 		}
 		if (name == "debug.trap.occupy")
 		{
-			Param<string> *par = new Param<string>(ParName::debug_trap_occupy, valStr);
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::debug_trap_occupy, valDouble);
 			mapToSet[ParName::debug_trap_occupy] = par;
 			return;
 		}

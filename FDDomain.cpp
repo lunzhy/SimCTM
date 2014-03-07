@@ -99,15 +99,10 @@ bool FDDomain::isNotTrappingElem(FDElement *elem)
 	if (elem == NULL)
 		return true;
 	bool ret = false;
-	if (elem->Region->Type != FDRegion::NoType)//for SimpleONO
-	{
-		return elem->Region->Type != FDRegion::Trapping;
-	}
-	else//for TripleCells                                                                                   
-	{
-		string regionname = elem->Region->RegName;
-		ret = (regionname.find("Trap") > regionname.size());
-	}
+
+	string regionname = elem->Region->RegName;
+	ret = (regionname.find("Trap") > regionname.size());
+
 	return ret;
 }
 
@@ -329,22 +324,23 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 
 void FDDomain::BuildDomain()
 {
-	//SctmTimer::GetInstance().Set();
 	//Initialize the vectors in FDDomain
 	vertices.clear();
 	ddVerts.clear();
 	elements.clear();
-	regionMap.clear();
+	regions.clear();
 	contacts.clear();
 
 	//build the data and mesh structure of simulated region, this is a pure virtual method
 	buildStructure();
 	//fill the vertices belonging to drift-diffusion process
 	fillDDVerts();
-	//set the physics value related to vertex, when the vertex is related to trapping layer, set the trap property
+	//set the physics value related to vertex, when the vertex is related to trapping layer
 	setVertexPhysProperty();
 	setVertexTrapProperty();
+	//set the trap property
 	setTrapDistribution();
+	setTrapOccupation();
 	//set the boundary condition, the specific value is not considered in this class.
 	setBoundary();
 	updateBndCond();
@@ -353,8 +349,6 @@ void FDDomain::BuildDomain()
 	//This is used because previously the gate and channel potential is directly set using global control
 	//Currently, it is done using related parameters.
 	//postProcessOfDomain();
-
-	//SctmMessaging::GetInstance().PrintTimeElapsed(SctmTimer::GetInstance().SinceLastSet());
 }
 
 void FDDomain::setVertexPhysProperty()
@@ -385,7 +379,7 @@ void FDDomain::setVertexPhysProperty()
 			//electron mobility is only valid in the trapping region
 			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility)
 			{
-				currVertex->Phys->FillVertexPhysUsingMatPrpty(verPrptys.at(iPrpty), matPrptys.at(iPrpty), FDRegion::Trapping);
+				currVertex->Phys->FillVertexPhysUsingMatPrpty(verPrptys.at(iPrpty), matPrptys.at(iPrpty), true);
 			}
 			else
 			{
@@ -604,6 +598,31 @@ MaterialDB::Mat::Name FDDomain::GetTrapMatName()
 		matname = GetRegion("Trap.Gate2")->Mat->MatName();
 	}
 	return matname;
+}
+
+void FDDomain::setTrapOccupation()
+{
+	FDVertex *currVert = NULL;
+	double trapDens = 0;
+	double eTrappedDens = 0;
+	double trapOccupy = SctmGlobalControl::Get().TrapOccupation;
+	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	{
+		currVert = ddVerts.at(iVert);
+		trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
+
+		if (trapOccupy < 0 || trapOccupy > 1)
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10044);
+		}
+		else
+		{
+			eTrappedDens = trapDens * trapOccupy;
+		}
+
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+	}
+
 }
 
 

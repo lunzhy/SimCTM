@@ -601,7 +601,20 @@ void TripleCells::setAdjacency()
 
 void TripleCells::setTrapDistribution()
 {
+	//TODO: Setting the distribution of trap density is temporarily considered here
+	//This is only for uniform distribution
+	using SctmPhys::TrapProperty;
 
+	Normalization norm = Normalization(this->temperature);
+	double unifromTrapDens = SctmGlobalControl::Get().UniformTrapDens;
+	double eTrapDens = norm.PushDensity(unifromTrapDens); // in [cm^-3]
+
+	FDVertex *currVert = NULL;
+	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	{
+		currVert = ddVerts.at(iVert);
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
+	}
 }
 
 int TripleCells::getVertIdAt(int idX, int idY)

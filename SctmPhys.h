@@ -152,9 +152,7 @@ namespace SctmPhys
 		/// @return void
 		/// @note This method is not checked until now. || Used.
 		void FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys,
-			MaterialDB::MatProperty::Name matPrpty);
-		void FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys,
-			MaterialDB::MatProperty::Name matPrpty, FDRegion::TypeName rType);
+			MaterialDB::MatProperty::Name matPrpty, bool onlyTrapRegion = false);
 		void CalculateDensityControlArea();
 		void UpdateValue(Name prptyName, double val);
 		void SetMultiPrpty(PhysProperty::Name vertPhy, MaterialDB::MatProperty::Name matPrpty);

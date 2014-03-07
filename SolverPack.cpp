@@ -94,7 +94,6 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchBlockOxideResult();
 
-		
 		//solve trapping
 		SctmTimer::Get().Set();
 		trappingSolver->SolveTrap();

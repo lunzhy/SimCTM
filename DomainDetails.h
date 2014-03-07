@@ -316,15 +316,6 @@ class FDRegion
 {
 public:
 	string RegName;
-
-	/// @brief The type of the region 
-	enum TypeName
-	{
-		NoType,
-		Tunneling, ///< tunneling oxide
-		Trapping, ///< trapping layer
-		Blocking ///< blocking oxide
-	};
 	/// @brief FDRegion is the construction method of the class
 	/// 
 	/// FDRegion is constructed with the internal id and type of the region.
@@ -334,12 +325,9 @@ public:
 	/// @pre
 	/// @return 
 	/// @note
-	FDRegion(unsigned int _id, FDRegion::TypeName _type, Material *_mat)
-		:id(_id), Type(_type), Mat(_mat) {}
 	FDRegion(unsigned int _id, string _name, Material *_mat)
-		:id(_id), RegName(_name), Mat(_mat), Type(NoType) {}
+		:id(_id), RegName(_name), Mat(_mat) {}
 
-	FDRegion::TypeName Type; ///< type of the region, in enum RegionType
 	Material *Mat; ///< the material of current region, a pointer to const material
 
 	/// @brief AddElement adds element in current region

@@ -100,7 +100,7 @@ double TunnelSolver::calcDTFNtunneling(vector<double> &deltaX, vector<double> &e
 	double DTFNdensity = 0; // in [A/m^2]
 	//Emin and Emax are real values, in [eV]
 	//TODO: the choice of Emin determines the tunneling direction
-	double Emin = cbedgeTunnelFrom > cbedgeTunnelTo ? cbedgeTunnelFrom : cbedgeTunnelTo; // in normalized value
+	double Emin = cbedgeTunnelFrom > cbedgeTunnelTo ? cbedgeTunnelFrom : cbedgeTunnelTo; // in real value
 	//double Emax = cbedge.front();
 	double Emax = cbedgeMax;
 
@@ -350,6 +350,7 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 		if (currVert->NorthVertex == NULL) // the north boundary, within the isolation region
 		{
 			tunnelTrapToGateEnable = false;
+			vertsBlockOxideEnd.push_back(NULL);
 			break;
 		}
 		currVert = currVert->NorthVertex;
@@ -907,13 +908,15 @@ double TrapToGateElecTunnel::getSupplyFunction(double energy)
 
 void TrapToGateElecTunnel::setSolver_DTFN(FDVertex *endVertex)
 {
+	//TODO: this should be enhanced.
+	//CAUTION: this method may fail at some situations.
 	cbedgeTunnelFrom = cbEdge_Trap.back();
 
 	//band energy of metal contact, equals to minus applied voltage.
-	using SctmUtils::SctmGlobalControl;
-	//the value stored in SctmGlobalControl is in real value, no conversion is needed here.
-	double gateAppliedVoltage = -SctmGlobalControl::Get().GateVoltage;
-	cbedgeTunnelTo = gateAppliedVoltage;
+	Normalization norm = Normalization(this->temperature);
+	SCTM_ASSERT(endVertex->Contact != NULL, 10050);
+	double gateVoltage = norm.PullPotential(endVertex->Contact->Voltage);
+	cbedgeTunnelTo = -gateVoltage;
 }
 
 void TrapToGateElecTunnel::SolveTunnel()
@@ -940,7 +943,7 @@ void TrapToGateElecTunnel::SolveTunnel()
 		setTunnelDirection();
 		setTunnelTag();
 
-		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
+		setSolver_DTFN(vertsBlockOxideEnd.at(iVert));
 
 		currdens = calcDTFNtunneling(deltaX_Block, eMass_Block, cbEdge_Block, cbEdge_Block.front());
 		currdens += calcThermalEmission(deltaX_Block, eMass_Block, cbEdge_Block, cbEdge_Block.front());
@@ -964,7 +967,11 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 	Normalization norm = Normalization(this->temperature);
 	for (size_t iVert = 0; iVert != vertsBlockOxideStart.size(); ++iVert)
 	{
-		//currVert = vertsStart.at(iVert);
+		if (vertsBlockOxideEnd.at(iVert) == NULL)
+		{
+			//no contact vertex is at the end of the tunneling path, so no tunneling-out occurs.
+			continue;
+		}
 		currVert = vertsBlockOxideStart.at(iVert);
 		vertID = currVert->GetID();
 		//currently the eCurrDens_Tunnel stores the coefficient to calculate current density

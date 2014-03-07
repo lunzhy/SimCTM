@@ -468,64 +468,74 @@ namespace SctmPhys
 	}
 
 	void PhysProperty::FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys,
-		MaterialDB::MatProperty::Name matPrpty)
+		MaterialDB::MatProperty::Name matPrpty, bool onlyTrapRegion/* = false */)
 	{
 		double tot = 0; //total area
 		double sum = 0; //sum corresponds to the integral
 		double physValue = 0; //the final physical value related to vertex
+		double temp = 0;
 
 		using MaterialDB::GetMatPrpty;
 		FDElement *currElem = NULL;
 
-		currElem = vertSelf->NortheastElem;
-		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+		if (!onlyTrapRegion)
+		{
+			tot = 0;
+			sum = 0;
+			currElem = vertSelf->NortheastElem;
+			tot += (currElem != NULL) ? currElem->Area : 0;
+			sum += (currElem != NULL) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertSelf->NorthwestElem;
-		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+			currElem = vertSelf->NorthwestElem;
+			tot += (currElem != NULL) ? currElem->Area : 0;
+			sum += (currElem != NULL) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertSelf->SoutheastElem;
-		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+			currElem = vertSelf->SoutheastElem;
+			tot += (currElem != NULL) ? currElem->Area : 0;
+			sum += (currElem != NULL) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
 
-		currElem = vertSelf->SouthwestElem;
-		tot += ( currElem != NULL ) ? currElem->Area : 0;
-		sum += ( currElem != NULL ) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+			currElem = vertSelf->SouthwestElem;
+			tot += (currElem != NULL) ? currElem->Area : 0;
+			sum += (currElem != NULL) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
+		}
+		else //only for trapping region
+		{
+			tot = 0;
+			sum = 0;
+			currElem = vertSelf->NortheastElem;
+			if (!FDDomain::isNotTrappingElem(currElem))
+			{
+				temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+				tot += currElem->Area;
+				sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+			}
 
-		SCTM_ASSERT(tot>=0, 10004);
-		physValue = sum / tot;
+			currElem = vertSelf->NorthwestElem;
+			if (!FDDomain::isNotTrappingElem(currElem))
+			{
+				temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+				tot += currElem->Area;
+				sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+			}
 
-		vertSelf->Phys->SetPhysPrpty(vertexPhys, physValue);
-	}		
+			currElem = vertSelf->SoutheastElem;
+			if (!FDDomain::isNotTrappingElem(currElem))
+			{
+				temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+				tot += currElem->Area;
+				sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+			}
 
-	void PhysProperty::FillVertexPhysUsingMatPrpty(PhysProperty::Name vertexPhys, 
-		MaterialDB::MatProperty::Name matPrpty, FDRegion::TypeName rType)
-	{
-		//TODO : need to solve the problem of mutual including.
-		//the problem is solved but with some unknowns.
-		double tot = 0; //total area
-		double sum = 0; //sum corresponds to the integral
-		double physValue = 0; //the final physical value related to vertex
+			currElem = vertSelf->SouthwestElem;
+			if (!FDDomain::isNotTrappingElem(currElem))
+			{
+				temp = GetMatPrpty(currElem->Region->Mat, matPrpty);
+				tot += currElem->Area;
+				sum += currElem->Area * GetMatPrpty(currElem->Region->Mat, matPrpty);
+			}
+		}
 
-		using MaterialDB::GetMatPrpty;
-		FDElement *currElem = NULL;
-		currElem = vertSelf->NortheastElem;
-		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
-		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
-
-		currElem = vertSelf->NorthwestElem;
-		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
-		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
-
-		currElem = vertSelf->SoutheastElem;
-		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
-		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
-
-		currElem = vertSelf->SouthwestElem;
-		tot += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? currElem->Area : 0;
-		sum += (( currElem != NULL ) && (currElem->Region->Type == rType)) ? GetMatPrpty(currElem->Region->Mat, matPrpty) * currElem->Area : 0;
-
+		SCTM_ASSERT(tot >= 0, 10004);
 		if (tot == 0)
 		{
 			physValue = 0;
@@ -536,7 +546,7 @@ namespace SctmPhys
 		}
 		//SCTM_ASSERT(tot>=0, 10004);
 		vertSelf->Phys->SetPhysPrpty(vertexPhys, physValue);
-	}
+	}		
 
 	void PhysProperty::CalculateDensityControlArea()
 	{
@@ -544,22 +554,22 @@ namespace SctmPhys
 		FDElement *currElem = NULL;
 
 		currElem = vertSelf->NorthwestElem;
-		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		if (!FDDomain::isNotTrappingElem(currElem))
 		{
 			area += 0.25 * currElem->Area;
 		}
 		currElem = vertSelf->NortheastElem;
-		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		if (!FDDomain::isNotTrappingElem(currElem))
 		{
 			area += 0.25 * currElem->Area;
 		}
 		currElem = vertSelf->SouthwestElem;
-		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		if (!FDDomain::isNotTrappingElem(currElem))
 		{
 			area += 0.25 * currElem->Area;
 		}
 		currElem = vertSelf->SoutheastElem;
-		if ( (currElem != NULL) && (currElem->Region->Type == FDRegion::Trapping) )
+		if (!FDDomain::isNotTrappingElem(currElem))
 		{
 			area += 0.25 * currElem->Area;
 		}

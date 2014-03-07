@@ -336,7 +336,7 @@ namespace SctmUtils
 		string PhysicsPFModel; ///< Poole-Frenkel model
 
 		//for debug
-		string TrapOccupation; ///< Trap occupation status
+		double TrapOccupation; ///< Trap occupation status
 		bool RetentionAfterPrgrm; ///< Retention after program
 		double RetentionEndTime; ///< Retention end time after program
 
