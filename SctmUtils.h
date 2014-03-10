@@ -451,6 +451,7 @@ namespace SctmUtils
 			Si_dielectricConstant,
 			Si_electronAffinity,
 			Si_eMass,
+			Si_eDOSMass,
 			Si_hMass,
 			Si_eMobility,
 
@@ -468,6 +469,7 @@ namespace SctmUtils
 			Si3N4_dielectricConstant,
 			Si3N4_electronAffinity,
 			Si3N4_eMass,
+			Si3N4_eDOSMass,
 			Si3N4_eMobility,
 			Si3N4_eTrapEnergy,
 			Si3N4_eXsection,
@@ -478,6 +480,7 @@ namespace SctmUtils
 			HfO2_dielectricConstant,
 			HfO2_electronAffinity,
 			HfO2_eMass,
+			HfO2_eDOSMass,
 			HfO2_eMobility,
 			HfO2_eTrapEnergy,
 			HfO2_eXsection,

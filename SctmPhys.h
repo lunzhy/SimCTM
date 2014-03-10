@@ -87,6 +87,7 @@ namespace SctmPhys
 			ConductionBandEnergy, ///< conduction band energy
 			ValenceBandEnergy, ///< valence band energy
 			ElectronAffinity, ///< electron affinity
+			eDOSMass, ///< electron effective DOS mass
 			eMass, ///< electron effective mass
 			hMass, ///< hole effective mass
 			Bandgap, ///< bandgap
@@ -168,6 +169,7 @@ namespace SctmPhys
 		//double conductionBandEnergy; ///< i.e. conduction band edge
 		//double valenceBandEnergy; ///< i.e. valence band edge
 		double electronAffinity; ///< electron affinity
+		double e_DOSmass; ///< effective DOS mass
 		double e_mass; ///< effective electron mass
 		double h_mass; ///< effective hole mass
 		//double netCharge; ///< total net charge belongs to the vertex

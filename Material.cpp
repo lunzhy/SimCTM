@@ -134,6 +134,9 @@ namespace MaterialDB
 		case  MatProperty::Mat_ElectronMass:
 			ret = theMaterial->ElectronMass();
 			break;
+		case  MatProperty::Mat_ElecDOSMass:
+			ret = theMaterial->ElecDOSMass();
+			break;
 		case MatProperty::Mat_HoleMass:
 			ret = theMaterial->HoleMass();
 			break;
@@ -209,12 +212,12 @@ namespace MaterialDB
 
 	double Material::ElectronMass() const
 	{
-		return electronMass;
+		return elecMass;
 	}
 
 	void Material::ElectronMass(double val)
 	{
-		electronMass = val;
+		elecMass = val;
 	}
 
 	double Material::HoleMass() const
@@ -315,6 +318,16 @@ namespace MaterialDB
 		elecFrequencyPF = norm.PushFrequency(val);
 	}
 
+	double Material::ElecDOSMass() const
+	{
+		return elecDOSMass;
+	}
+
+	void Material::ElecDOSMass(double val)
+	{
+		elecDOSMass = val;
+	}
+
 
 	Mat::Name Mat::Parse(const std::string &matStr)
 	{
@@ -359,6 +372,9 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_eMass);
 		GetMaterial(Mat::Silicon)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
 
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_eDOSMass);
+		GetMaterial(Mat::Silicon)->ElecDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_hMass);
 		GetMaterial(Mat::Silicon)->HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
 		
@@ -378,7 +394,7 @@ namespace MaterialDB
 		GetMaterial(Mat::SiO2)->ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::SiO2_eMass);
-		GetMaterial(Mat::SiO2)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value()); // need to be revised
+		GetMaterial(Mat::SiO2)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
 		
 		//MaterialMap(Mat::SiO2)->HoleMass(1);
 
@@ -406,7 +422,10 @@ namespace MaterialDB
 		GetMaterial(Mat::Si3N4)->ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eMass);
-		GetMaterial(Mat::Si3N4)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value()); // need to be revised
+		GetMaterial(Mat::Si3N4)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eDOSMass);
+		GetMaterial(Mat::Si3N4)->ElecDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//MaterialMap(Mat::Si3N4)->HoleMass(1);
 
@@ -437,6 +456,9 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eMass);
 		GetMaterial(Mat::HfO2)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eDOSMass);
+		GetMaterial(Mat::HfO2)->ElecDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
 		
 		//MaterialMap(Mat::HfO2)->HoleMass(1); // need to be revised
 		

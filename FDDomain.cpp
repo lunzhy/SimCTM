@@ -363,6 +363,7 @@ void FDDomain::setVertexPhysProperty()
 	vector<PhysProperty::Name> verPrptys; //vertex-based physical property
 	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); verPrptys.push_back(PhysProperty::ElectronAffinity);
 	matPrptys.push_back(MatProperty::Mat_ElectronMass); verPrptys.push_back(PhysProperty::eMass);
+	matPrptys.push_back(MatProperty::Mat_ElecDOSMass); verPrptys.push_back(PhysProperty::eDOSMass);
 	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
 	matPrptys.push_back(MatProperty::Mat_ElectronMobility); verPrptys.push_back(PhysProperty::eMobility);
 	matPrptys.push_back(MatProperty::Mat_DielectricConstant); verPrptys.push_back(PhysProperty::DielectricConstant);
@@ -377,7 +378,8 @@ void FDDomain::setVertexPhysProperty()
 			//filling vertex physics using material property
 			//The method for filling vertex-based physical value using material-based value is ready
 			//electron mobility is only valid in the trapping region
-			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility)
+			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility || 
+				matPrptys.at(iPrpty) == MatProperty::Mat_ElecDOSMass)
 			{
 				currVertex->Phys->FillVertexPhysUsingMatPrpty(verPrptys.at(iPrpty), matPrptys.at(iPrpty), true);
 			}

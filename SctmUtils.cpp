@@ -2162,6 +2162,29 @@ namespace SctmUtils
 			}
 			return;
 		}
+		if (name == "eDOSMass")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_eDOSMass, valDouble);
+				mapToSet[ParName::Si_eDOSMass] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eDOSMass, valDouble);
+				mapToSet[ParName::Si3N4_eDOSMass] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eDOSMass, valDouble);
+				mapToSet[ParName::HfO2_eDOSMass] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
 		if (name == "hMass")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);

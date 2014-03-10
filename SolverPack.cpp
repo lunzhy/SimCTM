@@ -144,7 +144,8 @@ void SolverPack::fetchTunnelOxideResult()
 	//it is critical to clear the map
 	this->mapCurrDens_Tunnel.clear();
 	tunnelOxideSolver->ReturnResult(mapCurrDens_Tunnel);
-	//set the sign of boundary current for dd solver.
+	//set the sign of boundary current for dd solver
+	//the sign of the boundary condition is set according to the boundary direction
 	for (VertexMapDouble::iterator it = mapCurrDens_Tunnel.begin(); it != mapCurrDens_Tunnel.end(); ++it)
 	{	
 		vertID = it->first;
@@ -215,17 +216,27 @@ void SolverPack::fetchBlockOxideResult()
 	FDVertex *vert = NULL;
 	int vertID = 0;
 	
-	//set the tunneling coefficient in DT/FN tunneling out of electrons in conduction band
+	//set the sign of boundary current for dd solver
+	//the sign of the boundary condition is set according to the boundary direction
 	for (VertexMapDouble::iterator it = mapCurrDensCoeff_Block.begin(); it != mapCurrDensCoeff_Block.end(); ++it)
 	{
-		it->second = - it->second;
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
-		//save the tunneling-out coefficient in the physics property, to be used in calculating the tunneling out current
-		//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
-		vert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
+		if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+		{
+			//set the tunneling coefficient in DT/FN tunneling out of electrons in conduction band
+			//save the tunneling-out coefficient in the physics property, to be used in calculating the tunneling out current
+			//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
+			it->second = -it->second;
+			vert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
+		}
+		else
+		{
+			//does not need to change, because current direction is the same with the boundary direction
+		}
 	}
 
+	//deal with trap-to-band tunneling out result
 	double eTransCoeff_T2B = 0;
 	this->mapTransCoeffT2B_Block.clear();
 	blockOxideSolver->ReturnResult_T2B(mapTransCoeffT2B_Block);

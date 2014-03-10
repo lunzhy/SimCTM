@@ -43,6 +43,7 @@ namespace SctmPhys
 		//conductionBandEnergy = 0;
 		//valenceBandEnergy = 0;
 		electronAffinity = 0;
+		e_DOSmass = 0;
 		e_mass = 0;
 		h_mass = 0;
 		//netCharge = 0;
@@ -65,6 +66,9 @@ namespace SctmPhys
 		{
 		case ElectrostaticPotential:
 			electrostaticPotential = prptyValue;
+			break;
+		case  eDOSMass:
+			e_DOSmass = prptyValue;
 			break;
 		case eMass:
 			e_mass = prptyValue;
@@ -135,6 +139,11 @@ namespace SctmPhys
 				//Ev = Ev-Eg = -X-q(phi-phiRef)-Eg
 				
 				ret =  GetPhysPrpty(ConductionBandEnergy, matName) - GetPhysPrpty(Bandgap, matName);
+				break;
+			}
+			case eDOSMass:
+			{
+				ret = e_DOSmass;
 				break;
 			}
 			case eMass:
@@ -409,7 +418,7 @@ namespace SctmPhys
 			}
 			case eEffDOS:
 			{
-				double mass = GetPhysPrpty(PhysProperty::eMass) * SctmPhys::m0;
+				double mass = GetPhysPrpty(PhysProperty::eDOSMass) * SctmPhys::m0;
 				double kT = SctmPhys::k0 * GetPhysPrpty(PhysProperty::Temperature); // the simulation temperature
 				double h = SctmPhys::h;
 				double per_m3_in_per_cm3 = 1 / SctmMath::pow((1 / SctmPhys::cm_in_m), 3);
@@ -425,7 +434,7 @@ namespace SctmPhys
 			}
 			case eThermalVelocity:
 			{
-				double mass = GetPhysPrpty(PhysProperty::eMass) * SctmPhys::m0;
+				double mass = GetPhysPrpty(PhysProperty::eDOSMass) * SctmPhys::m0;
 				double kT = SctmPhys::k0 * GetPhysPrpty(PhysProperty::Temperature);
 				double m_in_cm = 1/ SctmPhys::cm_in_m;
 
@@ -725,7 +734,7 @@ namespace SctmPhys
 		using SctmUtils::SctmGlobalControl;
 		//the value returned by GetMatPrpty is normalized value
 		double mp = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleMass);
-		double mn = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronMass);
+		double mn = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElecDOSMass);
 		double bandgap = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_Bandgap);
 		double affinity = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronAffinity);
 		double temperature = SctmGlobalControl::Get().Temperature;

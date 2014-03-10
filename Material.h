@@ -45,6 +45,7 @@ namespace MaterialDB
 			Mat_Bandgap, ///< bandgap of the material
 			Mat_ElectronAffinity, ///< electron affinity of the material
 			Mat_ElectronMass, ///< electron effective mass of the material
+			Mat_ElecDOSMass, ///< electron effective DOS mass
 			Mat_HoleMass, ///< hole effective mass of the material
 			Mat_ElectronDiffusion, ///< electron diffusion coefficient of the material
 			Mat_HoleDiffusion, ///< hole diffusion coefficient of the material
@@ -68,7 +69,8 @@ namespace MaterialDB
 		double dielectricConstant; ///< dielectric constant
 		double bandgap; ///< bandgap, in [eV]
 		double electronAffinity; ///< electron affinity energy, in [eV]
-		double electronMass; ///< electron effective mass, in [m0]
+		double elecMass; ///< electron effective tunneling mass, in [m0]
+		double elecDOSMass; ///< electron effective DOS mass, in [m0]
 		double holeMass; ///< hole effective mass, in [m0]
 		double electronDiffusion; ///< electron diffusion coefficient, in [D0]
 		double holeDiffusion; ///< hole diffusion coefficient, in [D0]
@@ -98,6 +100,8 @@ namespace MaterialDB
 		void		Bandgap(double val);
 		double		ElectronAffinity() const;
 		void		ElectronAffinity(double val);
+		double		ElecDOSMass() const;
+		void		ElecDOSMass(double val);
 		double		ElectronMass() const;
 		void		ElectronMass(double val);
 		double		HoleMass() const;
