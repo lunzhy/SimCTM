@@ -143,6 +143,8 @@ protected:
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);
 
+	double subsBarrier;
+
 	vector<double> cbEdge_TunnelTrap;
 	vector<double> eMass_TunnelTrap;
 	vector<double> deltaX_TunnelTrap;
@@ -162,8 +164,8 @@ public:
 protected:
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *endVertex);
+	void setTunnelDirection(FDVertex *vertTrap, FDVertex *vertGate);
 	void setTunnelTag();
-	void setTunnelDirection();
 	void setSolver_Trap();
 	void calcTransCoeff_T2B();
 

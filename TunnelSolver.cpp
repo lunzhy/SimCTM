@@ -475,6 +475,12 @@ SubsToTrapElecTunnel::SubsToTrapElecTunnel(FDDomain *_domain): TunnelSolver(_dom
 	//the material for substrate is silicon
 	double effSiMass = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElectronMass);
 	this->effTunnelMass = effSiMass; // the effective electron mass, in [m0]
+
+	//substrate/tunnel oxide barrier
+	Normalization norm = Normalization(this->temperature);
+	this->subsBarrier = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElectronAffinity) 
+						- GetMatPrpty(domain->GetRegion("Tunnel")->Mat, MatProperty::Mat_ElectronAffinity); //in normalized value
+	this->subsBarrier = norm.PullPotential(subsBarrier);
 }
 
 double SubsToTrapElecTunnel::getSupplyFunction(double energy)
@@ -823,6 +829,8 @@ void SubsToTrapElecTunnel::setTunnelTag()
 
 void SubsToTrapElecTunnel::setTunnelDirection(FDVertex *vertSubs, FDVertex *vertTrap)
 {
+	using namespace MaterialDB;
+
 	Normalization norm = Normalization(this->temperature);
 	double per_cm3_in_per_m3 = SctmPhys::per_cm3_in_per_m3;
 	double m0 = SctmPhys::m0;
@@ -835,15 +843,10 @@ void SubsToTrapElecTunnel::setTunnelDirection(FDVertex *vertSubs, FDVertex *vert
 	double fermiSubs = 0;
 	double fermiTrap = 0; //the electron quasi-fermi energy of trapping layer
 	
-	//substrate/tunnel oxide barrier
-	using namespace MaterialDB;
-	static double subsBarrier = norm.PullEnergy(GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
-		- GetMatPrpty(domain->GetRegion("Tunnel")->Mat, MatProperty::Mat_ElectronAffinity));
-	
 	int vertIdSubs = 0;
 	vertIdSubs = vertSubs->GetID();
 	SCTM_ASSERT(fermiAboveMap.find(vertIdSubs) != fermiAboveMap.end(), 10051);
-	fermiSubs = cbEdge_Tunnel.front() - subsBarrier + norm.PullPotential(fermiAboveMap[vertIdSubs]);
+	fermiSubs = cbEdge_Tunnel.front() - this->subsBarrier + norm.PullPotential(fermiAboveMap[vertIdSubs]);
 
 	double density = 0;
 	density = vertTrap->Phys->GetPhysPrpty(PhysProperty::eDensity);
@@ -852,13 +855,13 @@ void SubsToTrapElecTunnel::setTunnelDirection(FDVertex *vertSubs, FDVertex *vert
 	
 	double eMassTrap = SctmPhys::m0 * GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_ElectronMass);
 	double fermiRel = 0;
-	//use a very large value (-100eV) to indicate that fermi energy is far below conduction band
+	//use bandgap when density equals to 0, indicating that fermi energy is far below conduction band
 	fermiRel = (density != 0) ? k0 * this->temperature / q * SctmMath::ln(density * h * h * h / 8 / pi / (SctmMath::sqrt(pi) / 2) /
-																SctmMath::pow(k0 * this->temperature, 1.5) /
-																SctmMath::sqrt(2 * eMassTrap * eMassTrap * eMassTrap)) : -100;
+		SctmMath::pow(k0 * this->temperature, 1.5) / SctmMath::sqrt(2 * eMassTrap * eMassTrap * eMassTrap)) : 
+		-norm.PullPotential(GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_Bandgap));
 	fermiTrap = fermiRel + cbEdge_Trap.front();
 
-	if (fermiSubs >= fermiTrap)
+	if (density == 0 || fermiSubs >= fermiTrap)
 	{
 		eTunDirection = TunnelDirection::North;
 		fermiEnergyTunnelFrom = fermiSubs;
@@ -991,7 +994,7 @@ void TrapToGateElecTunnel::SolveTunnel()
 		{
 			continue;
 		}
-		setTunnelDirection();
+		setTunnelDirection(vertsBlockOxideStart.at(iVert), vertsBlockOxideEnd.at(iVert));
 		setTunnelTag();
 
 		setSolver_DTFN(vertsBlockOxideEnd.at(iVert));
@@ -1058,8 +1061,54 @@ void TrapToGateElecTunnel::setTunnelTag()
 }
 
 
-void TrapToGateElecTunnel::setTunnelDirection()
+void TrapToGateElecTunnel::setTunnelDirection(FDVertex *vertTrap, FDVertex *vertGate)
 {
+	using namespace MaterialDB;
+
+	Normalization norm = Normalization(this->temperature);
+	double per_cm3_in_per_m3 = SctmPhys::per_cm3_in_per_m3;
+	double m0 = SctmPhys::m0;
+	double k0 = SctmPhys::k0;
+	double h = SctmPhys::h;
+	double pi = SctmMath::PI;
+	double q = SctmPhys::q;
+
+	//two fermi energy are in real value, in [eV]
+	double fermiTrap = 0; //the electron quasi-fermi energy of trapping layer
+	double fermiGate = 0;
+
+
+	SCTM_ASSERT(vertGate->Contact != NULL, 10050);
+	double gateVoltage = norm.PullPotential(vertGate->Contact->Voltage);
+	fermiGate = -gateVoltage;
+
+	double density = 0;
+	density = vertTrap->Phys->GetPhysPrpty(PhysProperty::eDensity);
+	density = norm.PullDensity(density); //in [cm^-3]
+	density = density * per_cm3_in_per_m3; //in [m^-3]
+
+	double eMassTrap = SctmPhys::m0 * GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_ElectronMass);
+	double fermiRel = 0;
+	//use bandgap when density equals to 0, indicating that fermi energy is far below conduction band
+	fermiRel = (density != 0) ? k0 * this->temperature / q * SctmMath::ln(density * h * h * h / 8 / pi / (SctmMath::sqrt(pi) / 2) /
+		SctmMath::pow(k0 * this->temperature, 1.5) / SctmMath::sqrt(2 * eMassTrap * eMassTrap * eMassTrap)) : 
+		-norm.PullPotential(GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_Bandgap));
+	fermiTrap = fermiRel + cbEdge_Trap.back(); //the last vertex of trapping layer
+
+	if (density == 0 || fermiTrap >= fermiGate)
+	{
+		eTunDirection = TunnelDirection::North;
+		fermiEnergyTunnelFrom = fermiTrap;
+		fermiEnergyTunnelTo = fermiGate;
+	}
+	else
+	{
+		eTunDirection = TunnelDirection::South;
+		fermiEnergyTunnelFrom = fermiGate;
+		fermiEnergyTunnelTo = fermiTrap;
+	}
+
+	/* previous method to determine the tunneling direction
 	double elecField = 0;
 	FDVertex *currVert = NULL;
 
@@ -1076,6 +1125,7 @@ void TrapToGateElecTunnel::setTunnelDirection()
 		//for electrons, this means erase situation.
 		eTunDirection = TunnelDirection::South;
 	}
+	*/
 }
 
 
