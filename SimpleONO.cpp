@@ -166,7 +166,8 @@ void SimpleONO::setDomainDetails()
 	FDDomainHelper vertexHelper = FDDomainHelper(xCntVertex, yCntTotalVertex);
 	//the third parameter of FDContact construction is of no use, because the voltage is set in the following process.
 	double gateVoltage = SctmGlobalControl::Get().GateVoltage;
-	contacts.push_back(new FDContact(cntContact, "Gate", norm.PushPotential(gateVoltage)));
+	double gateWorkfunction = SctmGlobalControl::Get().GateWorkFunction;
+	contacts.push_back(new FDContact(cntContact, "Gate", norm.PushPotential(gateVoltage), norm.PushPotential(gateWorkfunction)));
 	cntContact++;
 	contacts.push_back(new FDContact(cntContact, "Channel", 0));//here channel is an imagined contact
 	

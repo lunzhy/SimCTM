@@ -99,14 +99,15 @@ void DDSolverTest()
 
 void RunSolverPack()
 {
-	SctmMessaging::Get().PrintHeader("Building a simple ONO domain.");
 	FDDomain *aDomain = NULL;
 	if (SctmGlobalControl::Get().Structure == "Triple")
 	{
+		SctmMessaging::Get().PrintHeader("Building triple-cell domain.");
 		aDomain = new TripleCells();
 	}
 	if (SctmGlobalControl::Get().Structure == "Single")
 	{
+		SctmMessaging::Get().PrintHeader("Building single-cell domain.");
 		aDomain = new SimpleONO();
 	}
 	aDomain->BuildDomain();

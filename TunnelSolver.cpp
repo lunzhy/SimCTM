@@ -347,9 +347,10 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 			vertsBlockOxideEnd.push_back(currVert);
 			break;
 		}
-		if (currVert->NorthVertex == NULL) // the north boundary, within the isolation region
+		if (currVert->NorthVertex == NULL) //the north boundary, within the isolation region
 		{
 			tunnelTrapToGateEnable = false;
+			//to guarantee that the vertices vectors have same amount of member and the corresponding vertices can be obtained with the same index. 
 			vertsBlockOxideEnd.push_back(NULL);
 			break;
 		}
@@ -417,7 +418,7 @@ double TunnelSolver::supplyFunction_forTunCoeff(double energy)
 
 	// prefactor A in f(E) = A*exp(-E/KT), and A is a dimensionless value
 	// here, the prefactor lacks n (density), the dimension is m^3
-	static double prefactor = h * h * h / 4 / pi / (SctmMath::sqrt(pi) / 2) /
+	static double prefactor = h * h * h / 8 / pi / (SctmMath::sqrt(pi) / 2) /
 		(kB*T) / SctmMath::sqrt(kB * T) /
 		SctmMath::sqrt(2 * effTunnelMass*m0*effTunnelMass*m0*effTunnelMass*m0);
 
@@ -512,7 +513,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
 		loadBandStructure(vertsTunnelOxideStart.at(iVert));
-		setTunnelDirection();
+		setTunnelDirection(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
 		setTunnelTag();
 
 		setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
@@ -522,7 +523,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 		{
 			cbedge = cbEdge_Tunnel.front();
 		}
-		else if (eTunDirection == TunnelDirection::South) // TunnelDirection::South
+		else if (eTunDirection == TunnelDirection::South) // tunneling out
 		{
 			cbedge = cbEdge_Tunnel.back();
 		}
@@ -820,8 +821,57 @@ void SubsToTrapElecTunnel::setTunnelTag()
 	*/
 }
 
-void SubsToTrapElecTunnel::setTunnelDirection()
+void SubsToTrapElecTunnel::setTunnelDirection(FDVertex *vertSubs, FDVertex *vertTrap)
 {
+	Normalization norm = Normalization(this->temperature);
+	double per_cm3_in_per_m3 = SctmPhys::per_cm3_in_per_m3;
+	double m0 = SctmPhys::m0;
+	double k0 = SctmPhys::k0;
+	double h = SctmPhys::h;
+	double pi = SctmMath::PI;
+	double q = SctmPhys::q;
+
+	//two fermi energy are in real value, in [eV]
+	double fermiSubs = 0;
+	double fermiTrap = 0; //the electron quasi-fermi energy of trapping layer
+	
+	//substrate/tunnel oxide barrier
+	using namespace MaterialDB;
+	static double subsBarrier = norm.PullEnergy(GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElectronAffinity)
+		- GetMatPrpty(domain->GetRegion("Tunnel")->Mat, MatProperty::Mat_ElectronAffinity));
+	
+	int vertIdSubs = 0;
+	vertIdSubs = vertSubs->GetID();
+	SCTM_ASSERT(fermiAboveMap.find(vertIdSubs) != fermiAboveMap.end(), 10051);
+	fermiSubs = cbEdge_Tunnel.front() - subsBarrier + norm.PullPotential(fermiAboveMap[vertIdSubs]);
+
+	double density = 0;
+	density = vertTrap->Phys->GetPhysPrpty(PhysProperty::eDensity);
+	density = norm.PullDensity(density); //in [cm^-3] up to now
+	density = density * per_cm3_in_per_m3; //in [m^3] up to now
+	
+	double eMassTrap = SctmPhys::m0 * GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_ElectronMass);
+	double fermiRel = 0;
+	//use a very large value (-100eV) to indicate that fermi energy is far below conduction band
+	fermiRel = (density != 0) ? k0 * this->temperature / q * SctmMath::ln(density * h * h * h / 8 / pi / (SctmMath::sqrt(pi) / 2) /
+																SctmMath::pow(k0 * this->temperature, 1.5) /
+																SctmMath::sqrt(2 * eMassTrap * eMassTrap * eMassTrap)) : -100;
+	fermiTrap = fermiRel + cbEdge_Trap.front();
+
+	if (fermiSubs >= fermiTrap)
+	{
+		eTunDirection = TunnelDirection::North;
+		fermiEnergyTunnelFrom = fermiSubs;
+		fermiEnergyTunnelTo = fermiTrap;
+	}
+	else
+	{
+		eTunDirection = TunnelDirection::South;
+		fermiEnergyTunnelFrom = fermiTrap;
+		fermiEnergyTunnelTo = fermiSubs;
+	}
+
+	/* previous method to judge the tunneling direction
 	//CAUTION!! this is currently structure-dependent
 	double elecField = 0;
 	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
@@ -836,6 +886,7 @@ void SubsToTrapElecTunnel::setTunnelDirection()
 		//for electrons, this means retention situation.
 		eTunDirection = TunnelDirection::South;
 	}
+	*/
 }
 
 void SubsToTrapElecTunnel::calcTransCoeff_T2B()

@@ -251,6 +251,9 @@ namespace SctmUtils
 		case 10050:
 			msg = "[TunnelSolver] The last vertex is not at contact in TrapToGateTunnelSolver";
 			break;
+		case 10051:
+			msg = "[TunnelSolver] The specific vertex does not correspond to substrate vertex";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -326,10 +329,10 @@ namespace SctmUtils
 			//PrintValue(norm.PullLength(currVert->EastLength));
 			//PrintValue(norm.PullLength(currVert->SouthLength));
 			cout << " -- ";
-			//PrintValue(currVert->NorthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthwestElem->GetID()));
-			//PrintValue(currVert->NortheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NortheastElem->GetID()));
-			//PrintValue(currVert->SoutheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SoutheastElem->GetID()));
-			//PrintValue(currVert->SouthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthwestElem->GetID()));
+			PrintValue(currVert->NorthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NorthwestElem->GetID()));
+			PrintValue(currVert->NortheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->NortheastElem->GetID()));
+			PrintValue(currVert->SoutheastElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SoutheastElem->GetID()));
+			PrintValue(currVert->SouthwestElem == NULL ? "N/A" : SctmConverter::IntToString(currVert->SouthwestElem->GetID()));
 			cout << " -- ";
 			//PrintValue(currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea));
 			cout << " -- ";

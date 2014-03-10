@@ -134,8 +134,8 @@ protected:
 	/// @return void
 	/// @note
 	void setSolver_Trap();
+	void setTunnelDirection(FDVertex *vertSubs, FDVertex *vertTrap);
 	void setTunnelTag();
-	void setTunnelDirection();
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
 	void calcTransCoeff_T2B();
