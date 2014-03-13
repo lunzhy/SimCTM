@@ -2337,7 +2337,11 @@ namespace SctmUtils
 			}
 			return;
 		}
-
+		//process the parameters used in Pytaurus
+		if (name == "tc.drain.voltage")
+		{
+			return;
+		}
 		//fall to match the above names
 		SctmMessaging::Get().PrintInvalidParameterName(name);
 		SCTM_ASSERT(SCTM_ERROR, 10047);
