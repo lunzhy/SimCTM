@@ -509,7 +509,7 @@ void SimpleONO::refreshPotential()
 void SimpleONO::postProcessOfDomain()
 {
 	//TODO: temporarily used for setting the initial boundary condition
-	refreshPotential();
+	//refreshPotential();
 }
 
 void SimpleONO::setTrapDistribution()

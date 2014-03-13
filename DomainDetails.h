@@ -314,6 +314,7 @@ protected:
 /// This class contains the information of the region.
 class FDRegion
 {
+	friend class TripleCells;
 public:
 	string RegName;
 	/// @brief FDRegion is the construction method of the class

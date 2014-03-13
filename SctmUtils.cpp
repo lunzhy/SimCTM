@@ -1110,7 +1110,7 @@ namespace SctmUtils
 			occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "occupation of electron trap [" + numStr + "] (x, y, trap occupation)";
+		string title = "occupation of electron trap [" + numStr + "] (x, y, trapped density, trap occupation)";
 		file.WriteVector(vecX, vecY, eTrappedDens, occupation, title.c_str());
 	}
 

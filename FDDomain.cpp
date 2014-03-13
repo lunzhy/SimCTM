@@ -348,7 +348,7 @@ void FDDomain::BuildDomain()
 	//in case the specific domain has some special post-procedure
 	//This is used because previously the gate and channel potential is directly set using global control
 	//Currently, it is done using related parameters.
-	//postProcessOfDomain();
+	postProcessOfDomain();
 }
 
 void FDDomain::setVertexPhysProperty()
