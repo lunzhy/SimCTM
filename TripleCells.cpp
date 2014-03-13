@@ -669,6 +669,20 @@ int TripleCells::getVertIdAt(int idX, int idY)
 
 void TripleCells::postProcessOfDomain()
 {
+	setTrapOfMainCell();
+	writeChannelPoints();
+}
+
+void TripleCells::writeChannelPoints()
+{
+	FDContact *channelCont = NULL;
+	channelCont = this->GetContact("Channel");
+
+	SctmData::Get().WriteVertexInfo(channelCont->GetContactVerts());
+}
+
+void TripleCells::setTrapOfMainCell()
+{
 	string occupyRegion = "Trap.Gate2";
 	FDRegion *region = GetRegion(occupyRegion);
 	FDElement *elem = NULL;

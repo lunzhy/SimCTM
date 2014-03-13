@@ -245,9 +245,10 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
-		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
-
+		void WriteVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteLine(string &line);
+
+		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
 
 		static bool FileExisted(string _filename);
 	private:
@@ -275,6 +276,8 @@ namespace SctmUtils
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
+		
+		void WriteVertexInfo(vector<FDVertex *> &vertices);
 		void WriteTimerInfo(SctmTimer &timer);
 		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);
 		void WritePooleFrenkelInfo();

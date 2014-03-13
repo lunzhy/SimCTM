@@ -652,6 +652,18 @@ namespace SctmUtils
 		tofile.close();
 	}
 
+	void SctmFileStream::WriteVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title /*= "title not assigned"*/)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
+		{
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << endl;
+		}
+		tofile.close();
+	}
+
+
 	void SctmFileStream::WriteLine(string &line)
 	{
 		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
@@ -1270,6 +1282,32 @@ namespace SctmUtils
 			fermiAboveMap[id] = norm.PushPotential(fermiAbove.at(iVert));
 		}
 	}
+
+	void SctmData::WriteVertexInfo(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + "\\Miscellaneous\\channelVert.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+		vector<int> vertID;
+		vector<double> xCoords;
+		vector<double> yCoords;
+
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *vert = NULL;
+
+		double cm_in_nm = SctmPhys::cm_in_nm;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			vert = vertices.at(iVert);
+			vertID.push_back(vert->GetID());
+			xCoords.push_back(norm.PullLength(vert->X) * cm_in_nm);
+			yCoords.push_back(norm.PullLength(vert->Y) * cm_in_nm);
+		}
+
+		string title = "vertex ID\t\tx\t\ty\t(coordinates are in [nm])";
+		file.WriteVector(vertID, xCoords, yCoords, title.c_str());
+	}
+
 
 
 
