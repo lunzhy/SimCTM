@@ -192,7 +192,7 @@ namespace SctmUtils
 		void PrintValue(int i) { std::cout << i << " ";}
 		void PrintValue(double d) { std::cout << d << " "; }
 		void PrintValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
-		void PrintValue(std::string &s) { std::cout << s << " ";}
+		void PrintValue(std::string s) { std::cout << s << " "; }
 		void PrintNewLine() { std::cout << std::endl; }
 		void PrintBCType(FDBoundary::BCType bcType);
 		void PrintDirectionVector(VectorValue &dv);

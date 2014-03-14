@@ -24,13 +24,14 @@ class FDVertex;
 using std::vector;
 using SctmMath::SctmSparseMatrixSolver;
 
+typedef std::map<int, int> VertexMapInt; // <VertID, equationID> store map for equation ID
+typedef std::map<int, double> VertexMapDouble; // <vertID, property value>, store the map for physical property
+
 class DriftDiffusionSolver
 {
 	friend class TunnelSolver;
 	friend class SubsToTrapElecTunnel;
 	//friend class SctmUtils::SctmDebug;
-	typedef std::map<int, int> VertexMapInt; // <VertID, equationID> store map for equation ID
-	typedef std::map<int, double> VertexMapDouble; // <vertID, property value>, store the map for physical property
 public:
 	enum BCMethod
 	{
