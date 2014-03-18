@@ -195,7 +195,7 @@ double OneDimSubsSolver::calcFlatbandVoltage(FDVertex *channelVert)
 	double gateWorkFunction = norm.PushPotential(SctmGlobalControl::Get().GateWorkFunction);
 	double workFuncDifference = gateWorkFunction - SctmPhys::ReferencePotential;
 
-	double vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice(channelVert);
+	double vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for1D(channelVert);
 
 	return vfbShift_charge + workFuncDifference;
 	//this->flatbandVoltage = vfbShift_charge + workFuncDifference;

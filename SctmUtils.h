@@ -192,7 +192,7 @@ namespace SctmUtils
 		void PrintValue(int i) { std::cout << i << " ";}
 		void PrintValue(double d) { std::cout << d << " "; }
 		void PrintValue(bool b) { std::cout << (b ? "true" : "false") << " ";}
-		void PrintValue(std::string &s) { std::cout << s << " ";}
+		void PrintValue(std::string s) { std::cout << s << " "; }
 		void PrintNewLine() { std::cout << std::endl; }
 		void PrintBCType(FDBoundary::BCType bcType);
 		void PrintDirectionVector(VectorValue &dv);
@@ -246,6 +246,7 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
 		void WriteVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
+		void WriteVector(vector<int> &vec1, vector<int> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteLine(string &line);
 
 		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
@@ -278,6 +279,7 @@ namespace SctmUtils
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		
 		void WriteVertexInfo(vector<FDVertex *> &vertices);
+		void WriteVfbShiftEachInterface(FDDomain *domain);
 		void WriteTimerInfo(SctmTimer &timer);
 		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);
 		void WritePooleFrenkelInfo();

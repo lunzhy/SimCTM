@@ -663,6 +663,18 @@ namespace SctmUtils
 		tofile.close();
 	}
 
+	void SctmFileStream::WriteVector(vector<int> &vec1, vector<int> &vec2, vector<double> &vec3, const char *title /*= "title not assigned"*/)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
+		{
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << endl;
+		}
+		tofile.close();
+	}
+
+
 
 	void SctmFileStream::WriteLine(string &line)
 	{
@@ -1307,6 +1319,61 @@ namespace SctmUtils
 		string title = "vertex ID\t\tx\t\ty\t(coordinates are in [nm])";
 		file.WriteVector(vertID, xCoords, yCoords, title.c_str());
 	}
+
+	void SctmData::WriteVfbShiftEachInterface(FDDomain *domain)
+	{
+		fileName = directoryName + "\\Substrate\\VfbInterface" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		Normalization norm = Normalization(this->temperature);
+		vector<int> leftVertID;
+		vector<int> rightVertID;
+		vector<double> flatbandVoltageShift;
+
+		static FDContact *subsContact = domain->GetContact("Channel");
+		static vector<FDVertex *> &channelVerts = subsContact->GetContactVerts();
+
+		FDVertex *lVert = NULL; //left vertex
+		FDVertex *rVert = NULL; //right vertex
+		double sum = 0;
+		double vfbShift = 0;
+		for (size_t iVert = 0; iVert < channelVerts.size()-1; iVert++)
+		{
+			//iterate the edge
+			lVert = channelVerts.at(iVert);
+			rVert = channelVerts.at(iVert + 1);
+
+			sum = 0;
+			vfbShift = SctmPhys::CalculateFlatbandShift_slice_for2D(lVert);
+			if (lVert->WestVertex != NULL)
+			{
+				sum += vfbShift / 2;
+			}
+			else
+			{
+				sum += vfbShift;
+			}
+
+			vfbShift = SctmPhys::CalculateFlatbandShift_slice_for2D(rVert);
+			if (rVert->EastVertex != NULL)
+			{
+				sum += vfbShift / 2;
+			}
+			else
+			{
+				sum += vfbShift;
+			}
+
+			leftVertID.push_back(lVert->GetID());
+			rightVertID.push_back(rVert->GetID());
+			flatbandVoltageShift.push_back(norm.PullPotential(sum));
+		}
+
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "flatband voltage shift of each interface segment [" + timeStr + "] (left vertex ID, right vertex ID, voltage)";
+		file.WriteVector(leftVertID, rightVertID, flatbandVoltageShift, title.c_str());
+	}
+
 
 
 

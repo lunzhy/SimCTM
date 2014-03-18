@@ -66,7 +66,7 @@ protected:
 	void setAdjacency();
 	void setTrapDistribution();
 	void postProcessOfDomain();
-	void setTrapOfMainCell();
+	void clearTrapExceptMainCell();
 	void writeChannelPoints();
 
 	//the methods below are used to calculate the coordinates of specific vertex.
@@ -76,6 +76,8 @@ protected:
 	bool isValidVertex(int idX, int idY);
 	void setSingleElement(int &idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend);
 
+public:
+	static bool IsEndOfEffectiveCapacitor(FDVertex *vert);
 };
 
 #endif

@@ -384,6 +384,7 @@ double TunnelSolver::supplyFunction_forCurrDens(double energy)
 	//in this calculation, it is assumed that the band where tunneling ends is almost empty.
 	double T = this->temperature;
 	double EfTunnelFrom = this->fermiEnergyTunnelFrom;
+	double EfTunnelTo = this->fermiEnergyTunnelTo;
 
 	double kB = SctmPhys::BoltzmanConstant;
 	double q = SctmPhys::ElementaryCharge;
@@ -397,6 +398,12 @@ double TunnelSolver::supplyFunction_forCurrDens(double energy)
 		integralTunnelFrom = kB * T * SctmMath::exp(-q * energyDiff / kB / T);
 	else
 		integralTunnelFrom = kB * T * SctmMath::ln(1 + SctmMath::exp(-q * energyDiff / kB / T));
+
+	if (energy - EfTunnelTo > 5 * kB * T / q)
+		integralTunnelTo = kB * T * SctmMath::exp(-q * (energy - EfTunnelTo) / kB / T);
+	else
+		integralTunnelTo = kB * T * SctmMath::ln(1 + SctmMath::exp(-q * (energy - EfTunnelTo) / kB / T));
+
 
 	double supply = integralTunnelFrom - integralTunnelTo;
 	//the supply function has a dimension of [J]
