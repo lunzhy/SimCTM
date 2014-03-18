@@ -669,7 +669,7 @@ int TripleCells::getVertIdAt(int idX, int idY)
 
 void TripleCells::postProcessOfDomain()
 {
-	setTrapOfMainCell();
+	clearTrapExceptMainCell();
 	writeChannelPoints();
 }
 
@@ -681,47 +681,44 @@ void TripleCells::writeChannelPoints()
 	SctmData::Get().WriteVertexInfo(channelCont->GetContactVerts());
 }
 
-void TripleCells::setTrapOfMainCell()
+void TripleCells::clearTrapExceptMainCell()
 {
-	string occupyRegion = "Trap.Gate2";
-	FDRegion *region = GetRegion(occupyRegion);
-	FDElement *elem = NULL;
-	int vertID = 0;
-
-	std::map<int, FDVertex*> vertMap;
-
-	for (size_t ielem = 0; ielem != region->elements.size(); ++ielem)
-	{
-		elem = region->elements.at(ielem);
-		vertID = elem->NorthwestVertex->GetID();
-		if (vertMap.find(vertID) == vertMap.end())
-		{
-			vertMap.insert(std::map<int, FDVertex*>::value_type(vertID, elem->NorthwestVertex));
-		}
-		vertID = elem->NortheastVertex->GetID();
-		if (vertMap.find(vertID) == vertMap.end())
-		{
-			vertMap.insert(std::map<int, FDVertex*>::value_type(vertID, elem->NortheastVertex));
-		}
-		vertID = elem->SoutheastVertex->GetID();
-		if (vertMap.find(vertID) == vertMap.end())
-		{
-			vertMap.insert(std::map<int, FDVertex*>::value_type(vertID, elem->SoutheastVertex));
-		}
-		vertID = elem->SouthwestVertex->GetID();
-		if (vertMap.find(vertID) == vertMap.end())
-		{
-			vertMap.insert(std::map<int, FDVertex*>::value_type(vertID, elem->SouthwestVertex));
-		}
-	}
-
+	string mainCell = "Trap.Gate2";
+	bool relatedToMain = false;
 	FDVertex *vert = NULL;
-	double eTrappedDens = 0;
-	for (std::map<int, FDVertex*>::iterator it = vertMap.begin(); it != vertMap.end(); ++it)
+	FDElement *northWestElem = NULL;
+	FDElement *northEastElem = NULL;
+	FDElement *southEastElem = NULL;
+	FDElement *southWestElem = NULL;
+
+	for (size_t iVert = 0; iVert != this->ddVerts.size(); ++iVert)
 	{
-		vert = it->second;
-		eTrappedDens = 0.5 * vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
-		vert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+		relatedToMain = false;
+		vert = ddVerts.at(iVert);
+		northWestElem = vert->NorthwestElem;
+		if (northWestElem != NULL && northWestElem->Region->RegName == mainCell)
+		{
+			relatedToMain = true;
+		}
+		northEastElem = vert->NortheastElem;
+		if (northEastElem != NULL && northEastElem->Region->RegName == mainCell)
+		{
+			relatedToMain = true;
+		}
+		southEastElem = vert->SoutheastElem;
+		if (southEastElem != NULL && southEastElem->Region->RegName == mainCell)
+		{
+			relatedToMain = true;
+		}
+		southWestElem = vert->SouthwestElem;
+		if (southWestElem != NULL && southWestElem->Region->RegName == mainCell)
+		{
+			relatedToMain = true;
+		}
+		if (!relatedToMain)
+		{
+			vert->Trap->SetTrapPrpty(TrapProperty::eTrapped, 0);
+		}
 	}
 }
 

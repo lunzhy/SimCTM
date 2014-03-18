@@ -66,7 +66,7 @@ protected:
 	void setAdjacency();
 	void setTrapDistribution();
 	void postProcessOfDomain();
-	void setTrapOfMainCell();
+	void clearTrapExceptMainCell();
 	void writeChannelPoints();
 
 	//the methods below are used to calculate the coordinates of specific vertex.

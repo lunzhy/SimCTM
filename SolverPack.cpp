@@ -50,6 +50,7 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
+	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
 	while (!SctmTimeStep::Get().End())
 	{
