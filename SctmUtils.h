@@ -246,6 +246,7 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
 		void WriteVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
+		void WriteVector(vector<int> &vec1, vector<int> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteLine(string &line);
 
 		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
@@ -278,6 +279,7 @@ namespace SctmUtils
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		
 		void WriteVertexInfo(vector<FDVertex *> &vertices);
+		void WriteVfbShiftEachInterface(FDDomain *domain);
 		void WriteTimerInfo(SctmTimer &timer);
 		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);
 		void WritePooleFrenkelInfo();

@@ -19,6 +19,8 @@
 #include "Normalization.h"
 #include "SctmMath.h"
 #include <vector>
+#include "TripleCells.h"
+
 using SctmUtils::SctmData;
 
 namespace SctmPhys
@@ -1032,7 +1034,7 @@ namespace SctmPhys
 		for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
 		{
 			vert = channelVerts.at(iVert);
-			VfbShift_slice = CalculateFlatbandShift_slice(vert);
+			VfbShift_slice = CalculateFlatbandShift_slice_for1D(vert);
 			
 			eastVert = vert->EastVertex;
 			westVert = vert->WestVertex;
@@ -1060,7 +1062,7 @@ namespace SctmPhys
 		return sum / length; // in normalized value
 	}
 
-	double CalculateFlatbandShift_slice(FDVertex *channelVert)
+	double CalculateFlatbandShift_slice_for1D(FDVertex *channelVert)
 	{
 		FDVertex *startVert = channelVert;
 
@@ -1096,6 +1098,62 @@ namespace SctmPhys
 
 				while (vertForCap != NULL)
 				{
+					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
+					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
+					epsilon = vertForCap->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
+					cap_reciprocal += delta_d / epsilon / wide;
+
+					vertForCap = vertForCap->NorthVertex;
+				}
+				VfbShift += eLineDens * cap_reciprocal;
+			}
+			currVert = currVert->NorthVertex;
+		}
+
+		return VfbShift;
+	}
+
+	double CalculateFlatbandShift_slice_for2D(FDVertex *channelVert)
+	{
+		FDVertex *startVert = channelVert;
+
+		using namespace SctmUtils;
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+
+		FDVertex *currVert = NULL;
+		FDVertex *vertForCap = NULL; // the vertex pointer for calculation of capacitance
+		
+		double densCtrlArea = 0;
+		double eFreeDens = 0;
+		double eTrappedDens = 0;
+		double eLineDens = 0;
+		double cap_reciprocal = 0;
+		double epsilon = 0;
+		double wide = 0;
+		double delta_d = 0;
+		double VfbShift = 0;
+
+		//begin to calculate flatband voltage shift in the specific slice.
+		currVert = startVert;
+		while (currVert != NULL)
+		{
+			//for vertex in the trapping layer
+			if (currVert->Trap != NULL)
+			{
+				densCtrlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
+
+				vertForCap = currVert;
+				cap_reciprocal = 0; // the reciprocal of capacitance
+
+				while (vertForCap != NULL)
+				{
+					if (TripleCells::IsEndOfEffectiveCapacitor(vertForCap))
+					{
+						break;
+					}
 					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
 					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
 					epsilon = vertForCap->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);

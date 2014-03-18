@@ -76,6 +76,8 @@ protected:
 	bool isValidVertex(int idX, int idY);
 	void setSingleElement(int &idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend);
 
+public:
+	static bool IsEndOfEffectiveCapacitor(FDVertex *vert);
 };
 
 #endif

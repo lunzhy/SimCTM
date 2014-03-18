@@ -725,4 +725,31 @@ void TripleCells::setTrapOfMainCell()
 	}
 }
 
+bool TripleCells::IsEndOfEffectiveCapacitor(FDVertex *vert)
+{
+	FDElement *elem = NULL;
+
+	elem = vert->NorthwestElem;
+	if (elem != NULL && (elem->Region->RegName == "Iso2" || elem->Region->RegName == "Iso3"))
+	{
+		return true;
+	}
+	elem = vert->NortheastElem;
+	if (elem != NULL && (elem->Region->RegName == "Iso2" || elem->Region->RegName == "Iso3"))
+	{
+		return true;
+	}
+	elem = vert->SouthwestElem;
+	if (elem != NULL && (elem->Region->RegName == "Iso2" || elem->Region->RegName == "Iso3"))
+	{
+		return true;
+	}
+	elem = vert->SoutheastElem;
+	if (elem != NULL && (elem->Region->RegName == "Iso2" || elem->Region->RegName == "Iso3"))
+	{
+		return true;
+	}
+	return false;
+}
+
 

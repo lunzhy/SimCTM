@@ -51,7 +51,6 @@ void SolverPack::initialize()
 void SolverPack::callIteration()
 {
 	SctmTimer::Get().Set();
-
 	while (!SctmTimeStep::Get().End())
 	{
 		SctmTimeStep::Get().GenerateNext();
@@ -67,6 +66,7 @@ void SolverPack::callIteration()
 		else if (simStructure == "Triple")
 		{
 			readSubstrateFromFile();
+			SctmData::Get().WriteVfbShiftEachInterface(domain);
 		}
 
 		//solver Poisson equation
