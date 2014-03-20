@@ -2533,7 +2533,7 @@ namespace SctmUtils
 		}
 		else if (SCTM_ENV == "Linux")
 		{
-			Get().PathSep = "~SimCTM/debug";
+			Get().DebugPrjPath = "~SimCTM/debug";
 			Get().DefaultParamPath = "~SimCTM/default.param";
 			Get().PathSep = "/";
 		}

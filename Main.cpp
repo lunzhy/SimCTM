@@ -23,7 +23,10 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 	if (prj.empty())
 	{
 		prj = SctmEnv::Get().DebugPrjPath;
-		std::system(SctmEnv::Get().ClearPrjPyPath.c_str());
+		if (SCTM_ENV == "Windows")
+		{
+			std::system(SctmEnv::Get().ClearPrjPyPath.c_str());
+		}
 	}
 
 	if (defaultParam.empty())
