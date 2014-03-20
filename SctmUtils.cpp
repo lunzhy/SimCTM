@@ -908,12 +908,13 @@ namespace SctmUtils
 		this->temperature = SctmGlobalControl::Get().Temperature;
 		//directoryName = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest\\";
 		this->directoryName = SctmGlobalControl::Get().ProjectDirectory;
+		this->pathSep = SctmEnv::Get().PathSep;
 	}
 
 
 	void SctmData::WriteElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Density\\eDensity" + generateFileSuffix();
+		fileName = directoryName + pathSep + "Density" + pathSep + "eDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
@@ -937,7 +938,7 @@ namespace SctmUtils
 
 	void SctmData::WritePotential(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Potential\\potential" + generateFileSuffix();
+		fileName = directoryName + pathSep + "Potential" + pathSep + "potential" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
@@ -970,7 +971,7 @@ namespace SctmUtils
 
 	void SctmData::WriteBandInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Band\\band" + generateFileSuffix();
+		fileName = directoryName + pathSep + "Band" + pathSep + "band" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
@@ -1015,7 +1016,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity)
 	{
-		fileName = directoryName + "\\Current\\subsCurrent" + generateFileSuffix();
+		fileName = directoryName + pathSep + "Current" + pathSep + "subsCurrent" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 		
 		int vertID = 0;
@@ -1040,7 +1041,7 @@ namespace SctmUtils
 
 	void SctmData::WriteElecCurrDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Current\\eCurrDens" + generateFileSuffix();
+		fileName = directoryName + pathSep + "Current" + pathSep + "eCurrDens" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -1067,7 +1068,7 @@ namespace SctmUtils
 
 	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\ElecField\\elecField" + generateFileSuffix();
+		fileName = directoryName + pathSep + "ElecField" + pathSep + "elecField" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -1090,7 +1091,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTotalElecDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Miscellaneous\\totalDensity.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "totalDensity.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		double area = 0;
@@ -1114,7 +1115,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff)
 	{
-		fileName = directoryName + "\\Miscellaneous\\tunCoeff.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "tunCoeff.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		int vertID = 0;
@@ -1133,7 +1134,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTrappedInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Trap\\trapOccupation" + generateFileSuffix();
+		fileName = directoryName + pathSep + "Trap" + pathSep + "trapOccupation" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -1161,7 +1162,7 @@ namespace SctmUtils
 		double VfbShift = 0;
 		Normalization norm = Normalization(this->temperature);
 
-		fileName = directoryName + "\\Miscellaneous\\VfbShift.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "VfbShift.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		VfbShift = SctmPhys::CalculateFlatbandShift_domain(domain);
@@ -1177,7 +1178,7 @@ namespace SctmUtils
 		static bool firstRun = true;
 		Normalization norm = Normalization(this->temperature);
 
-		fileName = directoryName + "\\Miscellaneous\\substrate.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "substrate.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		VertexMapDouble fermi_above_map;
@@ -1217,7 +1218,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTrapDensity(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Miscellaneous\\TrapInfo.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "TrapInfo.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -1240,7 +1241,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTimerInfo(SctmTimer &timer)
 	{
-		fileName = directoryName + "\\Miscellaneous\\timing.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "timing.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		double totalTime = timer.keywordTimer["Total"];
@@ -1259,7 +1260,7 @@ namespace SctmUtils
 
 	void SctmData::WritePooleFrenkelInfo()
 	{
-		fileName = directoryName + "\\Miscellaneous\\simInfo.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "simInfo.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
@@ -1272,7 +1273,7 @@ namespace SctmUtils
 
 	void SctmData::WritePooleFrenkelDecrease(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Trap\\PooleFrenkelDecrease" + generateFileSuffix();
+		fileName = directoryName + pathSep + "Trap" + pathSep + "PooleFrenkelDecrease" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
@@ -1296,7 +1297,7 @@ namespace SctmUtils
 
 	void SctmData::ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap)
 	{
-		fileName = directoryName + "\\substrate.in";
+		fileName = directoryName + pathSep + "exchange" + pathSep + "substrate.in";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Read);
 		vector<int> vertID;
 		vector<double> pot;
@@ -1315,7 +1316,7 @@ namespace SctmUtils
 
 	void SctmData::WriteVertexInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\exchange\\subs_points.in";
+		fileName = directoryName + pathSep + "exchange" + pathSep + "subs_points.in";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 		vector<int> vertID;
 		vector<double> xCoords;
@@ -1342,11 +1343,11 @@ namespace SctmUtils
 	{
 		if (SctmTimeStep::Get().StepNumber() == 0)
 		{
-			fileName = directoryName + "\\exchange\\charge.in";
+			fileName = directoryName + pathSep + "exchange" + pathSep + "charge.in";
 		}
 		else
 		{
-			fileName = directoryName + "\\Substrate\\VfbInterface" + generateFileSuffix();
+			fileName = directoryName + pathSep + "Substrate" + pathSep + "VfbInterface" + generateFileSuffix();
 		}
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
@@ -1632,7 +1633,7 @@ namespace SctmUtils
 	{
 		SctmGlobalControl::Get().ProjectDirectory = prjpath;
 		SctmGlobalControl::Get().DefaulParFile = defaultParPath;
-		SctmGlobalControl::Get().UserParFile = prjpath + "\\user.param";
+		SctmGlobalControl::Get().UserParFile = prjpath + SctmEnv::Get().PathSep + "user.param";
 
 		setGlobalCntrl_FromParFile();
 	}
@@ -2512,6 +2513,31 @@ namespace SctmUtils
 	}
 
 
+
+
+
+	SctmEnv& SctmEnv::Get()
+	{
+		static SctmEnv env;
+		return env;
+	}
+
+	SctmEnv::SctmEnv()
+	{
+		if (SCTM_ENV == "Windows")
+		{
+			Get().DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
+			Get().DefaultParamPath = "E:\\PhD Study\\SimCTM\\default.param";
+			Get().ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
+			Get().PathSep = "\\";
+		}
+		else if (SCTM_ENV == "Linux")
+		{
+			Get().PathSep = "~SimCTM/debug";
+			Get().DefaultParamPath = "~SimCTM/default.param";
+			Get().PathSep = "/";
+		}
+	}
 
 
 }

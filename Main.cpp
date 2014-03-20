@@ -10,6 +10,7 @@
 #include "SubstrateSolver.h"
 #include "TripleCells.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <vector>
 
 using namespace SctmUtils;
@@ -21,14 +22,14 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 
 	if (prj.empty())
 	{
-		prj = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
-		std::system("E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py");
+		prj = SctmEnv::Get().DebugPrjPath;
+		std::system(SctmEnv::Get().ClearPrjPyPath.c_str());
 	}
 
 	if (defaultParam.empty())
 	{
 		//run from visual studio
-		defaultParam = "E:\\PhD Study\\SimCTM\\default.param";
+		defaultParam = SctmEnv::Get().DefaultParamPath;
 	}
 
 	SctmGlobalControl::SetGlobalControl(defaultParam, prj);

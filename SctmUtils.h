@@ -26,6 +26,7 @@
 #include <map>
 #include <vector>
 #include "Material.h"
+
 using SctmMath::VectorValue;
 
 //use macro DEBUG to determine if SCTM_ASSERT is defined
@@ -37,6 +38,11 @@ using SctmMath::VectorValue;
 	#define SCTM_ASSERT(cond, err_code)
 #endif // DEBUG
 
+#ifdef WIN32
+	#define SCTM_ENV "Windows"
+#else
+	#define SCTM_ENV "Linux" 
+#endif // WIN32
 
 using std::string;
 using std::vector;
@@ -289,6 +295,7 @@ namespace SctmUtils
 	protected:
 		double temperature;
 		string fileName;
+		string pathSep;
 		string directoryName;
 		string generateFileSuffix();
 	};
@@ -548,6 +555,23 @@ namespace SctmUtils
 		BadParConversion(const string &s) : std::runtime_error(s) { }
 	};
 
+
+	
+	/// @brief Environment-dependent variables
+	///
+	///
+	class SctmEnv
+	{
+	public:
+		SctmEnv();
+		static SctmEnv& Get();
+
+		string DebugPrjPath;
+		string DefaultParamPath;
+		string ClearPrjPyPath;
+
+		string PathSep; ///< path separator
+	};
 
 }
 
