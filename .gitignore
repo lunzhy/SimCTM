@@ -159,3 +159,9 @@ $RECYCLE.BIN/
 *.txt
 *.ppk
 *.orig
+
+
+*.o
+build/
+simctm
+Makefile
