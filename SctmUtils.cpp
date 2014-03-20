@@ -2533,8 +2533,8 @@ namespace SctmUtils
 		}
 		else if (SCTM_ENV == "Linux")
 		{
-			DebugPrjPath = "~SimCTM/debug";
-			DefaultParamPath = "~SimCTM/default.param";
+			DebugPrjPath = "/home/lunzhy/SimCTM/debug";
+			DefaultParamPath = "/home/lunzhy/SimCTM/default.param";
 			PathSep = "/";
 		}
 	}
