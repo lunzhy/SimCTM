@@ -249,10 +249,13 @@ namespace SctmUtils
 			msg = "[Material.cpp] Invalid material name to parse";
 			break;
 		case 10050:
-			msg = "[TunnelSolver] The last vertex is not at contact in TrapToGateTunnelSolver";
+			msg = "[TunnelSolver.cpp] The last vertex is not at contact in TrapToGateTunnelSolver";
 			break;
 		case 10051:
-			msg = "[TunnelSolver] The specific vertex does not correspond to substrate vertex";
+			msg = "[TunnelSolver.cpp] The specific vertex does not correspond to substrate vertex";
+			break;
+		case 10052:
+			msg = "[TunnelSolver.cpp] Wrong trapping region name in SlopingTunnelTrapToGate class";
 			break;
 		default:
 			msg = "Untracked error";
@@ -637,6 +640,17 @@ namespace SctmUtils
 		for (size_t iv = 0; iv != vec1.size(); ++iv)
 		{
 			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << '\t' << vec4.at(iv) << endl;
+		}
+		tofile.close();
+	}
+
+	void SctmFileStream::WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, vector<double> vec5, const char *title /*= "title not assigned"*/)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
+		{
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << '\t' << vec4.at(iv) << '\t' << vec5.at(iv) << endl;
 		}
 		tofile.close();
 	}
@@ -1032,6 +1046,8 @@ namespace SctmUtils
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> eCurrDens;
+		vector<double> eCurrDens_X;
+		vector<double> eCurrDens_Y;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
@@ -1041,10 +1057,12 @@ namespace SctmUtils
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
 			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
+			eCurrDens_X.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_X)));
+			eCurrDens_Y.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_Y)));
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "electron current density of time [" + numStr + "] (x, y, electron current density)"; 
-		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
+		string title = "electron current density of time [" + numStr + "] (x, y, electron current density, eCurret in X, eCurrent in Y)"; 
+		file.WriteVector(vecX, vecY, eCurrDens, eCurrDens_X, eCurrDens_Y, title.c_str());
 	}
 
 	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
@@ -1054,7 +1072,7 @@ namespace SctmUtils
 
 		vector<double> vecX;
 		vector<double> vecY;
-		vector<double> eCurrDens;
+		vector<double> eElecFiled;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
@@ -1063,11 +1081,11 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eCurrDens.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
+			eElecFiled.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "electric field of time [" + numStr + "] (x, y, electric field)";
-		file.WriteVector(vecX, vecY, eCurrDens, title.c_str());
+		file.WriteVector(vecX, vecY, eElecFiled, title.c_str());
 	}
 
 	void SctmData::WriteTotalElecDens(vector<FDVertex *> &vertices)
@@ -1297,7 +1315,7 @@ namespace SctmUtils
 
 	void SctmData::WriteVertexInfo(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + "\\Miscellaneous\\channelVert.txt";
+		fileName = directoryName + "\\exchange\\subs_points.in";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 		vector<int> vertID;
 		vector<double> xCoords;
@@ -1322,7 +1340,14 @@ namespace SctmUtils
 
 	void SctmData::WriteVfbShiftEachInterface(FDDomain *domain)
 	{
-		fileName = directoryName + "\\Substrate\\VfbInterface" + generateFileSuffix();
+		if (SctmTimeStep::Get().StepNumber() == 0)
+		{
+			fileName = directoryName + "\\exchange\\charge.in";
+		}
+		else
+		{
+			fileName = directoryName + "\\Substrate\\VfbInterface" + generateFileSuffix();
+		}
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
@@ -1370,7 +1395,7 @@ namespace SctmUtils
 		}
 
 		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "flatband voltage shift of each interface segment [" + timeStr + "] (left vertex ID, right vertex ID, voltage)";
+		string title = "flatband voltage shift of each interface segment at time=[" + timeStr + "] (left vertex ID, right vertex ID, voltage)";
 		file.WriteVector(leftVertID, rightVertID, flatbandVoltageShift, title.c_str());
 	}
 
@@ -1546,6 +1571,10 @@ namespace SctmUtils
 		//TrapOccupation
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
 		Get().TrapOccupation = dynamic_cast<Param<double> *>(parBase)->Value();
+
+		//LateralTunneling
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_lateral_tunnel);
+		Get().LateralTunneling = dynamic_cast<Param<bool> *>(parBase)->Value();
 
 		//RetentionAfterPrgrm
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
@@ -1816,6 +1845,13 @@ namespace SctmUtils
 		{
 			Param<string> *par = new Param<string>(ParName::physics_pf, valStr);
 			mapToSet[ParName::physics_pf] = par;
+			return;
+		}
+		if (name == "debug.lateral.tunnel")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::debug_lateral_tunnel, valBool);
+			mapToSet[ParName::debug_lateral_tunnel] = par;
 			return;
 		}
 		if (name == "debug.trap.occupy")

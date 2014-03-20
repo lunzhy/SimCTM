@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 
 class FDDomain;
 class FDVertex;
@@ -174,6 +175,35 @@ protected:
 	vector<double> deltaX_TrapBlock;
 
 	VertexMapDouble eTransCoeffMap_T2B;
+};
+
+
+class SlopingTunnelTrapToGate
+{
+public:
+	SlopingTunnelTrapToGate(FDDomain *_domain, FDVertex *_vert);
+	void LoadBandStructureAlongPath(vector<double> &dx, vector<double> &cbedge, vector<double> &emass);
+	FDVertex* GetGateVertex();
+
+	static bool IsSlopingTunnel(FDVertex *vert);
+protected:
+	FDDomain *domain;
+	double temperature;
+	FDVertex *vertStart;
+	std::string vertRegName;
+
+	double tanAngle;
+	FDVertex *upmostVert;
+	FDVertex *easternmostVert;
+	FDVertex *westernmostVert;
+	
+	vector<double> dSlope; //the size of deltaX should be one less that the other two
+	vector<double> cbEdge;
+	vector<double> elecMass;
+
+	void setBoundaryVerts();
+	void setInterpolatedValues();
+	void findLeftRigthVertex(FDVertex *vert, double xDist, FDVertex* &left, FDVertex* &right);
 };
 
 #endif

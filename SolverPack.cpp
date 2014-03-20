@@ -52,6 +52,8 @@ void SolverPack::callIteration()
 {
 	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
+	SctmData::Get().WriteVfbShiftEachInterface(domain);
+
 	while (!SctmTimeStep::Get().End())
 	{
 		SctmTimeStep::Get().GenerateNext();

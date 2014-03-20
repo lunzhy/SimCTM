@@ -309,53 +309,65 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 
 	//set the blocking oxide
 	vertsBlockOxideStart.push_back(currVert);
-	while (true)
+	if (SctmGlobalControl::Get().LateralTunneling && SlopingTunnelTrapToGate::IsSlopingTunnel(currVert))
 	{
-		//load dx
-		dx = 0;
-		if (currVert->Trap == NULL)
-		{
-			dx += currVert->SouthLength / 2;
-		}
-		if (currVert->NorthVertex != NULL)
-		{
-			dx += currVert->NorthLength / 2;
-		}
-		dx = norm.PullLength(dx);
-
-		//load cbedge
-		if (currVert->Trap == NULL)
-		{
-			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
-		}
-		else
-		{
-			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, blockMat);
-		}
-		cbedge = norm.PullEnergy(cbedge);
-
-		//load emass
-		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
-
-		deltaX_Block.push_back(dx);
-		cbEdge_Block.push_back(cbedge);
-		eMass_Block.push_back(emass);
-
-		if (currVert->IsAtContact()) //the gate contact
-		{
-			tunnelTrapToGateEnable = true;
-			vertsBlockOxideEnd.push_back(currVert);
-			break;
-		}
-		if (currVert->NorthVertex == NULL) //the north boundary, within the isolation region
-		{
-			tunnelTrapToGateEnable = false;
-			//to guarantee that the vertices vectors have same amount of member and the corresponding vertices can be obtained with the same index. 
-			vertsBlockOxideEnd.push_back(NULL);
-			break;
-		}
-		currVert = currVert->NorthVertex;
+		SlopingTunnelTrapToGate slopeTunnel = SlopingTunnelTrapToGate(this->domain, currVert);
+		slopeTunnel.LoadBandStructureAlongPath(deltaX_Block, cbEdge_Block, eMass_Block);
+		tunnelTrapToGateEnable = true;
+		vertsBlockOxideEnd.push_back(slopeTunnel.GetGateVertex());
 	}
+	else
+	{
+		while (true)
+		{
+			//load dx
+			dx = 0;
+			if (currVert->Trap == NULL)
+			{
+				dx += currVert->SouthLength / 2;
+			}
+			if (currVert->NorthVertex != NULL)
+			{
+				dx += currVert->NorthLength / 2;
+			}
+			dx = norm.PullLength(dx);
+
+			//load cbedge
+			if (currVert->Trap == NULL)
+			{
+				cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+			}
+			else
+			{
+				cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, blockMat);
+			}
+			cbedge = norm.PullEnergy(cbedge);
+
+			//load emass
+			emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
+
+			deltaX_Block.push_back(dx);
+			cbEdge_Block.push_back(cbedge);
+			eMass_Block.push_back(emass);
+
+			if (currVert->IsAtContact()) //the gate contact
+			{
+				tunnelTrapToGateEnable = true;
+				vertsBlockOxideEnd.push_back(currVert);
+				break;
+			}
+			//the if below should not be reached
+			if (currVert->NorthVertex == NULL) //the north boundary, within the isolation region
+			{
+				tunnelTrapToGateEnable = false;
+				//to guarantee that the vertices vectors have same amount of member and the corresponding vertices can be obtained with the same index. 
+				vertsBlockOxideEnd.push_back(NULL);
+				break;
+			}
+			currVert = currVert->NorthVertex;
+		}
+	}
+	
 }
 
 void TunnelSolver::initialize()
@@ -385,6 +397,12 @@ double TunnelSolver::supplyFunction_forCurrDens(double energy)
 	double T = this->temperature;
 	double EfTunnelFrom = this->fermiEnergyTunnelFrom;
 	double EfTunnelTo = this->fermiEnergyTunnelTo;
+
+	//protect the possible wrong assignment of the tunnel direction
+	if (EfTunnelFrom <= EfTunnelTo)
+	{
+		return 0;
+	}
 
 	double kB = SctmPhys::BoltzmanConstant;
 	double q = SctmPhys::ElementaryCharge;
@@ -1067,6 +1085,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 		if (vertsBlockOxideEnd.at(iVert) == NULL)
 		{
 			//no contact vertex is at the end of the tunneling path, so no tunneling-out occurs.
+			//not include this vertex in the returned result
 			continue;
 		}
 
@@ -1251,4 +1270,267 @@ void TrapToGateElecTunnel::ReturnResult_T2B(VertexMapDouble &ret)
 	{
 		ret[it->first] = it->second;
 	}
+}
+
+
+
+bool SlopingTunnelTrapToGate::IsSlopingTunnel(FDVertex *vert)
+{
+	//the vertex is at the block/trap interface
+	FDElement *southEastElem = vert->SoutheastElem;
+	FDElement *southWestElem = vert->SouthwestElem;
+	return false;
+
+	if (southEastElem != NULL && southWestElem != NULL && 
+		southEastElem->Region->RegName == "Trap.Iso2" && southWestElem->Region->RegName == "Trap.Iso2")
+	{
+		return true;
+	}
+	
+	
+	if (southEastElem != NULL && southWestElem != NULL && 
+		southEastElem->Region->RegName == "Trap.Iso3" && southWestElem->Region->RegName == "Trap.Iso3")
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+SlopingTunnelTrapToGate::SlopingTunnelTrapToGate(FDDomain *_domain, FDVertex *_vert)
+{
+	domain = _domain;
+	vertStart = _vert;
+	vertRegName = vertStart->SoutheastElem->Region->RegName;
+	temperature = SctmGlobalControl::Get().Temperature;
+
+	setBoundaryVerts();
+	setInterpolatedValues();
+}
+
+void SlopingTunnelTrapToGate::LoadBandStructureAlongPath(vector<double> &dx, vector<double> &cbedge, vector<double> &emass)
+{
+	dx.push_back(this->dSlope.front() / 2);
+	cbedge.push_back(this->cbEdge.front());
+	emass.push_back(this->elecMass.front());
+
+	for (size_t is = 0; is != this->dSlope.size() - 1; ++is)
+	{
+		dx.push_back((this->dSlope.at(is) + this->dSlope.at(is + 1)) / 2);
+		cbedge.push_back(this->cbEdge.at(is + 1));
+		emass.push_back(this->elecMass.at(is + 1));
+	}
+
+	dx.push_back(this->dSlope.back() / 2);
+	cbedge.push_back(this->cbEdge.back());
+	emass.push_back(this->elecMass.back());
+	
+}
+
+void SlopingTunnelTrapToGate::setBoundaryVerts()
+{
+	//set the angle
+	double xDist = 0;
+	double yDist = 0;
+
+	FDVertex *vert = NULL;
+
+	if (vertRegName == "Trap.Iso2")
+	{
+		//the vertex is in left trap region under isolation 2
+		vert = vertStart;
+		while (vert->NortheastElem->Region->RegName != "Iso2")
+		{
+			vert = vert->NorthVertex;
+		}
+		upmostVert = vert;
+		yDist = SctmMath::abs(vert->Y - vertStart->Y);
+
+		vert = vertStart;
+		while (vert->SoutheastElem->Region->RegName != "Trap.Gate2")
+		{
+			vert = vert->EastVertex;
+		}
+		easternmostVert = vert;
+		xDist = SctmMath::abs(vert->X - vertStart->X);
+		
+		tanAngle = xDist / yDist;
+	}
+	else if (vertRegName == "Trap.Iso3")
+	{
+		//the vertex is in right trap region under isolation 3
+		vert = vertStart;
+		while (vert->NorthwestElem->Region->RegName != "Iso3")
+		{
+			vert = vert->NorthVertex;
+		}
+		upmostVert = vert;
+		yDist = SctmMath::abs(vert->Y - vertStart->Y);
+
+		vert = vertStart;
+		while (vert->SouthwestElem->Region->RegName != "Trap.Gate2")
+		{
+			vert = vert->WestVertex;
+		}
+		westernmostVert = vert;
+		xDist = SctmMath::abs(vert->X - vertStart->X);
+
+		tanAngle = xDist / yDist;
+	}
+	else
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10052);
+	}
+
+}
+
+void SlopingTunnelTrapToGate::setInterpolatedValues()
+{
+	static Mat::Name blockMat = domain->GetRegion("Block")->Mat->MatName();
+	FDVertex *vert = vertStart;
+	Normalization norm = Normalization(this->temperature);
+	double deltaSlope = 0;
+	double cbedge = 0;
+	double mass = 0;
+	
+	double xDist = 0;
+	double yDist = 0;
+	double slopeDist = 0;
+	double dy = 0;
+
+	double dxLeft = 0;
+	double dxRight = 0;
+	double valueLeft = 0;
+	double valueRight = 0;
+
+	FDVertex *leftVert = NULL;
+	FDVertex *rightVert = NULL;
+
+	//set the first vertex
+	cbedge = vertStart->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, blockMat);
+	cbedge = norm.PullPotential(cbedge);
+	this->cbEdge.push_back(cbedge);
+	mass = vertStart->Phys->GetPhysPrpty(PhysProperty::eMass);
+	this->elecMass.push_back(mass);
+
+	vert = vertStart->NorthVertex;
+	while (true) //note the iteration stop vertex
+	{
+		dy = SctmMath::abs(vert->Y - vert->SouthVertex->Y);
+		deltaSlope = dy * SctmMath::sqrt(1 + tanAngle * tanAngle);
+		this->dSlope.push_back(norm.PullLength(deltaSlope));
+
+		yDist = SctmMath::abs(vert->Y - vertStart->Y);
+		xDist = tanAngle * yDist;
+
+		findLeftRigthVertex(vert, xDist, leftVert, rightVert);
+
+		dxLeft = SctmMath::abs(xDist - SctmMath::abs(leftVert->X - vert->X));
+		dxRight = SctmMath::abs(SctmMath::abs(rightVert->X - vert->X) - xDist);
+
+		//set the cbedge
+		valueLeft = leftVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, blockMat);
+		valueRight = rightVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, blockMat);
+		cbedge = (valueLeft * dxRight + valueRight * dxLeft) / (dxLeft + dxRight);
+		this->cbEdge.push_back(norm.PullPotential(cbedge));
+
+		//set the emass
+		valueLeft = leftVert->Phys->GetPhysPrpty(PhysProperty::eMass);
+		valueRight = rightVert->Phys->GetPhysPrpty(PhysProperty::eMass);
+		mass = (valueLeft * dxRight + valueRight * dxLeft) / (dxLeft + dxRight);
+		this->elecMass.push_back(mass);
+
+		if (vert == upmostVert)
+		{
+			break;
+		}
+		vert = vert->NorthVertex;
+	}
+}
+
+void SlopingTunnelTrapToGate::findLeftRigthVertex(FDVertex *vert, double xDist, FDVertex* &left, FDVertex* &right)
+{
+	double distance = 0;
+	FDVertex *iterVert = vert;
+
+
+	if (vertRegName == "Trap.Iso2")
+	{
+		while (true)
+		{
+			distance = SctmMath::abs(iterVert->X - vert->X);
+			if (iterVert->IsAtContact())
+			{
+				break;
+			}
+			if (distance > xDist)
+			{
+				break;
+			}
+			iterVert = iterVert->EastVertex;
+		}
+		//up to here, iterVert stores the right vertex
+		right = iterVert;
+		left = iterVert->WestVertex;
+	}
+	else if (vertRegName == "Trap.Iso3")
+	{
+		while (true)
+		{
+			distance = SctmMath::abs(iterVert->X - vert->X);
+			if (iterVert->IsAtContact())
+			{
+				break;
+			}
+			if (distance > xDist)
+			{
+				break;
+			}
+			iterVert = iterVert->WestVertex;
+		}
+		//up to here, iterVert stores the right vertex
+		left = iterVert;
+		right = iterVert->EastVertex;
+	}
+	else
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10052);
+	}
+
+
+	
+}
+
+FDVertex* SlopingTunnelTrapToGate::GetGateVertex()
+{
+	FDVertex *iterVert = upmostVert;
+	
+	if (vertRegName == "Trap.Iso2")
+	{
+		while (true)
+		{
+			if (iterVert->IsAtContact())
+			{
+				break;
+			}
+			iterVert = iterVert->EastVertex;
+		}
+	}
+	else if (vertRegName == "Trap.Iso3")
+	{
+		while (true)
+		{
+			if (iterVert->IsAtContact())
+			{
+				break;
+			}
+			iterVert = iterVert->WestVertex;
+		}
+	}
+	else
+	{
+		SCTM_ASSERT(SCTM_ERROR, 10052);
+	}
+
+	return iterVert;
 }
