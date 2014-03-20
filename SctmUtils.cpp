@@ -2526,16 +2526,16 @@ namespace SctmUtils
 	{
 		if (SCTM_ENV == "Windows")
 		{
-			Get().DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
-			Get().DefaultParamPath = "E:\\PhD Study\\SimCTM\\default.param";
-			Get().ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
-			Get().PathSep = "\\";
+			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
+			DefaultParamPath = "E:\\PhD Study\\SimCTM\\default.param";
+			ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
+			PathSep = "\\";
 		}
 		else if (SCTM_ENV == "Linux")
 		{
-			Get().DebugPrjPath = "~SimCTM/debug";
-			Get().DefaultParamPath = "~SimCTM/default.param";
-			Get().PathSep = "/";
+			DebugPrjPath = "~SimCTM/debug";
+			DefaultParamPath = "~SimCTM/default.param";
+			PathSep = "/";
 		}
 	}
 
