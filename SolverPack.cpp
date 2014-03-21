@@ -50,15 +50,12 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	SctmMessaging::Get().PrintHeader("Writing substrate information for Pytaurus.");
-	SctmData::Get().WriteVfbShiftEachInterface(domain);
-
 	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
 
 	while (!SctmTimeStep::Get().End())
 	{
-		SctmTimeStep::Get().GenerateNext();
+		SctmTimeStep::Get().GenerateNext(); //the simulation starts with step 1
 		SctmTimer::Get().Set();
 
 		if (simStructure == "Single")
@@ -70,15 +67,16 @@ void SolverPack::callIteration()
 		}
 		else if (simStructure == "Triple")
 		{
+			//write the flatband voltage shift of each slice
+			SctmData::Get().WriteVfbShiftEachInterface(domain);
 			//call Pytaurus to run Sentaurus to write substrate.in
+			//Pytaurus will read the charge.in file
 			if (SctmEnv::IsLinux())
 			{
 				SctmPyCaller::PySentaurus();
 			}
 			//if SimCTM is in running on Windows, read the same file, temporarily.
 			readSubstrateFromFile();
-			//this also prepares charge.in for Pytaurus
-			SctmData::Get().WriteVfbShiftEachInterface(domain);
 		}
 
 		//solver Poisson equation
@@ -125,7 +123,7 @@ void SolverPack::callIteration()
 		//write the final result
 		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteFlatBandVoltageShift(domain);
-		
+
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
 	}
 

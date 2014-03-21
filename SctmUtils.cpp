@@ -257,6 +257,9 @@ namespace SctmUtils
 		case 10052:
 			msg = "[TunnelSolver.cpp] Wrong trapping region name in SlopingTunnelTrapToGate class";
 			break;
+		case 10053:
+			msg = "[Parameter] Wrong parameter value for string.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
@@ -1570,15 +1573,16 @@ namespace SctmUtils
 		//TrapOccupation
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
 		Get().TrapOccupation = dynamic_cast<Param<double> *>(parBase)->Value();
-
 		//LateralTunneling
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_lateral_tunnel);
 		Get().LateralTunneling = dynamic_cast<Param<bool> *>(parBase)->Value();
+		//CallPytaurus
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_call_pytaurus);
+		Get().CallPytaurus = dynamic_cast<Param<string> *>(parBase)->Value();
 
 		//RetentionAfterPrgrm
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
 		Get().RetentionAfterPrgrm = dynamic_cast<Param<bool> *>(parBase)->Value();
-
 		//RetentionEndTime
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rEndTime);
 		Get().RetentionEndTime = dynamic_cast<Param<double> *>(parBase)->Value();
@@ -1656,6 +1660,10 @@ namespace SctmUtils
 		if (SctmFileStream::FileExisted(userParFile))
 		{
 			ReadParFile(userParFile, userParMap);
+		}
+		else
+		{
+			SctmMessaging::Get().PrintFileError(userParFile.c_str(), "The user parameter file is missing, use default.");
 		}
 	}
 
@@ -1858,6 +1866,12 @@ namespace SctmUtils
 			valDouble = SctmConverter::StringToDouble(valStr);
 			Param<double> *par = new Param<double>(ParName::debug_trap_occupy, valDouble);
 			mapToSet[ParName::debug_trap_occupy] = par;
+			return;
+		}
+		if (name == "debug.call.pytaurus")
+		{
+			Param<string> *par = new Param<string>(ParName::debug_call_pytaurus, valStr);
+			mapToSet[ParName::debug_call_pytaurus] = par;
 			return;
 		}
 		if (name == "debug.rAfterP")
@@ -2561,6 +2575,23 @@ namespace SctmUtils
 
 	void SctmPyCaller::PySentaurus()
 	{
+		string callPytaurusMode = SctmGlobalControl::Get().CallPytaurus;
+		if ( callPytaurusMode == "Initial")
+		{
+			if (SctmTimeStep::Get().StepNumber() != 1)
+			{
+				return;
+			}
+		}
+		else if (callPytaurusMode == "EveryStep")
+		{
+			//do nothing
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10053);
+		}
+
 		string command = SctmEnv::Get().PytaurusPath + " " +
 			SctmGlobalControl::Get().ProjectDirectory;
 		std::system(command.c_str());

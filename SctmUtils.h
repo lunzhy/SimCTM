@@ -351,6 +351,7 @@ namespace SctmUtils
 		//for debug
 		double TrapOccupation; ///< trap occupation status
 		bool LateralTunneling; ///< lateral tunneling (non-orthogonal) around the gate
+		string CallPytaurus; ///< the mode for calling Pytaurus in Linux
 		bool RetentionAfterPrgrm; ///< Retention after program
 		double RetentionEndTime; ///< Retention end time after program
 
@@ -403,6 +404,7 @@ namespace SctmUtils
 			//for debugging
 			debug_trap_occupy,
 			debug_lateral_tunnel,
+			debug_call_pytaurus,
 			debug_rAfterP,
 			debug_rEndTime,
 

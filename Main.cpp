@@ -40,7 +40,7 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 		if (SctmEnv::IsLinux())
 		{
 			SctmMessaging::Get().PrintHeader("Preparing project folder.");
-			SctmPyCaller::PyPrepare(prj);
+			SctmPyCaller::PyPrepare(prj);//currently the preparation of project folders only exists in Linux
 		}
 	}
 
