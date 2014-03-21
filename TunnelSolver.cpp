@@ -313,7 +313,7 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 	{
 		SlopingTunnelTrapToGate slopeTunnel = SlopingTunnelTrapToGate(this->domain, currVert);
 		slopeTunnel.LoadBandStructureAlongPath(deltaX_Block, cbEdge_Block, eMass_Block);
-		tunnelTrapToGateEnable = true;
+		this->tunnelTrapToGateEnable = true;
 		vertsBlockOxideEnd.push_back(slopeTunnel.GetGateVertex());
 	}
 	else
@@ -1279,7 +1279,7 @@ bool SlopingTunnelTrapToGate::IsSlopingTunnel(FDVertex *vert)
 	//the vertex is at the block/trap interface
 	FDElement *southEastElem = vert->SoutheastElem;
 	FDElement *southWestElem = vert->SouthwestElem;
-	return false;
+
 
 	if (southEastElem != NULL && southWestElem != NULL && 
 		southEastElem->Region->RegName == "Trap.Iso2" && southWestElem->Region->RegName == "Trap.Iso2")

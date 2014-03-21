@@ -565,12 +565,27 @@ namespace SctmUtils
 	public:
 		SctmEnv();
 		static SctmEnv& Get();
+		static bool IsLinux();
+		static bool IsWindows();
 
 		string DebugPrjPath;
 		string DefaultParamPath;
 		string ClearPrjPyPath;
 
 		string PathSep; ///< path separator
+		string PytaurusPath;
+	};
+
+
+	class SctmPyCaller
+	{
+	public:
+		static void PyPrepare(string folderPath);
+		static void PyClean(string folderPath);
+		static void PySentaurus();
+
+	protected:
+		string pyPath;
 	};
 
 }

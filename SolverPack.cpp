@@ -50,9 +50,11 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
+	SctmMessaging::Get().PrintHeader("Writing substrate information for Pytaurus.");
+	SctmData::Get().WriteVfbShiftEachInterface(domain);
+
 	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
-	SctmData::Get().WriteVfbShiftEachInterface(domain);
 
 	while (!SctmTimeStep::Get().End())
 	{
@@ -68,7 +70,14 @@ void SolverPack::callIteration()
 		}
 		else if (simStructure == "Triple")
 		{
+			//call Pytaurus to run Sentaurus to write substrate.in
+			if (SctmEnv::IsLinux())
+			{
+				SctmPyCaller::PySentaurus();
+			}
+			//if SimCTM is in running on Windows, read the same file, temporarily.
 			readSubstrateFromFile();
+			//this also prepares charge.in for Pytaurus
 			SctmData::Get().WriteVfbShiftEachInterface(domain);
 		}
 

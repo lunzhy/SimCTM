@@ -1341,15 +1341,12 @@ namespace SctmUtils
 
 	void SctmData::WriteVfbShiftEachInterface(FDDomain *domain)
 	{
-		if (SctmTimeStep::Get().StepNumber() == 0)
-		{
-			fileName = directoryName + pathSep + "exchange" + pathSep + "charge.in";
-		}
-		else
-		{
-			fileName = directoryName + pathSep + "Substrate" + pathSep + "VfbInterface" + generateFileSuffix();
-		}
-		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+		fileName = directoryName + pathSep + "Substrate" + pathSep + "VfbInterface" + generateFileSuffix();
+		SctmFileStream file_subs = SctmFileStream(fileName, SctmFileStream::Write);
+		fileName = directoryName + pathSep + "exchange" + pathSep + "charge.in";
+		SctmFileStream file_change = SctmFileStream(fileName, SctmFileStream::Write);
+
+
 
 		Normalization norm = Normalization(this->temperature);
 		vector<int> leftVertID;
@@ -1397,7 +1394,8 @@ namespace SctmUtils
 
 		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "flatband voltage shift of each interface segment at time=[" + timeStr + "] (left vertex ID, right vertex ID, voltage)";
-		file.WriteVector(leftVertID, rightVertID, flatbandVoltageShift, title.c_str());
+		file_subs.WriteVector(leftVertID, rightVertID, flatbandVoltageShift, title.c_str());
+		file_change.WriteVector(leftVertID, rightVertID, flatbandVoltageShift, title.c_str());
 	}
 
 
@@ -2527,7 +2525,8 @@ namespace SctmUtils
 		if (SCTM_ENV == "Windows")
 		{
 			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
-			DefaultParamPath = "E:\\PhD Study\\SimCTM\\default.param";
+			DefaultParamPath = "E:\\MyCode\\SimCTM\\SimCTM\\default.param";
+			//DefaultParamPath = "E:\\PhD Study\\SimCTM\\default.param";
 			ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
 			PathSep = "\\";
 		}
@@ -2535,9 +2534,44 @@ namespace SctmUtils
 		{
 			DebugPrjPath = "/home/lunzhy/SimCTM/debug";
 			DefaultParamPath = "/home/lunzhy/SimCTM/default.param";
+			PytaurusPath = "/home/lunzhy/SimCTM/Pytaurus/lib/pytaurus.py";
 			PathSep = "/";
 		}
 	}
+
+	bool SctmEnv::IsLinux()
+	{
+		return SCTM_ENV == "Linux";
+	}
+
+	bool SctmEnv::IsWindows()
+	{
+		return SCTM_ENV == "Windows";
+	}
+
+
+
+
+
+	void SctmPyCaller::PyClean(string folderPath)
+	{
+		string command = SctmEnv::Get().PytaurusPath + " clean " + folderPath;
+		std::system(command.c_str());
+	}
+
+	void SctmPyCaller::PySentaurus()
+	{
+		string command = SctmEnv::Get().PytaurusPath + " " +
+			SctmGlobalControl::Get().ProjectDirectory;
+		std::system(command.c_str());
+	}
+
+	void SctmPyCaller::PyPrepare(string folderPath)
+	{
+		string command = SctmEnv::Get().PytaurusPath + " prepare " + folderPath;
+		std::system(command.c_str());
+	}
+
 
 
 }

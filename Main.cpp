@@ -17,15 +17,30 @@ using namespace SctmUtils;
 
 void initialize(const char *prjdir ="", const char *defaulParFile = "")
 {
+	SctmMessaging::Get().PrintWelcomingInformation();
+
 	string prj(prjdir);
 	string defaultParam(defaulParFile);
 
 	if (prj.empty())
 	{
+		SctmMessaging::Get().PrintHeader("Cleaning debug folder.");
 		prj = SctmEnv::Get().DebugPrjPath;
-		if (SCTM_ENV == "Windows")
+		if (SctmEnv::IsWindows())
 		{
 			std::system(SctmEnv::Get().ClearPrjPyPath.c_str());
+		}
+		if (SctmEnv::IsLinux())
+		{
+			SctmPyCaller::PyClean(prj);
+		}
+	}
+	else
+	{
+		if (SctmEnv::IsLinux())
+		{
+			SctmMessaging::Get().PrintHeader("Preparing project folder.");
+			SctmPyCaller::PyPrepare(prj);
 		}
 	}
 
@@ -37,7 +52,6 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 
 	SctmGlobalControl::SetGlobalControl(defaultParam, prj);
 
-	SctmMessaging::Get().PrintWelcomingInformation();
 	SctmMessaging::Get().PrintHeader("Initializing the simulator.");
 	SctmTimer::Get().Start();
 	
