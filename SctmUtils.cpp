@@ -1398,7 +1398,12 @@ namespace SctmUtils
 		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "flatband voltage shift of each interface segment at time=[" + timeStr + "] (left vertex ID, right vertex ID, voltage)";
 		file_subs.WriteVector(leftVertID, rightVertID, flatbandVoltageShift, title.c_str());
+		if (SctmGlobalControl::Get().CallPytaurus == "Initial" && SctmTimeStep::Get().TimeStep() == 1)
+		{
+			return;
+		}
 		file_change.WriteVector(leftVertID, rightVertID, flatbandVoltageShift, title.c_str());
+
 	}
 
 
@@ -2576,6 +2581,10 @@ namespace SctmUtils
 	void SctmPyCaller::PySentaurus()
 	{
 		string callPytaurusMode = SctmGlobalControl::Get().CallPytaurus;
+		if ( callPytaurusMode == "Never")
+		{
+			return;
+		}
 		if ( callPytaurusMode == "Initial")
 		{
 			if (SctmTimeStep::Get().StepNumber() != 1)
@@ -2594,6 +2603,7 @@ namespace SctmUtils
 
 		string command = SctmEnv::Get().PytaurusPath + " " +
 			SctmGlobalControl::Get().ProjectDirectory;
+		SctmMessaging::Get().PrintHeader("Solve channel potential using Sentaurus");
 		std::system(command.c_str());
 	}
 
