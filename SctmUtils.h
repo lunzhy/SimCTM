@@ -259,6 +259,7 @@ namespace SctmUtils
 		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
 
 		static bool FileExisted(string _filename);
+
 	private:
 		string fileName;
 	};
@@ -290,7 +291,8 @@ namespace SctmUtils
 		void WriteTimerInfo(SctmTimer &timer);
 		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);
 		void WritePooleFrenkelInfo();
-		
+		void WriteSubstrateFromInput();
+
 		void ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap);
 	protected:
 		double temperature;
@@ -584,7 +586,8 @@ namespace SctmUtils
 	public:
 		static void PyPrepare(string folderPath);
 		static void PyClean(string folderPath);
-		static void PySentaurus();
+		static void PySolve();
+		static void PyBuildStructure();
 
 	protected:
 		string pyPath;

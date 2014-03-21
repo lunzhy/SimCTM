@@ -73,10 +73,11 @@ void SolverPack::callIteration()
 			//Pytaurus will read the charge.in file
 			if (SctmEnv::IsLinux())
 			{
-				SctmPyCaller::PySentaurus();
+				SctmPyCaller::PySolve();
 			}
 			//if SimCTM is in running on Windows, read the same file, temporarily.
 			readSubstrateFromFile();
+			SctmData::Get().WriteSubstrateFromInput();
 		}
 
 		//solver Poisson equation

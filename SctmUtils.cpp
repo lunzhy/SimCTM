@@ -1406,6 +1406,25 @@ namespace SctmUtils
 
 	}
 
+	void SctmData::WriteSubstrateFromInput()
+	{
+		fileName = directoryName + pathSep + "exchange" + pathSep + "substrate.in";
+		SctmFileStream charge_file = SctmFileStream(fileName, SctmFileStream::Read);
+
+		fileName = directoryName + pathSep + "Substrate" + pathSep + "substrate" + generateFileSuffix();
+		SctmFileStream subs_file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<int> vertID;
+		vector<double> pot;
+		vector<double> fermiAbove;
+
+		charge_file.ReadVector(vertID, pot, fermiAbove);
+		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "substrate result at time=[" + timeStr + "] (vertex ID, potential[V], fermi energy above cb edge [eV])";
+		subs_file.WriteVector(vertID, pot, fermiAbove, title.c_str());
+	}
+
+
 
 
 
@@ -2578,14 +2597,14 @@ namespace SctmUtils
 		std::system(command.c_str());
 	}
 
-	void SctmPyCaller::PySentaurus()
+	void SctmPyCaller::PySolve()
 	{
 		string callPytaurusMode = SctmGlobalControl::Get().CallPytaurus;
-		if ( callPytaurusMode == "Never")
+		if (callPytaurusMode == "Never")
 		{
 			return;
 		}
-		if ( callPytaurusMode == "Initial")
+		if (callPytaurusMode == "Initial")
 		{
 			if (SctmTimeStep::Get().StepNumber() != 1)
 			{
@@ -2601,9 +2620,9 @@ namespace SctmUtils
 			SCTM_ASSERT(SCTM_ERROR, 10053);
 		}
 
-		string command = SctmEnv::Get().PytaurusPath + " " +
+		string command = SctmEnv::Get().PytaurusPath + " solve " +
 			SctmGlobalControl::Get().ProjectDirectory;
-		SctmMessaging::Get().PrintHeader("Solve channel potential using Sentaurus");
+		SctmMessaging::Get().PrintHeader("Solve channel potential using Pytaurus.");
 		std::system(command.c_str());
 	}
 
@@ -2612,6 +2631,28 @@ namespace SctmUtils
 		string command = SctmEnv::Get().PytaurusPath + " prepare " + folderPath;
 		std::system(command.c_str());
 	}
+
+	void SctmPyCaller::PyBuildStructure()
+	{
+		string callPytaurusMode = SctmGlobalControl::Get().CallPytaurus;
+		if (callPytaurusMode == "Never" || callPytaurusMode == "Initial" || callPytaurusMode == "EveryStep")
+		{
+			if (callPytaurusMode == "Never")
+			{
+				return;
+			}
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10053);
+		}
+
+		SctmMessaging::Get().PrintHeader("Build structure using Pytaurus.");
+		string command = SctmEnv::Get().PytaurusPath + " structure " +
+			SctmGlobalControl::Get().ProjectDirectory;
+		std::system(command.c_str());
+	}
+
 
 
 
