@@ -2548,7 +2548,7 @@ namespace SctmUtils
 		{
 			DebugPrjPath = "/home/lunzhy/SimCTM/debug";
 			DefaultParamPath = "/home/lunzhy/SimCTM/default.param";
-			PytaurusPath = "/home/lunzhy/SimCTM/Pytaurus/bin/pyt.py";
+			PytaurusPath = "/home/lunzhy/SimCTM/code/Pytaurus/bin/pyt.py";
 			PathSep = "/";
 		}
 	}
