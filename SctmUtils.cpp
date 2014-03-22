@@ -752,6 +752,7 @@ namespace SctmUtils
 		//this->currTimeStep = getTimeStep_old();
 		this->currTimeStep = getTimeStep();
 		this->currElapsedTime = timeSequence.at(currStepNumber);
+		IsCallPytaurus();
 	}
 
 	double SctmTimeStep::TimeStep() const
@@ -903,15 +904,16 @@ namespace SctmUtils
 
 	bool SctmTimeStep::IsCallPytaurus()
 	{
-		double eps = 1e-15;
+		double eps = 1e-10;
 		double diff = 0;
+		bool ret = false;
 		Normalization norm = Normalization(this->temperature);
 		double currentTime = norm.PullTime(currElapsedTime);
 		if (currStepNumber == 1)
 		{
 			return true;
 		}
-		diff = SctmMath::log10(currentTime) - SctmMath::floor(SctmMath::log10(currentTime));
+		diff = SctmMath::abs(SctmMath::log10(currentTime)) - SctmMath::abs(SctmMath::floor(SctmMath::log10(currentTime)));
 		return SctmMath::abs(diff) < eps;
 	}
 

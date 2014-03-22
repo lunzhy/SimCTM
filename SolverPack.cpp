@@ -50,7 +50,10 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	SctmPyCaller::PyBuildStructure();
+	if (SctmEnv::Get().IsLinux())
+	{
+		SctmPyCaller::PyBuildStructure();
+	}
 	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
 
