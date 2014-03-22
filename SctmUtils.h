@@ -141,6 +141,7 @@ namespace SctmUtils
 		int StepNumber() const;
 		double TimeStep() const;
 		bool End() const;
+		bool IsCallPytaurus();
 	protected:
 		double temperature;
 		double currElapsedTime; /// current time of the simulation

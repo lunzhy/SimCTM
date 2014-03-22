@@ -60,7 +60,7 @@ void SolverPack::callIteration()
 
 		if (simStructure == "Single")
 		{
-			//solve substrate
+			//solve substrate, no matter under Windows or Linux environment
 			subsSolver->SolveSurfacePot();
 			fetchSubstrateResult();
 			SctmData::Get().WriteSubstrateResult(subsSolver);

@@ -855,7 +855,7 @@ namespace SctmUtils
 		//}
 		double startTime = SctmGlobalControl::Get().SimStartTime;
 		double endTime = SctmGlobalControl::Get().SimEndTime;
-		double stepPerDecade = SctmGlobalControl::Get().SimStepsPerDecade;
+		int stepPerDecade = SctmGlobalControl::Get().SimStepsPerDecade;
 		/////////////////////////////////////////////
 
 		Normalization norm  = Normalization(this->temperature);
@@ -863,7 +863,7 @@ namespace SctmUtils
 		double increase = 0;
 		
 		time = startTime;
-		increase = SctmMath::exp10( 1 / stepPerDecade );
+		increase = SctmMath::exp10( 1.0 / stepPerDecade ); // use 1.0 rather that 1
 		timeSequence.push_back(0);
 		timeSequence.push_back(norm.PushTime(startTime));
 		while (!isEndTime(time, endTime))
@@ -900,6 +900,21 @@ namespace SctmUtils
 		static SctmTimeStep instance;
 		return instance;
 	}
+
+	bool SctmTimeStep::IsCallPytaurus()
+	{
+		double eps = 1e-15;
+		double diff = 0;
+		Normalization norm = Normalization(this->temperature);
+		double currentTime = norm.PullTime(currElapsedTime);
+		if (currStepNumber == 1)
+		{
+			return true;
+		}
+		diff = SctmMath::log10(currentTime) - SctmMath::floor(SctmMath::log10(currentTime));
+		return SctmMath::abs(diff) < eps;
+	}
+
 
 
 
@@ -2606,7 +2621,7 @@ namespace SctmUtils
 		}
 		if (callPytaurusMode == "Initial")
 		{
-			if (SctmTimeStep::Get().StepNumber() != 1)
+			if (SctmTimeStep::Get().StepNumber() != 1) //i.e. first step
 			{
 				return;
 			}
@@ -2614,6 +2629,13 @@ namespace SctmUtils
 		else if (callPytaurusMode == "EveryStep")
 		{
 			//do nothing
+		}
+		else if (callPytaurusMode == "Major")
+		{
+			if (!SctmTimeStep::Get().IsCallPytaurus())
+			{
+				return;
+			}
 		}
 		else
 		{
@@ -2635,16 +2657,9 @@ namespace SctmUtils
 	void SctmPyCaller::PyBuildStructure()
 	{
 		string callPytaurusMode = SctmGlobalControl::Get().CallPytaurus;
-		if (callPytaurusMode == "Never" || callPytaurusMode == "Initial" || callPytaurusMode == "EveryStep")
+		if (callPytaurusMode == "Never")
 		{
-			if (callPytaurusMode == "Never")
-			{
-				return;
-			}
-		}
-		else
-		{
-			SCTM_ASSERT(SCTM_ERROR, 10053);
+			return;
 		}
 
 		SctmMessaging::Get().PrintHeader("Build structure using Pytaurus.");
