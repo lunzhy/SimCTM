@@ -1491,9 +1491,9 @@ namespace SctmUtils
 
 		vector<string> outRegionsName;
 		outRegionsName.push_back("Trap.Gate1");
-		outRegionsName.push_back("Trap.Iso1");
 		outRegionsName.push_back("Trap.Iso2");
 		outRegionsName.push_back("Trap.Gate3");
+		outRegionsName.push_back("Trap.Iso3");
 
 		string regName = "";
 		for (size_t ir = 0; ir != outRegionsName.size(); ++ir)
