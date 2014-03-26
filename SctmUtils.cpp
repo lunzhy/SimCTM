@@ -1441,18 +1441,85 @@ namespace SctmUtils
 		subs_file.WriteVector(vertID, pot, fermiAbove, title.c_str());
 	}
 
+	void SctmData::WriteTrappedDensRegionwise(FDDomain *domain)
+	{
+		//only for triple cell structures
+		if (SctmGlobalControl::Get().Structure != "Triple")
+		{
+			return;
+		}
 
+		static bool firstRun = true;
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "chargeRegionwise.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
+		if (firstRun)
+		{
+			string headline = "Time [s]\t\tMain Cell [1/cm]\t\tOther Regions [1/cm]";
+			file.WriteLine(headline);
+			firstRun = false;
+		}
 
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+		
+		double time = norm.PullTime(SctmTimeStep::Get().ElapsedTime());
+		double total = 0;
+		double mainCell = 0;
+		double outLateral = 0;
 
+		double lineDens = 0; //line density (density * area)
+		double area = 0;
 
+		FDRegion *region = NULL;
+		FDElement *elem = NULL;
 
+		//Trap.Gate2
+		region = domain->GetRegion("Trap.Gate2");
+		vector<FDElement *> &elems = region->elements;
+		for (size_t ielem = 0; ielem != elems.size(); ++ielem)
+		{
+			elem = elems.at(ielem);
+			area = elem->Area / 4;
+			lineDens = 0;
+			lineDens += elem->SouthwestVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+			lineDens += elem->SoutheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+			lineDens += elem->NorthwestVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+			lineDens += elem->NortheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+		}
+		total += lineDens;
+		mainCell = lineDens;
 
+		vector<string> outRegionsName;
+		outRegionsName.push_back("Trap.Gate1");
+		outRegionsName.push_back("Trap.Iso1");
+		outRegionsName.push_back("Trap.Iso2");
+		outRegionsName.push_back("Trap.Gate3");
 
+		string regName = "";
+		for (size_t ir = 0; ir != outRegionsName.size(); ++ir)
+		{
+			regName = outRegionsName.at(ir);
+			region = domain->GetRegion(regName);
+			vector<FDElement *> &elems = region->elements;
+			for (size_t ielem = 0; ielem != elems.size(); ++ielem)
+			{
+				elem = elems.at(ielem);
+				area = elem->Area / 4;
+				lineDens = 0;
+				lineDens += elem->SouthwestVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+				lineDens += elem->SoutheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+				lineDens += elem->NorthwestVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+				lineDens += elem->NortheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+			}
+			total += lineDens;
+			outLateral += lineDens;
+		}
 
-
-
-
+		string line = SctmConverter::DoubleToString(time) + " " +
+			SctmConverter::DoubleToString(norm.PullLineDensity(mainCell) / total) + " " +
+			SctmConverter::DoubleToString(norm.PullLineDensity(outLateral) / total);
+		file.WriteLine(line);
+	}
 
 
 

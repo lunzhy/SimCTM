@@ -127,6 +127,7 @@ void SolverPack::callIteration()
 		
 		//write the final result
 		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
+		SctmData::Get().WriteTrappedDensRegionwise(domain);
 		SctmData::Get().WriteFlatBandVoltageShift(domain);
 
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());

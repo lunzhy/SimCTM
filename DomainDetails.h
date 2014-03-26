@@ -27,7 +27,10 @@ namespace SctmPhys
 	class PhysProperty;
 	class TrapProperty;
 }
-class OneDimSubsSolver;
+namespace SctmUtils
+{
+	class SctmData;
+}
 
 using MaterialDB::Material;
 using std::string;
@@ -315,6 +318,7 @@ protected:
 class FDRegion
 {
 	friend class TripleCells;
+	friend class SctmUtils::SctmData;
 public:
 	string RegName;
 	/// @brief FDRegion is the construction method of the class

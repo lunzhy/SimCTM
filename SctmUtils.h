@@ -286,13 +286,14 @@ namespace SctmUtils
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
-		
+
 		void WriteVertexInfo(vector<FDVertex *> &vertices);
 		void WriteVfbShiftEachInterface(FDDomain *domain);
 		void WriteTimerInfo(SctmTimer &timer);
 		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);
 		void WritePooleFrenkelInfo();
 		void WriteSubstrateFromInput();
+		void WriteTrappedDensRegionwise(FDDomain *domain);
 
 		void ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap);
 	protected:
