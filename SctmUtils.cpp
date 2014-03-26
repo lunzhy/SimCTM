@@ -691,6 +691,18 @@ namespace SctmUtils
 		tofile.close();
 	}
 
+	void SctmFileStream::WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<string> vec4, const char *title /*= "title not assigned"*/)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
+		{
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << '\t' << vec4.at(iv) << endl;
+		}
+		tofile.close();
+	}
+
+
 
 
 	void SctmFileStream::WriteLine(string &line)
@@ -724,7 +736,7 @@ namespace SctmUtils
 		std::getline(infile, title);
 
 		vec1.clear(); vec2.clear(); vec3.clear();
-		while (infile >> vertID >> val2 >> val1)
+		while (infile >> vertID >> val1 >> val2)
 		{
 			vec1.push_back(vertID);
 			vec2.push_back(val1);
@@ -1043,6 +1055,7 @@ namespace SctmUtils
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> currDens;
+		vector<string> direction;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
@@ -1053,10 +1066,18 @@ namespace SctmUtils
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
 			currDens.push_back(norm.PullCurrDens(it->second));
+			if (currVert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			{
+				direction.push_back("in");
+			}
+			else
+			{
+				direction.push_back("out");
+			}
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density)";
-		file.WriteVector(vecX, vecY, currDens, title.c_str());
+		file.WriteVector(vecX, vecY, currDens, direction, title.c_str());
 	}
 
 	void SctmData::WriteElecCurrDens(vector<FDVertex *> &vertices)
