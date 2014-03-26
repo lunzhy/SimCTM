@@ -1516,8 +1516,9 @@ namespace SctmUtils
 		}
 
 		string line = SctmConverter::DoubleToString(time) + " " +
-			SctmConverter::DoubleToString(mainCell / total) + " " +
-			SctmConverter::DoubleToString(outLateral / total);
+			SctmConverter::DoubleToString(norm.PullLineDensity(total)) + " " +
+			(total == 0 ? "0" : SctmConverter::DoubleToString(mainCell / total)) + " " +
+			(total == 0 ? "0" : SctmConverter::DoubleToString(outLateral / total));
 		file.WriteLine(line);
 	}
 
