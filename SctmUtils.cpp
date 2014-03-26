@@ -1455,7 +1455,7 @@ namespace SctmUtils
 
 		if (firstRun)
 		{
-			string headline = "Time [s]\t\tMain Cell [1/cm]\t\tOther Regions [1/cm]";
+			string headline = "Time [s]\t\tTotal Charge\t\tMain Cell [ratio]\t\tOther Regions [ratio]";
 			file.WriteLine(headline);
 			firstRun = false;
 		}
@@ -1485,9 +1485,9 @@ namespace SctmUtils
 			lineDens += elem->SoutheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
 			lineDens += elem->NorthwestVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
 			lineDens += elem->NortheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+			total += lineDens;
 		}
-		total += lineDens;
-		mainCell = lineDens;
+		mainCell = total;
 
 		vector<string> outRegionsName;
 		outRegionsName.push_back("Trap.Gate1");
@@ -1510,9 +1510,9 @@ namespace SctmUtils
 				lineDens += elem->SoutheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
 				lineDens += elem->NorthwestVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
 				lineDens += elem->NortheastVertex->Trap->GetTrapPrpty(TrapProperty::eTrapped) * area;
+				outLateral += lineDens;
+				total += lineDens;
 			}
-			total += lineDens;
-			outLateral += lineDens;
 		}
 
 		string line = SctmConverter::DoubleToString(time) + " " +
