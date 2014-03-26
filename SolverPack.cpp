@@ -174,6 +174,7 @@ void SolverPack::fetchTunnelOxideResult()
 		else // eTunnelOut electron tunnel out of the trapping layer
 		{
 			it->second = -it->second;
+			vert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
 		}
 	}
 
