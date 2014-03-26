@@ -1284,7 +1284,7 @@ namespace SctmUtils
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
-		double time = norm.PullTime(SctmTimeStep::Get().ElapsedTime());
+		double time = SctmTimeStep::Get().ElapsedTime(); //elapsed time has been converted
 
 		string line = "Energy decrease of Poole-Frenkel effect surpasses trap energy at " +
 			SctmConverter::DoubleToString(time) + "s.";
@@ -1462,7 +1462,7 @@ namespace SctmUtils
 
 		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
 		
-		double time = norm.PullTime(SctmTimeStep::Get().ElapsedTime());
+		double time = SctmTimeStep::Get().ElapsedTime(); //elapsed time has been converted
 		double total = 0;
 		double mainCell = 0;
 		double outLateral = 0;
@@ -1516,8 +1516,8 @@ namespace SctmUtils
 		}
 
 		string line = SctmConverter::DoubleToString(time) + " " +
-			SctmConverter::DoubleToString(norm.PullLineDensity(mainCell) / total) + " " +
-			SctmConverter::DoubleToString(norm.PullLineDensity(outLateral) / total);
+			SctmConverter::DoubleToString(mainCell / total) + " " +
+			SctmConverter::DoubleToString(outLateral / total);
 		file.WriteLine(line);
 	}
 
