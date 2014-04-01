@@ -416,11 +416,7 @@ namespace SctmPhys
 					double pn_div_px = ( -he*he * nw + (he*he - hw*hw) * nc + hw*hw * ne ) / ( he*hw*(he + hw) );
 					double mobility = GetPhysPrpty(eMobility);
 
-<<<<<<< HEAD
 					// J = u (-n * p_phi/p_x + p_n / p_x )
-=======
-					// J = u( -n * p_phi/p_x + p_n / p_x )
->>>>>>> f72991e9a0b2da639013018e5abd6cceca64b725
 					ret = mobility * ( nc * elecFieldX + pn_div_px);
 				}
 				else
