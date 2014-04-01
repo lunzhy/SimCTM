@@ -61,7 +61,10 @@ sc.block.material			: Al2O3					# a material in the material set
 
 ################### paramters for triple cell (tc) structure #################
 # parameters for sentaurus solving
-tc.drain.voltage			: 1.5
+tc.drain.voltage			: 1.5					# the drain voltage in solving potential
+tc.drain.voltage.read		: 1.5					# the drain voltage for read vth
+tc.gate.voltage.pass		: 5						# the gate pass voltage for read vth
+tc.gate.voltage.read		: 16					# the gate voltage for read vth
 
 # gate 1
 tc.gate1.voltage			: 10					# in [V]

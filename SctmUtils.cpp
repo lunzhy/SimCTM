@@ -2584,7 +2584,8 @@ namespace SctmUtils
 			return;
 		}
 		//process the parameters used in Pytaurus
-		if (name == "tc.drain.voltage")
+		if (name == "tc.drain.voltage" || name == "tc.drain.voltage.read" || name == "tc.gate.voltage.pass" ||
+			name == "tc.gate.voltage.read")
 		{
 			return;
 		}
