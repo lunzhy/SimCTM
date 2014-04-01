@@ -100,6 +100,9 @@ namespace SctmPhys
 			ElectricField, ///< the magnitude of electric field
 			ElectricField_X, ///< electric field in X direction
 			ElectricField_Y, ///< electric field in Y direction
+			ElectricFieldTrap_Y, ///< electric field restricted in trapping layer in X direction 
+			ElectricFieldTrap_X, ///< electric field restricted in trapping layer in Y direction
+			ElectricFieldTrap, ///< electric field restricted in trapping layer
 			eCurrentDensity_X, ///< electron current density in X direction
 			eCurrentDensity_Y, ///< electron current density in Y direction
 			eCurrentDensity, ///< the magnitude of electron current density
