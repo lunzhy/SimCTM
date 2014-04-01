@@ -332,8 +332,8 @@ namespace SctmPhys
 					double pn_div_px = ( -he*he * nw + (he*he - hw*hw) * nc + hw*hw * ne ) / ( he*hw*(he + hw) );
 					double mobility = GetPhysPrpty(eMobility);
 
-					// J = -u( n * p_phi/p_x + p_n / p_x )
-					ret = mobility * ( nc * elecFieldX - pn_div_px);
+					// J = u (-n * p_phi/p_x + p_n / p_x )
+					ret = mobility * ( nc * elecFieldX + pn_div_px);
 				}
 				else
 				{
@@ -381,7 +381,7 @@ namespace SctmPhys
 					double pn_div_py = ( -hn*hn * ns + (hn*hn - hs*hs) * nc + hs*hs * nn ) / ( hn*hs*(hn + hs) );
 					double mobility = GetPhysPrpty(eMobility);
 
-					ret = mobility * ( nc * elecFieldY - pn_div_py );
+					ret = mobility * ( nc * elecFieldY + pn_div_py );
 				}
 				else
 				{
