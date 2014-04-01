@@ -309,6 +309,90 @@ namespace SctmPhys
 				ret = SctmMath::sqrt( elecFieldX * elecFieldX + elecFieldY * elecFieldY );
 				break;
 			}
+			case ElectricFieldTrap_X:
+			{
+				double bcNormX = 0; // inner vertex
+				if (vertSelf->IsAtBoundary(FDBoundary::Potential))
+				{
+					bcNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::Potential).X();
+				}
+				//bnd_normX < 0, west boundary
+				//bnd_normX > 0, east boundary
+				//bnd_normX = 0, inner vertex or vertex at boundary but inside in x direction
+				if (bcNormX == 0)
+				{
+					// for boundary vertex in terms of X direction
+					ret = GetPhysPrpty(PhysProperty::ElectricField_X);
+				}
+				else if (bcNormX < 0)
+				{
+					SCTM_ASSERT(vertSelf->EastVertex->EastVertex != NULL, 10025);
+					double he = vertSelf->EastLength;
+					double hee = vertSelf->EastVertex->EastLength;
+					double fe = vertSelf->EastVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fee = vertSelf->EastVertex->EastVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fc = GetPhysPrpty(ElectrostaticPotential);
+					SCTM_ASSERT(hee != 0 && he != 0, 10024);
+					ret = -(-hee*(2 * he + hee) * fc + (he + hee)*(he + hee) * fe - he*he * fee) / (he*hee*(he + hee));
+				}
+				else //  (bndNormX > 0)
+				{
+					SCTM_ASSERT(vertSelf->WestVertex->WestVertex != NULL, 10025);
+					double hw = vertSelf->WestLength;
+					double hww = vertSelf->WestVertex->WestLength;
+					double fw = vertSelf->WestVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fww = vertSelf->WestVertex->WestVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fc = GetPhysPrpty(ElectrostaticPotential);
+					SCTM_ASSERT(hw != 0 && hww != 0, 10024);
+					ret = -(hw*hw * fww - (hw + hww)*(hw + hww) * fw + hww*(2 * hw + hww) * fc) / (hw*hww*(hw + hww));
+				}
+				break;
+			}
+			case ElectricFieldTrap_Y:
+			{
+				double bcNormY = 0;
+				if (vertSelf->IsAtBoundary(FDBoundary::eDensity))
+				{
+					bcNormY = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
+				}
+				//bnd_normY < 0, south boundary
+				//bnd_normY > 0, north boundary
+				//bnd_normY = 0, inner vertex
+				if (bcNormY == 0)
+				{
+					ret = GetPhysPrpty(PhysProperty::ElectricField_Y);
+				}
+				else if (bcNormY < 0)
+				{
+					SCTM_ASSERT(vertSelf->NorthVertex->NorthVertex != NULL, 10025);
+					double hn = vertSelf->NorthLength;
+					double hnn = vertSelf->NorthVertex->NorthLength;
+					double fn = vertSelf->NorthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fnn = vertSelf->NorthVertex->NorthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fc = GetPhysPrpty(ElectrostaticPotential);
+					SCTM_ASSERT(hnn != 0 && hn != 0, 10024);
+					ret = -(-hnn*(2 * hn + hnn) * fc + (hn + hnn)*(hn + hnn) * fn - hn*hn * fnn) / (hn*hnn*(hn + hnn));
+				}
+				else // ( bndNormX > 0 )
+				{
+					SCTM_ASSERT(vertSelf->SouthVertex->SouthVertex != NULL, 10025);
+					double hs = vertSelf->SouthLength;
+					double hss = vertSelf->SouthVertex->SouthLength;
+					double fs = vertSelf->SouthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fss = vertSelf->SouthVertex->SouthVertex->Phys->GetPhysPrpty(ElectrostaticPotential);
+					double fc = GetPhysPrpty(ElectrostaticPotential);
+					SCTM_ASSERT(hs != 0 && hss != 0, 10024);
+					ret = -(hs*hs * fss - (hs + hss)*(hs + hss) * fs + hss*(2 * hs + hss) * fc) / (hs*hss*(hs + hss));
+				}
+				break;
+			}
+			case ElectricFieldTrap:
+			{
+				double elecFieldX = GetPhysPrpty(ElectricFieldTrap_X);
+				double elecFieldY = GetPhysPrpty(ElectricFieldTrap_Y);
+				ret = SctmMath::sqrt(elecFieldX * elecFieldX + elecFieldY * elecFieldY);
+				break; 
+			}
 			case eCurrentDensity_X:
 			{
 				double bndNormX = 0;
@@ -332,7 +416,11 @@ namespace SctmPhys
 					double pn_div_px = ( -he*he * nw + (he*he - hw*hw) * nc + hw*hw * ne ) / ( he*hw*(he + hw) );
 					double mobility = GetPhysPrpty(eMobility);
 
+<<<<<<< HEAD
 					// J = u (-n * p_phi/p_x + p_n / p_x )
+=======
+					// J = u( -n * p_phi/p_x + p_n / p_x )
+>>>>>>> f72991e9a0b2da639013018e5abd6cceca64b725
 					ret = mobility * ( nc * elecFieldX + pn_div_px);
 				}
 				else
@@ -984,7 +1072,7 @@ namespace SctmPhys
 				Normalization norm = Normalization(temperature);
 				double q = SctmPhys::q;
 
-				double elecField = norm.PullElecField(vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField)); // in [V/cm], real value
+				double elecField = norm.PullElecField(vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricFieldTrap)); // in [V/cm], real value
 				double eps = GetTrapPrpty(TrapProperty::EpsilonTrapping) *
 					SctmPhys::VacuumDielectricConstant / (1 / SctmPhys::cm_in_m); // in [F/cm]
 

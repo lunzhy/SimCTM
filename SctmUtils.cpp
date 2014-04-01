@@ -1076,7 +1076,7 @@ namespace SctmUtils
 			}
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density)";
+		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density(in)/tunneling coefficient(out))";
 		file.WriteVector(vecX, vecY, currDens, direction, title.c_str());
 	}
 
