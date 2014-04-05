@@ -670,7 +670,8 @@ int TripleCells::getVertIdAt(int idX, int idY)
 void TripleCells::postProcessOfDomain()
 {
 	clearTrapExceptMainCell();
-	writeChannelPoints();
+	//writing channel points is done in Pytaurus
+	//writeChannelPoints();
 }
 
 void TripleCells::writeChannelPoints()
