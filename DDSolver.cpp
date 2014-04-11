@@ -58,7 +58,8 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 
 	//dealing the the trapping/detrapping mechanism
 	//some of these considerations update the matrix coefficient and some update rhs vector
-	updateCoeffMatrixForTrapping();
+	//updateCoeffMatrixForTrapping();
+	updateRhsForTrapping_ExplicitMethod();
 	updateRhsForDetrapping();
 	updateRhsForMFNTunneling();
 
@@ -1241,7 +1242,6 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping()
 	double coeff_trapping = 0;
 
 	static string captureModel = SctmGlobalControl::Get().TrapCaptureModel;
-	//static string captureModel = "J-Model";
 
 	for (size_t iVert = 0; iVert != ddVertices.size(); ++iVert)
 	{
@@ -1252,6 +1252,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping()
 		SCTM_ASSERT(indexEqu==iVert, 10012);
 		indexCoeff = indexEqu;
 
+		//notice the negative sign
 		if (captureModel == "J-Model")
 		{
 			coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model) *
@@ -1335,6 +1336,50 @@ void DriftDiffusionSolver::updateRhsForMFNTunneling()
 		rhsVector.at(equID) += -rhs_mfn;
 	}
 }
+
+void DriftDiffusionSolver::updateRhsForTrapping_ExplicitMethod()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	int equIndex = 0;
+	double eDensLastTime = 0;
+	double rhs_trapping = 0;
+
+	static string captureModel = SctmGlobalControl::Get().TrapCaptureModel;
+
+	for (size_t iVert = 0; iVert != ddVertices.size(); ++iVert)
+	{
+		currVert = ddVertices.at(iVert);
+		vertID = currVert->GetID();
+
+		equIndex = equationMap[vertID];
+		SCTM_ASSERT(equIndex == iVert, 10012);
+		
+		eDensLastTime = this->lastElecDensMap[vertID];
+
+		//notice the negative sign
+		if (captureModel == "J-Model")
+		{
+			rhs_trapping = - currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model) *
+				currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens) *
+				eDensLastTime;
+		}
+		else if (captureModel == "V-Model")
+		{
+			rhs_trapping = - currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model) *
+				currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens) *
+				eDensLastTime;
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10036);
+		}
+		
+		//the negative sign means moving the addend from right to left of the equation
+		rhsVector.at(equIndex) = -rhs_trapping;
+	}
+}
+
 
 DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
 {
