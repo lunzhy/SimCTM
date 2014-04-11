@@ -1150,7 +1150,8 @@ namespace SctmUtils
 		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string valStrFree = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens));
 		string valStrTrap = SctmConverter::DoubleToString(norm.PullLineDensity(trapElecDens));
-		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
+		string valStrTotal = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens + trapElecDens));
+		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap + "\t\t" + valStrTotal;
 		file.WriteLine(line);
 	}
 
@@ -1167,8 +1168,8 @@ namespace SctmUtils
 		string currDens = SctmConverter::DoubleToString(norm.PullCurrDens(it->second));
 		it = outCurrCoeff.begin();
 		string tunCoeff = SctmConverter::DoubleToString(norm.PullTunCoeff(it->second));
+		
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-
 		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
 		file.WriteLine(line);
 	}

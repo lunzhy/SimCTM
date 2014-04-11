@@ -1376,7 +1376,7 @@ void DriftDiffusionSolver::updateRhsForTrapping_ExplicitMethod()
 		}
 		
 		//the negative sign means moving the addend from right to left of the equation
-		rhsVector.at(equIndex) = -rhs_trapping;
+		rhsVector.at(equIndex) += -rhs_trapping;
 	}
 }
 
