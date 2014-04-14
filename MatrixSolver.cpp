@@ -38,6 +38,7 @@ namespace SctmMath
 		{
 			SCTM_ASSERT(SCTM_ERROR, 10006);
 		}
+		verifySolution(rhs, solution);
 	}
 
 	void SctmSparseMatrixSolver::RefreshMatrixValue(int _row, int _col, double _value, RefreshMode _mode)
@@ -96,5 +97,20 @@ namespace SctmMath
 			}
 	}
 
+	void SctmSparseMatrixSolver::verifySolution(std::vector<double> &rhs, std::vector<double> &solution)
+	{
+		int vectorSize = rhs.size();
+		Eigen::Map<Eigen::VectorXd> rhsOfEigen(rhs.data(), vectorSize, 1);
+		Eigen::Map<Eigen::VectorXd> solutionOfEigen(solution.data(), vectorSize, 1);
+		Eigen::VectorXd residue;
+
+		using namespace SctmMath;
+		residue = this->matrix * solutionOfEigen - rhsOfEigen;
+		double modulus = SctmMath::sqrt(residue.dot(residue));
+
+		using namespace SctmUtils;
+		string msg = "product : " + SctmConverter::DoubleToString(modulus);
+		SctmMessaging::Get().PrintMessageLine(msg);
+	}
 }
 

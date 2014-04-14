@@ -465,13 +465,46 @@ namespace SctmUtils
 		SctmData::Get().WritePooleFrenkelDecrease(domain->GetDDVerts());
 	}
 
+	void SctmDebug::WriteMatrixEquation(Eigen::SparseMatrix<double> &matrix, std::vector<double> &rhs, std::vector<double> &solution)
+	{
+		static bool isWritten = false;
+		if (!isWritten)
+		{
+			isWritten = true;
+		}
+		else
+		{
+			return;
+		}
+
+		string fileName = SctmEnv::Get().DebugPrjPath + SctmEnv::Get().PathSep + "Miscellaneous" +
+			SctmEnv::Get().PathSep + "matrix.txt";
+		std::ofstream file(fileName);
+		
+		Eigen::MatrixXd densMat(matrix);
+		file << densMat << endl << endl << endl;
+
+		for (size_t iVec = 0; iVec != rhs.size(); ++iVec)
+		{
+			file << rhs.at(iVec) << " ";
+		}
+		file << endl;
+
+		for (size_t iVec = 0; iVec != solution.size(); ++iVec)
+		{
+			file << solution.at(iVec) << " ";
+		}
+		file << endl;
+	}
 
 
 
 
 
 
-	void SctmMessaging::printLine(string &line)
+
+
+	void SctmMessaging::printLine(string line)
 	{
 		std::cout << line << std::endl;
 	}
@@ -554,6 +587,12 @@ namespace SctmUtils
 		cout << endl << "XXXXX=>" << "Invalid parameter name: " << name << endl;
 		exit(1);
 	}
+
+	void SctmMessaging::PrintMessageLine(string line)
+	{
+		printLine(line);
+	}
+
 
 
 

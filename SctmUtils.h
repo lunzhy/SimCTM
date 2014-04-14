@@ -208,6 +208,7 @@ namespace SctmUtils
 		void WriteBandInfo(FDDomain *domain);
 		void WriteDensity(FDDomain *domain);
 		void WritePooleFrenkel(FDDomain *domain);
+		void WriteMatrixEquation(Eigen::SparseMatrix<double> &matrix, std::vector<double> &rhs, std::vector<double> &solution);
 	private:
 		bool enable;
 		double temperature;
@@ -227,8 +228,9 @@ namespace SctmUtils
 		void PrintInvalidLineInParFile(const char *filename, int lineNum);
 		void PrintInvalidParameterName(string& name);
 		void PrintValue(double);
+		void PrintMessageLine(string line);
 	protected:
-		void printLine(string &line);
+		void printLine(string line);
 		void printLine(const char *line);
 	};
 
