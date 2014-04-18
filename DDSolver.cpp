@@ -34,8 +34,6 @@ DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), 
 
 void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 {
-	//SctmTimer::GetInstance().Set();
-
 	//set the simulation time step
 	setTimeStep();
 	
@@ -58,8 +56,8 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 
 	//dealing the the trapping/detrapping mechanism
 	//some of these considerations update the matrix coefficient and some update rhs vector
-	//updateCoeffMatrixForTrapping();
-	updateRhsForTrapping_ExplicitMethod();
+	updateCoeffMatrixForTrapping();
+	//updateRhsForTrapping_ExplicitMethod();
 	updateRhsForDetrapping();
 	updateRhsForMFNTunneling();
 
@@ -69,8 +67,7 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//fill back electron density to last time density, this is also done in refreshing vertex map
 	fillBackElecDens();
 
-	//SctmDebug::GetInstance().PrintSparseMatrix(matrixSolver.matrix);
-	//SctmMessaging::GetInstance().PrintTimeElapsed(SctmTimer::GetInstance().SinceLastSet());
+	//SctmDebug::Get().WriteMatrixEquation(this->matrixSolver.matrix, this->rhsVector, this->elecDensity);
 }
 
 void DriftDiffusionSolver::initializeSolver()
@@ -766,7 +763,7 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 	double retVal = 0;
 
 	//related to time step
-	rhsTime = -1 * lastElecDensMap[vert->GetID()] / timeStep;
+	rhsTime = -1.0 * lastElecDensMap[vert->GetID()] / timeStep;
  
 	getDeltaXYAtVertex(vert, deltaX, deltaY);
 
@@ -903,7 +900,7 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		{
 			//for Cauchy boundary condition
 			//calculation of the addend related current simulation time step
-			rhsTime= -1 * lastElecDensMap[vert->GetID()] / timeStep;
+			rhsTime= -1.0 * lastElecDensMap[vert->GetID()] / timeStep;
 
 			bndNorm_alpha = vert->BndCond.GetBndDirection(FDBoundary::eDensity).X();
 			bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();

@@ -21,6 +21,7 @@ using SctmPhys::PhysProperty;
 using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
 using SctmUtils::SctmFileStream;
+using SctmUtils::SctmDebug;
 
 TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *_domain) :domain(_domain), vertices(_domain->GetVertices())
 {
@@ -305,8 +306,6 @@ void TwoDimPoissonSolver::refreshRhs()
 
 void TwoDimPoissonSolver::SolvePotential()
 {
-	//SctmUtils::SctmTimer::GetInstance().Set();
-	
 	//the density of different kinds of charge is updated
 	buildRhsVector();
 	refreshRhs();
@@ -314,8 +313,6 @@ void TwoDimPoissonSolver::SolvePotential()
 	//SctmUtils::SctmDebug::GetInstance().PrintVector(this->rhsVector, "right-hand side");
 	matrixSolver.SolveMatrix(rhsVector, potential);
 	//SctmUtils::SctmDebug::GetInstance().PrintVector(this->potential, "potential");
-	
-	//SctmUtils::SctmMessaging::GetInstance().PrintTimeElapsed(SctmUtils::SctmTimer::GetInstance().SinceLastSet());
 }
 
 void TwoDimPoissonSolver::fillBackPotential()

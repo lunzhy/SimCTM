@@ -13,6 +13,7 @@
 
 #include "MatrixSolver.h"
 #include "SctmUtils.h"
+#include <Eigen/UmfPackSupport>
 
 namespace SctmMath
 {
@@ -29,10 +30,20 @@ namespace SctmMath
 		Eigen::Map<Eigen::VectorXd> solutionOfEigen(solution.data(), vectorSize, 1);
 
 		//use SparseLU to solve sparse matrix problem. SparseLU supports general square sparse systems
-		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> sparseSolver; //or int
+		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::AMDOrdering<int>> sparseSolver; //or int
 		sparseSolver.analyzePattern(this->matrix);
 		sparseSolver.factorize(this->matrix);
 		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
+
+		/*
+		Eigen::BiCGSTAB<Eigen::SparseMatrix<double>, Eigen::IncompleteLUT<double>> sparseSolver(this->matrix);
+		sparseSolver.analyzePattern(this->matrix);
+		sparseSolver.setTolerance(1e-30);
+		sparseSolver.setMaxIterations(1000);
+		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
+		std::cout << "#iterations:      " << sparseSolver.iterations() << std::endl;
+		std::cout << "#estimated error: " << sparseSolver.error() << std::endl;
+		*/
 
 		if (sparseSolver.info() != Eigen::Success)
 		{
@@ -109,7 +120,7 @@ namespace SctmMath
 		double modulus = SctmMath::sqrt(residue.dot(residue));
 
 		using namespace SctmUtils;
-		string msg = "product : " + SctmConverter::DoubleToString(modulus);
+		string msg = "modulus : " + SctmConverter::DoubleToString(modulus);
 		SctmMessaging::Get().PrintMessageLine(msg);
 	}
 }
