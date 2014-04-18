@@ -465,13 +465,46 @@ namespace SctmUtils
 		SctmData::Get().WritePooleFrenkelDecrease(domain->GetDDVerts());
 	}
 
+	void SctmDebug::WriteMatrixEquation(Eigen::SparseMatrix<double> &matrix, std::vector<double> &rhs, std::vector<double> &solution)
+	{
+		static bool isWritten = false;
+		if (!isWritten)
+		{
+			isWritten = true;
+		}
+		else
+		{
+			return;
+		}
+
+		string fileName = SctmEnv::Get().DebugPrjPath + SctmEnv::Get().PathSep + "Miscellaneous" +
+			SctmEnv::Get().PathSep + "matrix.txt";
+		std::ofstream file(fileName);
+		
+		Eigen::MatrixXd densMat(matrix);
+		file << densMat << endl << endl << endl;
+
+		for (size_t iVec = 0; iVec != rhs.size(); ++iVec)
+		{
+			file << rhs.at(iVec) << " ";
+		}
+		file << endl;
+
+		for (size_t iVec = 0; iVec != solution.size(); ++iVec)
+		{
+			file << solution.at(iVec) << " ";
+		}
+		file << endl;
+	}
 
 
 
 
 
 
-	void SctmMessaging::printLine(string &line)
+
+
+	void SctmMessaging::printLine(string line)
 	{
 		std::cout << line << std::endl;
 	}
@@ -554,6 +587,12 @@ namespace SctmUtils
 		cout << endl << "XXXXX=>" << "Invalid parameter name: " << name << endl;
 		exit(1);
 	}
+
+	void SctmMessaging::PrintMessageLine(string line)
+	{
+		printLine(line);
+	}
+
 
 
 
@@ -1150,7 +1189,8 @@ namespace SctmUtils
 		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
 		string valStrFree = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens));
 		string valStrTrap = SctmConverter::DoubleToString(norm.PullLineDensity(trapElecDens));
-		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap;
+		string valStrTotal = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens + trapElecDens));
+		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap + "\t\t" + valStrTotal;
 		file.WriteLine(line);
 	}
 
@@ -1167,8 +1207,8 @@ namespace SctmUtils
 		string currDens = SctmConverter::DoubleToString(norm.PullCurrDens(it->second));
 		it = outCurrCoeff.begin();
 		string tunCoeff = SctmConverter::DoubleToString(norm.PullTunCoeff(it->second));
+		
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-
 		string line = numStr + "\t\t" + currDens + "\t\t" + tunCoeff;
 		file.WriteLine(line);
 	}

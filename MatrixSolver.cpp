@@ -13,6 +13,7 @@
 
 #include "MatrixSolver.h"
 #include "SctmUtils.h"
+#include <Eigen/UmfPackSupport>
 
 namespace SctmMath
 {
@@ -29,15 +30,26 @@ namespace SctmMath
 		Eigen::Map<Eigen::VectorXd> solutionOfEigen(solution.data(), vectorSize, 1);
 
 		//use SparseLU to solve sparse matrix problem. SparseLU supports general square sparse systems
-		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> sparseSolver; //or int
+		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::AMDOrdering<int>> sparseSolver; //or int
 		sparseSolver.analyzePattern(this->matrix);
 		sparseSolver.factorize(this->matrix);
 		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
+
+		/*
+		Eigen::BiCGSTAB<Eigen::SparseMatrix<double>, Eigen::IncompleteLUT<double>> sparseSolver(this->matrix);
+		sparseSolver.analyzePattern(this->matrix);
+		sparseSolver.setTolerance(1e-30);
+		sparseSolver.setMaxIterations(1000);
+		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
+		std::cout << "#iterations:      " << sparseSolver.iterations() << std::endl;
+		std::cout << "#estimated error: " << sparseSolver.error() << std::endl;
+		*/
 
 		if (sparseSolver.info() != Eigen::Success)
 		{
 			SCTM_ASSERT(SCTM_ERROR, 10006);
 		}
+		verifySolution(rhs, solution);
 	}
 
 	void SctmSparseMatrixSolver::RefreshMatrixValue(int _row, int _col, double _value, RefreshMode _mode)
@@ -96,5 +108,20 @@ namespace SctmMath
 			}
 	}
 
+	void SctmSparseMatrixSolver::verifySolution(std::vector<double> &rhs, std::vector<double> &solution)
+	{
+		int vectorSize = rhs.size();
+		Eigen::Map<Eigen::VectorXd> rhsOfEigen(rhs.data(), vectorSize, 1);
+		Eigen::Map<Eigen::VectorXd> solutionOfEigen(solution.data(), vectorSize, 1);
+		Eigen::VectorXd residue;
+
+		using namespace SctmMath;
+		residue = this->matrix * solutionOfEigen - rhsOfEigen;
+		double modulus = SctmMath::sqrt(residue.dot(residue));
+
+		using namespace SctmUtils;
+		string msg = "modulus : " + SctmConverter::DoubleToString(modulus);
+		SctmMessaging::Get().PrintMessageLine(msg);
+	}
 }
 

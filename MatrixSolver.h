@@ -49,6 +49,8 @@ namespace SctmMath
 		void SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution);
 		void RefreshMatrixValue(int _row, int _col, double _value, RefreshMode _mode);
 		void RefreshRowOfDirichletBC(int _row);
+
+		void verifySolution(std::vector<double> &rhs, std::vector<double> &solution);
 	};
 }
 

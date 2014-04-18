@@ -131,6 +131,8 @@ protected:
 	void updateCoeffMatrixForTrapping();
 	void updateRhsForDetrapping();
 	void updateRhsForMFNTunneling();
+
+	void updateRhsForTrapping_ExplicitMethod();
 };
 
 class DDTest : public DriftDiffusionSolver

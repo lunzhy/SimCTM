@@ -29,7 +29,6 @@ SolverPack::SolverPack(FDDomain *_domain): domain(_domain)
 	this->temperature = SctmGlobalControl::Get().Temperature;
 	simStructure = SctmGlobalControl::Get().Structure;
 	initialize();
-	//fakeFermiEnergy();
 }
 
 void SolverPack::initialize()
