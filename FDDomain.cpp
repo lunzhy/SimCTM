@@ -61,7 +61,7 @@ FDContact* FDDomain::GetContact(unsigned int id)
 	return contacts.at(id);
 }
 
-FDContact* FDDomain::GetContact(std::string contactName)
+FDContact* FDDomain::GetContact(std::string contactName, bool assert /*= true*/)
 {
 	FDContact *currCont = NULL;
 	bool found = false;
@@ -74,7 +74,10 @@ FDContact* FDDomain::GetContact(std::string contactName)
 			break;
 		}
 	}
-	SCTM_ASSERT(found, 10030);
+	if (assert)
+	{
+		SCTM_ASSERT(found, 10030);
+	}
 	return currCont;
 }
 
@@ -625,6 +628,54 @@ void FDDomain::setTrapOccupation()
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
 	}
 
+}
+
+void FDDomain::RefreshGateVoltage()
+{
+	Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+	static double workFunction_Si = SctmPhys::ReferencePotential;//already in normalized value
+
+	FDContact *contact = NULL;
+	FDVertex *vert = NULL;
+	vector<FDVertex *> contVerts;
+
+	string gateName = "";
+	double gateWorkfunction = 0;
+	double gatePotential = 0;
+	double voltage = 0;
+	
+	vector<string> gateNames = { "Gate", "Gate1", "Gate2", "Gate3" };
+	
+	for (size_t in = 0; in != gateNames.size(); ++in)
+	{
+		gateName = gateNames.at(in);
+		contact = this->GetContact(gateName, false);
+		//refresh gate voltage
+		if (gateName == "Gate" || gateName == "Gate1")
+		{
+			voltage = SctmTimeStep::Get().VoltageCellA();
+		}
+		else if (gateName == "Gate2")
+		{
+			voltage = SctmTimeStep::Get().VoltageCellB();
+		}
+		else if (gateName == "Gate3")
+		{
+			voltage = SctmTimeStep::Get().VoltageCellC();
+		}
+		//the voltage stored in SctmTimeStep is in normalized value
+		contact->Voltage = voltage;
+
+		//refresh potential of gate vertex
+		contVerts = contact->GetContactVerts();
+		for (size_t iv = 0; iv != contVerts.size(); ++iv)
+		{
+			gateWorkfunction = contact->Workfunction;
+			gatePotential = voltage - (gateWorkfunction - workFunction_Si);
+			vert = contVerts.at(iv);
+			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, gatePotential);
+		}
+	}
 }
 
 

@@ -61,6 +61,8 @@ void SolverPack::callIteration()
 		SctmTimeStep::Get().GenerateNext(); //the simulation starts with step 1
 		SctmTimer::Get().Set();
 
+		domain->RefreshGateVoltage();
+
 		if (simStructure == "Single")
 		{
 			//solve substrate, no matter under Windows or Linux environment

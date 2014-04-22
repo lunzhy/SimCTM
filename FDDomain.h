@@ -55,6 +55,7 @@ public:
 	/// @return void
 	/// @note
 	void BuildDomain();
+	void RefreshGateVoltage();
 protected:
 	std::vector<FDVertex *> vertices; ///< the vertices contained in the domain
 	std::vector<FDVertex *> ddVerts; ///< the vertices related to trapping layers in the domain
@@ -118,7 +119,7 @@ public:
 	/// @return FDContact *
 	/// @note
 	FDContact* GetContact(unsigned int id);
-	FDContact* GetContact(std::string contactName);
+	FDContact* GetContact(std::string contactName, bool assert = true);
 
 	MaterialDB::Mat::Name GetTrapMatName();
 protected:

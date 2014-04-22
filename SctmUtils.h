@@ -146,11 +146,10 @@ namespace SctmUtils
 		double VoltageCellA() const;
 		double VoltageCellB() const;
 		double VoltageCellC() const;
-		double VoltageSingleCell() const;
 	protected:
 		double temperature;
 		double currElapsedTime; /// current time of the simulation
-		int currStepNumber; /// current step of the simulation, starting with 1
+		int currStepNumber; /// current step of the simulation, 0 for initial condition, solver pack starting with 1
 		double currTimeStep; /// current simulation time step
 		
 		vector<double> timeSequence;

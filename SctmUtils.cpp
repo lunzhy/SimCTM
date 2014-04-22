@@ -1003,6 +1003,36 @@ namespace SctmUtils
 		}
 	}
 
+	double SctmTimeStep::VoltageCellA() const
+	{
+		Normalization norm = Normalization(this->temperature);
+		double voltage = 0;
+		voltage = VgSequenceCellA.at(this->currStepNumber);
+		voltage = norm.PushPotential(voltage);
+		return voltage;
+	}
+
+	double SctmTimeStep::VoltageCellB() const
+	{
+		Normalization norm = Normalization(this->temperature);
+		double voltage = 0;
+		voltage = VgSequenceCellB.at(this->currStepNumber);
+		voltage = norm.PushPotential(voltage);
+		return voltage;
+	}
+
+	double SctmTimeStep::VoltageCellC() const
+	{
+		Normalization norm = Normalization(this->temperature);
+		double voltage = 0;
+		voltage = VgSequenceCellB.at(this->currStepNumber);
+		voltage = norm.PushPotential(voltage);
+		return voltage;
+	}
+
+
+
+
 
 
 	SctmData::SctmData()
