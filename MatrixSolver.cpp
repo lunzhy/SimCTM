@@ -13,7 +13,7 @@
 
 #include "MatrixSolver.h"
 #include "SctmUtils.h"
-#include <Eigen/UmfPackSupport>
+//#include <Eigen/UmfPackSupport>
 
 namespace SctmMath
 {
