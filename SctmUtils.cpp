@@ -895,7 +895,7 @@ namespace SctmUtils
 			{
 				spanEnd = SctmMath::exp10(spanEnd_exp);
 			}
-			fillTimeStepInsideSpan(spanStart, spanEnd, vgCellA);
+			fillTimeStepInsideSpan(spanStart, spanEnd, vgCellA, vgCellB, vgCellC);
 			spanStart = spanEnd;
 			spanStart_exp = spanEnd_exp;
 		}

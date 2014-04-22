@@ -119,7 +119,7 @@ public:
 	/// @return FDContact *
 	/// @note
 	FDContact* GetContact(unsigned int id);
-	FDContact* GetContact(std::string contactName, bool assert = true);
+	FDContact* GetContact(std::string contactName);
 
 	MaterialDB::Mat::Name GetTrapMatName();
 protected:

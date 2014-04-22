@@ -61,7 +61,7 @@ FDContact* FDDomain::GetContact(unsigned int id)
 	return contacts.at(id);
 }
 
-FDContact* FDDomain::GetContact(std::string contactName, bool assert /*= true*/)
+FDContact* FDDomain::GetContact(std::string contactName)
 {
 	FDContact *currCont = NULL;
 	bool found = false;
@@ -74,10 +74,7 @@ FDContact* FDDomain::GetContact(std::string contactName, bool assert /*= true*/)
 			break;
 		}
 	}
-	if (assert)
-	{
-		SCTM_ASSERT(found, 10030);
-	}
+	SCTM_ASSERT(found, 10030);
 	return currCont;
 }
 
@@ -644,12 +641,27 @@ void FDDomain::RefreshGateVoltage()
 	double gatePotential = 0;
 	double voltage = 0;
 	
-	vector<string> gateNames = { "Gate", "Gate1", "Gate2", "Gate3" };
+	static vector<string> gateNames;
+	static bool isLoad = false;
 	
+	if (!isLoad && SctmGlobalControl::Get().Structure == "Single")
+	{
+		gateNames.push_back("Gate");
+		isLoad = true;
+	}
+	else if (!isLoad && SctmGlobalControl::Get().Structure == "Triple")
+	{
+		gateNames.push_back("Gate1");
+		gateNames.push_back("Gate2");
+		gateNames.push_back("Gate3");
+		isLoad = true;
+	}
+
+
 	for (size_t in = 0; in != gateNames.size(); ++in)
 	{
 		gateName = gateNames.at(in);
-		contact = this->GetContact(gateName, false);
+		contact = this->GetContact(gateName);
 		//refresh gate voltage
 		if (gateName == "Gate" || gateName == "Gate1")
 		{
@@ -673,7 +685,7 @@ void FDDomain::RefreshGateVoltage()
 			gateWorkfunction = contact->Workfunction;
 			gatePotential = voltage - (gateWorkfunction - workFunction_Si);
 			vert = contVerts.at(iv);
-			vert->BndCond.RefreshBndCond(FDBoundary::Potential, FDBoundary::BC_Dirichlet, gatePotential);
+			vert->BndCond.RefreshBndCond(FDBoundary::Potential, gatePotential);
 		}
 	}
 }

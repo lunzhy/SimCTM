@@ -30,7 +30,7 @@ namespace SctmMath
 		Eigen::Map<Eigen::VectorXd> solutionOfEigen(solution.data(), vectorSize, 1);
 
 		//use SparseLU to solve sparse matrix problem. SparseLU supports general square sparse systems
-		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::AMDOrdering<int>> sparseSolver; //or int
+		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> sparseSolver; //or int
 		sparseSolver.analyzePattern(this->matrix);
 		sparseSolver.factorize(this->matrix);
 		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
@@ -49,7 +49,7 @@ namespace SctmMath
 		{
 			SCTM_ASSERT(SCTM_ERROR, 10006);
 		}
-		verifySolution(rhs, solution);
+		//verifySolution(rhs, solution);
 	}
 
 	void SctmSparseMatrixSolver::RefreshMatrixValue(int _row, int _col, double _value, RefreshMode _mode)
