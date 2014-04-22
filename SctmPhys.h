@@ -180,7 +180,7 @@ namespace SctmPhys
 		//double netCharge; ///< total net charge belongs to the vertex
 		double e_mobility; ///< electron mobility
 		double e_density; ///< the electron density
-		double controlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
+		double densControlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
 		double epsilon; ///< dielectric constant
 		double temperature; ///< the lattice temperature of this vertex
 

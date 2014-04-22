@@ -20,6 +20,7 @@
 #include <math.h>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 
 /// @brief SctmMath is a namespace in which the math methods are defined for this simulation.
@@ -55,6 +56,12 @@ namespace SctmMath
 	inline double min_val(double val1, double val2) { return val1 < val2 ? val1 : val2; }
 	inline double log10(double val) { return std::log10(val); }
 	inline double floor(double val) { return std::floor(val); }
+	inline bool logically_equal(double a, double b, double error_factor = 1.0)
+	{
+		return a == b ||
+			abs(a - b) < std::abs(min_val(a, b)) * std::numeric_limits<double>::epsilon() *
+			error_factor;
+	}
 
 	class VectorValue
 	{

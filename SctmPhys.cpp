@@ -51,7 +51,7 @@ namespace SctmPhys
 		//netCharge = 0;
 		e_density = 0;
 		e_mobility = 0;
-		controlArea = 0;
+		densControlArea = 0;
 		epsilon = 0;
 
 		tunnelCoeff = 0;
@@ -202,7 +202,7 @@ namespace SctmPhys
 			}
 			case DensityControlArea:
 			{
-				ret = controlArea;
+				ret = densControlArea;
 				break;
 			}
 			case DielectricConstant:
@@ -669,7 +669,7 @@ namespace SctmPhys
 			area += 0.25 * currElem->Area;
 		}
 		//for vertex not related to trapping layer, the density control area is 0
-		this->controlArea = area;
+		this->densControlArea = area;
 	}
 
 	void PhysProperty::UpdateValue(Name prptyName, double val)

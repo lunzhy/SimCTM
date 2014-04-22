@@ -56,8 +56,8 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 
 	//dealing the the trapping/detrapping mechanism
 	//some of these considerations update the matrix coefficient and some update rhs vector
-	updateCoeffMatrixForTrapping();
 	//updateRhsForTrapping_ExplicitMethod();
+	updateCoeffMatrixForTrapping();
 	updateRhsForDetrapping();
 	updateRhsForMFNTunneling();
 

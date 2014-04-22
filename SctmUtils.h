@@ -129,7 +129,7 @@ namespace SctmUtils
 	
 	/// @brief SctmTimeStep is used to control the time step in the simulation.
 	///
-	/// the time used in the simulation is stored in the normalized value.
+	/// the time used in the simulation is stored in the real value.
 	class SctmTimeStep
 	{
 	public:
@@ -139,9 +139,14 @@ namespace SctmUtils
 		void Reset();
 		double ElapsedTime() const;
 		int StepNumber() const;
-		double TimeStep() const;
 		bool End() const;
 		bool IsCallPytaurus();
+
+		double TimeStep() const;
+		double VoltageCellA() const;
+		double VoltageCellB() const;
+		double VoltageCellC() const;
+		double VoltageSingleCell() const;
 	protected:
 		double temperature;
 		double currElapsedTime; /// current time of the simulation
@@ -149,13 +154,15 @@ namespace SctmUtils
 		double currTimeStep; /// current simulation time step
 		
 		vector<double> timeSequence;
-		vector<double> VgSequency;
+		vector<double> VgSequenceCellA; ///< gate voltage sequence of cell 1, gate voltage in Single cell
+		vector<double> VgSequenceCellB; ///< gate voltage sequence of cell 2
+		vector<double> VgSequenceCellC; ///< gate voltage sequence of cell 3
 	protected:
 		double getTimeStep();
-		double getTimeStep_old();
-
-		void generateTimeSequence();
 		bool isEndTime(double time, double endTime);
+		void generateTimeSequence();
+
+		void fillTimeStepInsideSpan(double start, double end, double vg1, double vg2 = 0, double vg3 = 0);
 	};
 
 
@@ -342,6 +349,9 @@ namespace SctmUtils
 		double SimStartTime; ///< simulation start time
 		double SimEndTime; ///< simulation end time
 		int SimStepsPerDecade; ///< simulation steps per time decade
+		string SimTimeStepMode; ///< simulation time step mode
+		string SimTimeStepScale; ///< simulation time step scale
+		double SimTimeStepMax; ///< minimum of simulation time step
 
 		//density parameters
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
@@ -396,6 +406,9 @@ namespace SctmUtils
 			time_start,
 			time_end,
 			time_stepPerDecade,
+			time_stepMode,
+			time_stepScale,
+			time_stepMax,
 
 			subs_type,
 			subs_doping,

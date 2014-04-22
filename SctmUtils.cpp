@@ -808,88 +808,14 @@ namespace SctmUtils
 
 	double SctmTimeStep::TimeStep() const
 	{
-		return currTimeStep;
+		Normalization norm = Normalization(this->temperature);
+		return norm.PushTime(currTimeStep);
 	}
 
 	double SctmTimeStep::ElapsedTime() const
 	{
-		Normalization norm = Normalization(this->temperature);
-		return norm.PullTime(currElapsedTime);
-	}
-
-	double SctmTimeStep::getTimeStep_old()
-	{
-		//TODO: currently, constant time step is used in the simulation
-		Normalization norm = Normalization(this->temperature);
-		double next = 0; // in [s]
-
-		while(true)
-		{
-			if (currStepNumber <= 10)
-			{
-				next = 1e-13;
-				break;
-			}
-			if (currStepNumber <= 19)
-			{
-				next = 1e-12;
-				break;
-			}
-			if (currStepNumber <= 28 )
-			{
-				next = 1e-11;
-				break;
-			}
-			if (currStepNumber <= 37)
-			{
-				next = 1e-10;
-				break;
-			}
-			if (currStepNumber <= 46)
-			{
-				next = 1e-9;
-				break;
-			}
-			if (currStepNumber <= 100)
-			{
-				next = 1e-8;
-				break;
-			}
-			break;
-		}
-
-		while(false)
-		{
-			if (currStepNumber <= 10)
-			{
-				next = 1e-15;
-				break;
-			}
-			if (currStepNumber <= 13)
-			{
-				next = 3e-14;
-				break;
-			}
-			if (currStepNumber <= 16 )
-			{
-				next = 3e-13;
-				break;
-			}
-			if (currStepNumber <= 19)
-			{
-				next = 3e-12;
-				break;
-			}
-			if (currStepNumber <= 22)
-			{
-				next = 3e-11;
-				break;
-			}
-			break;
-		}
-		
-		//next = 2e-6;
-		return norm.PushTime(next);
+		//for output the time elapsed, normalization is not needed
+		return currElapsedTime;
 	}
 
 	int SctmTimeStep::StepNumber() const
@@ -908,37 +834,86 @@ namespace SctmUtils
 		double startTime = SctmGlobalControl::Get().SimStartTime;
 		double endTime = SctmGlobalControl::Get().SimEndTime;
 		int stepPerDecade = SctmGlobalControl::Get().SimStepsPerDecade;
-		/////////////////////////////////////////////
-
-		Normalization norm  = Normalization(this->temperature);
-		double time = 0;
-		double increase = 0;
+		string stepScale = SctmGlobalControl::Get().SimTimeStepScale;
+		double maxTimestep = SctmGlobalControl::Get().SimTimeStepMax;
 		
-		time = startTime;
-		increase = SctmMath::exp10( 1.0 / stepPerDecade ); // use 1.0 rather that 1
-		timeSequence.push_back(0);
-		timeSequence.push_back(norm.PushTime(startTime));
-		while (!isEndTime(time, endTime))
+		/////////////////////////////////////////////
+		ParamBase *parBase = NULL;
+		Normalization norm  = Normalization(this->temperature);
+		
+		//the major time steps
+		double vgCellA = 0;
+		double vgCellB = 0;
+		double vgCellC = 0;
+		if (SctmGlobalControl::Get().Structure == "Triple")
 		{
-			time = time * increase;
-			timeSequence.push_back(norm.PushTime(time));
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_voltage);
+			vgCellA = dynamic_cast<Param<double> *>(parBase)->Value();
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate2_voltage);
+			vgCellB = dynamic_cast<Param<double> *>(parBase)->Value();
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate3_voltage);
+			vgCellC = dynamic_cast<Param<double> *>(parBase)->Value();
 		}
+		else if (SctmGlobalControl::Get().Structure == "Single")
+		{
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_voltage);
+			vgCellA = dynamic_cast<Param<double> *>(parBase)->Value();
+		}
+		
+		
+		//deal with the start time
+		//the time span start from 0 to time start only has one step
+		timeSequence.push_back(0);
+		VgSequenceCellA.push_back(vgCellA);
+		VgSequenceCellB.push_back(vgCellB);
+		VgSequenceCellC.push_back(vgCellC);
+		
+		timeSequence.push_back(startTime);
+		VgSequenceCellA.push_back(vgCellA);
+		VgSequenceCellB.push_back(vgCellB);
+		VgSequenceCellC.push_back(vgCellC);
+
+		//deal with the time span
+		double startTime_exp = SctmMath::floor(SctmMath::log10(startTime));
+		double endTime_exp = SctmMath::floor(SctmMath::log10(endTime));
+
+		bool iterOver = false;
+		double currTime_exp = 0;
+		double spanStart = startTime;
+		double spanEnd = 0;
+		double spanStart_exp = startTime_exp;
+		double spanEnd_exp = 0;
+		while (!iterOver)
+		{
+			spanEnd_exp = spanStart_exp + 1;
+			if (SctmMath::exp10(spanEnd_exp) > endTime || SctmMath::logically_equal(SctmMath::exp10(spanEnd_exp), endTime))
+			{
+				spanEnd = endTime;
+				iterOver = true;
+			}
+			else
+			{
+				spanEnd = SctmMath::exp10(spanEnd_exp);
+			}
+			fillTimeStepInsideSpan(spanStart, spanEnd, vgCellA);
+			spanStart = spanEnd;
+			spanStart_exp = spanEnd_exp;
+		}
+	}
+
+	double SctmTimeStep::getTimeStep()
+	{
+		double next = 0;
+		next = timeSequence.at(currStepNumber) - timeSequence.at(currStepNumber - 1);
+		return next;
 	}
 
 	bool SctmTimeStep::isEndTime(double time, double endTime)
 	{
 		double roundingError = 0.001;
 		bool ret = false;
-		ret = ( SctmMath::abs((time-endTime) / endTime) < roundingError ) || ( time > endTime );
+		ret = (SctmMath::abs((time - endTime) / endTime) < roundingError) || (time > endTime);
 		return ret;
-	}
-
-	double SctmTimeStep::getTimeStep()
-	{
-		Normalization norm = Normalization(this->temperature);
-		double next = 0;
-		next = timeSequence.at(currStepNumber) - timeSequence.at(currStepNumber - 1);
-		return next;
 	}
 
 	bool SctmTimeStep::End() const
@@ -968,9 +943,65 @@ namespace SctmUtils
 		return SctmMath::abs(diff) < eps;
 	}
 
+	void SctmTimeStep::fillTimeStepInsideSpan(double starttime, double endtime, double vg1, double vg2, double vg3)
+	{
+		double timeStep = 0;
+		double timeStep_exp = 0;
+		double stepNum = SctmGlobalControl::Get().SimStepsPerDecade;
+		double maxStep = SctmGlobalControl::Get().SimTimeStepMax;
+		double currTime = starttime;
+		bool iterOver = false;
 
+		if (SctmGlobalControl::Get().SimTimeStepScale == "Linear")
+		{
+			timeStep = (endtime - starttime) / stepNum;
+			if (!SctmMath::logically_equal(maxStep, 0) && timeStep > maxStep)
+			{
+				timeStep = maxStep;
+			}
 
+			currTime = starttime;
+			iterOver = false;
+			while (!iterOver)
+			{
+				currTime += timeStep;
+				if (currTime > endtime || SctmMath::logically_equal(currTime, endtime))
+				{
+					currTime = endtime;
+					iterOver = true;
+				}
+				timeSequence.push_back(currTime);
+				VgSequenceCellA.push_back(vg1);
+				VgSequenceCellB.push_back(vg2);
+				VgSequenceCellC.push_back(vg3);
+			}
+		}
+		else if (SctmGlobalControl::Get().SimTimeStepScale == "Exp10")
+		{
+			
+			iterOver = false;
+			while (!iterOver)
+			{
+				timeStep = currTime * //current time can't be 0
+					(SctmMath::exp10((SctmMath::log10(endtime) - SctmMath::log10(starttime)) / stepNum) - 1);
+				if (!SctmMath::logically_equal(maxStep, 0) && timeStep > maxStep)
+				{
+					timeStep = maxStep;
+				}
 
+				currTime += timeStep;
+				if (currTime > endtime || isEndTime(currTime, endtime))
+				{
+					currTime = endtime;
+					iterOver = true;
+				}
+				timeSequence.push_back(currTime);
+				VgSequenceCellA.push_back(vg1);
+				VgSequenceCellB.push_back(vg2);
+				VgSequenceCellC.push_back(vg3);
+			}
+		}
+	}
 
 
 
@@ -1706,6 +1737,15 @@ namespace SctmUtils
 		//SimStepsPerDecade
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_stepPerDecade);
 		Get().SimStepsPerDecade = dynamic_cast<Param<int> *>(parBase)->Value();
+		//SimTimeStepModel
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_stepMode);
+		Get().SimTimeStepMode = dynamic_cast<Param<string> *>(parBase)->Value();
+		//SimTimeStepScale
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_stepScale);
+		Get().SimTimeStepScale = dynamic_cast<Param<string> *>(parBase)->Value();
+		//SimTimeStepMax
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_stepMax);
+		Get().SimTimeStepMax = dynamic_cast<Param<double> *>(parBase)->Value();
 
 		//UniformTrapDens
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_uniDensity);
@@ -1949,6 +1989,25 @@ namespace SctmUtils
 			valInt = SctmConverter::StringToInt(valStr);
 			Param<int> *par = new Param<int>(ParName::time_stepPerDecade, valInt);
 			mapToSet[ParName::time_stepPerDecade] = par;
+			return;
+		}
+		if (name == "time.stepMode")
+		{
+			Param<string> *par = new Param<string>(ParName::time_stepMode, valStr);
+			mapToSet[ParName::time_stepMode] = par;
+			return;
+		}
+		if (name == "time.stepScale")
+		{
+			Param<string> *par = new Param<string>(ParName::time_stepScale, valStr);
+			mapToSet[ParName::time_stepScale] = par;
+			return;
+		}
+		if (name == "time.stepMax")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::time_stepMax, valDouble);
+			mapToSet[ParName::time_stepMax] = par;
 			return;
 		}
 		if (name == "sc.gate.voltage")

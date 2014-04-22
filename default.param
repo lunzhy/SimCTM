@@ -10,9 +10,12 @@ structure					: Triple				# Single | Triple, number of memory cell
 
 # global control of the simulation
 temperature					: 300					# simulation temperature, in [K]
+time.stepMode				: Internal				# time step generation mode, Internal | UserDefined
+time.stepScale				: Exp10					# time step scale inside a decade, Exp10 | Linear
 time.start					: 1e-15					# in [s]
 time.end					: 1						# in [s]
 time.stepPerDecade			: 10					# steps per decade in log scale
+time.stepMax				: 0						# in [s], the maximal time step
 
 # substrate, traps information
 subs.type					: P 					# N | P , substrate type
