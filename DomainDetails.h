@@ -318,6 +318,7 @@ protected:
 class FDRegion
 {
 	friend class TripleCells;
+	friend class TripleCellsFull;
 	friend class SctmUtils::SctmData;
 public:
 	string RegName;

@@ -22,6 +22,7 @@ class TripleCells : public FDDomain
 {
 public:
 	TripleCells();
+	static bool IsEndOfEffectiveCapacitor(FDVertex *vert);
 protected:
 	double voltageGate1;
 	double workfunctionGate1;
@@ -75,9 +76,33 @@ protected:
 	int getVertIdAt(int idX, int idY);
 	bool isValidVertex(int idX, int idY);
 	void setSingleElement(int &idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend);
+	
+};
 
+
+class TripleCellsFull : public TripleCells
+{
 public:
+	TripleCellsFull();
 	static bool IsEndOfEffectiveCapacitor(FDVertex *vert);
+protected:
+	double widthIso1;
+	double widthIso4;
+	
+	int gridWidthIso1;
+	int gridWidthIso4;
+
+protected:
+	void buildStructure();
+	void setAdditionalParameters();
+	void setDomainDetails();
+	void setAdjacency();
+
+	double getVertCoordX(int idX, int idY);
+	double getVertCoordY(int idX, int idY); //the only one without change in these five methods.
+	int getVertIdAt(int idX, int idY);
+	bool isValidVertex(int idX, int idY);
+	void setSingleElement(int &idElem, FDRegion *region, int xbegin, int xend, int ybegin, int yend);
 };
 
 #endif

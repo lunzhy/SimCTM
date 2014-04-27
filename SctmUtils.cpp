@@ -2343,6 +2343,22 @@ namespace SctmUtils
 			mapToSet[pName] = par;
 			return;
 		}
+		if (name == "tc.iso1.width")
+		{
+			ParName pName = ParName::tc_iso1_width;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso1.width.grid")
+		{
+			ParName pName = ParName::tc_iso1_width_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
 		if (name == "tc.iso2.width")
 		{
 			ParName pName = ParName::tc_iso2_width;
@@ -2370,6 +2386,22 @@ namespace SctmUtils
 		if (name == "tc.iso3.width.grid")
 		{
 			ParName pName = ParName::tc_iso3_width_grid;
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(pName, valInt);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso4.width")
+		{
+			ParName pName = ParName::tc_iso4_width;
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(pName, valDouble);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "tc.iso4.width.grid")
+		{
+			ParName pName = ParName::tc_iso4_width_grid;
 			valInt = SctmConverter::StringToInt(valStr);
 			Param<int> *par = new Param<int>(pName, valInt);
 			mapToSet[pName] = par;

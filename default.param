@@ -6,7 +6,7 @@
 
 ################### paramters for simulation structure ##################
 # simulation structure
-structure					: Triple				# Single | Triple, number of memory cell
+structure					: Triple				# Single | Triple | TripleFull, number of memory cell
 
 # global control of the simulation
 temperature					: 300					# simulation temperature, in [K]
@@ -91,10 +91,14 @@ tc.gate3.width.grid			: 10					# number of grids along width direction
 tc.iso.material				: Si3N4					# a meterial in material set
 tc.iso.thick				: 10					# in [nm]
 tc.iso.thick.grid			: 5 					# number of grids along thick direction
-tc.iso2.width				: 20					# in [nm], width of isolation no.1
-tc.iso2.width.grid			: 20					# number of grids along width direction of isolation no.1
-tc.iso3.width				: 20					# in [nm], width of isolation no.2
-tc.iso3.width.grid			: 20					# number of grids along widht direction of isolation no.2
+tc.iso1.width				: 10					# in [nm], width of isolation no.1
+tc.iso1.width.grid			: 5						# number of grids along width direction of isolation no.1
+tc.iso2.width				: 20					# in [nm], width of isolation no.2
+tc.iso2.width.grid			: 20					# number of grids along width direction of isolation no.2
+tc.iso3.width				: 20					# in [nm], width of isolation no.3
+tc.iso3.width.grid			: 20					# number of grids along widht direction of isolation no.3
+tc.iso4.width				: 10					# in [nm], width of isolation no.4
+tc.iso4.width.grid			: 5					# number of grids along widht direction of isolation no.4
 
 # property of tunneling oxide
 tc.tunnel.thick				: 4						# in [nm]

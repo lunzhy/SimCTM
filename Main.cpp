@@ -71,7 +71,7 @@ void DomainTest()
 
 void TripleCellsDomainTest()
 {
-	FDDomain *aTriple = new TripleCells();
+	FDDomain *aTriple = new TripleCellsFull();
 	aTriple->BuildDomain();
 	SctmDebug::Get().PrintDomainDetails(aTriple);
 }
@@ -120,8 +120,13 @@ void RunSolverPack()
 	FDDomain *aDomain = NULL;
 	if (SctmGlobalControl::Get().Structure == "Triple")
 	{
-		SctmMessaging::Get().PrintHeader("Building triple-cell domain.");
+		SctmMessaging::Get().PrintHeader("Building previous triple-cell domain.");
 		aDomain = new TripleCells();
+	}
+	if (SctmGlobalControl::Get().Structure == "TripleFull")
+	{
+		SctmMessaging::Get().PrintHeader("Building full triple-cell domain.");
+		aDomain = new TripleCellsFull();
 	}
 	if (SctmGlobalControl::Get().Structure == "Single")
 	{

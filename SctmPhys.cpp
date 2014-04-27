@@ -1234,9 +1234,19 @@ namespace SctmPhys
 
 				while (vertForCap != NULL)
 				{
-					if (TripleCells::IsEndOfEffectiveCapacitor(vertForCap))
+					if (SctmGlobalControl::Get().Structure == "TripleCell")
 					{
-						break;
+						if (TripleCells::IsEndOfEffectiveCapacitor(vertForCap))
+						{
+							break;
+						}
+					}
+					else if (SctmGlobalControl::Get().Structure == "TripleCellFull")
+					{
+						if (TripleCellsFull::IsEndOfEffectiveCapacitor(vertForCap))
+						{
+							break;
+						}
 					}
 					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
 					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
