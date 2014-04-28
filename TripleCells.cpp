@@ -1128,8 +1128,8 @@ double TripleCellsFull::getVertCoordX(int idX, int idY)
 	idX -= gridWidthGate3;
 	currdX += widthGate3;
 
-	// idX <= gridWidthIso3 is always true, if the checking runs to here.
-	currdX += idX * lengthPerGridGate3;
+	// idX <= gridWidthIso4 is always true, if the checking runs to here.
+	currdX += idX * lengthPerGridIso4;
 	return currdX;
 }
 
