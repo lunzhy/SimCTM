@@ -1070,7 +1070,7 @@ namespace SctmUtils
 	{
 		Normalization norm = Normalization(this->temperature);
 		double voltage = 0;
-		voltage = VgSequenceCellB.at(this->currStepNumber);
+		voltage = VgSequenceCellC.at(this->currStepNumber);
 		voltage = norm.PushPotential(voltage);
 		return voltage;
 	}
