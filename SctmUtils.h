@@ -140,7 +140,8 @@ namespace SctmUtils
 		double ElapsedTime() const;
 		int StepNumber() const;
 		bool End() const;
-		bool IsCallPytaurus();
+		bool IsMajorTime();
+		bool IsGateVoltageChanged();
 
 		double TimeStep() const;
 		double VoltageCellA() const;
@@ -152,10 +153,10 @@ namespace SctmUtils
 		int currStepNumber; /// current step of the simulation, 0 for initial condition, solver pack starting with 1
 		double currTimeStep; /// current simulation time step
 		
-		vector<double> timeSequence;
-		vector<double> VgSequenceCellA; ///< gate voltage sequence of cell 1, gate voltage in Single cell
-		vector<double> VgSequenceCellB; ///< gate voltage sequence of cell 2
-		vector<double> VgSequenceCellC; ///< gate voltage sequence of cell 3
+		vector<double> timeSequence; ///< simulation time sequence, in real value
+		vector<double> VgSequenceCellA; ///< gate voltage sequence of cell 1, gate voltage in Single cell, in real value
+		vector<double> VgSequenceCellB; ///< gate voltage sequence of cell 2, in real value
+		vector<double> VgSequenceCellC; ///< gate voltage sequence of cell 3, in real value
 	protected:
 		double getTimeStep();
 		bool isEndTime(double time, double endTime);
@@ -267,6 +268,7 @@ namespace SctmUtils
 		void WriteLine(string &line);
 
 		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
+		void ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4);
 
 		static bool FileExisted(string _filename);
 
@@ -305,6 +307,7 @@ namespace SctmUtils
 		void WriteTrappedDensRegionwise(FDDomain *domain);
 
 		void ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap);
+		void ReadTimestep(vector<double> &timestep, vector<double> &vg1, vector<double> &vg2, vector<double> &vg3);
 	protected:
 		double temperature;
 		string fileName;

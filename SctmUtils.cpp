@@ -258,7 +258,13 @@ namespace SctmUtils
 			msg = "[TunnelSolver.cpp] Wrong trapping region name in SlopingTunnelTrapToGate class";
 			break;
 		case 10053:
-			msg = "[Parameter] Wrong parameter value for string.";
+			msg = "[Parameter] Invalid parameter value for calling pytaurus.";
+			break;
+		case 10054:
+			msg = "[Parameter] Invalid parameter value for time step mode.";
+			break;
+		case 10055:
+			msg = "[SctmUtils.cpp] The required time step file does not exist.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -781,8 +787,35 @@ namespace SctmUtils
 			vec2.push_back(val1);
 			vec3.push_back(val2);
 		}
+		infile.close();
 		return;
 	}
+
+	void SctmFileStream::ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4)
+	{
+		std::ifstream infile(this->fileName.c_str(), std::ios::in);
+		double timestep = 0;
+		double vg1 = 0;
+		double vg2 = 0;
+		double vg3 = 0;
+		string title = "";
+		string line = "";
+		std::getline(infile, title);
+
+		vec1.clear(); vec2.clear(); vec3.clear(); vec4.clear();
+		while (getline(infile, line))
+		{	
+			std::istringstream is(line);
+			is >> timestep >> vg1 >> vg2 >> vg3;
+			vec1.push_back(timestep);
+			vec2.push_back(vg1);
+			vec3.push_back(vg2);
+			vec4.push_back(vg3);
+		}
+		infile.close();
+		return;
+	}
+
 
 
 
@@ -794,7 +827,18 @@ namespace SctmUtils
 		this->temperature = SctmGlobalControl::Get().Temperature;
 		this->currStepNumber = 0;
 		this->currElapsedTime = 0;
-		generateTimeSequence();
+		if (SctmGlobalControl::Get().SimTimeStepMode == "Internal")
+		{
+			generateTimeSequence();
+		}
+		else if (SctmGlobalControl::Get().SimTimeStepMode == "UserDefined")
+		{
+			SctmData::Get().ReadTimestep(timeSequence, VgSequenceCellA, VgSequenceCellB, VgSequenceCellC);
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10054);
+		}
 	}
 
 	void SctmTimeStep::GenerateNext()
@@ -803,7 +847,6 @@ namespace SctmUtils
 		//this->currTimeStep = getTimeStep_old();
 		this->currTimeStep = getTimeStep();
 		this->currElapsedTime = timeSequence.at(currStepNumber);
-		IsCallPytaurus();
 	}
 
 	double SctmTimeStep::TimeStep() const
@@ -814,7 +857,8 @@ namespace SctmUtils
 
 	double SctmTimeStep::ElapsedTime() const
 	{
-		//for output the time elapsed, normalization is not needed
+		//for output the time elapsed, normalization is not needed.
+		//it should be normalized, but for history reasons, it is not normalized.
 		return currElapsedTime;
 	}
 
@@ -928,7 +972,7 @@ namespace SctmUtils
 		return instance;
 	}
 
-	bool SctmTimeStep::IsCallPytaurus()
+	bool SctmTimeStep::IsMajorTime()
 	{
 		double eps = 1e-10;
 		double diff = 0;
@@ -1029,6 +1073,34 @@ namespace SctmUtils
 		voltage = norm.PushPotential(voltage);
 		return voltage;
 	}
+
+	bool SctmTimeStep::IsGateVoltageChanged()
+	{
+		bool isChanged_gate1 = true;
+		bool isChanged_gate2 = true;
+		bool isChanged_gate3 = true;
+
+		if (currStepNumber == 0)
+		{
+			return true;
+		}
+
+		double lastGate1 = VgSequenceCellA.at(this->currStepNumber - 1);
+		double lastGate2 = VgSequenceCellB.at(this->currStepNumber - 1);
+		double lastGate3 = VgSequenceCellC.at(this->currStepNumber - 1);
+		double currGate1 = VgSequenceCellA.at(this->currStepNumber);
+		double currGate2 = VgSequenceCellB.at(this->currStepNumber);
+		double currGate3 = VgSequenceCellC.at(this->currStepNumber);
+
+		isChanged_gate1 = !SctmMath::logically_equal(lastGate1, currGate1);
+		isChanged_gate2 = !SctmMath::logically_equal(lastGate2, currGate2);
+		isChanged_gate3 = !SctmMath::logically_equal(lastGate3, currGate3);
+
+		return isChanged_gate1 || isChanged_gate2 || isChanged_gate3;
+
+	}
+
+
 
 
 
@@ -1643,6 +1715,19 @@ namespace SctmUtils
 			(total == 0 ? "0" : SctmConverter::DoubleToString(outLateral / total));
 		file.WriteLine(line);
 	}
+
+	void SctmData::ReadTimestep(vector<double> &timestep, vector<double> &vg1, vector<double> &vg2, vector<double> &vg3)
+	{
+		fileName = directoryName + pathSep + "timestep.in";
+		SctmFileStream timestep_file = SctmFileStream(fileName, SctmFileStream::Read);
+
+		if (!SctmFileStream::FileExisted(fileName))
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10055);
+		}
+		timestep_file.ReadVector(timestep, vg1, vg2, vg3);
+	}
+
 
 
 
@@ -2868,35 +2953,47 @@ namespace SctmUtils
 	void SctmPyCaller::PySolve()
 	{
 		string callPytaurusMode = SctmGlobalControl::Get().CallPytaurus;
-		if (callPytaurusMode == "Never")
+		string command = "";
+		//call pytaurus every time the gate voltage changed
+		if (!SctmTimeStep::Get().IsGateVoltageChanged())
 		{
-			return;
-		}
-		if (callPytaurusMode == "Initial")
-		{
-			if (SctmTimeStep::Get().StepNumber() != 1) //i.e. first step
+			if (callPytaurusMode == "Never")
 			{
 				return;
 			}
-		}
-		else if (callPytaurusMode == "EveryStep")
-		{
-			//do nothing
-		}
-		else if (callPytaurusMode == "Major")
-		{
-			if (!SctmTimeStep::Get().IsCallPytaurus())
+			if (callPytaurusMode == "Initial")
 			{
-				return;
+				if (SctmTimeStep::Get().StepNumber() != 1) //i.e. first step
+				{
+					return;
+				}
 			}
+			else if (callPytaurusMode == "EveryStep")
+			{
+				//do nothing
+			}
+			else if (callPytaurusMode == "Major")
+			{
+				if (!SctmTimeStep::Get().IsMajorTime())
+				{
+					return;
+				}
+			}
+			else
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10053);
+			}
+			command = SctmEnv::Get().PytaurusPath + " solve " + SctmGlobalControl::Get().ProjectDirectory;
 		}
 		else
 		{
-			SCTM_ASSERT(SCTM_ERROR, 10053);
+			Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+			command = SctmEnv::Get().PytaurusPath + " solve " + SctmGlobalControl::Get().ProjectDirectory
+				+ " -vg1=" + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellA()))
+				+ " -vg2=" + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellB()))
+				+ " -vg3=" + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellC()));
 		}
 
-		string command = SctmEnv::Get().PytaurusPath + " solve " +
-			SctmGlobalControl::Get().ProjectDirectory;
 		SctmMessaging::Get().PrintHeader("Solve channel potential using Pytaurus.");
 		std::system(command.c_str());
 	}
