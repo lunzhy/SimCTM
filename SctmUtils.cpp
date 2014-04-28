@@ -889,7 +889,8 @@ namespace SctmUtils
 		double vgCellA = 0;
 		double vgCellB = 0;
 		double vgCellC = 0;
-		if (SctmGlobalControl::Get().Structure == "Triple")
+		string simStructure = SctmGlobalControl::Get().Structure;
+		if (simStructure == "Triple" || simStructure == "TripleFull")
 		{
 			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_voltage);
 			vgCellA = dynamic_cast<Param<double> *>(parBase)->Value();
@@ -1638,7 +1639,7 @@ namespace SctmUtils
 	void SctmData::WriteTrappedDensRegionwise(FDDomain *domain)
 	{
 		//only for triple cell structures
-		if (SctmGlobalControl::Get().Structure != "Triple")
+		if (SctmGlobalControl::Get().Structure == "Single")
 		{
 			return;
 		}
@@ -1683,11 +1684,28 @@ namespace SctmUtils
 		}
 		mainCell = total;
 
+		static bool isLoad = false;
+		string simStructure = SctmGlobalControl::Get().Structure;
 		vector<string> outRegionsName;
-		outRegionsName.push_back("Trap.Gate1");
-		outRegionsName.push_back("Trap.Iso2");
-		outRegionsName.push_back("Trap.Gate3");
-		outRegionsName.push_back("Trap.Iso3");
+
+		if (!isLoad && simStructure == "Triple")
+		{
+			outRegionsName.push_back("Trap.Gate1");
+			outRegionsName.push_back("Trap.Iso2");
+			outRegionsName.push_back("Trap.Iso3");
+			outRegionsName.push_back("Trap.Gate3");
+			isLoad = true;
+		}
+		else if (!isLoad && simStructure == "TripleFull")
+		{
+			outRegionsName.push_back("Trap.Iso1");
+			outRegionsName.push_back("Trap.Gate1");
+			outRegionsName.push_back("Trap.Iso2");
+			outRegionsName.push_back("Trap.Iso3");
+			outRegionsName.push_back("Trap.Gate3");
+			outRegionsName.push_back("Trap.Iso4");
+			isLoad = true;
+		}
 
 		string regName = "";
 		for (size_t ir = 0; ir != outRegionsName.size(); ++ir)

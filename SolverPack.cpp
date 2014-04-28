@@ -70,7 +70,7 @@ void SolverPack::callIteration()
 			fetchSubstrateResult();
 			SctmData::Get().WriteSubstrateResult(subsSolver);
 		}
-		else if (simStructure == "Triple")
+		else if (simStructure == "Triple" || simStructure == "TripleFull")
 		{
 			//write the flatband voltage shift of each slice
 			SctmData::Get().WriteVfbShiftEachInterface(domain);

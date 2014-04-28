@@ -595,7 +595,7 @@ MaterialDB::Mat::Name FDDomain::GetTrapMatName()
 	{
 		matname = GetRegion("Trap")->Mat->MatName();
 	}
-	else if (simStructure == "Triple")
+	else if (simStructure == "Triple" || simStructure == "TripleFull")
 	{
 		matname = GetRegion("Trap.Gate2")->Mat->MatName();
 	}
@@ -643,20 +643,20 @@ void FDDomain::RefreshGateVoltage()
 	
 	static vector<string> gateNames;
 	static bool isLoad = false;
+	string simStructure = SctmGlobalControl::Get().Structure;
 	
-	if (!isLoad && SctmGlobalControl::Get().Structure == "Single")
+	if (!isLoad && simStructure == "Single")
 	{
 		gateNames.push_back("Gate");
 		isLoad = true;
 	}
-	else if (!isLoad && SctmGlobalControl::Get().Structure == "Triple")
+	else if (!isLoad && (simStructure == "Triple" || simStructure == "TripleFull"))
 	{
 		gateNames.push_back("Gate1");
 		gateNames.push_back("Gate2");
 		gateNames.push_back("Gate3");
 		isLoad = true;
 	}
-
 
 	for (size_t in = 0; in != gateNames.size(); ++in)
 	{

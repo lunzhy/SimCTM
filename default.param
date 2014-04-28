@@ -6,11 +6,11 @@
 
 ################### paramters for simulation structure ##################
 # simulation structure
-structure					: Triple				# Single | Triple | TripleFull, number of memory cell
+structure					: Triple				# Single | Triple | TripleFull, cell structure, Triple for simple triple
 
 # global control of the simulation
 temperature					: 300					# simulation temperature, in [K]
-time.stepMode				: UserDefined			# Internal | UserDefined, time step generation mode
+time.stepMode				: Internal				# Internal | UserDefined, time step generation mode
 time.stepScale				: Exp10					# Exp10 | Linear, time step scale inside a decade
 time.start					: 1e-15					# in [s]
 time.end					: 1						# in [s]

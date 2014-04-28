@@ -1234,14 +1234,14 @@ namespace SctmPhys
 
 				while (vertForCap != NULL)
 				{
-					if (SctmGlobalControl::Get().Structure == "TripleCell")
+					if (SctmGlobalControl::Get().Structure == "Triple")
 					{
 						if (TripleCells::IsEndOfEffectiveCapacitor(vertForCap))
 						{
 							break;
 						}
 					}
-					else if (SctmGlobalControl::Get().Structure == "TripleCellFull")
+					else if (SctmGlobalControl::Get().Structure == "TripleFull")
 					{
 						if (TripleCellsFull::IsEndOfEffectiveCapacitor(vertForCap))
 						{
