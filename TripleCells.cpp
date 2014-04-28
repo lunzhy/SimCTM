@@ -1029,7 +1029,7 @@ void TripleCellsFull::setDomainDetails()
 	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
 
 	//Trap.Iso4
-	currRegion = this->GetRegion("Trap.Gate3");
+	currRegion = this->GetRegion("Trap.Iso4");
 	ixBegin = gridWidthIso1 + gridWidthGate1 + gridWidthIso2 + gridWidthGate2 + gridWidthIso3 + gridWidthGate3; ixEnd = ixBegin + gridWidthIso4;
 	iyBegin = gridThickTunnel; iyEnd = iyBegin + gridThickTrap;
 	setSingleElement(indexElement, currRegion, ixBegin, ixEnd, iyBegin, iyEnd);
