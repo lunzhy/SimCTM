@@ -805,9 +805,9 @@ namespace SctmUtils
 		std::getline(infile, title);
 		std::istringstream is;
 
-		vec1.clear(); vec2.clear(); vec3.clear(); vec4.clear();
 		while (getline(infile, line))
 		{	
+			is.clear();
 			is.str(line);
 			is >> stepNum >> timestep >> vg1 >> vg2 >> vg3;
 			vec1.push_back(timestep);
@@ -3050,9 +3050,10 @@ namespace SctmUtils
 		
 		string header = "Solve channel potential using Pytaurus. Vgate1 = " + 
 			SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellA()))
-			+ "Vgate2 = " + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellB()))
-			+ "Vgate3 = " + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellC()));
+			+ " Vgate2 = " + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellB()))
+			+ " Vgate3 = " + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellC()));
 		SctmMessaging::Get().PrintHeader(header.c_str());
+		
 		std::system(command.c_str());
 	}
 
