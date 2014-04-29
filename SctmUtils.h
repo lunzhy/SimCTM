@@ -160,8 +160,8 @@ namespace SctmUtils
 	protected:
 		double getTimeStep();
 		bool isEndTime(double time, double endTime);
+		void readTimestep();
 		void generateTimeSequence();
-
 		void fillTimeStepInsideSpan(double start, double end, double vg1, double vg2 = 0, double vg3 = 0);
 	};
 

@@ -794,6 +794,7 @@ namespace SctmUtils
 	void SctmFileStream::ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4)
 	{
 		std::ifstream infile(this->fileName.c_str(), std::ios::in);
+		int stepNum = 0;
 		double timestep = 0;
 		double vg1 = 0;
 		double vg2 = 0;
@@ -806,7 +807,7 @@ namespace SctmUtils
 		while (getline(infile, line))
 		{	
 			std::istringstream is(line);
-			is >> timestep >> vg1 >> vg2 >> vg3;
+			is >> stepNum >> timestep >> vg1 >> vg2 >> vg3;
 			vec1.push_back(timestep);
 			vec2.push_back(vg1);
 			vec3.push_back(vg2);
@@ -833,7 +834,7 @@ namespace SctmUtils
 		}
 		else if (SctmGlobalControl::Get().SimTimeStepMode == "UserDefined")
 		{
-			SctmData::Get().ReadTimestep(timeSequence, VgSequenceCellA, VgSequenceCellB, VgSequenceCellC);
+			readTimestep();
 		}
 		else
 		{
@@ -1100,6 +1101,39 @@ namespace SctmUtils
 		return isChanged_gate1 || isChanged_gate2 || isChanged_gate3;
 
 	}
+
+	void SctmTimeStep::readTimestep()
+	{
+		ParamBase *parBase = NULL;
+		//the major time steps
+		double vgCellA = 0;
+		double vgCellB = 0;
+		double vgCellC = 0;
+		string simStructure = SctmGlobalControl::Get().Structure;
+		if (simStructure == "Triple" || simStructure == "TripleFull")
+		{
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_voltage);
+			vgCellA = dynamic_cast<Param<double> *>(parBase)->Value();
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate2_voltage);
+			vgCellB = dynamic_cast<Param<double> *>(parBase)->Value();
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate3_voltage);
+			vgCellC = dynamic_cast<Param<double> *>(parBase)->Value();
+		}
+		else if (SctmGlobalControl::Get().Structure == "Single")
+		{
+			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::sc_gate_voltage);
+			vgCellA = dynamic_cast<Param<double> *>(parBase)->Value();
+		}
+		//set the initial time step information from parameter file
+		timeSequence.push_back(0);
+		VgSequenceCellA.push_back(vgCellA);
+		VgSequenceCellB.push_back(vgCellB);
+		VgSequenceCellC.push_back(vgCellC);
+
+		//read and set the following time step from timestep file
+		SctmData::Get().ReadTimestep(timeSequence, VgSequenceCellA, VgSequenceCellB, VgSequenceCellC);
+	}
+
 
 
 
@@ -2970,6 +3004,7 @@ namespace SctmUtils
 
 	void SctmPyCaller::PySolve()
 	{
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
 		string callPytaurusMode = SctmGlobalControl::Get().CallPytaurus;
 		string command = "";
 		//call pytaurus every time the gate voltage changed
@@ -3005,14 +3040,17 @@ namespace SctmUtils
 		}
 		else
 		{
-			Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
 			command = SctmEnv::Get().PytaurusPath + " solve " + SctmGlobalControl::Get().ProjectDirectory
 				+ " -vg1=" + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellA()))
 				+ " -vg2=" + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellB()))
 				+ " -vg3=" + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellC()));
 		}
-
-		SctmMessaging::Get().PrintHeader("Solve channel potential using Pytaurus.");
+		
+		string header = "Solve channel potential using Pytaurus. Vgate1 = " + 
+			SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellA()))
+			+ "Vgate2 = " + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellB()))
+			+ "Vgate3 = " + SctmConverter::DoubleToString(norm.PullPotential(SctmTimeStep::Get().VoltageCellC()));
+		SctmMessaging::Get().PrintHeader(header.c_str());
 		std::system(command.c_str());
 	}
 
