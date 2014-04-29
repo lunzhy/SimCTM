@@ -20,6 +20,7 @@
 #include "SctmPhys.h"
 #include "SubstrateSolver.h"
 #include "Material.h"
+#include <sstream>
 
 using std::cout;
 using std::endl;
@@ -791,7 +792,7 @@ namespace SctmUtils
 		return;
 	}
 
-	void SctmFileStream::ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4)
+	void SctmFileStream::ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> &vec4)
 	{
 		std::ifstream infile(this->fileName.c_str(), std::ios::in);
 		int stepNum = 0;
@@ -802,11 +803,12 @@ namespace SctmUtils
 		string title = "";
 		string line = "";
 		std::getline(infile, title);
+		std::istringstream is;
 
 		vec1.clear(); vec2.clear(); vec3.clear(); vec4.clear();
 		while (getline(infile, line))
 		{	
-			std::istringstream is(line);
+			is.str(line);
 			is >> stepNum >> timestep >> vg1 >> vg2 >> vg3;
 			vec1.push_back(timestep);
 			vec2.push_back(vg1);

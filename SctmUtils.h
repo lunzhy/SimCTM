@@ -268,7 +268,7 @@ namespace SctmUtils
 		void WriteLine(string &line);
 
 		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
-		void ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4);
+		void ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> &vec4);
 
 		static bool FileExisted(string _filename);
 
