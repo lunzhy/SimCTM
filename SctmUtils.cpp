@@ -981,8 +981,8 @@ namespace SctmUtils
 		double eps = 1e-10;
 		double diff = 0;
 		bool ret = false;
-		Normalization norm = Normalization(this->temperature);
-		double currentTime = norm.PullTime(currElapsedTime);
+		//currElapsedTime is in real value
+		double currentTime = currElapsedTime;
 		if (currStepNumber == 1)
 		{
 			return true;
@@ -3076,6 +3076,13 @@ namespace SctmUtils
 			SctmGlobalControl::Get().ProjectDirectory;
 		std::system(command.c_str());
 	}
+
+	void SctmPyCaller::PyParseAvgVfb()
+	{
+		string command = SctmEnv::Get().PytaurusPath + " parsevth " + SctmGlobalControl::Get().ProjectDirectory;
+		std::system(command.c_str());
+	}
+
 
 
 

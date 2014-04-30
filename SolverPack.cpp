@@ -138,6 +138,11 @@ void SolverPack::callIteration()
 
 	SctmTimer::Get().Timeit("Total", SctmTimer::Get().PopLastSet());
 	SctmData::Get().WriteTimerInfo(SctmTimer::Get());
+
+	if (simStructure == "Triple" || simStructure == "TripleFull")
+	{
+		SctmPyCaller::PyParseAvgVfb();
+	}
 }
 
 void SolverPack::fetchPoissonResult()

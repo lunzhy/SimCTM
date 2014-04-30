@@ -612,6 +612,7 @@ namespace SctmUtils
 		static void PyClean(string folderPath);
 		static void PySolve();
 		static void PyBuildStructure();
+		static void PyParseAvgVfb();
 
 	protected:
 		string pyPath;
