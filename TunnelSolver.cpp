@@ -525,6 +525,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 	vertsBlockOxideEnd.clear();
 
 	//clear the results of last calculation
+	eCurrDens_DTFN.clear();
 	eCurrDens_DTFN.resize(vertsTunnelOxideStart.size());
 	eCurrDensMap_MFN.clear();
 	eCurrDensMap_B2T.clear();
@@ -589,12 +590,31 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 	double cm_in_m = SctmPhys::cm_in_m;
 
 	Normalization norm = Normalization(this->temperature);
+	FDBoundary::TunnelTag tunnelTag = FDBoundary::noTunnel;
+
 	for (size_t iVert = 0; iVert != vertsTunnelOxideEnd.size(); ++iVert)
 	{
 		//currVert = vertsEnd.at(iVert);
 		currVert = vertsTunnelOxideEnd.at(iVert);
 		vertID = currVert->GetID();
 		
+		tunnelTag = currVert->BndCond.GetBCTunnelTag();
+		switch (tunnelTag)
+		{
+			case FDBoundary::eTunnelOut:
+				eTunDirection = TunnelSolver::South;
+				break;
+			case FDBoundary::eTunnelIn:
+				eTunDirection = TunnelSolver::North;
+				break;
+			case FDBoundary::hTunnelIn:
+			case FDBoundary::hTunnelOut:
+			case FDBoundary::noTunnel:
+			default:
+				SCTM_ASSERT(SCTM_ERROR, 10056);
+				break;
+		}
+
 		if (eTunDirection == TunnelDirection::North)
 		{
 			//currently the eCurrDens_Tunnel saves the current density, which is in A/m2
@@ -1027,6 +1047,7 @@ void TrapToGateElecTunnel::SolveTunnel()
 	vertsBlockOxideEnd.clear();
 
 	//clear the results of last calculation
+	eCurrDens_DTFN.clear();
 	eCurrDens_DTFN.resize(vertsTunnelOxideStart.size());
 	eTransCoeffMap_T2B.clear();
 
@@ -1080,6 +1101,8 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 	double cm_in_m = SctmPhys::cm_in_m;
 
 	Normalization norm = Normalization(this->temperature);
+	FDBoundary::TunnelTag tunnelTag = FDBoundary::noTunnel;
+
 	for (size_t iVert = 0; iVert != vertsBlockOxideStart.size(); ++iVert)
 	{
 		if (vertsBlockOxideEnd.at(iVert) == NULL)
@@ -1091,6 +1114,28 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 
 		currVert = vertsBlockOxideStart.at(iVert);
 		vertID = currVert->GetID();
+
+		tunnelTag = currVert->BndCond.GetBCTunnelTag();
+		switch (tunnelTag)
+		{
+			case FDBoundary::eTunnelOut:
+			{
+				eTunDirection = TunnelSolver::North;
+				break;
+			}
+			case FDBoundary::eTunnelIn:
+			{
+				eTunDirection = TunnelSolver::South;
+				break;
+			}
+			case FDBoundary::hTunnelIn:
+			case FDBoundary::hTunnelOut:
+			case FDBoundary::noTunnel:
+			default:
+				SCTM_ASSERT(SCTM_ERROR, 10056);
+				break;
+		}
+
 		if (eTunDirection == TunnelDirection::North)
 		{
 			//currently the eCurrDens_DTFN stores the coefficient to calculate current density

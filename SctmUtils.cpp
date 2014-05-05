@@ -267,6 +267,9 @@ namespace SctmUtils
 		case 10055:
 			msg = "[SctmUtils.cpp] The required time step file does not exist.";
 			break;
+		case 10056:
+			msg = "[TunnelSolver.cpp] Invalid tunneling tag in electron tunneling solver.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
