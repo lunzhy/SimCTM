@@ -56,6 +56,7 @@ public:
 	/// @note
 	void BuildDomain();
 	void RefreshGateVoltage();
+	void ClearCarrier();
 protected:
 	std::vector<FDVertex *> vertices; ///< the vertices contained in the domain
 	std::vector<FDVertex *> ddVerts; ///< the vertices related to trapping layers in the domain

@@ -690,4 +690,14 @@ void FDDomain::RefreshGateVoltage()
 	}
 }
 
+void FDDomain::ClearCarrier()
+{
+	FDVertex *vert = NULL;
+	for (size_t iv = 0; iv != this->ddVerts.size(); ++iv	)
+	{
+		vert = this->ddVerts.at(iv);
+		vert->Phys->SetPhysPrpty(PhysProperty::eDensity, 0);
+	}
+}
+
 

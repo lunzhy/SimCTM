@@ -1961,6 +1961,9 @@ namespace SctmUtils
 		//CallPytaurus
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_call_pytaurus);
 		Get().CallPytaurus = dynamic_cast<Param<string> *>(parBase)->Value();
+		//ClearCarrier
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_clear_carrier);
+		Get().ClearCarrier = dynamic_cast<Param<bool> *>(parBase)->Value();
 
 		//RetentionAfterPrgrm
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
@@ -2273,6 +2276,13 @@ namespace SctmUtils
 		{
 			Param<string> *par = new Param<string>(ParName::debug_call_pytaurus, valStr);
 			mapToSet[ParName::debug_call_pytaurus] = par;
+			return;
+		}
+		if (name == "debug.clear.carrier")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::debug_clear_carrier, valBool);
+			mapToSet[ParName::debug_clear_carrier] = par;
 			return;
 		}
 		if (name == "debug.rAfterP")

@@ -34,6 +34,7 @@ physics.pf					: None					# None | EtDecrease | Frequency, model of Poole-Frenke
 debug.trap.occupy			: 0						# range [0, 1], trap occupation state
 debug.lateral.tunnel		: True					# True | False, the non-orthogonal tunneling near the gate
 debug.call.pytaurus			: Initial				# Never | Initial | EveryStep | Major, the frequency of calling Pytaurus in Linux
+debug.clear.carrier			: True					# True | False, clear free carriers when changing gate voltage
 # TODO: the simulation of retention after programming has not been implemented yet.
 debug.rAfterP				: False					# True | False, rentention after program
 debug.rEndTime				: 1e6					# retention end time after program

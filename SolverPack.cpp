@@ -85,6 +85,11 @@ void SolverPack::callIteration()
 			SctmData::Get().WriteSubstrateFromInput();
 		}
 
+		if (SctmTimeStep::Get().IsGateVoltageChanged() && SctmGlobalControl::Get().ClearCarrier)
+		{
+			domain->ClearCarrier();
+		}
+
 		//solver Poisson equation
 		SctmTimer::Get().Set();
 		poissonSolver->ReadChannelPotential(mapChannelPotential);
@@ -143,6 +148,7 @@ void SolverPack::callIteration()
 	{
 		SctmPyCaller::PyParseAvgVfb();
 	}
+
 }
 
 void SolverPack::fetchPoissonResult()
