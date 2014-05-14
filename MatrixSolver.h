@@ -51,6 +51,11 @@ namespace SctmMath
 		void RefreshRowOfDirichletBC(int _row);
 
 		void verifySolution(std::vector<double> &rhs, std::vector<double> &solution);
+
+	protected:
+		int solveWithPardiso(std::vector<double> &rhs, std::vector<double> &solution);
+	public:
+		void PardisoTest();
 	};
 }
 
