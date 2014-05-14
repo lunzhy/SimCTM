@@ -321,7 +321,7 @@ namespace SctmUtils
 	{
 	public:
 		static string IntToString(int num);
-		static string DoubleToString(double num, bool useScientific = true, int numAfterPoionts = 3);
+		static string DoubleToString(double num, bool useScientific = true, int numAfterPoionts = 6);
 		static double StringToDouble(const string &strVal);
 		static int StringToInt(const string &strVal);
 		static bool StringToBool(const string &strVal);
