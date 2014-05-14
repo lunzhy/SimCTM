@@ -4,9 +4,10 @@
 
 # The material set contains Silicon, SiO2, Si3N4, Al2O3, HfO2
 
-################### paramters for simulation structure ##################
-# simulation structure
+###################### paramters for simulation #################################
+# parameters for the solver
 structure					: Triple				# Single | Triple | TripleFull, cell structure, Triple for simple triple
+solver						: Eigen					# Eigen | Pardiso, the solver for linear matrix solver
 
 # global control of the simulation
 temperature					: 300					# simulation temperature, in [K]

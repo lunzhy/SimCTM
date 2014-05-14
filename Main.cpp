@@ -173,9 +173,6 @@ void PardisoTest()
 
 int main(int argc, char* argv[])
 {
-	PardisoTest();
-	return 0;
-	//cout << argv[0] << endl;
 	switch (argc)
 	{
 	case 1:

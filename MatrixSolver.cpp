@@ -15,6 +15,7 @@
 #include "SctmUtils.h"
 //#include <Eigen/UmfPackSupport>
 
+/* PARDISO prototype. */
 extern "C" void pardisoinit(void   *, int    *, int *, int *, double *, int *);
 extern "C" void pardiso(void   *, int    *, int *, int *, int *, int *,
 	double *, int    *, int *, int *, int *, int *,
@@ -23,6 +24,7 @@ extern "C" void pardiso_chkmatrix(int *, int *, double *, int *, int *, int *);
 extern "C" void pardiso_chkvec(int *, int *, double *, int *);
 extern "C" void pardiso_printstats(int *, int *, double *, int *, int *, int *, double *, int *);
 
+using namespace SctmUtils;
 namespace SctmMath
 {
 	void SctmSparseMatrixSolver::SolveMatrix(std::vector<double> &rhs, std::vector<double> &solution)
@@ -30,6 +32,12 @@ namespace SctmMath
 		//This is very IMPORTANT
 		this->matrix.makeCompressed();
 		
+		if (SctmEnv::IsLinux() && SctmGlobalControl::Get().Solver == "Pardiso")
+		{
+			solveWithPardiso(rhs, solution);
+			return;
+		}
+
 		//TODO: check the sparse matrix
 		SCTM_ASSERT(rhs.size() == solution.size(), 10005);
 		int vectorSize = rhs.size();
@@ -37,25 +45,33 @@ namespace SctmMath
 		Eigen::Map<Eigen::VectorXd> rhsOfEigen(rhs.data(), vectorSize, 1);
 		Eigen::Map<Eigen::VectorXd> solutionOfEigen(solution.data(), vectorSize, 1);
 
-		//use SparseLU to solve sparse matrix problem. SparseLU supports general square sparse systems
-		Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> sparseSolver; //or int
-		sparseSolver.analyzePattern(this->matrix);
-		sparseSolver.factorize(this->matrix);
-		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
-
-		/*
-		Eigen::BiCGSTAB<Eigen::SparseMatrix<double>, Eigen::IncompleteLUT<double>> sparseSolver(this->matrix);
-		sparseSolver.analyzePattern(this->matrix);
-		sparseSolver.setTolerance(1e-30);
-		sparseSolver.setMaxIterations(1000);
-		solutionOfEigen = sparseSolver.solve(rhsOfEigen);
-		std::cout << "#iterations:      " << sparseSolver.iterations() << std::endl;
-		std::cout << "#estimated error: " << sparseSolver.error() << std::endl;
-		*/
-
-		if (sparseSolver.info() != Eigen::Success)
+		if (SctmGlobalControl::Get().Solver == "SparseLU")
 		{
-			SCTM_ASSERT(SCTM_ERROR, 10006);
+			//use SparseLU to solve sparse matrix problem. SparseLU supports general square sparse systems
+			Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> sparseSolver; //or int
+			sparseSolver.analyzePattern(this->matrix);
+			sparseSolver.factorize(this->matrix);
+			solutionOfEigen = sparseSolver.solve(rhsOfEigen);
+
+			if (sparseSolver.info() != Eigen::Success)
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10006);
+			}
+		}
+		else if (SctmGlobalControl::Get().Solver == "BiCGSTAB")
+		{
+			Eigen::BiCGSTAB<Eigen::SparseMatrix<double>, Eigen::IncompleteLUT<double>> sparseSolver(this->matrix);
+			sparseSolver.analyzePattern(this->matrix);
+			sparseSolver.setTolerance(1e-15);
+			sparseSolver.setMaxIterations(1000);
+			solutionOfEigen = sparseSolver.solve(rhsOfEigen);
+			//std::cout << "#iterations:      " << sparseSolver.iterations() << std::endl;
+			//std::cout << "#estimated error: " << sparseSolver.error() << std::endl;
+
+			if (sparseSolver.info() != Eigen::Success)
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10006);
+			}
 		}
 		//verifySolution(rhs, solution);
 	}
@@ -136,28 +152,19 @@ namespace SctmMath
 	{
 		Eigen::SparseMatrix<double, Eigen::RowMajor> rowMajorMatrix = this->matrix;
 
+		/* Matrix Data */
 		int n = rowMajorMatrix.rows(); //rows==cols
 		int *ia = rowMajorMatrix.outerIndexPtr();
 		int *ja = rowMajorMatrix.innerIndexPtr();
 		double *a = rowMajorMatrix.valuePtr();
         
-        cout << rowMajorMatrix;
-        
 		/* RHS and solution vectors. */
-		rhs.resize(n);
-		solution.resize(n);
-
 		double *b = rhs.data();
 		double *x = solution.data();
 
-		/* Set right hand side to one. */
-		for (int i = 0; i < n; ++i) {
-			b[i] = i;
-		}
-
 		int nnz = ia[n];
-		int mtype = 11;        /* Real unsymmetric matrix */
-		int nrhs = 1;          /* Number of right hand sides. */
+		int mtype = 11;			/* Real unsymmetric matrix */
+		int nrhs = 1;			/* Number of right hand sides. */
 
 		/* Internal solver memory pointer pt,                  */
 		/* 32-bit: int pt[64]; 64-bit: long int pt[64]         */
@@ -177,8 +184,8 @@ namespace SctmMath
 		char *var;
 		int i;
 
-		double ddum;              /* Double dummy */
-		int idum;              /* Integer dummy. */
+		double ddum;			/* Double dummy */
+		int idum;				/* Integer dummy. */
 
 		/* -------------------------------------------------------------------- */
 		/* ..  Setup Pardiso control parameters and initialize the solvers      */
@@ -187,7 +194,7 @@ namespace SctmMath
 		/* ---------------------------------------------------------------------*/
 
 		error = 0;
-		solver = 0; /* use sparse direct solver */
+		solver = 0; /* IMPORTANT! choose the solver to be sparse direct solver */
 		static bool isFirstRun = true;
         
         if (isFirstRun)
@@ -212,51 +219,76 @@ namespace SctmMath
 		/* Numbers of processors, value of OMP_NUM_THREADS */
 		var = std::getenv("OMP_NUM_THREADS");
 		if (var != NULL)
-			sscanf(var, "%d", &num_procs);
-		else {
+		 	num_procs = SctmConverter::StringToInt(var);
+		else 
+		{
 			printf("Set environment OMP_NUM_THREADS to 1");
 			exit(1);
 		}
 		iparm[2] = num_procs;
 
+		maxfct = 1;			/* Maximum number of numerical factorizations.  */
+		mnum = 1;			/* Which factorization to use. */
 
-		maxfct = 1;         /* Maximum number of numerical factorizations.  */
-		mnum = 1;         /* Which factorization to use. */
-
-		msglvl = 0;         /* Print statistical information  */
-		error = 0;         /* Initialize error flag */
-
+		msglvl = 0;			/* Print statistical information  */
+		error = 0;			/* Initialize error flag */
 
 		/* -------------------------------------------------------------------- */
 		/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
 		/*     notation.                                                        */
 		/* -------------------------------------------------------------------- */
-		for (i = 0; i < n + 1; ++i) {
+		for (i = 0; i < n + 1; ++i)
+		{
 			ia[i] += 1;
 		}
-		for (i = 0; i < nnz; ++i) {
+		for (i = 0; i < nnz; ++i)
+		{
 			ja[i] += 1;
 		}
 
 		//solve the system
-		phase = 13;
-        iparm[7] = 1;       /* Max numbers of iterative refinement steps. */
+		phase = 13;			/* solve the system*/
+        iparm[7] = 1;		/* Max numbers of iterative refinement steps. */
         
         pardiso(pt, &maxfct, &mnum, &mtype, &phase,
 			&n, a, ia, ja, &idum, &nrhs,
 			iparm, &msglvl, b, x, &error, dparm);
 
-		if (error != 0) {
+		if (error != 0)
+		{
 			printf("\nERROR during solution: %d", error);
 			exit(3);
 		}
 
-		printf("\nSolve completed ... ");
-		printf("\nThe solution of the system is: ");
-		for (i = 0; i < n; i++) {
-			printf("\n x [%d] = % f", i, x[i]);
+		//printf("\nSolve completed ... ");
+		//printf("\nThe solution of the system is: ");
+		//for (i = 0; i < n; i++) {
+		//	printf("\n x [%d] = % f", i, x[i]);
+		//}
+		//printf("\n");
+
+		/* -------------------------------------------------------------------- */
+		/* ..  Convert matrix back to 0-based C-notation.                       */
+		/* -------------------------------------------------------------------- */
+		for (i = 0; i < n + 1; i++)
+		{
+			ia[i] -= 1;
 		}
-		printf("\n");
+		for (i = 0; i < nnz; i++)
+		{
+			ja[i] -= 1;
+		}
+
+		/* -------------------------------------------------------------------- */
+		/* ..  Termination and release of memory.                               */
+		/* -------------------------------------------------------------------- */
+		phase = -1;			/* Release internal memory. */
+
+		pardiso(pt, &maxfct, &mnum, &mtype, &phase,
+			&n, &ddum, ia, ja, &idum, &nrhs,
+			iparm, &msglvl, &ddum, &ddum, &error, dparm);
+
+		return 0;
 	}
 
 	void SctmSparseMatrixSolver::PardisoTest()

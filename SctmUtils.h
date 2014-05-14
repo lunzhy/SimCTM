@@ -345,7 +345,8 @@ namespace SctmUtils
 		string DefaulParFile;
 
 		//simulation parameters
-		string Structure;
+		string Structure; ///< the simulation structure
+		string Solver; ///< the matrix solver
 
 		double Temperature; ///< temperature of the simulation, in [K]
 		double SimStartTime; ///< simulation start time
@@ -405,6 +406,7 @@ namespace SctmUtils
 		enum ParName
 		{
 			structure,
+			solver,
 			temperature,
 			time_start,
 			time_end,

@@ -1899,6 +1899,10 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::structure);
 		Get().Structure = dynamic_cast<Param<string> *>(parBase)->Value();
 
+		//Solver
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::solver);
+		Get().Solver = dynamic_cast<Param<string> *>(parBase)->Value();
+
 		//Temperature
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::temperature);
 		Get().Temperature = dynamic_cast<Param<double> *>(parBase)->Value();
@@ -2136,6 +2140,13 @@ namespace SctmUtils
 		if (name == "structure")
 		{
 			ParName pName = ParName::structure;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
+		}
+		if (name == "solver")
+		{
+			ParName pName = ParName::solver;
 			Param<string> *par = new Param<string>(pName, valStr);
 			mapToSet[pName] = par;
 			return;
