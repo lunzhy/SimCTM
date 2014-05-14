@@ -7,7 +7,7 @@
 ###################### paramters for simulation #################################
 # parameters for the solver
 structure					: Triple				# Single | Triple | TripleFull, cell structure, Triple for simple triple
-solver						: Eigen					# Eigen | Pardiso, the solver for linear matrix solver
+solver						: SparseLU				# SparseLU | BiCGSTAB | Pardiso, the solver for linear matrix solver
 
 # global control of the simulation
 temperature					: 300					# simulation temperature, in [K]
