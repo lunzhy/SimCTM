@@ -140,7 +140,9 @@ namespace SctmMath
 		int *ia = rowMajorMatrix.outerIndexPtr();
 		int *ja = rowMajorMatrix.innerIndexPtr();
 		double *a = rowMajorMatrix.valuePtr();
-
+        
+        cout << rowMajorMatrix;
+        
 		/* RHS and solution vectors. */
 		rhs.resize(n);
 		solution.resize(n);
@@ -186,21 +188,26 @@ namespace SctmMath
 
 		error = 0;
 		solver = 0; /* use sparse direct solver */
-		pardisoinit(pt, &mtype, &solver, iparm, dparm, &error);
+		static bool isFirstRun = true;
+        
+        if (isFirstRun)
+        {
+            pardisoinit(pt, &mtype, &solver, iparm, dparm, &error);
 
-		if (error != 0)
-		{
-			if (error == -10)
-				printf("No license file found \n");
-			if (error == -11)
-				printf("License is expired \n");
-			if (error == -12)
-				printf("Wrong username or hostname \n");
-			return 1;
-		}
-		else
-			printf("[PARDISO]: License check was successful ... \n");
-
+		    if (error != 0)
+		    {
+			    if (error == -10)
+			    	printf("No license file found \n");
+			    if (error == -11)
+				    printf("License is expired \n");
+			    if (error == -12)
+				    printf("Wrong username or hostname \n");
+			    return 1;
+		    }
+		    else
+			    printf("[PARDISO]: License check was successful ... \n");
+            isFirstRun = false;
+        }
 
 		/* Numbers of processors, value of OMP_NUM_THREADS */
 		var = std::getenv("OMP_NUM_THREADS");
@@ -216,7 +223,7 @@ namespace SctmMath
 		maxfct = 1;         /* Maximum number of numerical factorizations.  */
 		mnum = 1;         /* Which factorization to use. */
 
-		msglvl = 1;         /* Print statistical information  */
+		msglvl = 0;         /* Print statistical information  */
 		error = 0;         /* Initialize error flag */
 
 
@@ -232,7 +239,10 @@ namespace SctmMath
 		}
 
 		//solve the system
-		pardiso(pt, &maxfct, &mnum, &mtype, &phase,
+		phase = 13;
+        iparm[7] = 1;       /* Max numbers of iterative refinement steps. */
+        
+        pardiso(pt, &maxfct, &mnum, &mtype, &phase,
 			&n, a, ia, ja, &idum, &nrhs,
 			iparm, &msglvl, b, x, &error, dparm);
 
@@ -253,6 +263,7 @@ namespace SctmMath
 	{
 		Eigen::SparseMatrix<double> aColMajor;
 		aColMajor.resize(5, 5);
+        aColMajor.insert(0, 0) = 1;
 		aColMajor.insert(0, 1) = 1;
 		aColMajor.insert(0, 4) = 2;
 		aColMajor.insert(1, 3) = 3;
