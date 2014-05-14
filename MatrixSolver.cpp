@@ -195,26 +195,19 @@ namespace SctmMath
 
 		error = 0;
 		solver = 0; /* IMPORTANT! choose the solver to be sparse direct solver */
-		static bool isFirstRun = true;
         
-        if (isFirstRun)
-        {
-            pardisoinit(pt, &mtype, &solver, iparm, dparm, &error);
+        pardisoinit(pt, &mtype, &solver, iparm, dparm, &error);
 
-		    if (error != 0)
-		    {
-			    if (error == -10)
-			    	printf("No license file found \n");
-			    if (error == -11)
-				    printf("License is expired \n");
-			    if (error == -12)
-				    printf("Wrong username or hostname \n");
-			    return 1;
-		    }
-		    else
-			    printf("[PARDISO]: License check was successful ... \n");
-            isFirstRun = false;
-        }
+	    if (error != 0)
+		{
+		    if (error == -10)
+		    	printf("No license file found \n");
+		    if (error == -11)
+			    printf("License is expired \n");
+		    if (error == -12)
+			    printf("Wrong username or hostname \n");
+		    return 1;
+	    }
 
 		/* Numbers of processors, value of OMP_NUM_THREADS */
 		var = std::getenv("OMP_NUM_THREADS");
