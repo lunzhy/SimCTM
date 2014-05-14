@@ -544,8 +544,10 @@ namespace SctmUtils
 	void SctmMessaging::PrintTimeElapsed(double time)
 	{
 		cout << "Simulation time step: ";
-		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		cout << timeStr << "s" << "\t\t";
+		cout.setf(std::ios::fixed);
+		cout.precision(8);
+		//string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		cout << SctmTimeStep::Get().ElapsedTime() << "s" << "\t\t";
 
 		string msg = "Time elapsed: ";
 		cout.setf(std::ios::fixed);
@@ -1798,7 +1800,7 @@ namespace SctmUtils
 	string SctmConverter::DoubleToString(double num, bool useScientific /*= true*/, int numAfterPoionts /*= 3*/)
 	{
 		stringstream ss;
-		ss << num;
+		ss << std::setprecision(numAfterPoionts) << num;
 		return ss.str();
 	}
 
