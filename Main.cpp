@@ -165,8 +165,16 @@ void ParaFileTest()
 	double tem = SctmGlobalControl::Get().Temperature;
 }
 
+void PardisoTest()
+{
+	SctmMath::SctmSparseMatrixSolver solver;
+	solver.PardisoTest();
+}
+
 int main(int argc, char* argv[])
 {
+	PardisoTest();
+	return 0;
 	//cout << argv[0] << endl;
 	switch (argc)
 	{
