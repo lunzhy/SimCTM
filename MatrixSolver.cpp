@@ -245,9 +245,9 @@ namespace SctmMath
 		phase = 13;			/* solve the system*/
         iparm[7] = 1;		/* Max numbers of iterative refinement steps. */
         
-        /*pardiso(pt, &maxfct, &mnum, &mtype, &phase,
+        pardiso(pt, &maxfct, &mnum, &mtype, &phase,
 			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, b, x, &error, dparm);*/
+			iparm, &msglvl, b, x, &error, dparm);
 
 		if (error != 0)
 		{
@@ -279,9 +279,9 @@ namespace SctmMath
 		/* -------------------------------------------------------------------- */
 		phase = -1;			/* Release internal memory. */
 
-		/*pardiso(pt, &maxfct, &mnum, &mtype, &phase,
+		pardiso(pt, &maxfct, &mnum, &mtype, &phase,
 			&n, &ddum, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, &ddum, &ddum, &error, dparm);*/
+			iparm, &msglvl, &ddum, &ddum, &error, dparm);
 #endif //Win32
 		return 0;
 	}
