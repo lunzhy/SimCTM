@@ -164,4 +164,3 @@ $RECYCLE.BIN/
 *.o
 build/
 simctm
-Makefile
