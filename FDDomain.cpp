@@ -644,6 +644,11 @@ void FDDomain::setTrapOccupation()
 			regions.push_back("Trap.Gate2");
 			regions.push_back("Trap.Gate3");
 		}
+		else if (trappedRegion == "Side")
+		{
+			regions.push_back("Trap.Gate1");
+			regions.push_back("Trap.Gate3");
+		}
 
 		for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 		{
