@@ -149,6 +149,7 @@ protected:
 private:
 	static bool isValidElem(FDElement *elem);
 	static bool isNotTrappingElem(FDElement *elem);
+	bool isBelongToRegion(FDVertex *vert, string regName);
 };
 
 

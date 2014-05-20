@@ -608,21 +608,67 @@ void FDDomain::setTrapOccupation()
 	double trapDens = 0;
 	double eTrappedDens = 0;
 	double trapOccupy = SctmGlobalControl::Get().TrapOccupation;
-	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+	string simStructure = SctmGlobalControl::Get().Structure;
+	string trappedRegion = SctmGlobalControl::Get().TrappedCell;
+
+	if (simStructure == "Single")
 	{
-		currVert = ddVerts.at(iVert);
-		trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
-
-		if (trapOccupy < 0 || trapOccupy > 1)
+		for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 		{
-			SCTM_ASSERT(SCTM_ERROR, 10044);
+			currVert = ddVerts.at(iVert);
+			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
+
+			if (trapOccupy < 0 || trapOccupy > 1)
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10044);
+			}
+			else
+			{
+				eTrappedDens = trapDens * trapOccupy;
+			}
+
+			currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
 		}
-		else
+	}
+	else if (simStructure == "Triple" || simStructure == "TripleFull")
+	{
+		std::vector<string> regions;
+
+		if (trappedRegion == "Center")
 		{
-			eTrappedDens = trapDens * trapOccupy;
+			regions.push_back("Trap.Gate2");
+		}
+		else if (trappedRegion == "All")
+		{
+			regions.push_back("Trap.Gate1");
+			regions.push_back("Trap.Gate2");
+			regions.push_back("Trap.Gate3");
 		}
 
-		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+		for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
+		{
+			currVert = ddVerts.at(iVert);
+			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
+
+			if (trapOccupy < 0 || trapOccupy > 1)
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10044);
+			}
+			else
+			{
+				eTrappedDens = trapDens * trapOccupy;
+			}
+
+			for (std::vector<string>::iterator it = regions.begin(); it != regions.end(); ++it)
+			{
+				if (isBelongToRegion(currVert, *it))
+				{
+					//one vertex can only belong to one region under the gate
+					currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+					break;
+				}
+			}
+		}
 	}
 
 }
@@ -698,6 +744,39 @@ void FDDomain::ClearCarrier()
 		vert = this->ddVerts.at(iv);
 		vert->Phys->SetPhysPrpty(PhysProperty::eDensity, 0);
 	}
+}
+
+bool FDDomain::isBelongToRegion(FDVertex *vert, string regName)
+{
+	bool isBelong = false;
+
+	FDElement *northWestElem = NULL;
+	FDElement *northEastElem = NULL;
+	FDElement *southEastElem = NULL;
+	FDElement *southWestElem = NULL;
+
+	northWestElem = vert->NorthwestElem;
+	if (northWestElem != NULL && northWestElem->Region->RegName == regName)
+	{
+		isBelong = true;
+	}
+	northEastElem = vert->NortheastElem;
+	if (northEastElem != NULL && northEastElem->Region->RegName == regName)
+	{
+		isBelong = true;
+	}
+	southEastElem = vert->SoutheastElem;
+	if (southEastElem != NULL && southEastElem->Region->RegName == regName)
+	{
+		isBelong = true;
+	}
+	southWestElem = vert->SouthwestElem;
+	if (southWestElem != NULL && southWestElem->Region->RegName == regName)
+	{
+		isBelong = true;
+	}
+
+	return isBelong;
 }
 
 

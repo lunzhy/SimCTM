@@ -666,7 +666,8 @@ int TripleCells::getVertIdAt(int idX, int idY)
 
 void TripleCells::postProcessOfDomain()
 {
-	clearTrapExceptMainCell();
+	//enhanced setting trapped cells are done in the building of domain
+	//clearTrapExceptMainCell();
 	//writing channel points is done in Pytaurus
 	//writeChannelPoints();
 }

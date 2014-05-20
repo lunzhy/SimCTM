@@ -370,6 +370,7 @@ namespace SctmUtils
 
 		//for debug
 		double TrapOccupation; ///< trap occupation status
+		string TrappedCell;
 		bool LateralTunneling; ///< lateral tunneling (non-orthogonal) around the gate
 		string CallPytaurus; ///< the mode for calling Pytaurus in Linux
 		bool ClearCarrier;
@@ -428,6 +429,7 @@ namespace SctmUtils
 
 			//for debugging
 			debug_trap_occupy,
+			debug_trap_cell,
 			debug_lateral_tunnel,
 			debug_call_pytaurus,
 			debug_clear_carrier,

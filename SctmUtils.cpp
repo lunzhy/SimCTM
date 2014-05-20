@@ -1961,6 +1961,9 @@ namespace SctmUtils
 		//TrapOccupation
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_occupy);
 		Get().TrapOccupation = dynamic_cast<Param<double> *>(parBase)->Value();
+		//TrappedCell
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_trap_cell);
+		Get().TrappedCell = dynamic_cast<Param<string> *>(parBase)->Value();
 		//LateralTunneling
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_lateral_tunnel);
 		Get().LateralTunneling = dynamic_cast<Param<bool> *>(parBase)->Value();
@@ -2283,6 +2286,12 @@ namespace SctmUtils
 			valDouble = SctmConverter::StringToDouble(valStr);
 			Param<double> *par = new Param<double>(ParName::debug_trap_occupy, valDouble);
 			mapToSet[ParName::debug_trap_occupy] = par;
+			return;
+		}
+		if (name == "debug.trap.cell")
+		{
+			Param<string> *par = new Param<string>(ParName::debug_trap_cell, valStr);
+			mapToSet[ParName::debug_trap_cell] = par;
 			return;
 		}
 		if (name == "debug.call.pytaurus")
