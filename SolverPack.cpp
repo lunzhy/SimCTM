@@ -41,9 +41,9 @@ void SolverPack::initialize()
 	trappingSolver = new TrapSolver(domain);
 
 	mapPotential.clear();
-	mapCurrDens_Tunnel.clear();
+	mapCurrDensOrCoeff_Tunnel.clear();
 	mapSiFermiAboveCBedge.clear();
-	mapCurrDensCoeff_Block.clear();
+	mapCurrDensOrCoeff_Block.clear();
 	mapChannelPotential.clear();
 }
 
@@ -106,7 +106,7 @@ void SolverPack::callIteration()
 		tunnelOxideSolver->SolveTunnel();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchTunnelOxideResult();
-		SctmData::Get().WriteTunnelCurrentFromSubs(domain, mapCurrDens_Tunnel);
+		SctmData::Get().WriteTunnelCurrentFromSubs(domain, mapCurrDensOrCoeff_Tunnel);
 
 		//solve tunneling problem in blocking oxide
 		SctmTimer::Get().Set();
@@ -116,10 +116,10 @@ void SolverPack::callIteration()
 
 		//solver drift-diffusion equation
 		SctmTimer::Get().Set();
-		ddSolver->SolveDD(mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
+		ddSolver->SolveDD(mapCurrDensOrCoeff_Tunnel, mapCurrDensOrCoeff_Block);
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchDDResult();
-		SctmData::Get().WriteTunnelCoeff(domain, mapCurrDens_Tunnel, mapCurrDensCoeff_Block);
+		SctmData::Get().WriteTunnelCoeff(domain, mapCurrDensOrCoeff_Tunnel, mapCurrDensOrCoeff_Block);
 		SctmData::Get().WriteElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteElecCurrDens(domain->GetDDVerts());
 
@@ -131,6 +131,7 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
 		
 		//write the final result
+		SctmData::Get().WriteTunnelOutDensity(domain, mapCurrDensOrCoeff_Tunnel, mapTransCoeffT2B_Tunnel, mapCurrDensOrCoeff_Block, mapTransCoeffT2B_Block);
 		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteTrappedDensRegionwise(domain);
 		if (simStructure == "Single")
@@ -172,11 +173,11 @@ void SolverPack::fetchTunnelOxideResult()
 
 	//deal with Direct or FN tunneling result
 	//it is critical to clear the map
-	this->mapCurrDens_Tunnel.clear();
-	tunnelOxideSolver->ReturnResult(mapCurrDens_Tunnel);
+	this->mapCurrDensOrCoeff_Tunnel.clear();
+	tunnelOxideSolver->ReturnResult(mapCurrDensOrCoeff_Tunnel);
 	//set the sign of boundary current for dd solver
 	//the sign of the boundary condition is set according to the boundary direction
-	for (VertexMapDouble::iterator it = mapCurrDens_Tunnel.begin(); it != mapCurrDens_Tunnel.end(); ++it)
+	for (VertexMapDouble::iterator it = mapCurrDensOrCoeff_Tunnel.begin(); it != mapCurrDensOrCoeff_Tunnel.end(); ++it)
 	{	
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
@@ -240,8 +241,8 @@ void SolverPack::fetchDDResult()
 void SolverPack::fetchBlockOxideResult()
 {
 	//it is critical to clear the map
-	this->mapCurrDensCoeff_Block.clear();
-	blockOxideSolver->ReturnResult(mapCurrDensCoeff_Block);
+	this->mapCurrDensOrCoeff_Block.clear();
+	blockOxideSolver->ReturnResult(mapCurrDensOrCoeff_Block);
 	//the current(or tunnCoeff) should be same with the direction of the boundary condition
 	//so, reversed value is used to calculate current density
 	FDVertex *vert = NULL;
@@ -249,7 +250,7 @@ void SolverPack::fetchBlockOxideResult()
 	
 	//set the sign of boundary current for dd solver
 	//the sign of the boundary condition is set according to the boundary direction
-	for (VertexMapDouble::iterator it = mapCurrDensCoeff_Block.begin(); it != mapCurrDensCoeff_Block.end(); ++it)
+	for (VertexMapDouble::iterator it = mapCurrDensOrCoeff_Block.begin(); it != mapCurrDensOrCoeff_Block.end(); ++it)
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);

@@ -1698,7 +1698,7 @@ namespace SctmUtils
 
 		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
 		
-		double time = SctmTimeStep::Get().ElapsedTime(); //elapsed time has been converted
+		double time = SctmTimeStep::Get().ElapsedTime(); //elapsed time, in real value
 		double total = 0;
 		double mainCell = 0;
 		double outLateral = 0;
@@ -1786,6 +1786,117 @@ namespace SctmUtils
 		}
 		timestep_file.ReadVector(timestep, vg1, vg2, vg3);
 	}
+
+	void SctmData::WriteTunnelOutDensity(FDDomain *domain, VertexMapDouble &tunToSubs, VertexMapDouble &tbToSubs, VertexMapDouble &tunToGate, VertexMapDouble &tbToGate)
+	{
+		static bool firstRun = true;
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "tunnelOutDensity.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		if (firstRun)
+		{
+			string headline = "Time [s]\t\tDT-FN to subs\t\tTrap-to-band to subs\t\tDT-FN to gate\t\tTrap-to-band to Gate";
+			file.WriteLine(headline);
+			firstRun = false;
+		}
+
+		double lineDens_tunToSubs = 0; //line density
+		double lineDens_tbToSubs = 0;
+		double lineDens_tunToGate = 0;
+		double lineDens_tbToGate = 0;
+
+		Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+		FDVertex *vert = NULL;
+		int vertID = 0;
+		double controlLength = 0;
+		double controlArea = 0;
+		double lineDens = 0;
+		double currDens = 0;
+		double tunCoeff = 0;
+		double eDens = 0;
+		double tbFrequency = 0;
+		double timestep = SctmTimeStep::Get().TimeStep();
+
+		//DN-FN tunneling to substrate
+		for (VertexMapDouble::iterator it = tunToSubs.begin(); it != tunToSubs.end(); ++it)
+		{
+			vertID = it->first;
+			vert = domain->GetVertex(vertID);
+			controlLength = (vert->EastLength + vert->WestLength) / 2;
+
+			if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+			{
+				tunCoeff = -it->second;
+				eDens = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+				lineDens = eDens * tunCoeff * timestep * controlLength; //charge line density
+				lineDens_tunToSubs += lineDens;
+			}
+			else if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			{
+				currDens = it->second;
+				lineDens = currDens * controlLength * timestep;
+				lineDens_tunToSubs += -lineDens;
+			}
+		}
+		//trap-to-band tunneling to substrate
+		for (VertexMapDouble::iterator it = tbToSubs.begin(); it != tbToSubs.end(); ++it)
+		{
+			vertID = it->first;
+			tunCoeff = it->second;
+			vert = domain->GetVertex(vertID);
+
+			controlArea = vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+			eDens = vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+			tbFrequency = vert->Trap->GetTrapPrpty(TrapProperty::eFrequency_T2B);
+
+			lineDens = eDens * tunCoeff * controlArea * timestep * tbFrequency;
+			lineDens_tbToSubs += lineDens;
+		}
+		//DT-FN tunneling to gate
+		for (VertexMapDouble::iterator it = tunToGate.begin(); it != tunToGate.end(); ++it)
+		{
+			vertID = it->first;
+			vert = domain->GetVertex(vertID);
+			controlLength = (vert->EastLength + vert->WestLength) / 2;
+
+			if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+			{
+				tunCoeff = -it->second;
+				eDens = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+				lineDens = eDens * tunCoeff * timestep * controlLength;
+				lineDens_tunToGate += lineDens;
+			}
+			else if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			{
+				currDens = it->second;
+				lineDens = currDens * controlLength * timestep;
+				lineDens_tunToGate += -lineDens;
+			}
+		}
+		//trap-to-band tunnel to gate
+		for (VertexMapDouble::iterator it = tbToGate.begin(); it != tbToGate.end(); ++it)
+		{
+			vertID = it->first;
+			tunCoeff = it->second;
+			vert = domain->GetVertex(vertID);
+
+			controlArea = vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
+			eDens = vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+			tbFrequency = vert->Trap->GetTrapPrpty(TrapProperty::eFrequency_T2B);
+
+			lineDens = eDens * tunCoeff * controlArea * timestep * tbFrequency;
+			lineDens_tbToGate += lineDens;
+		}
+
+		double time = SctmTimeStep::Get().ElapsedTime(); //elapsed time, in real value
+		string line = SctmConverter::DoubleToString(time) + "\t\t" +
+			SctmConverter::DoubleToString(norm.PullLineDensity(lineDens_tunToSubs)) + "\t\t" +
+			SctmConverter::DoubleToString(norm.PullLineDensity(lineDens_tbToSubs)) + "\t\t" +
+			SctmConverter::DoubleToString(norm.PullLineDensity(lineDens_tunToGate)) + "\t\t" +
+			SctmConverter::DoubleToString(norm.PullLineDensity(lineDens_tbToGate)) + "\t\t";
+		file.WriteLine(line);
+	}
+
 
 
 

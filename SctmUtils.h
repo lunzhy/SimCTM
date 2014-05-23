@@ -296,8 +296,8 @@ namespace SctmUtils
 		void WriteTrappedInfo(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
+		
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
-
 		void WriteVertexInfo(vector<FDVertex *> &vertices);
 		void WriteVfbShiftEachInterface(FDDomain *domain);
 		void WriteTimerInfo(SctmTimer &timer);
@@ -305,6 +305,7 @@ namespace SctmUtils
 		void WritePooleFrenkelInfo();
 		void WriteSubstrateFromInput();
 		void WriteTrappedDensRegionwise(FDDomain *domain);
+		void WriteTunnelOutDensity(FDDomain *domain, VertexMapDouble &tunToSubs, VertexMapDouble &tbToSubs, VertexMapDouble &tunToGate, VertexMapDouble &tbToGate);
 
 		void ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap);
 		void ReadTimestep(vector<double> &timestep, vector<double> &vg1, vector<double> &vg2, vector<double> &vg3);
