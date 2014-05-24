@@ -1727,7 +1727,7 @@ namespace SctmUtils
 
 		static bool isLoad = false;
 		string simStructure = SctmGlobalControl::Get().Structure;
-		vector<string> outRegionsName;
+		static vector<string> outRegionsName;
 
 		if (!isLoad && simStructure == "Triple")
 		{
