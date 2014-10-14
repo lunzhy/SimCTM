@@ -3029,6 +3029,25 @@ namespace SctmUtils
 			}
 			return;
 		}
+		if (name == "hTrapEnergy")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hTrapEnergy, valDouble);
+				mapToSet[ParName::Si3N4_hTrapEnergy] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hTrapEnergy, valDouble);
+				mapToSet[ParName::HfO2_hTrapEnergy] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
 		//process the parameters used in Pytaurus
 		if (name == "tc.drain.voltage" || name == "tc.drain.voltage.read" || name == "tc.gate.voltage.pass" ||
 			name == "tc.gate.voltage.read")

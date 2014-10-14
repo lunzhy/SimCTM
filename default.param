@@ -155,6 +155,7 @@ eTrapEnergy					: 1.2					# in [eV]
 eXsection					: 1e-14					# in [cm^2]
 eFrequencyT2B				: 5e7					# in [1/s]
 eFrequencyPF				: 1e9					# in [1/s]
+hTrapEnergy					: 1.8					# in [eV]
 
 # HfO2
 material					: HfO2
@@ -168,3 +169,4 @@ eTrapEnergy					: 0.7					# in [eV]
 eXsection					: 1e-14					# in [cm^2]
 eFrequencyT2B				: 5e7					# in [1/s], not by reference
 eFrequencyPF				: 1e9					# in [1/s], not by reference
+hTrapEnergy					: 1.8					$ in [eV]

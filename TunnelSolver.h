@@ -70,6 +70,8 @@ protected:
 	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMin);
 
 	void loadBandStructure(FDVertex *startVert);
+	void loadBandStructureForHoles(FDVertex* startVert);
+
 	double supplyFunction_forCurrDens(double energy);
 	double supplyFunction_forTunCoeff(double energy);
 
@@ -153,6 +155,18 @@ protected:
 	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
 	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
 	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
+};
+
+class SubsToTrapHoleTunnel : public SubsToTrapElecTunnel
+{
+public:
+	SubsToTrapHoleTunnel(FDDomain* _domain);
+	void SolveTunnel();
+protected:
+	void pretendToBeElecTun();
+
+	void setTunnelDirection(FDVertex* vertSubs, FDVertex* vertTrap);
+	void setTunnelTag();
 };
 
 class TrapToGateElecTunnel : public TunnelSolver

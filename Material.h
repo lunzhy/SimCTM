@@ -55,6 +55,7 @@ namespace MaterialDB
 			Mat_ElecTrapEnergyFromCB, ///< electron trap energy from conduction band
 			Mat_ElecFrequencyT2B, ///< electron Trap-to-Band tunneling out frequency
 			Mat_ElecFrequencyPF, ///< electron emission frequency in Poole-Frenkel effect
+			Mat_HoleTrapEnergyFromVB ///< hole trap energy from valence band
 		};
 	};
 
@@ -80,6 +81,7 @@ namespace MaterialDB
 		double elecTrapEnergyFromCB; ///< electron trap energy from conduction band, in eV
 		double elecFrequencyT2B; ///< electron Trap-to-Band tunneling out frequency
 		double elecFrequencyPF; ///< electron emission frequency in Poole-Frenkel effect
+		double holeTrapEnergyFromVB; ///< hole trap energy from valence band
 		
 	public:
 		/// @brief Material is the construction method of this class
@@ -122,6 +124,8 @@ namespace MaterialDB
 		void		ElecFrequencyT2B(double val);
 		double		ElecFrequencyPF() const;
 		void		ElecFrequencyPF(double val);
+		double		HoleTrapEnergyFromVB() const;
+		void		HoleTrapEnergyFromVB(double val);
 	};
 
 	/// @brief GetMatPrpty is called to get the value of material property with given material

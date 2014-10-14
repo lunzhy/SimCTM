@@ -525,6 +525,7 @@ namespace SctmUtils
 			Si3N4_eXsection,
 			Si3N4_eFrequencyT2B,
 			Si3N4_eFrequencyPF,
+			Si3N4_hTrapEnergy,
 
 			HfO2_bandgap,
 			HfO2_dielectricConstant,
@@ -535,7 +536,8 @@ namespace SctmUtils
 			HfO2_eTrapEnergy,
 			HfO2_eXsection,
 			HfO2_eFrequencyT2B,
-			HfO2_eFrequencyPF
+			HfO2_eFrequencyPF,
+			HfO2_hTrapEnergy,
 		};
 
 		SctmParameterParser();

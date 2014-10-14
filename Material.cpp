@@ -328,6 +328,17 @@ namespace MaterialDB
 		elecDOSMass = val;
 	}
 
+	double Material::HoleTrapEnergyFromVB() const
+	{
+		return holeTrapEnergyFromVB;
+	}
+
+	void Material::HoleTrapEnergyFromVB(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		holeTrapEnergyFromVB = norm.PushEnergy(val);
+	}
+
 
 	Mat::Name Mat::Parse(const std::string &matStr)
 	{
@@ -435,6 +446,9 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eTrapEnergy);
 		GetMaterial(Mat::Si3N4)->ElecTrapEnergyFromCB(dynamic_cast<Param<double> *>(parBase)->Value());
 
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hTrapEnergy);
+		GetMaterial(Mat::Si3N4)->HoleTrapEnergyFromVB(dynamic_cast<Param<double> *>(parBase)->Value());
+
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eXsection);
 		GetMaterial(Mat::Si3N4)->ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
 
@@ -467,6 +481,9 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eTrapEnergy);
 		GetMaterial(Mat::HfO2)->ElecTrapEnergyFromCB(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hTrapEnergy);
+		GetMaterial(Mat::HfO2)->HoleTrapEnergyFromVB(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eXsection);
 		GetMaterial(Mat::HfO2)->ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());

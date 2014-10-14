@@ -913,6 +913,9 @@ namespace SctmPhys
 		case EnergyFromCondBand:
 			energyFromCondBand = val;
 			break;
+		case EnergyFromValeBand:
+			energyFromValeBand = val;
+			break;
 		case eTrapDensity:
 			e_trapDensity = val;
 			break;
@@ -961,6 +964,11 @@ namespace SctmPhys
 			case EnergyFromCondBand:
 			{
 				ret = energyFromCondBand;
+				break;
+			}
+			case EnergyFromValeBand:
+			{
+				ret = energyFromValeBand;
 				break;
 			}
 			case eCrossSection:

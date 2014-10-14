@@ -210,6 +210,7 @@ namespace SctmPhys
 			eTrapDensity,
 			eCrossSection,
 			EnergyFromCondBand,
+			EnergyFromValeBand,
 			eOccupation,
 			eEmptyTrapDens,
 			NetCharge,
@@ -245,7 +246,8 @@ namespace SctmPhys
 		double e_trapped;
 		double e_trapDensity;
 		double e_crossSection;
-		double energyFromCondBand;
+		double energyFromCondBand; ///< electron trap energy
+		double energyFromValeBand; ///< hole trap energy
 		double e_frequencyT2B; ///< electron Trap-to-Band tunneling-out frequency
 		double e_transCoeffT2B; ///< electron transmission coefficient in trap-to-band tunneling
 		double e_frequencyPF; ///< electron emission frequency of Poole - Frenkel effect
