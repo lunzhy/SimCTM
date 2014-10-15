@@ -45,17 +45,21 @@ namespace MaterialDB
 			Mat_Bandgap, ///< bandgap of the material
 			Mat_ElectronAffinity, ///< electron affinity of the material
 			Mat_ElectronMass, ///< electron effective mass of the material
-			Mat_ElecDOSMass, ///< electron effective DOS mass
 			Mat_HoleMass, ///< hole effective mass of the material
+			Mat_ElecDOSMass, ///< electron effective DOS mass
+			Mat_HoleDOSMass, ///< hole effective DOS mass
 			Mat_ElectronDiffusion, ///< electron diffusion coefficient of the material
 			Mat_HoleDiffusion, ///< hole diffusion coefficient of the material
 			Mat_ElectronMobility, ///< electron mobility of the material
 			Mat_HoleMobility, ///< hole mobility of the material
 			Mat_ElecTrapXSection, ///< electron trap cross section
+			Mat_HoleTrapXSection, ///< hole trap cross section
 			Mat_ElecTrapEnergyFromCB, ///< electron trap energy from conduction band
+			Mat_HoleTrapEnergyFromVB, ///< hole trap energy from valence band
 			Mat_ElecFrequencyT2B, ///< electron Trap-to-Band tunneling out frequency
+			Mat_HoleFrequencyT2B, ///< hole Trap-to-Band tunneling out frequency
 			Mat_ElecFrequencyPF, ///< electron emission frequency in Poole-Frenkel effect
-			Mat_HoleTrapEnergyFromVB ///< hole trap energy from valence band
+			Mat_HoleFrequencyPF, ///< hole emission frequency in Poole-Frenkel effect
 		};
 	};
 
@@ -71,17 +75,21 @@ namespace MaterialDB
 		double bandgap; ///< bandgap, in [eV]
 		double electronAffinity; ///< electron affinity energy, in [eV]
 		double elecMass; ///< electron effective tunneling mass, in [m0]
+		double holeMass; ///< hole effective tunneling mass, in [m0]
 		double elecDOSMass; ///< electron effective DOS mass, in [m0]
-		double holeMass; ///< hole effective mass, in [m0]
+		double holeDOSMass; ///< hole effect DOS mass, in [m0]
 		double electronDiffusion; ///< electron diffusion coefficient, in [D0]
 		double holeDiffusion; ///< hole diffusion coefficient, in [D0]
 		double electronMobility; ///< electron mobility, in [cm^2/V/s]
 		double holeMobility; ///< hole mobility, in [cm^2/V/s]
 		double elecTrapXSection; ///< electron trap cross section, in [cm^2]
+		double holeTrapXSection; ///< hole trap cross section, in [cm^2]
 		double elecTrapEnergyFromCB; ///< electron trap energy from conduction band, in eV
-		double elecFrequencyT2B; ///< electron Trap-to-Band tunneling out frequency
-		double elecFrequencyPF; ///< electron emission frequency in Poole-Frenkel effect
 		double holeTrapEnergyFromVB; ///< hole trap energy from valence band
+		double elecFrequencyT2B; ///< electron Trap-to-Band tunneling out frequency
+		double holeFrequencyT2B; ///< hole Trap-to-Band tunneling out frequency
+		double elecFrequencyPF; ///< electron emission frequency in Poole-Frenkel effect
+		double holeFrequencyPF; ///< hole emission frequency in Poole-Frenkel effect
 		
 	public:
 		/// @brief Material is the construction method of this class
@@ -102,30 +110,47 @@ namespace MaterialDB
 		void		Bandgap(double val);
 		double		ElectronAffinity() const;
 		void		ElectronAffinity(double val);
+		
 		double		ElecDOSMass() const;
 		void		ElecDOSMass(double val);
+		double		HoleDOSMass() const;
+		void		HoleDOSMass(double val);
+		
 		double		ElectronMass() const;
 		void		ElectronMass(double val);
 		double		HoleMass() const;
 		void		HoleMass(double val);
+		
 		double		ElectronDiffusion() const;
 		void		ElectronDiffusion(double val);
 		double		HoleDiffusion() const;
 		void		HoleDiffusion(double val);
+		
 		double		ElectronMobility() const;
 		void		ElectronMobility(double val);
 		double		HoleMobility() const;
 		void		HoleMobility(double val);
+		
 		double		ElecTrapXSection() const;
 		void		ElecTrapXSection(double val);
+		double		HoleTrapXSection() const;
+		void		HoleTrapXSection(double val);
+		
 		double		ElecTrapEnergyFromCB() const;
 		void		ElecTrapEnergyFromCB(double val);
-		double		ElecFrequencyT2B() const;
-		void		ElecFrequencyT2B(double val);
-		double		ElecFrequencyPF() const;
-		void		ElecFrequencyPF(double val);
 		double		HoleTrapEnergyFromVB() const;
 		void		HoleTrapEnergyFromVB(double val);
+
+		double		ElecFrequencyT2B() const;
+		void		ElecFrequencyT2B(double val);
+		double		HoleFrequencyT2B() const;
+		void		HoleFrequencyT2B(double val);
+
+		double		ElecFrequencyPF() const;
+		void		ElecFrequencyPF(double val);
+		double		HoleFrequencyPF() const;
+		void		HoleFrequencyPF(double val);
+		
 	};
 
 	/// @brief GetMatPrpty is called to get the value of material property with given material
