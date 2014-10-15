@@ -2915,21 +2915,6 @@ namespace SctmUtils
 			}
 			return;
 		}
-		if (name == "hMass")
-		{
-			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = NULL;
-			switch (currMat)
-			{
-			case MaterialDB::Mat::Silicon:
-				par = new Param<double>(ParName::Si_hMass, valDouble);
-				mapToSet[ParName::Si_hMass] = par;
-				break;
-			default:
-				break;
-			}
-			return;
-		}
 		if (name == "eMobility")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -3029,6 +3014,83 @@ namespace SctmUtils
 			}
 			return;
 		}
+		if (name == "hDOSMass")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_hDOSMass, valDouble);
+				mapToSet[ParName::Si_hDOSMass] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hDOSMass, valDouble);
+				mapToSet[ParName::Si3N4_hDOSMass] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hDOSMass, valDouble);
+				mapToSet[ParName::HfO2_hDOSMass] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hMass")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_hMass, valDouble);
+				mapToSet[ParName::Si_hMass] = par;
+				break;
+			case MaterialDB::Mat::SiO2:
+				par = new Param<double>(ParName::SiO2_hMass, valDouble);
+				mapToSet[ParName::SiO2_hMass] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hMass, valDouble);
+				mapToSet[ParName::Si3N4_hMass] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hMass, valDouble);
+				mapToSet[ParName::HfO2_hMass] = par;
+				break;
+			case MaterialDB::Mat::Al2O3:
+				par = new Param<double>(ParName::Al2O3_hMass, valDouble);
+				mapToSet[ParName::Al2O3_hMass] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hMobility")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_hMobility, valDouble);
+				mapToSet[ParName::Si_hMobility] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hMobility, valDouble);
+				mapToSet[ParName::Si3N4_hMobility] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hMobility, valDouble);
+				mapToSet[ParName::HfO2_hMobility] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
 		if (name == "hTrapEnergy")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -3042,6 +3104,63 @@ namespace SctmUtils
 			case MaterialDB::Mat::HfO2:
 				par = new Param<double>(ParName::HfO2_hTrapEnergy, valDouble);
 				mapToSet[ParName::HfO2_hTrapEnergy] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hXsection")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hXsection, valDouble);
+				mapToSet[ParName::Si3N4_hXsection] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hXsection, valDouble);
+				mapToSet[ParName::HfO2_hXsection] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hFrequencyT2B")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hFrequencyT2B, valDouble);
+				mapToSet[ParName::Si3N4_hFrequencyT2B] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hFrequencyT2B, valDouble);
+				mapToSet[ParName::HfO2_hFrequencyT2B] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hFrequencyPF")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hFrequencyPF, valDouble);
+				mapToSet[ParName::Si3N4_hFrequencyPF] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hFrequencyPF, valDouble);
+				mapToSet[ParName::HfO2_hFrequencyPF] = par;
 				break;
 			default:
 				break;

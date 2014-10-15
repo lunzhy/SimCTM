@@ -502,18 +502,22 @@ namespace SctmUtils
 			Si_electronAffinity,
 			Si_eMass,
 			Si_eDOSMass,
-			Si_hMass,
 			Si_eMobility,
+			Si_hMass,
+			Si_hDOSMass,
+			Si_hMobility,
 
 			SiO2_bandgap,
 			SiO2_dielectricConstant,
 			SiO2_electronAffinity,
 			SiO2_eMass,
+			SiO2_hMass,
 
 			Al2O3_bandgap,
 			Al2O3_dielectricConstant,
 			Al2O3_electronAffinity,
 			Al2O3_eMass,
+			Al2O3_hMass,
 
 			Si3N4_bandgap,
 			Si3N4_dielectricConstant,
@@ -525,7 +529,13 @@ namespace SctmUtils
 			Si3N4_eXsection,
 			Si3N4_eFrequencyT2B,
 			Si3N4_eFrequencyPF,
+			Si3N4_hMass,
+			Si3N4_hDOSMass,
+			Si3N4_hMobility,
+			Si3N4_hXsection,
 			Si3N4_hTrapEnergy,
+			Si3N4_hFrequencyT2B,
+			Si3N4_hFrequencyPF,
 
 			HfO2_bandgap,
 			HfO2_dielectricConstant,
@@ -537,7 +547,13 @@ namespace SctmUtils
 			HfO2_eXsection,
 			HfO2_eFrequencyT2B,
 			HfO2_eFrequencyPF,
+			HfO2_hDOSMass,
+			HfO2_hMass,
+			HfO2_hMobility,
+			HfO2_hXsection,
 			HfO2_hTrapEnergy,
+			HfO2_hFrequencyT2B,
+			HfO2_hFrequencyPF
 		};
 
 		SctmParameterParser();

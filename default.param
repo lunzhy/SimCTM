@@ -128,6 +128,8 @@ eMass						: 1.08					# in [m0], effective tunneling mass
 eDOSMass					: 1.08					# in [m0]
 eMobility					: 1350					# in [cm^2/V/s]
 hMass						: 0.59					# in [m0]
+hDOSMass					: 0.59					# in [m0]
+hMobility					: 450					# in [cm^2/V/s]
 
 # SiO2
 material					: SiO2
@@ -135,6 +137,7 @@ bandgap						: 9.4					# in [eV]
 dielectricConstant			: 3.9
 electronAffinity			: 0.9					# in [eV]
 eMass						: 0.42					# in [m0]
+hMass						: 0.42					# in [m0]
 
 # Al2O3
 material					: Al2O3
@@ -142,6 +145,7 @@ bandgap						: 8.8					# in [eV]
 dielectricConstant			: 9.0
 electronAffinity			: 1.25					# in [eV]
 eMass						: 0.2					# in [m0]
+hMass						: 0.2					# in [m0]
 
 # Si3N4
 material					: Si3N4
@@ -155,7 +159,13 @@ eTrapEnergy					: 1.2					# in [eV]
 eXsection					: 1e-14					# in [cm^2]
 eFrequencyT2B				: 5e7					# in [1/s]
 eFrequencyPF				: 1e9					# in [1/s]
+hDOSMass					: 0.5					# in [m0]
+hMass						: 0.5					# in [m0]
+hMobility					: 0.2					# in [cm^2/V/s]
+hXsection					: 1e-14					# in [cm^2]
 hTrapEnergy					: 1.8					# in [eV]
+hFrequencyT2B				: 5e7					# in [1/s]
+hFrequencyPF				: 1e9					# in [1/s]
 
 # HfO2
 material					: HfO2
@@ -169,4 +179,10 @@ eTrapEnergy					: 0.7					# in [eV]
 eXsection					: 1e-14					# in [cm^2]
 eFrequencyT2B				: 5e7					# in [1/s], not by reference
 eFrequencyPF				: 1e9					# in [1/s], not by reference
-hTrapEnergy					: 1.8					$ in [eV]
+hDOSMass					: 0.5					# in [m0]
+hMass						: 0.5					# in [m0]
+hMobility					: 0.2					# in [cm^2/V/s]
+hXsection					: 1e-14					# in [cm^2]
+hTrapEnergy					: 1.8					# in [eV]
+hFrequencyT2B				: 5e7					# in [1/s]
+hFrequencyPF				: 1e9					# in [1/s]

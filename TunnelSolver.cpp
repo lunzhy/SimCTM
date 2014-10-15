@@ -596,16 +596,16 @@ void TunnelSolver::loadBandStructureForHoles(FDVertex* startVert)
 		//load cbedge
 		if (currVert->Trap == NULL)
 		{
-			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+			cbedge = - currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy);
 		}
 		else
 		{
-			cbedge = currVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy, blockMat);
+			cbedge = - currVert->Phys->GetPhysPrpty(PhysProperty::ValenceBandEnergy, blockMat);
 		}
 		cbedge = norm.PullEnergy(cbedge);
 
-		//load emass
-		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
+		//load hole emass
+		emass = currVert->Phys->GetPhysPrpty(PhysProperty::hMass);
 
 		deltaX_Block.push_back(dx);
 		cbEdge_Block.push_back(cbedge);
