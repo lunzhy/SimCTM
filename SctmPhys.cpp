@@ -54,7 +54,7 @@ namespace SctmPhys
 		densControlArea = 0;
 		epsilon = 0;
 
-		tunnelCoeff = 0;
+		e_tunnelCoeff = 0;
 		e_currdensMFN_X = 0;
 		e_currdensMFN_Y = 0;
 		e_subsCurrDensB2T = 0;
@@ -75,9 +75,6 @@ namespace SctmPhys
 		case eMass:
 			e_mass = prptyValue;
 			break;
-		case hMass:
-			h_mass = prptyValue;
-			break;
 		case ElectronAffinity:
 			electronAffinity = prptyValue;
 			break;
@@ -90,8 +87,8 @@ namespace SctmPhys
 		case eDensity:
 			e_density = prptyValue;
 			break;
-		case TunnelCoeff:
-			tunnelCoeff = prptyValue;
+		case eTunnelCoeff:
+			e_tunnelCoeff = prptyValue;
 			break;
 		case DielectricConstant:
 			epsilon = prptyValue;
@@ -104,6 +101,16 @@ namespace SctmPhys
 			break;
 		case eSubsCurrDensB2T:
 			e_subsCurrDensB2T = prptyValue;
+			break;
+		//for holes
+		case hMass:
+			h_mass = prptyValue;
+			break;
+		case hDOSMass:
+			h_DOSmass = prptyValue;
+			break;
+		case hMobility:
+			h_mobility = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -153,11 +160,6 @@ namespace SctmPhys
 				ret = e_mass;
 				break;
 			}
-			case hMass:
-			{
-				ret = h_mass;
-				break;
-			}	
 			case ElectronAffinity:
 			{
 				if (matName == MaterialDB::Mat::ErrorMaterial)
@@ -431,7 +433,7 @@ namespace SctmPhys
 					}
 					else if (  vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
 					{
-						double tunCoeff = GetPhysPrpty(TunnelCoeff);
+						double tunCoeff = GetPhysPrpty(eTunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);
 						ret = tunCoeff * dens * bcNormX;
 					}
@@ -479,7 +481,7 @@ namespace SctmPhys
 					}
 					else if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
 					{
-						double tunCoeff = GetPhysPrpty(TunnelCoeff);
+						double tunCoeff = GetPhysPrpty(eTunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);
 						ret = tunCoeff * dens * bcNormY;
 					}
@@ -497,9 +499,9 @@ namespace SctmPhys
 				ret = SctmMath::sqrt( eCurrDensX * eCurrDensX + eCurrDensY * eCurrDensY );
 				break;
 			}
-			case TunnelCoeff:
+			case eTunnelCoeff:
 			{
-				ret = tunnelCoeff;
+				ret = e_tunnelCoeff;
 				break;
 			}
 			case eEffDOS:
@@ -550,6 +552,22 @@ namespace SctmPhys
 			case eSubsCurrDensB2T:
 			{
 				ret = e_subsCurrDensB2T;
+				break;
+			}
+			//for holes
+			case hMass:
+			{
+				ret = h_mass;
+				break;
+			}
+			case hDOSMass:
+			{
+				ret = h_DOSmass;
+				break;
+			}
+			case hMobility:
+			{
+				ret = h_mobility;
 				break;
 			}
 			default:
@@ -819,7 +837,7 @@ namespace SctmPhys
 		using namespace MaterialDB;
 		using SctmUtils::SctmGlobalControl;
 		//the value returned by GetMatPrpty is normalized value
-		double mp = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleMass);
+		double mp = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleDOSMass);
 		double mn = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElecDOSMass);
 		double bandgap = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_Bandgap);
 		double affinity = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronAffinity);
@@ -843,7 +861,7 @@ namespace SctmPhys
 		e_trapDensity = 0;
 		e_trapped = 0;
 		e_crossSection = 0;
-		energyFromCondBand = 0;
+		e_energyFromCondBand = 0;
 		e_frequencyT2B = 0;
 		e_transCoeffT2B = 0;
 	}
@@ -910,11 +928,8 @@ namespace SctmPhys
 		case eCrossSection:
 			e_crossSection = val;
 			break;
-		case EnergyFromCondBand:
-			energyFromCondBand = val;
-			break;
-		case EnergyFromValeBand:
-			energyFromValeBand = val;
+		case eEnergyFromCondBand:
+			e_energyFromCondBand = val;
 			break;
 		case eTrapDensity:
 			e_trapDensity = val;
@@ -931,6 +946,19 @@ namespace SctmPhys
 		case eFrequency_PF:
 			e_frequencyPF = val;
 			break;
+		//for holes
+		case hCrossSection:
+			h_crosssection = val;
+			break;
+		case hEnergyFromValeBand:
+			h_energyFromValeBand = val;
+			break;
+		case hFrequency_T2B:
+			h_frequencyT2B = val;
+			break;
+		case hFrequency_PF:
+			h_frequencyPF = val;
+			break; 
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10028);
 		}
@@ -961,14 +989,9 @@ namespace SctmPhys
 				ret = e_trapped / e_trapDensity;
 				break;
 			}
-			case EnergyFromCondBand:
+			case eEnergyFromCondBand:
 			{
-				ret = energyFromCondBand;
-				break;
-			}
-			case EnergyFromValeBand:
-			{
-				ret = energyFromValeBand;
+				ret = e_energyFromCondBand;
 				break;
 			}
 			case eCrossSection:
@@ -1004,7 +1027,7 @@ namespace SctmPhys
 				eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity);
 				eEffectiveDOS = vertSelf->Phys->GetPhysPrpty(PhysProperty::eEffDOS);
 
-				double trapDepth = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+				double trapDepth = GetTrapPrpty(TrapProperty::eEnergyFromCondBand);
 
 				using SctmUtils::SctmGlobalControl;
 				static string pfModel = SctmGlobalControl::Get().PhysicsPFModel;
@@ -1088,7 +1111,7 @@ namespace SctmPhys
 			{
 				double deltaEt = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF); // in [eV], normalized value
 				double frequency = GetTrapPrpty(TrapProperty::eFrequency_PF);
-				double trapDepth = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+				double trapDepth = GetTrapPrpty(TrapProperty::eEnergyFromCondBand);
 
 				double coeff = frequency * SctmMath::exp(-(trapDepth - deltaEt));
 				if (deltaEt > trapDepth)
@@ -1096,6 +1119,27 @@ namespace SctmPhys
 					SctmData::Get().WritePooleFrenkelInfo();
 				}
 				return coeff;
+			}
+			//for holes
+			case hEnergyFromValeBand:
+			{
+				ret = h_energyFromValeBand;
+				break;
+			}
+			case hCrossSection:
+			{
+				ret = h_crosssection;
+				break;
+			}
+			case hFrequency_T2B:
+			{
+				ret = h_frequencyT2B;
+				break;
+			}
+			case hFrequency_PF:
+			{
+				ret = h_frequencyPF;
+				break;
 			}
 			default:
 			{

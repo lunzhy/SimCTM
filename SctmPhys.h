@@ -89,13 +89,8 @@ namespace SctmPhys
 			ConductionBandEnergy, ///< conduction band energy
 			ValenceBandEnergy, ///< valence band energy
 			ElectronAffinity, ///< electron affinity
-			eDOSMass, ///< electron effective DOS mass
-			eMass, ///< electron effective mass
-			hMass, ///< hole effective mass
 			Bandgap, ///< bandgap
 			NetCharge, ///< the total net charge belongs to the vertex 
-			eMobility, ///< the electron mobility
-			eDensity, ///< the electron density
 			DensityControlArea, ///< density control area of trapping layer
 			ElectricField, ///< the magnitude of electric field
 			ElectricField_X, ///< electric field in X direction
@@ -103,20 +98,30 @@ namespace SctmPhys
 			ElectricFieldTrap_Y, ///< electric field restricted in trapping layer in X direction 
 			ElectricFieldTrap_X, ///< electric field restricted in trapping layer in Y direction
 			ElectricFieldTrap, ///< electric field restricted in trapping layer
+			DielectricConstant,
+			Temperature, ///< the lattice temperature
+
+			//for electrons
+			eDOSMass, ///< electron effective DOS mass
+			eMass, ///< electron effective mass
+			eMobility, ///< the electron mobility
+			eDensity, ///< the electron density
 			eCurrentDensity_X, ///< electron current density in X direction
 			eCurrentDensity_Y, ///< electron current density in Y direction
 			eCurrentDensity, ///< the magnitude of electron current density
-			DielectricConstant,
 			eEffDOS, ///< effective electron density of states, in [cm^-3]
 			eThermalVelocity, ///< electron thermal velocity
-			Temperature, ///< the lattice temperature
-
 			//the physics properties below are properties needed by the solver pack
 			//CAUTION: currently, the tunneling coefficient stores tunneling-out coefficient of the boundary vertex.
-			TunnelCoeff, ///< the tunneling coefficient of this vertex, in [A*cm]
+			eTunnelCoeff, ///< the tunneling coefficient of this vertex, in [A*cm]
 			eCurrDensMFN_X, ///< the x-direction value of MFN tunneling current density of inner vertex 
 			eCurrDensMFN_Y, ///< the y-direction value of MFN tunneling current density of inner vertex
 			eSubsCurrDensB2T, ///< electron current density from substrate in calculation of band-to-trap tunneling 
+
+			//for holes
+			hMass,
+			hDOSMass,
+			hMobility
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -171,24 +176,26 @@ namespace SctmPhys
 		//the value of these physical properties is normalized value.
 		double bandgap; ///< bandgap of the material, normalized, in[eV]
 		double electrostaticPotential; ///< potential, normalized
-		//double conductionBandEnergy; ///< i.e. conduction band edge
-		//double valenceBandEnergy; ///< i.e. valence band edge
 		double electronAffinity; ///< electron affinity
-		double e_DOSmass; ///< effective DOS mass
-		double e_mass; ///< effective electron mass
-		double h_mass; ///< effective hole mass
-		//double netCharge; ///< total net charge belongs to the vertex
-		double e_mobility; ///< electron mobility
-		double e_density; ///< the electron density
 		double densControlArea; ///< density control area, only valid in trapping layer. Only sum up the area in adjacent trapping layers.
 		double epsilon; ///< dielectric constant
 		double temperature; ///< the lattice temperature of this vertex
 
+		//for electrons
+		double e_DOSmass; ///< effective DOS mass
+		double e_mass; ///< effective electron mass
+		double e_mobility; ///< electron mobility
+		double e_density; ///< the electron density
 		//the physics properties below are properties needed by the solver pack
-		double tunnelCoeff; ///< the tunneling coefficient of this vertex, in [A*cm]
+		double e_tunnelCoeff; ///< the tunneling coefficient of this vertex, in [A*cm]
 		double e_currdensMFN_X; ///< the x-direction value of MFN tunneling current density of inner vertex
 		double e_currdensMFN_Y; ///< the y-direction value of MFN tunneling current density of inner vertex
 		double e_subsCurrDensB2T; ///< band-to-trap electron current density from substrate in the calculation of band-to-trap tunneling 
+
+		//for holes
+		double h_mass;
+		double h_DOSmass;
+		double h_mobility;
 
 		//the maps below is used to store the properties of vertex that belongs to different materials
 		PrptyMap multiElectronAffinity;
@@ -206,14 +213,15 @@ namespace SctmPhys
 		enum Name
 		{
 			EpsilonTrapping, ///< dielectric constant for trapping layer
+			NetCharge,
+
+			//for electrons
 			eTrapped,
 			eTrapDensity,
 			eCrossSection,
-			EnergyFromCondBand,
-			EnergyFromValeBand,
+			eEnergyFromCondBand,
 			eOccupation,
 			eEmptyTrapDens,
-			NetCharge,
 			eCaptureCoeff_J_Model,
 			eCaptureCoeff_V_Model,
 			eEmissionCoeff_BasicSRH, ///< the electron emission rate of basic SRH process
@@ -225,6 +233,12 @@ namespace SctmPhys
 			//below are parameters to store
 			eFrequency_PF, ///< electron emission frequency of Poole-Frenkel effect
 			eTrapEnergyDecreasePF, ///< electron trap energy decrease due to Poole-Frenkel effect
+
+			//for holes
+			hCrossSection,
+			hFrequency_T2B,
+			hFrequency_PF,
+			hEnergyFromValeBand,
 		};
 		TrapProperty(FDVertex *_vert);
 		/// @brief GetTrapPrpty is used to get the specific trap property value.
@@ -246,11 +260,15 @@ namespace SctmPhys
 		double e_trapped;
 		double e_trapDensity;
 		double e_crossSection;
-		double energyFromCondBand; ///< electron trap energy
-		double energyFromValeBand; ///< hole trap energy
+		double e_energyFromCondBand; ///< electron trap energy
 		double e_frequencyT2B; ///< electron Trap-to-Band tunneling-out frequency
 		double e_transCoeffT2B; ///< electron transmission coefficient in trap-to-band tunneling
 		double e_frequencyPF; ///< electron emission frequency of Poole - Frenkel effect
+
+		double h_crosssection;
+		double h_frequencyT2B;
+		double h_frequencyPF;
+		double h_energyFromValeBand; ///< hole trap energy
 	};
 }
 

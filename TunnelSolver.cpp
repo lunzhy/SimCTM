@@ -294,7 +294,7 @@ void TunnelSolver::loadBandStructure(FDVertex *startVert)
 		emass = currVert->Phys->GetPhysPrpty(PhysProperty::eMass);
 
 		//load trap energy level
-		trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+		trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::eEnergyFromCondBand);
 		trapEnergyLevel = cbedge - norm.PullEnergy(trapDepth);
 
 		cbEdge_Trap.push_back(cbedge);
@@ -554,7 +554,7 @@ void TunnelSolver::loadBandStructureForHoles(FDVertex* startVert)
 		emass = currVert->Phys->GetPhysPrpty(PhysProperty::hMass);
 
 		//load hole trap energy level
-		trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::EnergyFromValeBand);
+		trapDepth = currVert->Trap->GetTrapPrpty(TrapProperty::hEnergyFromValeBand);
 		trapEnergyLevel = cbedge - norm.PullEnergy(trapDepth); // cbedge is offset value for vbedge
 
 		cbEdge_Trap.push_back(cbedge);

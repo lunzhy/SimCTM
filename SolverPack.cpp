@@ -189,7 +189,7 @@ void SolverPack::fetchTunnelOxideResult()
 		else // eTunnelOut electron tunnel out of the trapping layer
 		{
 			it->second = -it->second;
-			vert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
+			vert->Phys->SetPhysPrpty(PhysProperty::eTunnelCoeff, it->second);
 		}
 	}
 
@@ -260,7 +260,7 @@ void SolverPack::fetchBlockOxideResult()
 			//save the tunneling-out coefficient in the physics property, to be used in calculating the tunneling out current
 			//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
 			it->second = -it->second;
-			vert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
+			vert->Phys->SetPhysPrpty(PhysProperty::eTunnelCoeff, it->second);
 		}
 		else
 		{

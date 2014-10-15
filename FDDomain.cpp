@@ -362,11 +362,18 @@ void FDDomain::setVertexPhysProperty()
 	vector<MatProperty::Name> matPrptys;
 	vector<PhysProperty::Name> verPrptys; //vertex-based physical property
 	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); verPrptys.push_back(PhysProperty::ElectronAffinity);
+	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
+	matPrptys.push_back(MatProperty::Mat_DielectricConstant); verPrptys.push_back(PhysProperty::DielectricConstant);
+
+	//for electrons
 	matPrptys.push_back(MatProperty::Mat_ElectronMass); verPrptys.push_back(PhysProperty::eMass);
 	matPrptys.push_back(MatProperty::Mat_ElecDOSMass); verPrptys.push_back(PhysProperty::eDOSMass);
-	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
 	matPrptys.push_back(MatProperty::Mat_ElectronMobility); verPrptys.push_back(PhysProperty::eMobility);
-	matPrptys.push_back(MatProperty::Mat_DielectricConstant); verPrptys.push_back(PhysProperty::DielectricConstant);
+
+	//for holes
+	matPrptys.push_back(MatProperty::Mat_HoleMass); verPrptys.push_back(PhysProperty::hMass);
+	matPrptys.push_back(MatProperty::Mat_HoleDOSMass); verPrptys.push_back(PhysProperty::hDOSMass);
+	matPrptys.push_back(MatProperty::Mat_HoleMobility); verPrptys.push_back(PhysProperty::hMobility);
 
 	//iteration over the vertices
 	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)
@@ -379,7 +386,9 @@ void FDDomain::setVertexPhysProperty()
 			//The method for filling vertex-based physical value using material-based value is ready
 			//electron mobility is only valid in the trapping region
 			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility || 
-				matPrptys.at(iPrpty) == MatProperty::Mat_ElecDOSMass)
+				matPrptys.at(iPrpty) == MatProperty::Mat_ElecDOSMass ||
+				matPrptys.at(iPrpty) == MatProperty::Mat_HoleMobility ||
+				matPrptys.at(iPrpty) == MatProperty::Mat_HoleDOSMass)
 			{
 				currVertex->Phys->FillVertexPhysUsingMatPrpty(verPrptys.at(iPrpty), matPrptys.at(iPrpty), true);
 			}
@@ -579,11 +588,18 @@ void FDDomain::setVertexTrapProperty()
 		currVert->Trap = new TrapProperty(currVert);
 
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EpsilonTrapping, MatProperty::Mat_DielectricConstant);
+
+		//for electrons
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_T2B, MatProperty::Mat_ElecFrequencyT2B);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_PF, MatProperty::Mat_ElecFrequencyPF);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eCrossSection, MatProperty::Mat_ElecTrapXSection);
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EnergyFromValeBand, MatProperty::Mat_HoleTrapEnergyFromVB);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eEnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
+
+		//for holes
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hFrequency_T2B, MatProperty::Mat_HoleFrequencyT2B);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hFrequency_PF, MatProperty::Mat_HoleFrequencyPF);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hCrossSection, MatProperty::Mat_HoleTrapXSection);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hEnergyFromValeBand, MatProperty::Mat_HoleTrapEnergyFromVB);
 	}
 }
 
