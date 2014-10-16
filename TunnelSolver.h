@@ -90,6 +90,7 @@ protected:
 	vector<FDVertex *> vertsBlockOxideStart;
 	vector<FDVertex *> vertsBlockOxideEnd;
 
+	//the fermi above values are in normalized value
 	VertexMapDouble efermiAboveMap; // fermi energy - conduction band 
 	VertexMapDouble hfermiAboveMap; // hole fermi energy - valence band, offset value
 

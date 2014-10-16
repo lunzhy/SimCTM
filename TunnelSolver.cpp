@@ -1823,6 +1823,8 @@ void SubsToTrapHoleTunnel::SolveTunnel()
 		hCurrDens_DTFN.at(iVert) = currdens;
 
 	}
+
+	pretendToBeElecTun();
 }
 
 void SubsToTrapHoleTunnel::pretendToBeElecTun()

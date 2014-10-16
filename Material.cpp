@@ -134,11 +134,14 @@ namespace MaterialDB
 		case  MatProperty::Mat_ElectronMass:
 			ret = theMaterial->ElectronMass();
 			break;
+		case MatProperty::Mat_HoleMass:
+			ret = theMaterial->HoleMass();
+			break;
 		case  MatProperty::Mat_ElecDOSMass:
 			ret = theMaterial->ElecDOSMass();
 			break;
-		case MatProperty::Mat_HoleMass:
-			ret = theMaterial->HoleMass();
+		case MatProperty::Mat_HoleDOSMass:
+			ret = theMaterial->HoleDOSMass();
 			break;
 		case MatProperty::Mat_ElectronDiffusion:
 			ret = theMaterial->ElectronDiffusion();
@@ -155,14 +158,26 @@ namespace MaterialDB
 		case MatProperty::Mat_ElecTrapEnergyFromCB:
 			ret = theMaterial->ElecTrapEnergyFromCB();
 			break;
+		case MatProperty::Mat_HoleTrapEnergyFromVB:
+			ret = theMaterial->HoleTrapEnergyFromVB();
+			break;
 		case MatProperty::Mat_ElecTrapXSection:
 			ret = theMaterial->ElecTrapXSection();
+			break;
+		case MatProperty::Mat_HoleTrapXSection:
+			ret = theMaterial->HoleTrapXSection();
 			break;
 		case MatProperty::Mat_ElecFrequencyT2B:
 			ret = theMaterial->ElecFrequencyT2B();
 			break;
+		case MatProperty::Mat_HoleFrequencyT2B:
+			ret = theMaterial->HoleFrequencyT2B();
+			break;
 		case MatProperty::Mat_ElecFrequencyPF:
 			ret = theMaterial->ElecFrequencyPF();
+			break;
+		case MatProperty::Mat_HoleFrequencyPF:
+			ret = theMaterial->HoleFrequencyPF();
 			break;
 		default:
 			// use SCTM_CHECK for non-existed property
