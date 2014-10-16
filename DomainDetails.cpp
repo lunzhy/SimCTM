@@ -167,7 +167,7 @@ FDBoundary::TunnelTag FDBoundary::GetElecTunnelTag()
 FDBoundary::FDBoundary()
 {
 	elecTunTag = noTunnel;
-	holeTunTag = noTunnel
+	holeTunTag = noTunnel;
 }
 
 void FDBoundary::SetHoleTunnelTag(TunnelTag tag)

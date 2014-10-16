@@ -121,9 +121,6 @@ protected:
 	double effTunnelMass; ///< effective mass
 
 	TunnelDirection tunDirection;
-
-	double eCurrDens; ///< the tunneling current density, in [A/m^2]
-	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 };
 
 class SubsToTrapElecTunnel : public TunnelSolver
@@ -155,12 +152,13 @@ protected:
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);
 
-	double subsBarrier;
+	double eSubsBarrier;
 
 	vector<double> cbEdge_TunnelTrap;
 	vector<double> eMass_TunnelTrap;
 	vector<double> deltaX_TunnelTrap;
 
+	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
 	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
 	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
@@ -176,6 +174,7 @@ protected:
 	void setTunnelTag();
 
 	double hSubsBarrier;
+	vector<double> hCurrDens_DTFN;
 };
 
 class TrapToGateElecTunnel : public TunnelSolver
@@ -195,7 +194,9 @@ protected:
 
 	vector<double> cbEdge_TrapBlock;
 	vector<double> eMass_TrapBlock;
-	vector<double> deltaX_TrapBlock; 
+	vector<double> deltaX_TrapBlock;
+
+	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 	VertexMapDouble eTransCoeffMap_T2B;
 };
 
