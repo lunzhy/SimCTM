@@ -42,22 +42,24 @@ namespace SctmPhys
 		vertSelf = _vert;
 		bandgap = 0;
 		electrostaticPotential = 0;
-		//conductionBandEnergy = 0;
-		//valenceBandEnergy = 0;
+		densControlArea = 0;
+		epsilon = 0;
+		
 		electronAffinity = 0;
 		e_DOSmass = 0;
 		e_mass = 0;
-		h_mass = 0;
-		//netCharge = 0;
 		e_density = 0;
 		e_mobility = 0;
-		densControlArea = 0;
-		epsilon = 0;
 
 		e_tunnelCoeff = 0;
 		e_currdensMFN_X = 0;
 		e_currdensMFN_Y = 0;
 		e_subsCurrDensB2T = 0;
+
+		h_mass = 0;
+		h_DOSmass = 0;
+		h_mobility = 0;
+		h_density = 0;
 
 		//all the vectors and maps are initialized with 0 size
 	}
@@ -111,6 +113,9 @@ namespace SctmPhys
 			break;
 		case hMobility:
 			h_mobility = prptyValue;
+			break;
+		case hDensity:
+			h_density = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -570,6 +575,11 @@ namespace SctmPhys
 				ret = h_mobility;
 				break;
 			}
+			case  hDensity:
+			{
+				ret = h_density;
+				break;
+			}
 			default:
 			{
 				// use SCTM_ASSERT for non-existed property
@@ -864,6 +874,12 @@ namespace SctmPhys
 		e_energyFromCondBand = 0;
 		e_frequencyT2B = 0;
 		e_transCoeffT2B = 0;
+
+		//for holes
+		h_crosssection = 0;
+		h_frequencyT2B = 0;
+		h_frequencyPF = 0;
+		h_energyFromValeBand = 0;
 	}
 
 	void TrapProperty::FillTrapPrptyUsingMatPrpty(TrapProperty::Name trapPrpty, MaterialDB::MatProperty::Name matPrpty)

@@ -85,12 +85,17 @@ protected:
 	vector<FDVertex *> vertsBlockOxideStart;
 	vector<FDVertex *> vertsBlockOxideEnd;
 
-	VertexMapDouble fermiAboveMap; // fermi energy - conduction band 
+	VertexMapDouble efermiAboveMap; // fermi energy - conduction band 
+	VertexMapDouble hfermiAboveMap; // hole fermi energy - valence band
 
+	//cbEdge, vbEdge, eMass, hMass
 	//for tunneling layer
 	vector<double> cbEdge_Tunnel;
 	vector<double> eMass_Tunnel;
 	vector<double> deltaX_Tunnel;
+
+	vector<double> vbEdge_Tunnel;
+	vector<double> hMass_Tunnel;
 
 	//for trapping layer
 	//the additional vertex for solving modified Fowler-Nordheim tunneling
@@ -100,21 +105,33 @@ protected:
 	vector<double> eEnergyLevel_Trap; ///< trap energy level
 	vector<FDVertex *> verts_Trap;
 
+	vector<double> vbEdge_Trap;
+	vector<double> hMass_Trap;
+	vector<double> hEnergyLevel_Trap;
+
 	//for blocking layer
 	vector<double> cbEdge_Block;
 	vector<double> eMass_Block;
 	vector<double> deltaX_Block;
 
+	vector<double> vbEdge_Block;
+	vector<double> hMass_Block;
+
 	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 
 	double cbedgeTunnelFrom; ///< left electrode conduction band edge
 	double cbedgeTunnelTo;
+
+	double vbedgeTunnelFrom;
+	double vbedgeTunnelTo;
+
 	double fermiEnergyTunnelFrom;
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
 	double eCurrDens; ///< the tunneling current density, in [A/m^2]
 
 	TunnelDirection eTunDirection;
+	TunnelDirection hTunDirection;
 };
 
 class SubsToTrapElecTunnel : public TunnelSolver
@@ -157,16 +174,18 @@ protected:
 	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
 };
 
-class SubsToTrapHoleTunnel : public SubsToTrapElecTunnel
+class SubsToTrapHoleTunnel : public TunnelSolver
 {
 public:
 	SubsToTrapHoleTunnel(FDDomain* _domain);
 	void SolveTunnel();
 protected:
-	void pretendToBeElecTun();
-
 	void setTunnelDirection(FDVertex* vertSubs, FDVertex* vertTrap);
 	void setTunnelTag();
+
+	void pretendToBeElecTun();
+
+	double hSubsBarrier;
 };
 
 class TrapToGateElecTunnel : public TunnelSolver
@@ -186,8 +205,7 @@ protected:
 
 	vector<double> cbEdge_TrapBlock;
 	vector<double> eMass_TrapBlock;
-	vector<double> deltaX_TrapBlock;
-
+	vector<double> deltaX_TrapBlock; 
 	VertexMapDouble eTransCoeffMap_T2B;
 };
 

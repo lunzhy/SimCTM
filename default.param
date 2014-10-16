@@ -124,7 +124,7 @@ material					: Silicon
 bandgap						: 1.12					# in [eV]
 dielectricConstant			: 11.9
 electronAffinity			: 4.05					# in [eV]
-eMass						: 1.08					# in [m0], effective tunneling mass
+eMass						: 1.08					# in [m0]
 eDOSMass					: 1.08					# in [m0]
 eMobility					: 1350					# in [cm^2/V/s]
 hMass						: 0.59					# in [m0]
