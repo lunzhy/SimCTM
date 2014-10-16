@@ -171,16 +171,25 @@ TunnelSolver::TunnelSolver(FDDomain *_domain): domain(_domain)
 void TunnelSolver::ReadInput(VertexMapDouble &fermi)
 {
 	int vertID = 0;
-	double val = 0;
+	double efa = 0; //electron fermi energy above
+	double hfa = 0; //hole fermi energy above
+	double bandgap = 0;
 	FDVertex *vert = NULL;
+	using MaterialDB::MatProperty;
+
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
 		vert = vertsTunnelOxideStart.at(iVert);
 		vertID = vert->GetID();
 
 		SCTM_ASSERT(fermi.find(vertID) != fermi.end(), 10020);
-		val = fermi[vertID];
-		efermiAboveMap[vertID] = val;
+		efa = fermi[vertID];
+		
+		this->efermiAboveMap[vertID] = efa;
+
+		bandgap = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_Bandgap); //bandgap value is in normalized value
+		hfa = (-efa) - bandgap;
+		this->hfermiAboveMap[vertID] = hfa;
 	}
 }
 
@@ -546,6 +555,8 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 
 SubsToTrapElecTunnel::SubsToTrapElecTunnel(FDDomain *_domain): TunnelSolver(_domain)
 {
+	this->tunMode = TunnelSolver::ElecTunnel;
+
 	using namespace MaterialDB;
 	//substrate/tunnel oxide barrier
 	Normalization norm = Normalization(this->temperature);
@@ -634,6 +645,8 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 {
 	//Result returning does not care the direction of the tunneling current.
 	//So the sign of the result is not determined here, it is set in solver pack.
+	//This method is also used in SubsToTrapHoleTunnel, so both electron and hole tunneling are considered.
+
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	//for current density
@@ -652,7 +665,11 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 		currVert = vertsTunnelOxideEnd.at(iVert);
 		vertID = currVert->GetID();
 		
-		tunnelTag = currVert->BndCond.GetElecTunnelTag();
+		if (tunMode == TunnelSolver::ElecTunnel)
+			tunnelTag = currVert->BndCond.GetElecTunnelTag();
+		else
+			tunnelTag = currVert->BndCond.GetHoleTunnelTag();
+
 		switch (tunnelTag)
 		{
 			case FDBoundary::eTunnelOut:
@@ -661,8 +678,12 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 			case FDBoundary::eTunnelIn:
 				tunDirection = TunnelSolver::North;
 				break;
-			case FDBoundary::hTunnelIn:
 			case FDBoundary::hTunnelOut:
+				tunDirection = TunnelSolver::South;
+				break;
+			case FDBoundary::hTunnelIn:
+				tunDirection = TunnelSolver::North;
+				break;
 			case FDBoundary::noTunnel:
 			default:
 				SCTM_ASSERT(SCTM_ERROR, 10056);
@@ -1722,6 +1743,8 @@ void SubsToTrapHoleTunnel::setTunnelDirection(FDVertex* vertSubs, FDVertex* vert
 
 SubsToTrapHoleTunnel::SubsToTrapHoleTunnel(FDDomain* _domain) : SubsToTrapElecTunnel(_domain)
 {
+	this->tunMode = TunnelSolver::HoleTunnel;
+
 	using namespace MaterialDB;
 	Normalization norm = Normalization(this->temperature);
 	
@@ -1800,4 +1823,11 @@ void SubsToTrapHoleTunnel::SolveTunnel()
 		hCurrDens_DTFN.at(iVert) = currdens;
 
 	}
+}
+
+void SubsToTrapHoleTunnel::pretendToBeElecTun()
+{
+	//this method is used in order to use the methods in SubsToTrapElecTunnel for electron tunneling problem:
+	//ReturnResult
+	this->eCurrDens_DTFN = this->hCurrDens_DTFN;
 }

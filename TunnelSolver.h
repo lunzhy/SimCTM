@@ -91,7 +91,7 @@ protected:
 	vector<FDVertex *> vertsBlockOxideEnd;
 
 	VertexMapDouble efermiAboveMap; // fermi energy - conduction band 
-	VertexMapDouble hfermiAboveMap; // hole fermi energy - valence band
+	VertexMapDouble hfermiAboveMap; // hole fermi energy - valence band, offset value
 
 	//cbEdge, vbEdge, eMass, hMass
 	//for tunneling layer
@@ -134,7 +134,7 @@ public:
 	void ReturnResult_T2B(VertexMapDouble &ret);
 protected:
 	double getSupplyFunction(double energy);
-	void setSolver_DTFN(FDVertex *startVertex);
+	void setSolver_DTFN(FDVertex *startVertex); //This method is not currently used.
 	/// @brief setSolver_Trap is used to set the vectors for solving mechanisms including trapping layer.
 	/// 
 	/// Setting solver of trapping layer is the preparation for solve MFN and B2T tunneling problems.
@@ -172,6 +172,7 @@ public:
 protected:
 	void setTunnelDirection(FDVertex* vertSubs, FDVertex* vertTrap);
 	void setTunnelTag();
+	void pretendToBeElecTun();
 
 	double hSubsBarrier;
 	vector<double> hCurrDens_DTFN;
@@ -186,7 +187,7 @@ public:
 	void ReturnResult_T2B(VertexMapDouble &ret);
 protected:
 	double getSupplyFunction(double energy);
-	void setSolver_DTFN(FDVertex *endVertex);
+	void setSolver_DTFN(FDVertex *endVertex); //This method is not currently used.
 	void setTunnelDirection(FDVertex *vertTrap, FDVertex *vertGate);
 	void setTunnelTag();
 	void setSolver_Trap();
