@@ -3253,9 +3253,8 @@ namespace SctmUtils
 	{
 		if (SCTM_ENV == "Windows")
 		{
-			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
+			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\HoleTunnelTest";
 			DefaultParamPath = "E:\\MyCode\\SimCTM\\SimCTM\\default.param";
-			//DefaultParamPath = "E:\\PhD Study\\SimCTM\\default.param";
 			ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
 			PathSep = "\\";
 		}

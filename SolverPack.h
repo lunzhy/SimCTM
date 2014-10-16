@@ -37,8 +37,10 @@ protected:
 
 	OneDimSubsSolver *subsSolver;
 	TwoDimPoissonSolver *poissonSolver;
-	TunnelSolver *tunnelOxideSolver;
-	TunnelSolver *blockOxideSolver;
+	TunnelSolver *tunnelOxideElecSolver;
+	TunnelSolver *blockOxideElecSolver;
+	TunnelSolver *tunnelOxideHoleSolver;
+	TunnelSolver *blockOxideHoleSolver;
 	TrapSolver *trappingSolver;
 	DriftDiffusionSolver *ddSolver;
 
