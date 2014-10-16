@@ -32,6 +32,11 @@ class TunnelSolver
 {
 	//friend class SctmUtils::SctmDebug;
 public:
+	enum TunnelMode
+	{
+		ElecTunnel,
+		HoleTunnel,
+	};
 	enum TunnelDirection
 	{
 		North,
@@ -70,7 +75,6 @@ protected:
 	double calcThermalEmission(vector<double> &deltaX, vector<double> &emass, vector<double> &cbedge, double cbedgeMin);
 
 	void loadBandStructure(FDVertex *startVert);
-	void loadBandStructureForHoles(FDVertex* startVert);
 
 	double supplyFunction_forCurrDens(double energy);
 	double supplyFunction_forTunCoeff(double energy);
@@ -79,6 +83,7 @@ protected:
 	double temperature;
 	FDDomain *domain;
 	bool tunnelTrapToGateEnable;
+	TunnelMode tunMode;
 
 	vector<FDVertex *> vertsTunnelOxideStart;
 	vector<FDVertex *> vertsTunnelOxideEnd;
@@ -90,48 +95,36 @@ protected:
 
 	//cbEdge, vbEdge, eMass, hMass
 	//for tunneling layer
-	vector<double> cbEdge_Tunnel;
-	vector<double> eMass_Tunnel;
+	vector<double> bandEdge_Tunnel;
+	vector<double> ehmass_Tunnel; ///< electron or hole mass
 	vector<double> deltaX_Tunnel;
-
-	vector<double> vbEdge_Tunnel;
-	vector<double> hMass_Tunnel;
 
 	//for trapping layer
 	//the additional vertex for solving modified Fowler-Nordheim tunneling
-	vector<double> cbEdge_Trap;
-	vector<double> eMass_Trap;
+	vector<double> bandEdge_Trap;
+	vector<double> ehMass_Trap;
 	vector<double> deltaX_Trap;
-	vector<double> eEnergyLevel_Trap; ///< trap energy level
+	vector<double> trapEnergyLevel; ///< trap energy level
 	vector<FDVertex *> verts_Trap;
 
-	vector<double> vbEdge_Trap;
-	vector<double> hMass_Trap;
-	vector<double> hEnergyLevel_Trap;
-
 	//for blocking layer
-	vector<double> cbEdge_Block;
-	vector<double> eMass_Block;
+	vector<double> bandEdge_Block;
+	vector<double> ehMass_Block;
 	vector<double> deltaX_Block;
 
-	vector<double> vbEdge_Block;
-	vector<double> hMass_Block;
 
-	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
-
-	double cbedgeTunnelFrom; ///< left electrode conduction band edge
-	double cbedgeTunnelTo;
-
-	double vbedgeTunnelFrom;
-	double vbedgeTunnelTo;
+	double bandEdgeTunnelFrom; ///< left electrode conduction band edge
+	double bandEdgeTunnelTo;
 
 	double fermiEnergyTunnelFrom;
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
-	double eCurrDens; ///< the tunneling current density, in [A/m^2]
 
 	TunnelDirection eTunDirection;
 	TunnelDirection hTunDirection;
+
+	double eCurrDens; ///< the tunneling current density, in [A/m^2]
+	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 };
 
 class SubsToTrapElecTunnel : public TunnelSolver
@@ -154,8 +147,8 @@ protected:
 	/// @return void
 	/// @note
 	void setSolver_Trap();
-	void setTunnelDirection(FDVertex *vertSubs, FDVertex *vertTrap);
-	void setTunnelTag();
+	virtual void setTunnelDirection(FDVertex *vertSubs, FDVertex *vertTrap);
+	virtual void setTunnelTag();
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
 	void calcTransCoeff_T2B();
@@ -174,7 +167,7 @@ protected:
 	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
 };
 
-class SubsToTrapHoleTunnel : public TunnelSolver
+class SubsToTrapHoleTunnel : public SubsToTrapElecTunnel
 {
 public:
 	SubsToTrapHoleTunnel(FDDomain* _domain);
@@ -182,8 +175,6 @@ public:
 protected:
 	void setTunnelDirection(FDVertex* vertSubs, FDVertex* vertTrap);
 	void setTunnelTag();
-
-	void pretendToBeElecTun();
 
 	double hSubsBarrier;
 };
@@ -213,7 +204,7 @@ protected:
 class SlopingTunnelTrapToGate
 {
 public:
-	SlopingTunnelTrapToGate(FDDomain *_domain, FDVertex *_vert);
+	SlopingTunnelTrapToGate(FDDomain *_domain, FDVertex *_vert, TunnelSolver::TunnelMode _tunmode);
 	void LoadBandStructureAlongPath(vector<double> &dx, vector<double> &cbedge, vector<double> &emass);
 	FDVertex* GetGateVertex();
 
@@ -221,6 +212,7 @@ public:
 protected:
 	FDDomain *domain;
 	double temperature;
+	TunnelSolver::TunnelMode tunMode;
 	FDVertex *vertStart;
 	std::string vertRegName;
 
@@ -230,8 +222,8 @@ protected:
 	FDVertex *westernmostVert;
 	
 	vector<double> dSlope; //the size of deltaX should be one less that the other two
-	vector<double> cbEdge;
-	vector<double> elecMass;
+	vector<double> bandEdge;
+	vector<double> ehMass;
 
 	void setBoundaryVerts();
 	void setInterpolatedValues();
