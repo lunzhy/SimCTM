@@ -524,7 +524,7 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 	//Pulling of the parameters is done here, because TunnelSolver uses real value internally
 	double fermiAbove = norm.PullEnergy(efermiAboveMap[startVertex->GetID()]);
 
-	if (eTunDirection == TunnelDirection::North)
+	if (tunDirection == TunnelDirection::North)
 	{
 		bandEdgeTunnelFrom = bandEdge_Tunnel.front() - this->subsBarrier;
 
@@ -533,7 +533,7 @@ void SubsToTrapElecTunnel::setSolver_DTFN(FDVertex *startVertex)
 
 		fermiEnergyTunnelFrom = bandEdgeTunnelFrom + fermiAbove;
 	}
-	else if (eTunDirection == TunnelDirection::South)
+	else if (tunDirection == TunnelDirection::South)
 	{
 		bandEdgeTunnelFrom = bandEdge_Trap.front();
 		bandEdgeTunnelTo = bandEdge_Tunnel.front() - this->subsBarrier;
@@ -559,11 +559,11 @@ SubsToTrapElecTunnel::SubsToTrapElecTunnel(FDDomain *_domain): TunnelSolver(_dom
 
 double SubsToTrapElecTunnel::getSupplyFunction(double energy)
 {
-	if (eTunDirection == TunnelDirection::North)
+	if (tunDirection == TunnelDirection::North)
 	{
 		return TunnelSolver::supplyFunction_forCurrDens(energy);
 	}
-	else if (eTunDirection == TunnelDirection::South)
+	else if (tunDirection == TunnelDirection::South)
 	{
 		return TunnelSolver::supplyFunction_forTunCoeff(energy);
 	}
@@ -599,11 +599,11 @@ void SubsToTrapElecTunnel::SolveTunnel()
 
 		//setSolver_DTFN(vertsTunnelOxideStart.at(iVert));
 
-		if (eTunDirection == TunnelDirection::North) // tunneling in
+		if (tunDirection == TunnelDirection::North) // tunneling in
 		{
 			cbedge_max = bandEdge_Tunnel.front();
 		}
-		else if (eTunDirection == TunnelDirection::South) // tunneling out
+		else if (tunDirection == TunnelDirection::South) // tunneling out
 		{
 			cbedge_max = bandEdge_Tunnel.back();
 		}
@@ -657,14 +657,14 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 		currVert = vertsTunnelOxideEnd.at(iVert);
 		vertID = currVert->GetID();
 		
-		tunnelTag = currVert->BndCond.GetBCTunnelTag();
+		tunnelTag = currVert->BndCond.GetElecTunnelTag();
 		switch (tunnelTag)
 		{
 			case FDBoundary::eTunnelOut:
-				eTunDirection = TunnelSolver::South;
+				tunDirection = TunnelSolver::South;
 				break;
 			case FDBoundary::eTunnelIn:
-				eTunDirection = TunnelSolver::North;
+				tunDirection = TunnelSolver::North;
 				break;
 			case FDBoundary::hTunnelIn:
 			case FDBoundary::hTunnelOut:
@@ -674,13 +674,13 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 				break;
 		}
 
-		if (eTunDirection == TunnelDirection::North)
+		if (tunDirection == TunnelDirection::North)
 		{
 			//currently the eCurrDens_Tunnel saves the current density, which is in A/m2
 			currDens = eCurrDens_DTFN.at(iVert) * per_m2_in_per_cm2;
 			ret[vertID] = norm.PushCurrDens(currDens);
 		}
-		else if (eTunDirection == TunnelDirection::South)
+		else if (tunDirection == TunnelDirection::South)
 		{
 			//currently the eCurrDens_DTFN saves the coefficient to calculate current density,
 			//which has a dimension of A*m.
@@ -886,16 +886,17 @@ void SubsToTrapElecTunnel::setTunnelTag()
 {
 	using namespace SctmUtils;
 	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
-	switch (eTunDirection)
+	switch (tunDirection)
 	{
 		case TunnelDirection::North:
 		{
-			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
+
+			verts->BndCond.SetElecTunnelTag(FDBoundary::eTunnelIn);
 			break;
 		}
 		case TunnelDirection::South:
 		{
-			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
+			verts->BndCond.SetElecTunnelTag(FDBoundary::eTunnelOut);
 			break;
 		}
 		case TunnelDirection::East:
@@ -957,7 +958,7 @@ void SubsToTrapElecTunnel::setTunnelDirection(FDVertex *vertSubs, FDVertex *vert
 
 	if (edensity == 0 || fermiSubs >= fermiTrap) //tunneling into the trap layer
 	{
-		eTunDirection = TunnelDirection::North;
+		tunDirection = TunnelDirection::North;
 		fermiEnergyTunnelFrom = fermiSubs;
 		fermiEnergyTunnelTo = fermiTrap;
 
@@ -966,7 +967,7 @@ void SubsToTrapElecTunnel::setTunnelDirection(FDVertex *vertSubs, FDVertex *vert
 	}
 	else
 	{
-		eTunDirection = TunnelDirection::South;
+		tunDirection = TunnelDirection::South;
 		fermiEnergyTunnelFrom = fermiTrap; //however, this is useless in the calculation of tunneling-out coefficient
 		fermiEnergyTunnelTo = fermiSubs;
 
@@ -1040,11 +1041,11 @@ TrapToGateElecTunnel::TrapToGateElecTunnel(FDDomain *_domain): TunnelSolver(_dom
 
 double TrapToGateElecTunnel::getSupplyFunction(double energy)
 {
-	if (eTunDirection == TunnelDirection::North)
+	if (tunDirection == TunnelDirection::North)
 	{
 		return TunnelSolver::supplyFunction_forTunCoeff(energy);
 	}
-	else if (eTunDirection == TunnelDirection::South)
+	else if (tunDirection == TunnelDirection::South)
 	{
 		return TunnelSolver::supplyFunction_forCurrDens(energy);
 	}
@@ -1119,11 +1120,11 @@ void TrapToGateElecTunnel::SolveTunnel()
 		setTunnelDirection(vertsBlockOxideStart.at(iVert), vertsBlockOxideEnd.at(iVert));
 		setTunnelTag();
 
-		if (eTunDirection == TunnelDirection::North) // tunneling out
+		if (tunDirection == TunnelDirection::North) // tunneling out
 		{
 			cbedge_max = bandEdge_Block.front();
 		}
-		else if (eTunDirection == TunnelDirection::South) // tunneling in
+		else if (tunDirection == TunnelDirection::South) // tunneling in
 		{
 			cbedge_max = bandEdge_Block.back();
 		}
@@ -1170,17 +1171,17 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 		currVert = vertsBlockOxideStart.at(iVert);
 		vertID = currVert->GetID();
 
-		tunnelTag = currVert->BndCond.GetBCTunnelTag();
+		tunnelTag = currVert->BndCond.GetElecTunnelTag();
 		switch (tunnelTag)
 		{
 			case FDBoundary::eTunnelOut:
 			{
-				eTunDirection = TunnelSolver::North;
+				tunDirection = TunnelSolver::North;
 				break;
 			}
 			case FDBoundary::eTunnelIn:
 			{
-				eTunDirection = TunnelSolver::South;
+				tunDirection = TunnelSolver::South;
 				break;
 			}
 			case FDBoundary::hTunnelIn:
@@ -1191,7 +1192,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 				break;
 		}
 
-		if (eTunDirection == TunnelDirection::North)
+		if (tunDirection == TunnelDirection::North)
 		{
 			//currently the eCurrDens_DTFN stores the coefficient to calculate current density
 			//the calculated coefficient has a dimension of A*m, and should be converted to A*cm
@@ -1199,7 +1200,7 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 			tunCoeff = eCurrDens_DTFN.at(iVert) / cm_in_m;
 			ret[vertID] = norm.PushTunCoeff(tunCoeff);
 		}
-		else if (eTunDirection == TunnelDirection::South)
+		else if (tunDirection == TunnelDirection::South)
 		{
 			currDens = eCurrDens_DTFN.at(iVert) * per_m2_in_per_cm2;
 			ret[vertID] = norm.PushCurrDens(currDens);
@@ -1215,16 +1216,16 @@ void TrapToGateElecTunnel::setTunnelTag()
 {
 	using namespace SctmUtils;
 	FDVertex *verts = verts_Trap.back(); //the back element is vertex at trappingLayer/blockingLayer interface
-	switch (eTunDirection)
+	switch (tunDirection)
 	{
 		case TunnelDirection::North:
 		{
-			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelOut);
+			verts->BndCond.SetElecTunnelTag(FDBoundary::eTunnelOut);
 			break;
 		}
 		case TunnelDirection::South:
 		{
-			verts->BndCond.SetTunnelTag(FDBoundary::eTunnelIn);
+			verts->BndCond.SetElecTunnelTag(FDBoundary::eTunnelIn);
 			break;
 		}
 		case TunnelDirection::East:
@@ -1273,7 +1274,7 @@ void TrapToGateElecTunnel::setTunnelDirection(FDVertex *vertTrap, FDVertex *vert
 	double effMass = 0;
 	if (density == 0 || fermiGate > fermiTrap) //tunneling into the trap layer from gate
 	{
-		eTunDirection = TunnelDirection::South;
+		tunDirection = TunnelDirection::South;
 		fermiEnergyTunnelFrom = fermiGate;
 		fermiEnergyTunnelTo = fermiTrap;
 
@@ -1285,7 +1286,7 @@ void TrapToGateElecTunnel::setTunnelDirection(FDVertex *vertTrap, FDVertex *vert
 	}
 	else //tunneling out of the trap layer
 	{
-		eTunDirection = TunnelDirection::North;
+		tunDirection = TunnelDirection::North;
 		fermiEnergyTunnelFrom = fermiTrap;
 		fermiEnergyTunnelTo = fermiGate - 10; //use a very large number (10eV) to indicate that gate has no edge
 
@@ -1700,7 +1701,7 @@ void SubsToTrapHoleTunnel::setTunnelDirection(FDVertex* vertSubs, FDVertex* vert
 
 	if (hdensity == 0 || hFermiSubs >= hFermiTrap) //tunneling into the trap layer
 	{
-		hTunDirection = TunnelDirection::North;
+		tunDirection = TunnelDirection::North;
 		fermiEnergyTunnelFrom = hFermiSubs;
 		fermiEnergyTunnelTo = hFermiTrap;
 
@@ -1709,7 +1710,7 @@ void SubsToTrapHoleTunnel::setTunnelDirection(FDVertex* vertSubs, FDVertex* vert
 	}
 	else
 	{
-		hTunDirection = TunnelDirection::South;
+		tunDirection = TunnelDirection::South;
 		fermiEnergyTunnelFrom = hFermiTrap; //however, this is useless in the calculation of tunneling-out coefficient
 		fermiEnergyTunnelTo = hFermiSubs;
 
@@ -1742,7 +1743,26 @@ SubsToTrapHoleTunnel::SubsToTrapHoleTunnel(FDDomain* _domain) : SubsToTrapElecTu
 
 void SubsToTrapHoleTunnel::setTunnelTag()
 {
-
+	using namespace SctmUtils;
+	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
+	switch (tunDirection)
+	{
+		case TunnelDirection::North:
+		{
+			verts->BndCond.SetElecTunnelTag(FDBoundary::eTunnelIn);
+			break;
+		}
+		case TunnelDirection::South:
+		{
+			verts->BndCond.SetElecTunnelTag(FDBoundary::eTunnelOut);
+			break;
+		}
+		case TunnelDirection::East:
+		case TunnelDirection::West:
+		default:
+		SCTM_ASSERT(SCTM_ERROR, 10041);
+		break;
+	}
 }
 
 void SubsToTrapHoleTunnel::SolveTunnel()

@@ -1280,7 +1280,7 @@ namespace SctmUtils
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
 			currDens.push_back(norm.PullCurrDens(it->second));
-			if (currVert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			if (currVert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn)
 			{
 				direction.push_back("in");
 			}
@@ -1824,14 +1824,14 @@ namespace SctmUtils
 			vert = domain->GetVertex(vertID);
 			controlLength = (vert->EastLength + vert->WestLength) / 2;
 
-			if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+			if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut)
 			{
 				tunCoeff = -it->second;
 				eDens = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 				lineDens = eDens * tunCoeff * timestep * controlLength; //charge line density
 				lineDens_tunToSubs += lineDens;
 			}
-			else if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			else if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn)
 			{
 				currDens = it->second;
 				lineDens = currDens * controlLength * timestep;
@@ -1859,14 +1859,14 @@ namespace SctmUtils
 			vert = domain->GetVertex(vertID);
 			controlLength = (vert->EastLength + vert->WestLength) / 2;
 
-			if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+			if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut)
 			{
 				tunCoeff = -it->second;
 				eDens = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 				lineDens = eDens * tunCoeff * timestep * controlLength;
 				lineDens_tunToGate += lineDens;
 			}
-			else if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			else if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn)
 			{
 				currDens = it->second;
 				lineDens = currDens * controlLength * timestep;

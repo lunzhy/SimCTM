@@ -430,13 +430,13 @@ namespace SctmPhys
 				{
 					double bcNormX = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).X();
 
-					if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn )
+					if ( vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn )
 					{
 						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 						double currDens = bcValue * bcNormX;
 						ret = currDens;
 					}
-					else if (  vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
+					else if (  vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut )
 					{
 						double tunCoeff = GetPhysPrpty(eTunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);
@@ -478,13 +478,13 @@ namespace SctmPhys
 				{
 					double bcNormY = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
 
-					if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn )
+					if ( vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn )
 					{
 						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 						double currDens = bcValue * bcNormY;
 						ret = currDens;
 					}
-					else if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
+					else if ( vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut )
 					{
 						double tunCoeff = GetPhysPrpty(eTunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);

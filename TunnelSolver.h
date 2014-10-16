@@ -120,8 +120,7 @@ protected:
 	double fermiEnergyTunnelTo;
 	double effTunnelMass; ///< effective mass
 
-	TunnelDirection eTunDirection;
-	TunnelDirection hTunDirection;
+	TunnelDirection tunDirection;
 
 	double eCurrDens; ///< the tunneling current density, in [A/m^2]
 	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart

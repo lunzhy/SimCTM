@@ -149,24 +149,42 @@ VectorValue & FDBoundary::GetBndDirection(BCName bcName)
 	return bnd_normVec[bcName];
 }
 
-void FDBoundary::SetTunnelTag(TunnelTag tag)
+void FDBoundary::SetElecTunnelTag(TunnelTag tag)
 {
 	SCTM_ASSERT(bnd_valid[eDensity], 10026);
 	SCTM_ASSERT(bc_types[eDensity]==BC_Cauchy || bc_types[eDensity]==BC_Neumann, 10026);
 
-	tunTag = tag;
+	elecTunTag = tag;
 }
 
-FDBoundary::TunnelTag FDBoundary::GetBCTunnelTag()
+FDBoundary::TunnelTag FDBoundary::GetElecTunnelTag()
 {
 	SCTM_ASSERT(bnd_valid[eDensity], 10026);
 	SCTM_ASSERT(bc_types[eDensity]==BC_Cauchy || bc_types[eDensity]==BC_Neumann, 10026);
-	return tunTag;
+	return elecTunTag;
 }
 
 FDBoundary::FDBoundary()
 {
-	tunTag = noTunnel;
+	elecTunTag = noTunnel;
+	holeTunTag = noTunnel
+}
+
+void FDBoundary::SetHoleTunnelTag(TunnelTag tag)
+{
+	//eDensity boundary condition is the same as hDensity boundary condition
+	SCTM_ASSERT(bnd_valid[eDensity], 10026);
+	SCTM_ASSERT(bc_types[eDensity] == BC_Cauchy || bc_types[eDensity] == BC_Neumann, 10026);
+
+	holeTunTag = tag;
+}
+
+FDBoundary::TunnelTag FDBoundary::GetHoleTunnelTag()
+{
+	//eDensity boundary condition is the same as hDensity boundary condition
+	SCTM_ASSERT(bnd_valid[eDensity], 10026);
+	SCTM_ASSERT(bc_types[eDensity] == BC_Cauchy || bc_types[eDensity] == BC_Neumann, 10026);
+	return holeTunTag;
 }
 
 FDElement::FDElement(unsigned int _id, FDVertex *_swVertex, FDVertex *_seVertex, FDVertex *_neVertex, FDVertex *_nwVertex)

@@ -1210,7 +1210,7 @@ void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexM
 	{
 		vertID = it->first;
 		currVert = domain->GetVertex(vertID);
-		FDBoundary::TunnelTag tunTag = currVert->BndCond.GetBCTunnelTag();
+		FDBoundary::TunnelTag tunTag = currVert->BndCond.GetElecTunnelTag();
 		SCTM_ASSERT(tunTag!=FDBoundary::noTunnel, 10027);
 
 		switch (tunTag)

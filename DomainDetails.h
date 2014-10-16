@@ -115,7 +115,8 @@ public:
 	/// @return void
 	/// @note
 	void SetBnd(BCName bcName, BCType bcType, VectorValue bndVec, double bcValue = 0);
-	void SetTunnelTag(TunnelTag tag);
+	void SetElecTunnelTag(TunnelTag tag);
+	void SetHoleTunnelTag(TunnelTag tag);
 	/// @brief Valid is used to return the validity of the boundary condition with given specified BC name.
 	/// 
 	/// Both non-existent boundary condition and boundary condition with false validity will return false.
@@ -143,7 +144,8 @@ public:
 	/// @return double
 	/// @note
 	double GetBCValue(BCName bcName);
-	TunnelTag GetBCTunnelTag();
+	TunnelTag GetElecTunnelTag();
+	TunnelTag GetHoleTunnelTag();
 	VectorValue &GetBndDirection(BCName bcName);
 	VectorValue &GetBCNormVector(BCName bcName);
 protected:
@@ -156,7 +158,8 @@ protected:
 	map<BCName, double> bc_values; ///< the map to store the values of different boundary conditions.
 	//When BC is a vector value, if the BC has the same direction with the normal vector, this value is positive. reversed direction, negative 
 	map<BCName, VectorValue> bc_normVec; ///< the map to store normal vector of the boundary condition
-	TunnelTag tunTag; ///< the map to store the tunneling tag for the boundary
+	TunnelTag elecTunTag; ///< store the electron tunneling tag for the boundary
+	TunnelTag holeTunTag; ///< store the hole tunneling tag for the boundary
 };
 
 

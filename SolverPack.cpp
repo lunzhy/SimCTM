@@ -181,7 +181,7 @@ void SolverPack::fetchTunnelOxideResult()
 	{	
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
-		if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+		if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn)
 		{
 			//does not need to change
 			//it->second = it->second;	
@@ -254,7 +254,7 @@ void SolverPack::fetchBlockOxideResult()
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
-		if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+		if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut)
 		{
 			//set the tunneling coefficient in DT/FN tunneling out of electrons in conduction band
 			//save the tunneling-out coefficient in the physics property, to be used in calculating the tunneling out current
