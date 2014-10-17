@@ -673,18 +673,25 @@ void SubsToTrapElecTunnel::ReturnResult(VertexMapDouble &ret)
 		switch (tunnelTag)
 		{
 			case FDBoundary::eTunnelOut:
+			{
 				tunDirection = TunnelSolver::South;
 				break;
+			}
 			case FDBoundary::eTunnelIn:
+			{
 				tunDirection = TunnelSolver::North;
 				break;
+			}
 			case FDBoundary::hTunnelOut:
+			{
 				tunDirection = TunnelSolver::South;
 				break;
+			}
 			case FDBoundary::hTunnelIn:
+			{
 				tunDirection = TunnelSolver::North;
 				break;
-			case FDBoundary::noTunnel:
+			}
 			default:
 				SCTM_ASSERT(SCTM_ERROR, 10056);
 				break;
@@ -1053,6 +1060,7 @@ void SubsToTrapElecTunnel::ReturnResult_T2B(VertexMapDouble &ret)
 TrapToGateElecTunnel::TrapToGateElecTunnel(FDDomain *_domain): TunnelSolver(_domain)
 {
 	//the effective DOS mass for tunneling is set when determine the tunneling direction
+	this->tunMode = TunnelSolver::ElecTunnel;
 }
 
 double TrapToGateElecTunnel::getSupplyFunction(double energy)
@@ -1187,7 +1195,11 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 		currVert = vertsBlockOxideStart.at(iVert);
 		vertID = currVert->GetID();
 
-		tunnelTag = currVert->BndCond.GetElecTunnelTag();
+		if (tunMode == TunnelSolver::ElecTunnel)
+			tunnelTag = currVert->BndCond.GetElecTunnelTag();
+		else
+			tunnelTag = currVert->BndCond.GetHoleTunnelTag();
+
 		switch (tunnelTag)
 		{
 			case FDBoundary::eTunnelOut:
@@ -1200,9 +1212,21 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 				tunDirection = TunnelSolver::South;
 				break;
 			}
-			case FDBoundary::hTunnelIn:
 			case FDBoundary::hTunnelOut:
+			{
+				tunDirection = TunnelSolver::North;
+				break;
+			}
+			case FDBoundary::hTunnelIn:
+			{
+				tunDirection = TunnelSolver::South;
+				break;
+			}
 			case FDBoundary::noTunnel:
+			{
+				tunDirection = TunnelSolver::NoTunnel;
+				break;
+			}
 			default:
 				SCTM_ASSERT(SCTM_ERROR, 10056);
 				break;
@@ -1220,6 +1244,10 @@ void TrapToGateElecTunnel::ReturnResult(VertexMapDouble &ret)
 		{
 			currDens = eCurrDens_DTFN.at(iVert) * per_m2_in_per_cm2;
 			ret[vertID] = norm.PushCurrDens(currDens);
+		}
+		else if (tunDirection == TunnelDirection::NoTunnel)
+		{
+			ret[vertID] = 0;
 		}
 		else
 		{
@@ -1696,7 +1724,7 @@ void SubsToTrapHoleTunnel::setTunnelDirection(FDVertex* vertSubs, FDVertex* vert
 	int vertIdSubs = 0;
 	vertIdSubs = vertSubs->GetID();
 	
-	//Error!! the fermiAboveMap should be revised for holes
+	//use hfermiAboveMap for holes, which is the offset value
 	SCTM_ASSERT(hfermiAboveMap.find(vertIdSubs) != hfermiAboveMap.end(), 10051);
 	hFermiSubs = bandEdge_Tunnel.front() - this->hSubsBarrier + norm.PullPotential(hfermiAboveMap[vertIdSubs]);
 
@@ -1832,4 +1860,141 @@ void SubsToTrapHoleTunnel::pretendToBeElecTun()
 	//this method is used in order to use the methods in SubsToTrapElecTunnel for electron tunneling problem:
 	//ReturnResult
 	this->eCurrDens_DTFN = this->hCurrDens_DTFN;
+}
+
+TrapToGateHoleTunnel::TrapToGateHoleTunnel(FDDomain* _domain) : TrapToGateElecTunnel(_domain)
+{
+	this->tunMode = TunnelSolver::HoleTunnel;
+}
+
+void TrapToGateHoleTunnel::setTunnelDirection(FDVertex *vertTrap, FDVertex *vertGate)
+{
+	using namespace MaterialDB;
+
+	Normalization norm = Normalization(this->temperature);
+	double per_cm3_in_per_m3 = SctmPhys::per_cm3_in_per_m3;
+	double m0 = SctmPhys::m0;
+	double k0 = SctmPhys::k0;
+	double h = SctmPhys::h;
+	double pi = SctmMath::PI;
+	double q = SctmPhys::q;
+
+	//two fermi energy are in real value, in [eV]
+	double fermiTrap = 0; //the electron quasi-fermi energy of trapping layer
+	double fermiGate = 0;
+
+
+	SCTM_ASSERT(vertGate->Contact != NULL, 10050);
+	double gateVoltage = norm.PullPotential(vertGate->Contact->Voltage);
+	fermiGate = gateVoltage;
+
+	double density = 0;
+	density = vertTrap->Phys->GetPhysPrpty(PhysProperty::hDensity);
+	density = norm.PullDensity(density); //in [cm^-3]
+	density = density * per_cm3_in_per_m3; //in [m^-3]
+
+	double hMassTrap = SctmPhys::m0 * GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_HoleDOSMass);
+	double fermiRel = 0;
+	//use bandgap when density equals to 0, indicating that fermi energy is far below conduction band
+	fermiRel = (density != 0) ? k0 * this->temperature / q * SctmMath::ln(density * h * h * h / 8 / pi / (SctmMath::sqrt(pi) / 2) /
+		SctmMath::pow(k0 * this->temperature, 1.5) / SctmMath::sqrt(2 * hMassTrap * hMassTrap * hMassTrap)) :
+		-norm.PullPotential(GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_Bandgap));
+	fermiTrap = fermiRel + bandEdge_Trap.back(); //the last vertex of trapping layer
+
+	double effMass = 0;
+	if (density == 0 || fermiGate > fermiTrap) //tunneling into the trap layer from gate
+	{
+		// there is no hole tunneling from gate to trap layer, the no calculation will be applied when South is met.
+		tunDirection = TunnelDirection::NoTunnel;
+	}
+	else //tunneling out of the trap layer
+	{
+		tunDirection = TunnelDirection::North;
+		fermiEnergyTunnelFrom = fermiTrap;
+		fermiEnergyTunnelTo = fermiGate - 10; //use a very large number (10eV) to indicate that gate has no edge
+
+		bandEdgeTunnelFrom = bandEdge_Trap.back();
+		bandEdgeTunnelTo = fermiGate; //for the gate, cbedgeTunnelTo is the same with the fermi energy of gate
+
+		//set the effective DOS mass for tunneling
+		effMass = GetMatPrpty(GetMaterial(domain->GetTrapMatName()), MatProperty::Mat_HoleDOSMass);
+		this->effTunnelMass = effMass;
+	}
+}
+
+void TrapToGateHoleTunnel::setTunnelTag()
+{
+	using namespace SctmUtils;
+	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
+	switch (tunDirection)
+	{
+		case TunnelDirection::North:
+		{
+			verts->BndCond.SetHoleTunnelTag(FDBoundary::hTunnelOut);
+			break;
+		}
+		case TunnelDirection::NoTunnel:
+		{
+			verts->BndCond.SetHoleTunnelTag(FDBoundary::noTunnel);
+			break;
+		}
+		case TunnelDirection::South:
+		case TunnelDirection::East:
+		case TunnelDirection::West:
+		default:
+			SCTM_ASSERT(SCTM_ERROR, 10041);
+			break;
+	}
+}
+
+void TrapToGateHoleTunnel::SolveTunnel()
+{
+	//the following containers are filled when loading band structure, so they are cleared at the beginning of
+	//a new turn to solve tunnel problems.
+	//Only vertsTunnelOxideStart exists.
+	vertsTunnelOxideEnd.clear();
+	vertsBlockOxideStart.clear();
+	vertsBlockOxideEnd.clear();
+
+	//clear the results of last calculation
+	hCurrDens_DTFN.clear();
+	hCurrDens_DTFN.resize(vertsTunnelOxideStart.size());
+
+	double currdens = 0;
+	double vbedge_max = 0;
+	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
+	{
+		loadBandStructure(vertsTunnelOxideStart.at(iVert));
+		if (!this->tunnelTrapToGateEnable)
+		{
+			continue;
+		}
+
+		setTunnelDirection(vertsBlockOxideStart.at(iVert), vertsBlockOxideEnd.at(iVert));
+		setTunnelTag();
+
+		if (tunDirection == TunnelDirection::North) // tunneling out
+		{
+			vbedge_max = bandEdge_Block.front();
+			currdens = calcDTFNtunneling(deltaX_Block, ehMass_Block, bandEdge_Block, vbedge_max);
+			currdens += calcThermalEmission(deltaX_Block, ehMass_Block, bandEdge_Block, vbedge_max);
+			hCurrDens_DTFN.at(iVert) = currdens;
+		}
+		else if (tunDirection == TunnelDirection::South) // tunneling in
+		{
+			//hole tunneling from gate to trap layer does not exist
+			hCurrDens_DTFN.at(iVert) = 0;
+		}
+		else
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10041);
+		}
+
+	}
+	pretendToBeElecTun();
+}
+
+void TrapToGateHoleTunnel::pretendToBeElecTun()
+{
+	eCurrDens_DTFN = hCurrDens_DTFN;
 }

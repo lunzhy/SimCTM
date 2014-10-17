@@ -43,6 +43,7 @@ public:
 		South,
 		East,
 		West,
+		NoTunnel,
 	};
 	TunnelSolver(FDDomain *_domain);
 	void ReadInput(VertexMapDouble &fermi);
@@ -113,7 +114,7 @@ protected:
 	vector<double> ehMass_Block;
 	vector<double> deltaX_Block;
 
-
+	//these properties are used in the calculation of supply function
 	double bandEdgeTunnelFrom; ///< left electrode conduction band edge
 	double bandEdgeTunnelTo;
 
@@ -128,7 +129,7 @@ class SubsToTrapElecTunnel : public TunnelSolver
 {
 public:
 	SubsToTrapElecTunnel(FDDomain *_domain);
-	void SolveTunnel();
+	virtual void SolveTunnel();
 	void ReturnResult(VertexMapDouble &ret);
 	void ReturnResult_MFN(VertexMapDouble &ret);
 	void ReturnResult_B2T(VertexMapDouble &ret);
@@ -183,14 +184,14 @@ class TrapToGateElecTunnel : public TunnelSolver
 {
 public:
 	TrapToGateElecTunnel(FDDomain *_domain);
-	void SolveTunnel();
+	virtual void SolveTunnel();
 	void ReturnResult(VertexMapDouble &ret);
 	void ReturnResult_T2B(VertexMapDouble &ret);
 protected:
 	double getSupplyFunction(double energy);
 	void setSolver_DTFN(FDVertex *endVertex); //This method is not currently used.
-	void setTunnelDirection(FDVertex *vertTrap, FDVertex *vertGate);
-	void setTunnelTag();
+	virtual void setTunnelDirection(FDVertex *vertTrap, FDVertex *vertGate);
+	virtual void setTunnelTag();
 	void setSolver_Trap();
 	void calcTransCoeff_T2B();
 
@@ -202,6 +203,18 @@ protected:
 	VertexMapDouble eTransCoeffMap_T2B;
 };
 
+class TrapToGateHoleTunnel : public TrapToGateElecTunnel
+{
+public:
+	TrapToGateHoleTunnel(FDDomain* _domain);
+	void SolveTunnel();
+protected:
+	void setTunnelDirection(FDVertex *vertTrap, FDVertex *vertGate);
+	void setTunnelTag();
+
+	void pretendToBeElecTun();
+	vector<double> hCurrDens_DTFN;
+};
 
 class SlopingTunnelTrapToGate
 {

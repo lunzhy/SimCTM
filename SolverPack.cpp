@@ -38,14 +38,18 @@ void SolverPack::initialize()
 	tunnelOxideElecSolver = new SubsToTrapElecTunnel(domain);
 	tunnelOxideHoleSolver = new SubsToTrapHoleTunnel(domain);
 	blockOxideElecSolver = new TrapToGateElecTunnel(domain);
+	blockOxideHoleSolver = new TrapToGateHoleTunnel(domain);
 	ddSolver = new DriftDiffusionSolver(domain);
 	trappingSolver = new TrapSolver(domain);
 
 	mapPotential.clear();
-	mapElecCurrDensOrCoeff_Tunnel.clear();
 	mapSiFermiAboveCBedge.clear();
-	mapElecCurrDensOrCoeff_Block.clear();
 	mapChannelPotential.clear();
+
+	mapElecCurrDensOrCoeff_Tunnel.clear();
+	mapElecCurrDensOrCoeff_Block.clear();
+	mapHoleCurrDensOrCoeff_Tunnel.clear();
+	mapHoleCurrDensOrCoeff_Block.clear();
 }
 
 void SolverPack::callIteration()
@@ -111,6 +115,7 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Set();
 		tunnelOxideHoleSolver->SolveTunnel();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+		
 		fetchTunnelOxideResult();
 		SctmData::Get().WriteTunnelCurrentFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel);
 
@@ -118,6 +123,11 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Set();
 		blockOxideElecSolver->SolveTunnel();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+
+		SctmTimer::Get().Set();
+		blockOxideHoleSolver->SolveTunnel();
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+
 		fetchBlockOxideResult();
 
 		//solver drift-diffusion equation
@@ -202,7 +212,7 @@ void SolverPack::fetchTunnelOxideResult()
 	this->mapHoleCurrDensOrCoeff_Tunnel.clear();
 	tunnelOxideHoleSolver->ReturnResult(mapHoleCurrDensOrCoeff_Tunnel);
 
-	//
+	//TODO ERROR CAUTION: need to be done!
 
 	//deal with MFN tunneling result
 	//Assign the calculated current density to the specific vertex.
@@ -250,13 +260,15 @@ void SolverPack::fetchDDResult()
 
 void SolverPack::fetchBlockOxideResult()
 {
+	FDVertex *vert = NULL;
+	int vertID = 0;
+
 	//it is critical to clear the map
 	this->mapElecCurrDensOrCoeff_Block.clear();
 	blockOxideElecSolver->ReturnResult(mapElecCurrDensOrCoeff_Block);
+	
 	//the current(or tunnCoeff) should be same with the direction of the boundary condition
 	//so, reversed value is used to calculate current density
-	FDVertex *vert = NULL;
-	int vertID = 0;
 	
 	//set the sign of boundary current for dd solver
 	//the sign of the boundary condition is set according to the boundary direction
@@ -277,6 +289,10 @@ void SolverPack::fetchBlockOxideResult()
 			//does not need to change, because current direction is the same with the boundary direction
 		}
 	}
+
+	this->mapHoleCurrDensOrCoeff_Block.clear();
+	blockOxideHoleSolver->ReturnResult(mapHoleCurrDensOrCoeff_Block);
+	//CAUTION need to be done
 
 	//deal with trap-to-band tunneling out result
 	double eTransCoeff_T2B = 0;
