@@ -248,7 +248,7 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	bool valid_SE = isValidElem(vert->SoutheastElem);
 	bool valid_SW = isValidElem(vert->SouthwestElem);
 
-	static FDBoundary::BCName bcToSet = FDBoundary::eDensity;
+	//static FDBoundary::BCName bcToSet = FDBoundary::eDensity;
 	static FDBoundary::BCType defaultTCType = FDBoundary::BC_Cauchy;
 
 	//currently the boundary condition direction is the same with boundary direction
@@ -257,7 +257,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		notTrapping_SW && !notTrapping_SE )
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-vert->EastLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(-vert->EastLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(-vert->EastLength, vert->SouthLength));
 		return;
 	}
 
@@ -266,7 +267,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		!notTrapping_SW && notTrapping_SE )
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(vert->WestLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(vert->WestLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(vert->WestLength, vert->SouthLength));
 		return;
 	}
 
@@ -275,7 +277,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		notTrapping_SW && notTrapping_SE )
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(vert->WestLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(vert->WestLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(vert->WestLength, -vert->NorthLength));
 		return;
 	}
 
@@ -284,7 +287,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		notTrapping_SW && notTrapping_SE)
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-vert->EastLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(-vert->EastLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(-vert->EastLength, -vert->NorthLength));
 		return;
 	}
 
@@ -292,7 +296,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && notTrapping_NE && 
 		!notTrapping_SW && !notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(0, 1));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(0, 1));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(0, 1));
 		return;
 	}
 
@@ -300,7 +305,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( !notTrapping_NW && notTrapping_NE && 
 		!notTrapping_SW && notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(1, 0));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(1, 0));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(1, 0));
 		return;
 	}
 
@@ -308,7 +314,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( !notTrapping_NW && !notTrapping_NE && 
 		notTrapping_SW && notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(0, -1));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(0, -1));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(0, -1));
 		return;
 	}
 
@@ -316,7 +323,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && !notTrapping_NE && 
 		notTrapping_SW && !notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-1, 0));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(-1, 0));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(-1, 0));
 		return;
 	}
 

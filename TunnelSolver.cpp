@@ -1925,7 +1925,7 @@ void TrapToGateHoleTunnel::setTunnelDirection(FDVertex *vertTrap, FDVertex *vert
 void TrapToGateHoleTunnel::setTunnelTag()
 {
 	using namespace SctmUtils;
-	FDVertex *verts = verts_Trap.front(); // the front element is vertex at tunnelOxide/trappingLayer interface
+	FDVertex *verts = verts_Trap.back(); //the back element is vertex at trappingLayer/blockingLayer interface
 	switch (tunDirection)
 	{
 		case TunnelDirection::North:
@@ -1980,7 +1980,7 @@ void TrapToGateHoleTunnel::SolveTunnel()
 			currdens += calcThermalEmission(deltaX_Block, ehMass_Block, bandEdge_Block, vbedge_max);
 			hCurrDens_DTFN.at(iVert) = currdens;
 		}
-		else if (tunDirection == TunnelDirection::South) // tunneling in
+		else if (tunDirection == TunnelDirection::NoTunnel) // tunneling in
 		{
 			//hole tunneling from gate to trap layer does not exist
 			hCurrDens_DTFN.at(iVert) = 0;

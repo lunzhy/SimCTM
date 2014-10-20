@@ -60,6 +60,7 @@ namespace SctmPhys
 		h_DOSmass = 0;
 		h_mobility = 0;
 		h_density = 0;
+		h_tunnelCoeff = 0;
 
 		//all the vectors and maps are initialized with 0 size
 	}
@@ -116,6 +117,9 @@ namespace SctmPhys
 			break;
 		case hDensity:
 			h_density = prptyValue;
+			break;
+		case hTunnelCoeff:
+			h_tunnelCoeff = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -578,6 +582,11 @@ namespace SctmPhys
 			case  hDensity:
 			{
 				ret = h_density;
+				break;
+			}
+			case hTunnelCoeff:
+			{
+				ret = h_tunnelCoeff;
 				break;
 			}
 			default:

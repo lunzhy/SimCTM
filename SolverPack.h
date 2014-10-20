@@ -37,12 +37,13 @@ protected:
 
 	OneDimSubsSolver *subsSolver;
 	TwoDimPoissonSolver *poissonSolver;
-	TunnelSolver *tunnelOxideElecSolver;
-	TunnelSolver *blockOxideElecSolver;
-	TunnelSolver *tunnelOxideHoleSolver;
-	TunnelSolver *blockOxideHoleSolver;
+	TunnelSolver *eTunnelOxideSolver;
+	TunnelSolver *eBlockOxideSolver;
+	TunnelSolver *hTunnelOxideSolver;
+	TunnelSolver *hBlockOxideSolver;
 	TrapSolver *trappingSolver;
-	DriftDiffusionSolver *ddSolver;
+	DriftDiffusionSolver *eDDSolver;
+	DriftDiffusionSolver *hDDSolver;
 
 protected:
 	void initialize();

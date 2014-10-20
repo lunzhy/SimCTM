@@ -123,6 +123,7 @@ namespace SctmPhys
 			hDOSMass,
 			hMobility,
 			hDensity,
+			hTunnelCoeff,
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -198,6 +199,7 @@ namespace SctmPhys
 		double h_DOSmass;
 		double h_mobility;
 		double h_density;
+		double h_tunnelCoeff;
 
 		//the maps below is used to store the properties of vertex that belongs to different materials
 		PrptyMap multiElectronAffinity;
