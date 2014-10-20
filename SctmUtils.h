@@ -283,14 +283,19 @@ namespace SctmUtils
 	class SctmData
 	{
 	public:
+		enum ehInfo
+		{
+			eInfo,
+			hInfo
+		};
 		SctmData();
 		static SctmData& Get();
-		void WriteElecCurrDens(vector<FDVertex *> &vertices);
-		void WriteElecDens(vector<FDVertex *> &vertices);
+		void WriteCurrDens(vector<FDVertex *> &vertices, ehInfo ehinfo);
+		void WriteCarrierDens(vector<FDVertex *> &vertices, ehInfo ehinfo);
 		void WritePotential(vector<FDVertex *> &vertices);
 		void WriteBandInfo(vector<FDVertex *> &vertices);
 		void WriteElecField(vector<FDVertex *> &vertices);
-		void WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity);
+		void WriteTunnelFromSubs(FDDomain *domain, VertexMapDouble &currDensCoeff, ehInfo ehinfo);
 		void WriteTotalElecDens(vector<FDVertex *> &vertices);
 		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
 		void WriteTrappedInfo(vector<FDVertex *> &vertices);

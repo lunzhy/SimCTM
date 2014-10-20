@@ -113,7 +113,7 @@ void FDDomain::setBoundary()
 	{
 		currVertex = GetVertex(iVer);//in FDDomain, the index of vertex in the vertices vector in the vertexID.
 		setBndVert_Potential(currVertex);//set the boundary (not boundary condition). This method will check if the vertex is a boundary vertex
-		setBndVert_eDensity(currVertex);
+		setBndVert_Density(currVertex);
 	}
 }
 
@@ -236,7 +236,7 @@ void FDDomain::setBndVert_Potential(FDVertex *vert)
 	}
 }
 
-void FDDomain::setBndVert_eDensity(FDVertex *vert)
+void FDDomain::setBndVert_Density(FDVertex *vert)
 {
 	bool notTrapping_NW = isNotTrappingElem(vert->NorthwestElem);
 	bool notTrapping_NE = isNotTrappingElem(vert->NortheastElem);
@@ -456,7 +456,7 @@ void FDDomain::updateBndCond()
 		}
 		if (currVertex->IsAtBoundary(FDBoundary::eDensity))
 		{
-			updateBCVert_eDensity(currVertex);
+			updateBCVert_Density(currVertex);
 		}
 	}
 }
@@ -495,7 +495,7 @@ void FDDomain::updateBCVert_Potential(FDVertex *vert)
 	}
 }
 
-void FDDomain::updateBCVert_eDensity(FDVertex *vert)
+void FDDomain::updateBCVert_Density(FDVertex *vert)
 {
 	//When dealing with the normal direction of the boundary condition in terms eDensity problem, actually, the vector value
 	//of the boundary condition is not the real normal vector of the boundary direction. For, example, to a corner vertex
@@ -519,12 +519,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			!valid_SW )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, 1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, 1));
 			return;
 		}
 		if (              !valid_NE &&
 			valid_SW )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(-1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(-1, 0));
 			return;
 		}
 	}
@@ -537,12 +539,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			!valid_SE)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, 1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, 1));
 			return;
 		}
 		if ( !valid_NW &&
 			valid_SE)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(1, 0));
 			return;
 		}
 	}
@@ -555,12 +559,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			valid_SW)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, -1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, -1));
 			return;
 		}
 		if (			valid_NE &&
 			!valid_SW)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(1, 0));
 			return;
 		}
 	}
@@ -573,12 +579,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			!valid_SE )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(-1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(-1, 0));
 			return;
 		}
 		if ( !valid_NW &&
 			valid_SE )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, -1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, -1));
 			return;
 		}
 	}

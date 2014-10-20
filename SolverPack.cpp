@@ -118,7 +118,8 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		
 		fetchTunnelOxideResult();
-		SctmData::Get().WriteTunnelCurrentFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel);
+		SctmData::Get().WriteTunnelFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel, SctmData::eInfo);
+		SctmData::Get().WriteTunnelFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel, SctmData::hInfo);
 
 		//solve tunneling problem in blocking oxide
 		SctmTimer::Get().Set();
@@ -139,8 +140,10 @@ void SolverPack::callIteration()
 		
 		fetchDDResult();
 		SctmData::Get().WriteTunnelCoeff(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block);
-		SctmData::Get().WriteElecDens(domain->GetDDVerts());
-		SctmData::Get().WriteElecCurrDens(domain->GetDDVerts());
+		SctmData::Get().WriteCarrierDens(domain->GetDDVerts(), SctmData::eInfo);
+		SctmData::Get().WriteCarrierDens(domain->GetDDVerts(), SctmData::hInfo);
+		SctmData::Get().WriteCurrDens(domain->GetDDVerts(), SctmData::eInfo);
+		SctmData::Get().WriteCurrDens(domain->GetDDVerts(), SctmData::hInfo);
 
 		//solve trapping
 		SctmTimer::Get().Set();

@@ -1656,7 +1656,7 @@ void DDTest::SolveDD()
 	UpdateCarrierDens();
 	SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
 
-	SctmData::Get().WriteElecDens(this->ddVertices);
+	SctmData::Get().WriteCarrierDens(this->ddVertices, SctmData::eInfo);
 }
 
 void DDTest::setBndDensity()

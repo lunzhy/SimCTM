@@ -95,8 +95,8 @@ namespace SctmPhys
 			ElectricField, ///< the magnitude of electric field
 			ElectricField_X, ///< electric field in X direction
 			ElectricField_Y, ///< electric field in Y direction
-			ElectricFieldTrap_Y, ///< electric field restricted in trapping layer in X direction 
-			ElectricFieldTrap_X, ///< electric field restricted in trapping layer in Y direction
+			ElectricFieldTrap_Y, ///< electric field restricted in trapping layer in Y direction 
+			ElectricFieldTrap_X, ///< electric field restricted in trapping layer in X direction
 			ElectricFieldTrap, ///< electric field restricted in trapping layer
 			DielectricConstant,
 			Temperature, ///< the lattice temperature
@@ -124,6 +124,9 @@ namespace SctmPhys
 			hMobility,
 			hDensity,
 			hTunnelCoeff,
+			hCurrentDensity_X,
+			hCurrentDensity_Y,
+			hCurrentDensity,
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -243,6 +246,10 @@ namespace SctmPhys
 			hFrequency_T2B,
 			hFrequency_PF,
 			hEnergyFromValeBand,
+			hTrapped,
+			hTrapDensity,
+			hOccupation,
+			hEmptyTrapDens,
 		};
 		TrapProperty(FDVertex *_vert);
 		/// @brief GetTrapPrpty is used to get the specific trap property value.
@@ -269,6 +276,8 @@ namespace SctmPhys
 		double e_transCoeffT2B; ///< electron transmission coefficient in trap-to-band tunneling
 		double e_frequencyPF; ///< electron emission frequency of Poole - Frenkel effect
 
+		double h_trapped;
+		double h_trapDensity;
 		double h_crosssection;
 		double h_frequencyT2B;
 		double h_frequencyPF;

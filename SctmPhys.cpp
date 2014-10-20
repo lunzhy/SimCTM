@@ -323,9 +323,9 @@ namespace SctmPhys
 			case ElectricFieldTrap_X:
 			{
 				double bcNormX = 0; // inner vertex
-				if (vertSelf->IsAtBoundary(FDBoundary::Potential))
+				if (vertSelf->IsAtBoundary(FDBoundary::eDensity))
 				{
-					bcNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::Potential).X();
+					bcNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::eDensity).X();
 				}
 				//bnd_normX < 0, west boundary
 				//bnd_normX > 0, east boundary
@@ -587,6 +587,113 @@ namespace SctmPhys
 			case hTunnelCoeff:
 			{
 				ret = h_tunnelCoeff;
+				break;
+			}
+			case hCurrentDensity_X:
+			{
+				double bndNormX = 0;
+				//hDensity boundary condition is the same as eDensity boundary condition, except for the value
+				if (vertSelf->IsAtBoundary(FDBoundary::eDensity))
+				{
+					bndNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::eDensity).X();
+				}
+				//bnd_normX < 0, west boundary
+				//bnd_normX > 0, east boundary
+				//bnd_normX = 0, inner vertex or vertex at boundary but inside in x direction
+				if (bndNormX == 0)
+				{
+					double elecFieldX = GetPhysPrpty(ElectricField_X);
+
+					double hw = vertSelf->WestLength;
+					double he = vertSelf->EastLength;
+					double pw = vertSelf->WestVertex->Phys->GetPhysPrpty(hDensity);
+					double pe = vertSelf->EastVertex->Phys->GetPhysPrpty(hDensity);
+					double pc = GetPhysPrpty(hDensity);
+					SCTM_ASSERT(hw != 0 && he != 0, 10024);
+					double pp_div_px = (-he*he * pw + (he*he - hw*hw) * pc + hw*hw * pe) / (he*hw*(he + hw));
+					double mobility = GetPhysPrpty(hMobility);
+
+					// J = -u (n * p_phi/p_x + p_n / p_x )
+					ret = -mobility * (-pc * elecFieldX + pp_div_px);
+				}
+				else
+				{
+					double bcNormX = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).X();
+
+					if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelIn)
+					{
+						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::hDensity);
+						double currDens = bcValue * bcNormX;
+						ret = currDens;
+					}
+					else if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelOut)
+					{
+						double tunCoeff = GetPhysPrpty(hTunnelCoeff);
+						double dens = GetPhysPrpty(hDensity);
+						ret = tunCoeff * dens * bcNormX;
+					}
+					else
+					{
+						ret = 0;
+					}
+				}
+				break;
+			}
+			case hCurrentDensity_Y:
+			{
+				double bndNormY = 0;
+				//hDensity boundary condition is the same as eDensity boundary condition, except for the value
+				if (vertSelf->IsAtBoundary(FDBoundary::eDensity))
+				{
+					bndNormY = vertSelf->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
+				}
+				//bnd_normY < 0, south boundary
+				//bnd_normY > 0, north boundary
+				//bnd_normY = 0, inner vertex
+				if (bndNormY == 0)
+				{
+					double elecFieldY = GetPhysPrpty(ElectricField_Y);
+
+					double hs = vertSelf->SouthLength;
+					double hn = vertSelf->NorthLength;
+					double ps = vertSelf->SouthVertex->Phys->GetPhysPrpty(hDensity);
+					double pn = vertSelf->NorthVertex->Phys->GetPhysPrpty(hDensity);
+					double pc = GetPhysPrpty(hDensity);
+					SCTM_ASSERT(hs != 0 && hn != 0, 10024);
+					double pp_div_py = (-hn*hn * ps + (hn*hn - hs*hs) * pc + hs*hs * pn) / (hn*hs*(hn + hs));
+					double mobility = GetPhysPrpty(hMobility);
+
+					// J = -u (n * p_phi/p_x + p_n / p_x )
+					ret = -mobility * (-pc * elecFieldY + pp_div_py);
+				}
+				else
+				{
+					double bcNormY = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
+
+					if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelIn)
+					{
+						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::hDensity);
+						double currDens = bcValue * bcNormY;
+						ret = currDens;
+					}
+					else if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelOut)
+					{
+						double tunCoeff = GetPhysPrpty(hTunnelCoeff);
+						double dens = GetPhysPrpty(hDensity);
+						ret = tunCoeff * dens * bcNormY;
+					}
+					else
+					{
+						ret = 0;
+					}
+				}
+				break;
+			}
+			case hCurrentDensity:
+			{
+				double hCurrDensX = GetPhysPrpty(eCurrentDensity_X);
+				double hCurrDensY = GetPhysPrpty(eCurrentDensity_Y);
+				ret = SctmMath::sqrt(hCurrDensX * hCurrDensX + hCurrDensY * hCurrDensY);
 				break;
 			}
 			default:
