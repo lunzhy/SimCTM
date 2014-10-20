@@ -50,7 +50,8 @@ public:
 	enum BCName
 	{
 		Potential, ///< potential boundary condition, note that BC_Neumann and BC_Artificial for potential is electric field.
-		eDensity ///< electron density boundary condition. The BC_Cauchy of eDensity describes the electron current at the boundary.
+		eDensity, ///< electron density boundary condition. The BC_Cauchy of eDensity describes the electron current at the boundary.
+		hDensity ///< hole density boundary condition
 	};
 
 	/// @brief BndCond is the enum of different kind of boundary conditions.

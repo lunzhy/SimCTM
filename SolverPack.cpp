@@ -39,7 +39,7 @@ void SolverPack::initialize()
 	tunnelOxideHoleSolver = new SubsToTrapHoleTunnel(domain);
 	blockOxideElecSolver = new TrapToGateElecTunnel(domain);
 	blockOxideHoleSolver = new TrapToGateHoleTunnel(domain);
-	ddSolver = new DriftDiffusionSolver(domain);
+	ddSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::ElecDD);
 	trappingSolver = new TrapSolver(domain);
 
 	mapPotential.clear();

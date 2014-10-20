@@ -21,7 +21,8 @@
 using namespace SctmPhys;
 using namespace SctmUtils;
 
-DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), totalVertices(domain->GetVertices())
+DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain, DDMode _ddmode) : 
+	domain(_domain), totalVertices(domain->GetVertices()), ddMode(_ddmode)
 {
 	this->bcMethod = UsingCurrentDensity; // this is the correct boundary condition method
 	this->useCrankNicolsonMethod = false; // Crank-Nicolson method isn't complete currently.
@@ -100,7 +101,10 @@ void DriftDiffusionSolver::buildVertexMap()
 		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
-		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
+		if (this->ddMode == DDMode::ElecDD)
+			insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
+		else // DDMode::HoleDD
+			insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::hMobility)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
 		//insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
@@ -266,7 +270,15 @@ void DriftDiffusionSolver::UpdateElecDens()
 		VertID = currVert->GetID();
 		equationID = equationMap[VertID];
 		edens = this->elecDensity.at(equationID);
-		currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
+
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
+		}
+		else
+		{
+			currVert->Phys->SetPhysPrpty(PhysProperty::hDensity, edens);
+		}
 		
 		//It is also essential to refresh property map. this is done at the preparation of the solver.
 		//lastElecDensMap[VertID] = edens;
@@ -1011,7 +1023,16 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 				}
 			}
 
-			double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
+			double bcVal = 0;
+			if (this->ddMode == DDMode::ElecDD)
+			{
+				bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
+			}
+			else
+			{
+				bcVal = -vert->BndCond.GetBCValue(FDBoundary::hDensity);
+			}
+
 			double norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 			double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
 			//p_J / p_x + p_J / p_y = (Je - Jw) / dx + (Jn - Js) / dy
@@ -1048,6 +1069,7 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 			}
 
 			//the sign represents moving the symbol from right to left
+			//it is assumed that p_n / d_t is on the right side of the equation
 			retVal = rhsTime - rhsBoundary - rhsLastStepCurrent - rhsLastBoundary;
 			break;
 		}
@@ -1061,14 +1083,24 @@ double DriftDiffusionSolver::CalculateTotalLineDensity()
 	double ret = 0;
 
 	FDVertex *vert = NULL;
-
 	Normalization norm = Normalization(this->temperature);
+	double density = 0;
 
 	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
 		vert = this->ddVertices.at(iVert);
+
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			density = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		}
+		else
+		{
+			density = vert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+		}
+
 		ret += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
-			* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+			* density;
 	}
 	return norm.PullLineDensity(ret);
 }
@@ -1120,7 +1152,16 @@ void DriftDiffusionSolver::handleCurrDensBC_in(FDVertex *vert, double currdens)
 	SCTM_ASSERT(vert->IsAtBoundary(FDBoundary::eDensity), 10022);
 	SCTM_ASSERT(vert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
-	vert->BndCond.RefreshBndCond(FDBoundary::eDensity, currdens);
+	if (this->ddMode == DDMode::ElecDD)
+	{
+		vert->BndCond.RefreshBndCond(FDBoundary::eDensity, currdens);
+	}
+	else
+	{
+		//for boundary condition of hole current density, the original value is used,
+		//because here what is done is the refreshing of boundary condition, not using it.
+		vert->BndCond.RefreshBndCond(FDBoundary::hDensity, currdens);
+	}
 	//it should be noticed that for tunneling-in electron current, the current density direction is the 
 	//same with the boundary condition, so currDens should be positive value.
 	//and the method for building Rhs vector will handle the in-tunneling current density
@@ -1137,10 +1178,17 @@ void DriftDiffusionSolver::refreshVertexMap()
 		vertID = it->first;
 		currVert = this->domain->GetVertex(vertID);
 
-		density = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			density = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+			pot = currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		}
+		else // DDMode
+		{
+			density = currVert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+			pot = -currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		}
 		lastElecDensMap[vertID] = density;
-
-		pot = currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
 		potentialMap[vertID] = pot;
 	}
 }
@@ -1196,7 +1244,14 @@ void DriftDiffusionSolver::handleCurrDensBC_out(FDVertex *vert, double tunCoeff)
 		coeffToAdd += - tunCoeff * norm_beta / deltaY;
 	}
 
-	this->matrixSolver.RefreshMatrixValue(equID, equID, coeffToAdd, SctmSparseMatrixSolver::Add);
+	if (this->ddMode == DDMode::ElecDD)
+	{
+		this->matrixSolver.RefreshMatrixValue(equID, equID, coeffToAdd, SctmSparseMatrixSolver::Add);
+	}
+	else
+	{
+		this->matrixSolver.RefreshMatrixValue(equID, equID, -coeffToAdd, SctmSparseMatrixSolver::Add);
+	}
 }
 
 void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2)
@@ -1206,21 +1261,33 @@ void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexM
 	VertexMapDouble bcMap;
 	bcMap.insert(bc1.begin(), bc1.end());
 	bcMap.insert(bc2.begin(), bc2.end());
+
+	FDBoundary::TunnelTag tunTag = FDBoundary::noTunnel;
 	for (VertexMapDouble::iterator it = bcMap.begin(); it != bcMap.end(); ++it)
 	{
 		vertID = it->first;
 		currVert = domain->GetVertex(vertID);
-		FDBoundary::TunnelTag tunTag = currVert->BndCond.GetElecTunnelTag();
-		SCTM_ASSERT(tunTag!=FDBoundary::noTunnel, 10027);
+
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			tunTag = currVert->BndCond.GetElecTunnelTag();
+			SCTM_ASSERT(tunTag != FDBoundary::noTunnel, 10027);
+		}
+		else
+		{
+			tunTag = currVert->BndCond.GetHoleTunnelTag();
+		}
 
 		switch (tunTag)
 		{
 			case FDBoundary::eTunnelIn:
+			case FDBoundary::hTunnelIn:
 			{
 				handleCurrDensBC_in(currVert, it->second);
 				break;
 			}
 			case FDBoundary::eTunnelOut:
+			case FDBoundary::hTunnelOut:
 			{
 				handleCurrDensBC_out(currVert, it->second);
 				break;
@@ -1378,7 +1445,7 @@ void DriftDiffusionSolver::updateRhsForTrapping_ExplicitMethod()
 }
 
 
-DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
+DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain, DriftDiffusionSolver::ElecDD)
 {
 	
 }

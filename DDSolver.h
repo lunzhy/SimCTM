@@ -38,12 +38,18 @@ public:
 		DirectDiscretization,
 		UsingCurrentDensity,
 	};
-	DriftDiffusionSolver(FDDomain *_domain);
+	enum DDMode
+	{
+		ElecDD,
+		HoleDD,
+	};
+	DriftDiffusionSolver(FDDomain *_domain, DDMode _ddmode);
 	virtual void SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2);
 	
 	void UpdateElecDens();
-	double CalculateTotalLineDensity();
+	double CalculateTotalLineDensity(); // this method is not used currently
 protected:
+	DDMode ddMode;
 	BCMethod bcMethod;
 	bool useCrankNicolsonMethod;
 	bool useScharfetterGummelMethod;
