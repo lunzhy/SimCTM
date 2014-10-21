@@ -41,7 +41,7 @@ void SolverPack::initialize()
 	hBlockOxideSolver = new TrapToGateHoleTunnel(domain);
 	eDDSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::ElecDD);
 	hDDSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::HoleDD);
-	trappingSolver = new TrapSolver(domain);
+	trappingSolver = new ElecTrapSolver(domain);
 
 	mapPotential.clear();
 	mapSiFermiAboveCBedge.clear();

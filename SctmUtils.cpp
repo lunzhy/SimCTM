@@ -270,6 +270,8 @@ namespace SctmUtils
 		case 10056:
 			msg = "[TunnelSolver.cpp] Invalid tunneling tag in electron tunneling solver.";
 			break;
+		case  10057:
+			msg = "[SctmMath.cpp] Solving quadratic equation meets non-existed real root.";
 		default:
 			msg = "Untracked error";
 		}
@@ -2033,7 +2035,7 @@ namespace SctmUtils
 		Get().TrapMaterial = Mat::Si3N4;
 		Get().BlockMaterial = Mat::Al2O3;
 
-		Get().UniformTrapDens = 6e19; // in [cm^-3]
+		Get().ElecUniTrapDens = 6e19; // in [cm^-3]
 		Get().SubstrateDoping = -1e17; // negative for P-type
 
 		//lack of newly-added parameters
@@ -2087,8 +2089,10 @@ namespace SctmUtils
 		Get().SimTimeStepMax = dynamic_cast<Param<double> *>(parBase)->Value();
 
 		//UniformTrapDens
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_uniDensity);
-		Get().UniformTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_eDensity);
+		Get().ElecUniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_hDensity);
+		Get().HoleUniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
 		//SubstrateDoping
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_type);
 		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2389,11 +2393,18 @@ namespace SctmUtils
 			mapToSet[ParName::subs_doping] = par;
 			return;
 		}
-		if (name == "trap.uniDensity")
+		if (name == "trap.eDensity")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = new Param<double>(ParName::trap_uniDensity, valDouble);
-			mapToSet[ParName::trap_uniDensity] = par;
+			Param<double> *par = new Param<double>(ParName::trap_eDensity, valDouble);
+			mapToSet[ParName::trap_eDensity] = par;
+			return;
+		}
+		if (name == "trap.hDensity")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::trap_hDensity, valDouble);
+			mapToSet[ParName::trap_hDensity] = par;
 			return;
 		}
 		if (name == "trap.distribution")

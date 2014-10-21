@@ -20,13 +20,13 @@ using SctmPhys::TrapProperty;
 using SctmUtils::SctmGlobalControl;
 using SctmUtils::SctmTimeStep;
 
-TrapSolver::TrapSolver(FDDomain *_domain): domain(_domain), vertices(_domain->GetDDVerts())
+ElecTrapSolver::ElecTrapSolver(FDDomain *_domain): domain(_domain), vertices(_domain->GetDDVerts())
 {
 	this->temperature = SctmGlobalControl::Get().Temperature;
 	initializeSolver();
 }
 
-void TrapSolver::initializeSolver()
+void ElecTrapSolver::initializeSolver()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -46,7 +46,7 @@ void TrapSolver::initializeSolver()
 	}
 }
 
-void TrapSolver::setSolverTrapping()
+void ElecTrapSolver::setSolverTrapping()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -96,7 +96,7 @@ void TrapSolver::setSolverTrapping()
 	}
 }
 
-void TrapSolver::refreshSolver()
+void ElecTrapSolver::refreshSolver()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -113,7 +113,7 @@ void TrapSolver::refreshSolver()
 	}
 }
 
-void TrapSolver::SolveTrap()
+void ElecTrapSolver::SolveTrap()
 {
 	refreshSolver();
 
@@ -134,7 +134,7 @@ void TrapSolver::SolveTrap()
 	solveEachVertex();
 }
 
-void TrapSolver::UpdateTrapped()
+void ElecTrapSolver::UpdateTrapped()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -149,7 +149,7 @@ void TrapSolver::UpdateTrapped()
 	}
 }
 
-void TrapSolver::solveEachVertex()
+void ElecTrapSolver::solveEachVertex()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -164,7 +164,7 @@ void TrapSolver::solveEachVertex()
 	}
 }
 
-void TrapSolver::setSolverDetrapping_BasicSRH()
+void ElecTrapSolver::setSolverDetrapping_BasicSRH()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -193,7 +193,7 @@ void TrapSolver::setSolverDetrapping_BasicSRH()
 	}
 }
 
-void TrapSolver::setSolverBandToTrap()
+void ElecTrapSolver::setSolverBandToTrap()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -225,7 +225,7 @@ void TrapSolver::setSolverBandToTrap()
 	}
 }
 
-void TrapSolver::setSolverTrapToBand()
+void ElecTrapSolver::setSolverTrapToBand()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -251,7 +251,7 @@ void TrapSolver::setSolverTrapToBand()
 	}
 }
 
-void TrapSolver::setSolverPooleFrenkel_Frequency()
+void ElecTrapSolver::setSolverPooleFrenkel_Frequency()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -280,3 +280,102 @@ void TrapSolver::setSolverPooleFrenkel_Frequency()
 }
 
 
+
+HoleConserveTrapSolver::HoleConserveTrapSolver(FDDomain *_domain):
+	domain(_domain), 
+	vertices(_domain->GetDDVerts()), 
+	temperature(SctmGlobalControl::Get().Temperature)
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		maphTrapDens.insert(VertexMapDouble::value_type(vertID, currVert->Trap->GetTrapPrpty(TrapProperty::hTrapDensity)));
+		mapQuadEqu_A.insert(VertexMapDouble::value_type(vertID, 0));
+		mapQuadEqu_B.insert(VertexMapDouble::value_type(vertID, 0));
+		mapQuadEqu_C.insert(VertexMapDouble::value_type(vertID, 0));
+	}
+}
+
+void HoleConserveTrapSolver::SolveTrap()
+{
+	this->timestep = SctmTimeStep::Get().TimeStep();
+
+	setSolverTrap();
+	solveEachVertex();
+
+}
+
+void HoleConserveTrapSolver::refreshSolver()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double val = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		val = currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
+		maphTrappedLasttime[vertID] = val;
+
+		val = currVert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+		maphDensLasttime[vertID] = val;
+
+		mapQuadEqu_A[vertID] = 0;
+		mapQuadEqu_B[vertID] = -1;
+		mapQuadEqu_C[vertID] = maphTrappedLasttime[vertID];
+	}
+}
+
+void HoleConserveTrapSolver::setSolverTrap()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+	double val = 0;
+	double captureCoeff = 0;
+	double cap_time_product = 0;
+	
+	static string captureModel = SctmGlobalControl::Get().TrapCaptureModel;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		if (captureModel == "J-Model")
+		{
+			captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
+		}
+		else if (captureModel == "V-Model")
+		{
+			captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
+		}
+
+		cap_time_product = this->timestep * captureCoeff;
+		mapQuadEqu_A[vertID] += cap_time_product;
+		mapQuadEqu_B[vertID] += -cap_time_product * (maphDensLasttime[vertID] + maphTrappedLasttime[vertID] + maphTrapDens[vertID]);
+		mapQuadEqu_C[vertID] += cap_time_product * maphTrapDens[vertID] * (maphDensLasttime[vertID] + maphTrappedLasttime[vertID]);
+	}
+}
+
+void HoleConserveTrapSolver::solveEachVertex()
+{
+	FDVertex *vert = NULL;
+	int vertID = 0;
+	double htrappedSolved;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		htrappedSolved = SctmMath::SolveQuadEquation(mapQuadEqu_A[vertID], mapQuadEqu_B[vertID], mapQuadEqu_C[vertID]);
+		maphTrappedSolved[vertID] = htrappedSolved;
+	}
+}

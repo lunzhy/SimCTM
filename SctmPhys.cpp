@@ -696,6 +696,36 @@ namespace SctmPhys
 				ret = SctmMath::sqrt(hCurrDensX * hCurrDensX + hCurrDensY * hCurrDensY);
 				break;
 			}
+			case hEffDOS:
+			{
+				double mass = GetPhysPrpty(PhysProperty::hDOSMass) * SctmPhys::m0;
+				double kT = SctmPhys::k0 * GetPhysPrpty(PhysProperty::Temperature); // the simulation temperature
+				double h = SctmPhys::h;
+				double per_m3_in_per_cm3 = 1 / SctmMath::pow((1 / SctmPhys::cm_in_m), 3);
+
+				// 3/2 = 1, 3.0/2 = 1.5
+				ret = 2 * SctmMath::pow((2 * SctmMath::PI*mass*kT), 3.0 / 2) / h / h / h; // in [m^-3]
+				ret = ret * per_m3_in_per_cm3; // convert to [cm^-3]
+
+				using SctmUtils::Normalization;
+				Normalization norm = Normalization(GetPhysPrpty(PhysProperty::Temperature));
+				ret = norm.PushDensity(ret);
+				break;
+			}
+			case hThermalVelocity:
+			{
+				double mass = GetPhysPrpty(PhysProperty::hDOSMass) * SctmPhys::m0;
+				double kT = SctmPhys::k0 * GetPhysPrpty(PhysProperty::Temperature);
+				double m_in_cm = 1 / SctmPhys::cm_in_m;
+
+				ret = SctmMath::sqrt(3 * kT / mass); // in [m/s]
+				ret = ret * m_in_cm;
+
+				using SctmUtils::Normalization;
+				Normalization norm = Normalization(GetPhysPrpty(PhysProperty::Temperature));
+				ret = norm.PushVelocity(ret);
+				break;
+			}
 			default:
 			{
 				// use SCTM_ASSERT for non-existed property
@@ -1299,6 +1329,21 @@ namespace SctmPhys
 			case hFrequency_PF:
 			{
 				ret = h_frequencyPF;
+				break;
+			}
+			case hCaptureCoeff_J_Model:
+			{
+				double mobility = 0;
+				double elecField = 0;
+				mobility = vertSelf->Phys->GetPhysPrpty(PhysProperty::hMobility);
+				elecField = vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField);
+				ret = GetTrapPrpty(hCrossSection) * mobility * elecField;
+				break;
+			}
+			case hCaptureCoeff_V_Model:
+			{
+				double eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::hThermalVelocity);
+				ret = eVelocity * GetTrapPrpty(hCrossSection);
 				break;
 			}
 			default:

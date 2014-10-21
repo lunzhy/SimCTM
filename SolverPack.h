@@ -19,7 +19,7 @@ class FDDomain;
 class TwoDimPoissonSolver;
 class TunnelSolver;
 class DriftDiffusionSolver;
-class TrapSolver;
+class ElecTrapSolver;
 class OneDimSubsSolver;
 
 typedef std::map<int, int> VertexMapInt; // <vertID, int>
@@ -41,7 +41,7 @@ protected:
 	TunnelSolver *eBlockOxideSolver;
 	TunnelSolver *hTunnelOxideSolver;
 	TunnelSolver *hBlockOxideSolver;
-	TrapSolver *trappingSolver;
+	ElecTrapSolver *trappingSolver;
 	DriftDiffusionSolver *eDDSolver;
 	DriftDiffusionSolver *hDDSolver;
 

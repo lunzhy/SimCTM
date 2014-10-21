@@ -21,10 +21,10 @@ class FDVertex;
 using std::vector;
 typedef std::map<int, double> VertexMapDouble; // <vertID, value>, map with vertex index as the key
 
-class TrapSolver
+class ElecTrapSolver
 {
 public:
-	TrapSolver(FDDomain *_domain);
+	ElecTrapSolver(FDDomain *_domain);
 	void SolveTrap();
 	void UpdateTrapped();
 protected:
@@ -48,6 +48,41 @@ protected:
 	VertexMapDouble coeffMap;
 	VertexMapDouble rhsMap;
 	VertexMapDouble eTrappedMap;
+};
+
+class HoleTrapSolver
+{
+public:
+	HoleTrapSolver(FDDomain *_domain);
+};
+
+class HoleConserveTrapSolver
+{
+public:
+	HoleConserveTrapSolver(FDDomain *_domain);
+	void SolveTrap();
+
+protected:
+	void refreshSolver();
+	void setSolverTrap();
+	void solveEachVertex();
+
+protected:
+	double temperature;
+	double timestep;
+	FDDomain *domain;
+	vector<FDVertex *> &vertices;
+
+	VertexMapDouble maphTrapDens;
+
+	VertexMapDouble maphDensLasttime;
+	VertexMapDouble maphTrappedLasttime;
+
+	VertexMapDouble maphTrappedSolved;
+
+	VertexMapDouble mapQuadEqu_A;
+	VertexMapDouble mapQuadEqu_B;
+	VertexMapDouble mapQuadEqu_C;
 };
 
 #endif

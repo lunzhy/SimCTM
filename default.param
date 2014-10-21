@@ -21,7 +21,8 @@ time.stepMax				: 0						# in [s], the maximal time step
 # substrate, traps information
 subs.type					: P 					# N | P , substrate type
 subs.doping					: 1e17					# in [cm^-3]
-trap.uniDensity				: 6e19					# in [cm^-3]
+trap.eDensity				: 6e19					# in [cm^-3]
+trap.hDensity				: 3e19					# in [cm^-3]
 trap.distribution			: Uniform				# Uniform | 2D, trap distribution information
 
 # switches of the physical mechanisms

@@ -127,6 +127,8 @@ namespace SctmPhys
 			hCurrentDensity_X,
 			hCurrentDensity_Y,
 			hCurrentDensity,
+			hThermalVelocity,
+			hEffDOS,
 		};
 
 		/// @brief PhysProperty is the construction method for this class
@@ -250,6 +252,8 @@ namespace SctmPhys
 			hTrapDensity,
 			hOccupation,
 			hEmptyTrapDens,
+			hCaptureCoeff_J_Model,
+			hCaptureCoeff_V_Model,
 		};
 		TrapProperty(FDVertex *_vert);
 		/// @brief GetTrapPrpty is used to get the specific trap property value.

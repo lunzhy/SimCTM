@@ -116,4 +116,27 @@ namespace SctmMath
 		return ret;
 	}
 
+	double SolveQuadEquation(double coeffA, double coeffB, double coeffC, int rootChoice /*= 0*/)
+	{
+		double sqrtvalue = 0;
+		double root = 0;
+
+		sqrtvalue = SctmMath::sqrt(coeffB * coeffB - 4 * coeffA * coeffC);
+		if (sqrtvalue < 0)
+			SCTM_ASSERT(SCTM_ERROR, 10057);
+
+		if (rootChoice == 0)
+		{
+			root = (-coeffB - sqrtvalue) / 2 / coeffA;
+		}
+		else
+		{
+			root = (-coeffB + sqrtvalue) / 2 / coeffA;
+		}
+
+		return root;
+	}
+
+
+
 }

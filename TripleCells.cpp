@@ -603,14 +603,19 @@ void TripleCells::setTrapDistribution()
 	using SctmPhys::TrapProperty;
 
 	Normalization norm = Normalization(this->temperature);
-	double unifromTrapDens = SctmGlobalControl::Get().UniformTrapDens;
-	double eTrapDens = norm.PushDensity(unifromTrapDens); // in [cm^-3]
+
+	double uniElecTrapDens = SctmGlobalControl::Get().ElecUniTrapDens;
+	double eTrapDens = norm.PushDensity(uniElecTrapDens); // in [cm^-3]
+
+	double uniHoleTrapDens = SctmGlobalControl::Get().HoleUniTrapDens;
+	double hTrapDens = norm.PushDensity(uniHoleTrapDens);
 
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
+		currVert->Trap->SetTrapPrpty(TrapProperty::hTrapDensity, hTrapDens);
 	}
 }
 

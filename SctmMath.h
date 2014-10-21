@@ -41,6 +41,7 @@ namespace SctmMath
 	inline double exp(double val);
 	inline double min_val(double val1, double val2);
 	double Bernoulli_Potential(double potVal);
+	double SolveQuadEquation(double coeffA, double coeffB, double coeffC, int rootChoice = 0);
 
 	// =====================================================================================
 	// IMPLEMENTATIONS

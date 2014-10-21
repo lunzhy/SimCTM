@@ -544,14 +544,19 @@ void SimpleONO::setTrapDistribution_Uniform()
 	using SctmPhys::TrapProperty;
 
 	Normalization norm = Normalization(this->temperature);
-	double unifromTrapDens = SctmGlobalControl::Get().UniformTrapDens; 
+
+	double unifromTrapDens = SctmGlobalControl::Get().ElecUniTrapDens; 
 	double eTrapDens = norm.PushDensity(unifromTrapDens); // in [cm^-3]
+
+	double uniHoleTrapDens = SctmGlobalControl::Get().HoleUniTrapDens;
+	double hTrapDens = norm.PushDensity(uniHoleTrapDens);
 
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
+		currVert->Trap->SetTrapPrpty(TrapProperty::hTrapDensity, hTrapDens);
 	}
 }
 
@@ -573,7 +578,7 @@ void SimpleONO::setTrapDistribution_1D_Interface()
 	sigma = 1;
 	//the coefficient 0.1 and 10 is just used in this case
 	//sigma = norm.PushLength(sigma * 0.1 * nm_in_cm);
-	double uniformDensity = norm.PushDensity(SctmGlobalControl::Get().UniformTrapDens);
+	double uniformDensity = norm.PushDensity(SctmGlobalControl::Get().ElecUniTrapDens);
 	//double uniformDensity = SctmGlobalControl::Get().UniformTrapDens;
 	double extraDensity = uniformDensity;
 	//double gaussDensity = uniformDensity * (right_x - left_x)*(top_y - bottom_y);
@@ -627,7 +632,7 @@ void SimpleONO::setTrapDistribution_2DSim()
 	sigma = 1;
 	//the coefficient 0.1 and 10 is just used in this case
 	//sigma = norm.PushLength(sigma * 0.1 * nm_in_cm);
-	double uniformDensity = norm.PushDensity(SctmGlobalControl::Get().UniformTrapDens);
+	double uniformDensity = norm.PushDensity(SctmGlobalControl::Get().ElecUniTrapDens);
 	//double uniformDensity = SctmGlobalControl::Get().UniformTrapDens;
 	double extraDensity = uniformDensity;
 	//double gaussDensity = uniformDensity * (right_x - left_x)*(top_y - bottom_y);
