@@ -38,12 +38,18 @@ public:
 		DirectDiscretization,
 		UsingCurrentDensity,
 	};
-	DriftDiffusionSolver(FDDomain *_domain);
+	enum DDMode
+	{
+		ElecDD,
+		HoleDD,
+	};
+	DriftDiffusionSolver(FDDomain *_domain, DDMode _ddmode);
 	virtual void SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2);
 	
-	void UpdateElecDens();
-	double CalculateTotalLineDensity();
+	void UpdateCarrierDens();
+	double CalculateTotalLineDensity(); // this method is not used currently
 protected:
+	DDMode ddMode;
 	BCMethod bcMethod;
 	bool useCrankNicolsonMethod;
 	bool useScharfetterGummelMethod;
@@ -58,12 +64,12 @@ protected:
 	//the material and physical properties
 	VertexMapDouble mobilityMap; ///< mobility is used, so diffusion coefficient is derived
 	VertexMapDouble potentialMap;
-	VertexMapDouble lastElecDensMap; ///< the electron density of last time step
+	VertexMapDouble lastCarrierDensMap; ///< the electron density of last time step
 	VertexMapInt equationMap;
 
 	//the index of this kind of vector is equation id, which is obtained from equation map.
 	vector<double> rhsVector;
-	vector<double> elecDensity;
+	vector<double> ehDensity;
 
 	SctmSparseMatrixSolver matrixSolver;
 

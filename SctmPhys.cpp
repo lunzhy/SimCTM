@@ -42,22 +42,25 @@ namespace SctmPhys
 		vertSelf = _vert;
 		bandgap = 0;
 		electrostaticPotential = 0;
-		//conductionBandEnergy = 0;
-		//valenceBandEnergy = 0;
+		densControlArea = 0;
+		epsilon = 0;
+		
 		electronAffinity = 0;
 		e_DOSmass = 0;
 		e_mass = 0;
-		h_mass = 0;
-		//netCharge = 0;
 		e_density = 0;
 		e_mobility = 0;
-		densControlArea = 0;
-		epsilon = 0;
 
-		tunnelCoeff = 0;
+		e_tunnelCoeff = 0;
 		e_currdensMFN_X = 0;
 		e_currdensMFN_Y = 0;
 		e_subsCurrDensB2T = 0;
+
+		h_mass = 0;
+		h_DOSmass = 0;
+		h_mobility = 0;
+		h_density = 0;
+		h_tunnelCoeff = 0;
 
 		//all the vectors and maps are initialized with 0 size
 	}
@@ -75,9 +78,6 @@ namespace SctmPhys
 		case eMass:
 			e_mass = prptyValue;
 			break;
-		case hMass:
-			h_mass = prptyValue;
-			break;
 		case ElectronAffinity:
 			electronAffinity = prptyValue;
 			break;
@@ -90,8 +90,8 @@ namespace SctmPhys
 		case eDensity:
 			e_density = prptyValue;
 			break;
-		case TunnelCoeff:
-			tunnelCoeff = prptyValue;
+		case eTunnelCoeff:
+			e_tunnelCoeff = prptyValue;
 			break;
 		case DielectricConstant:
 			epsilon = prptyValue;
@@ -104,6 +104,22 @@ namespace SctmPhys
 			break;
 		case eSubsCurrDensB2T:
 			e_subsCurrDensB2T = prptyValue;
+			break;
+		//for holes
+		case hMass:
+			h_mass = prptyValue;
+			break;
+		case hDOSMass:
+			h_DOSmass = prptyValue;
+			break;
+		case hMobility:
+			h_mobility = prptyValue;
+			break;
+		case hDensity:
+			h_density = prptyValue;
+			break;
+		case hTunnelCoeff:
+			h_tunnelCoeff = prptyValue;
 			break;
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10019);
@@ -153,11 +169,6 @@ namespace SctmPhys
 				ret = e_mass;
 				break;
 			}
-			case hMass:
-			{
-				ret = h_mass;
-				break;
-			}	
 			case ElectronAffinity:
 			{
 				if (matName == MaterialDB::Mat::ErrorMaterial)
@@ -312,9 +323,9 @@ namespace SctmPhys
 			case ElectricFieldTrap_X:
 			{
 				double bcNormX = 0; // inner vertex
-				if (vertSelf->IsAtBoundary(FDBoundary::Potential))
+				if (vertSelf->IsAtBoundary(FDBoundary::eDensity))
 				{
-					bcNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::Potential).X();
+					bcNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::eDensity).X();
 				}
 				//bnd_normX < 0, west boundary
 				//bnd_normX > 0, east boundary
@@ -423,15 +434,15 @@ namespace SctmPhys
 				{
 					double bcNormX = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).X();
 
-					if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn )
+					if ( vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn )
 					{
 						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 						double currDens = bcValue * bcNormX;
 						ret = currDens;
 					}
-					else if (  vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
+					else if (  vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut )
 					{
-						double tunCoeff = GetPhysPrpty(TunnelCoeff);
+						double tunCoeff = GetPhysPrpty(eTunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);
 						ret = tunCoeff * dens * bcNormX;
 					}
@@ -471,15 +482,15 @@ namespace SctmPhys
 				{
 					double bcNormY = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
 
-					if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn )
+					if ( vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn )
 					{
 						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::eDensity);
 						double currDens = bcValue * bcNormY;
 						ret = currDens;
 					}
-					else if ( vertSelf->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut )
+					else if ( vertSelf->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut )
 					{
-						double tunCoeff = GetPhysPrpty(TunnelCoeff);
+						double tunCoeff = GetPhysPrpty(eTunnelCoeff);
 						double dens = GetPhysPrpty(eDensity);
 						ret = tunCoeff * dens * bcNormY;
 					}
@@ -497,9 +508,9 @@ namespace SctmPhys
 				ret = SctmMath::sqrt( eCurrDensX * eCurrDensX + eCurrDensY * eCurrDensY );
 				break;
 			}
-			case TunnelCoeff:
+			case eTunnelCoeff:
 			{
-				ret = tunnelCoeff;
+				ret = e_tunnelCoeff;
 				break;
 			}
 			case eEffDOS:
@@ -550,6 +561,139 @@ namespace SctmPhys
 			case eSubsCurrDensB2T:
 			{
 				ret = e_subsCurrDensB2T;
+				break;
+			}
+			//for holes
+			case hMass:
+			{
+				ret = h_mass;
+				break;
+			}
+			case hDOSMass:
+			{
+				ret = h_DOSmass;
+				break;
+			}
+			case hMobility:
+			{
+				ret = h_mobility;
+				break;
+			}
+			case  hDensity:
+			{
+				ret = h_density;
+				break;
+			}
+			case hTunnelCoeff:
+			{
+				ret = h_tunnelCoeff;
+				break;
+			}
+			case hCurrentDensity_X:
+			{
+				double bndNormX = 0;
+				//hDensity boundary condition is the same as eDensity boundary condition, except for the value
+				if (vertSelf->IsAtBoundary(FDBoundary::eDensity))
+				{
+					bndNormX = vertSelf->BndCond.GetBndDirection(FDBoundary::eDensity).X();
+				}
+				//bnd_normX < 0, west boundary
+				//bnd_normX > 0, east boundary
+				//bnd_normX = 0, inner vertex or vertex at boundary but inside in x direction
+				if (bndNormX == 0)
+				{
+					double elecFieldX = GetPhysPrpty(ElectricField_X);
+
+					double hw = vertSelf->WestLength;
+					double he = vertSelf->EastLength;
+					double pw = vertSelf->WestVertex->Phys->GetPhysPrpty(hDensity);
+					double pe = vertSelf->EastVertex->Phys->GetPhysPrpty(hDensity);
+					double pc = GetPhysPrpty(hDensity);
+					SCTM_ASSERT(hw != 0 && he != 0, 10024);
+					double pp_div_px = (-he*he * pw + (he*he - hw*hw) * pc + hw*hw * pe) / (he*hw*(he + hw));
+					double mobility = GetPhysPrpty(hMobility);
+
+					// J = -u (n * p_phi/p_x + p_n / p_x )
+					ret = -mobility * (-pc * elecFieldX + pp_div_px);
+				}
+				else
+				{
+					double bcNormX = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).X();
+
+					if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelIn)
+					{
+						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::hDensity);
+						double currDens = bcValue * bcNormX;
+						ret = currDens;
+					}
+					else if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelOut)
+					{
+						double tunCoeff = GetPhysPrpty(hTunnelCoeff);
+						double dens = GetPhysPrpty(hDensity);
+						ret = tunCoeff * dens * bcNormX;
+					}
+					else
+					{
+						ret = 0;
+					}
+				}
+				break;
+			}
+			case hCurrentDensity_Y:
+			{
+				double bndNormY = 0;
+				//hDensity boundary condition is the same as eDensity boundary condition, except for the value
+				if (vertSelf->IsAtBoundary(FDBoundary::eDensity))
+				{
+					bndNormY = vertSelf->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
+				}
+				//bnd_normY < 0, south boundary
+				//bnd_normY > 0, north boundary
+				//bnd_normY = 0, inner vertex
+				if (bndNormY == 0)
+				{
+					double elecFieldY = GetPhysPrpty(ElectricField_Y);
+
+					double hs = vertSelf->SouthLength;
+					double hn = vertSelf->NorthLength;
+					double ps = vertSelf->SouthVertex->Phys->GetPhysPrpty(hDensity);
+					double pn = vertSelf->NorthVertex->Phys->GetPhysPrpty(hDensity);
+					double pc = GetPhysPrpty(hDensity);
+					SCTM_ASSERT(hs != 0 && hn != 0, 10024);
+					double pp_div_py = (-hn*hn * ps + (hn*hn - hs*hs) * pc + hs*hs * pn) / (hn*hs*(hn + hs));
+					double mobility = GetPhysPrpty(hMobility);
+
+					// J = -u (n * p_phi/p_x + p_n / p_x )
+					ret = -mobility * (-pc * elecFieldY + pp_div_py);
+				}
+				else
+				{
+					double bcNormY = vertSelf->BndCond.GetBCNormVector(FDBoundary::eDensity).Y();
+
+					if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelIn)
+					{
+						double bcValue = vertSelf->BndCond.GetBCValue(FDBoundary::hDensity);
+						double currDens = bcValue * bcNormY;
+						ret = currDens;
+					}
+					else if (vertSelf->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelOut)
+					{
+						double tunCoeff = GetPhysPrpty(hTunnelCoeff);
+						double dens = GetPhysPrpty(hDensity);
+						ret = tunCoeff * dens * bcNormY;
+					}
+					else
+					{
+						ret = 0;
+					}
+				}
+				break;
+			}
+			case hCurrentDensity:
+			{
+				double hCurrDensX = GetPhysPrpty(eCurrentDensity_X);
+				double hCurrDensY = GetPhysPrpty(eCurrentDensity_Y);
+				ret = SctmMath::sqrt(hCurrDensX * hCurrDensX + hCurrDensY * hCurrDensY);
 				break;
 			}
 			default:
@@ -819,7 +963,7 @@ namespace SctmPhys
 		using namespace MaterialDB;
 		using SctmUtils::SctmGlobalControl;
 		//the value returned by GetMatPrpty is normalized value
-		double mp = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleMass);
+		double mp = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_HoleDOSMass);
 		double mn = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElecDOSMass);
 		double bandgap = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_Bandgap);
 		double affinity = MaterialDB::GetMatPrpty(GetMaterial(Mat::Silicon), MaterialDB::MatProperty::Mat_ElectronAffinity);
@@ -843,9 +987,17 @@ namespace SctmPhys
 		e_trapDensity = 0;
 		e_trapped = 0;
 		e_crossSection = 0;
-		energyFromCondBand = 0;
+		e_energyFromCondBand = 0;
 		e_frequencyT2B = 0;
 		e_transCoeffT2B = 0;
+
+		//for holes
+		h_trapDensity = 0;
+		h_trapped = 0;
+		h_crosssection = 0;
+		h_frequencyT2B = 0;
+		h_frequencyPF = 0;
+		h_energyFromValeBand = 0;
 	}
 
 	void TrapProperty::FillTrapPrptyUsingMatPrpty(TrapProperty::Name trapPrpty, MaterialDB::MatProperty::Name matPrpty)
@@ -910,8 +1062,8 @@ namespace SctmPhys
 		case eCrossSection:
 			e_crossSection = val;
 			break;
-		case EnergyFromCondBand:
-			energyFromCondBand = val;
+		case eEnergyFromCondBand:
+			e_energyFromCondBand = val;
 			break;
 		case eTrapDensity:
 			e_trapDensity = val;
@@ -928,6 +1080,25 @@ namespace SctmPhys
 		case eFrequency_PF:
 			e_frequencyPF = val;
 			break;
+		//for holes
+		case hTrapped:
+			h_trapped = val;
+			break;
+		case hTrapDensity:
+			h_trapDensity = val;
+			break;
+		case hCrossSection:
+			h_crosssection = val;
+			break;
+		case hEnergyFromValeBand:
+			h_energyFromValeBand = val;
+			break;
+		case hFrequency_T2B:
+			h_frequencyT2B = val;
+			break;
+		case hFrequency_PF:
+			h_frequencyPF = val;
+			break; 
 		default:
 			SCTM_ASSERT(SCTM_ERROR, 10028);
 		}
@@ -958,9 +1129,9 @@ namespace SctmPhys
 				ret = e_trapped / e_trapDensity;
 				break;
 			}
-			case EnergyFromCondBand:
+			case eEnergyFromCondBand:
 			{
-				ret = energyFromCondBand;
+				ret = e_energyFromCondBand;
 				break;
 			}
 			case eCrossSection:
@@ -996,7 +1167,7 @@ namespace SctmPhys
 				eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity);
 				eEffectiveDOS = vertSelf->Phys->GetPhysPrpty(PhysProperty::eEffDOS);
 
-				double trapDepth = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+				double trapDepth = GetTrapPrpty(TrapProperty::eEnergyFromCondBand);
 
 				using SctmUtils::SctmGlobalControl;
 				static string pfModel = SctmGlobalControl::Get().PhysicsPFModel;
@@ -1080,7 +1251,7 @@ namespace SctmPhys
 			{
 				double deltaEt = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF); // in [eV], normalized value
 				double frequency = GetTrapPrpty(TrapProperty::eFrequency_PF);
-				double trapDepth = GetTrapPrpty(TrapProperty::EnergyFromCondBand);
+				double trapDepth = GetTrapPrpty(TrapProperty::eEnergyFromCondBand);
 
 				double coeff = frequency * SctmMath::exp(-(trapDepth - deltaEt));
 				if (deltaEt > trapDepth)
@@ -1088,6 +1259,47 @@ namespace SctmPhys
 					SctmData::Get().WritePooleFrenkelInfo();
 				}
 				return coeff;
+			}
+			//for holes
+			case hTrapped:
+			{
+				ret = h_trapped;
+				break;
+			}
+			case hTrapDensity:
+			{
+				ret = h_trapDensity;
+				break;
+			}
+			case hOccupation:
+			{
+				ret = h_trapped / h_trapDensity;
+				break;
+			}
+			case hEmptyTrapDens:
+			{
+				ret = h_trapDensity - h_trapped;
+				break;
+			}
+			case hEnergyFromValeBand:
+			{
+				ret = h_energyFromValeBand;
+				break;
+			}
+			case hCrossSection:
+			{
+				ret = h_crosssection;
+				break;
+			}
+			case hFrequency_T2B:
+			{
+				ret = h_frequencyT2B;
+				break;
+			}
+			case hFrequency_PF:
+			{
+				ret = h_frequencyPF;
+				break;
 			}
 			default:
 			{

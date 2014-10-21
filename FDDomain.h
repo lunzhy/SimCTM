@@ -139,10 +139,10 @@ protected:
 	void setVertexTrapProperty();
 	void setBoundary();
 	void setBndVert_Potential(FDVertex *vert);
-	void setBndVert_eDensity(FDVertex *vert);
+	void setBndVert_Density(FDVertex *vert);
 	void updateBndCond();
 	void updateBCVert_Potential(FDVertex *vert);
-	void updateBCVert_eDensity(FDVertex *vert);
+	void updateBCVert_Density(FDVertex *vert);
 	void fillDDVerts();
 	void setTrapOccupation();
 

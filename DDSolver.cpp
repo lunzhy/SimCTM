@@ -21,7 +21,8 @@
 using namespace SctmPhys;
 using namespace SctmUtils;
 
-DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain): domain(_domain), totalVertices(domain->GetVertices())
+DriftDiffusionSolver::DriftDiffusionSolver(FDDomain *_domain, DDMode _ddmode) : 
+	domain(_domain), totalVertices(domain->GetVertices()), ddMode(_ddmode)
 {
 	this->bcMethod = UsingCurrentDensity; // this is the correct boundary condition method
 	this->useCrankNicolsonMethod = false; // Crank-Nicolson method isn't complete currently.
@@ -62,7 +63,7 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	updateRhsForMFNTunneling();
 
 	//solve the matrix
-	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
+	this->matrixSolver.SolveMatrix(rhsVector, this->ehDensity);
 	
 	//fill back electron density to last time density, this is also done in refreshing vertex map
 	fillBackElecDens();
@@ -74,7 +75,7 @@ void DriftDiffusionSolver::initializeSolver()
 {
 	int vertSize = this->ddVertices.size();
 	this->rhsVector.resize(vertSize);
-	this->elecDensity.resize(vertSize);
+	this->ehDensity.resize(vertSize);
 	buildVertexMap(); //call the method in DriftDiffusionSolver (Base class), because at this time the derived class is not constructed.
 }
 
@@ -100,7 +101,10 @@ void DriftDiffusionSolver::buildVertexMap()
 		insertPairVertex = this->equationMap.insert(VertexMapInt::value_type(vertID, equationID));
 		SCTM_ASSERT(insertPairVertex.second==true, 10011);
 
-		insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
+		if (this->ddMode == DDMode::ElecDD)
+			insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
+		else // DDMode::HoleDD
+			insertPairPrpty = this->mobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::hMobility)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
 		//insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
@@ -254,7 +258,7 @@ void DriftDiffusionSolver::setTimeStep()
  	timeStep = SctmTimeStep::Get().TimeStep();
 }
 
-void DriftDiffusionSolver::UpdateElecDens()
+void DriftDiffusionSolver::UpdateCarrierDens()
 {
 	FDVertex *currVert = NULL;
 	int equationID = 0;
@@ -265,8 +269,16 @@ void DriftDiffusionSolver::UpdateElecDens()
 		currVert = this->ddVertices.at(iVert);
 		VertID = currVert->GetID();
 		equationID = equationMap[VertID];
-		edens = this->elecDensity.at(equationID);
-		currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
+		edens = this->ehDensity.at(equationID);
+
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
+		}
+		else
+		{
+			currVert->Phys->SetPhysPrpty(PhysProperty::hDensity, edens);
+		}
 		
 		//It is also essential to refresh property map. this is done at the preparation of the solver.
 		//lastElecDensMap[VertID] = edens;
@@ -284,10 +296,9 @@ void DriftDiffusionSolver::fillBackElecDens()
 		currVert = this->ddVertices.at(iVert);
 		VertID = currVert->GetID();
 		equationID = equationMap[VertID];
-		edens = this->elecDensity.at(equationID);
-		//currVert->Phys->SetPhysPrpty(PhysProperty::eDensity, edens);
-		//It is also essential to refresh property map.
-		lastElecDensMap[VertID] = edens;
+		edens = this->ehDensity.at(equationID);
+		//It is essential to refresh property map.
+		lastCarrierDensMap[VertID] = edens;
 	}
 }
 
@@ -763,7 +774,7 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 	double retVal = 0;
 
 	//related to time step
-	rhsTime = -1.0 * lastElecDensMap[vert->GetID()] / timeStep;
+	rhsTime = -1.0 * lastCarrierDensMap[vert->GetID()] / timeStep;
  
 	getDeltaXYAtVertex(vert, deltaX, deltaY);
 
@@ -777,82 +788,82 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
 			mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			east = - mobility / vert->EastLength / deltaX *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()]) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			east += mobility / vert->EastLength / deltaX *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) * 
-				lastElecDensMap[vert->EastVertex->GetID()];
+				lastCarrierDensMap[vert->EastVertex->GetID()];
 
 			//related to west vertex
 			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			west = - mobility / vert->WestLength / deltaX *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()]) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			west += mobility / vert->WestLength / deltaX *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) *
-				lastElecDensMap[vert->WestVertex->GetID()];
+				lastCarrierDensMap[vert->WestVertex->GetID()];
 
 			//related to north vertex
 			mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			north = - mobility / vert->NorthLength / deltaY *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->NorthVertex->GetID()]) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			north += mobility / vert->NorthLength / deltaY *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) *
-				lastElecDensMap[vert->NorthVertex->GetID()];
+				lastCarrierDensMap[vert->NorthVertex->GetID()];
 
 			//related to south vertex
 			mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			south = - mobility / vert->SouthLength / deltaY *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()]) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			south += mobility / vert->SouthLength / deltaY *
 				SctmMath::Bernoulli_Potential(potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) *
-				lastElecDensMap[vert->SouthVertex->GetID()];
+				lastCarrierDensMap[vert->SouthVertex->GetID()];
 		}
 		else
 		{
 			mobility = (mobilityMap[vert->EastVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			east = - mobility / vert->EastLength / deltaX *
 				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			east += - mobility / vert->EastLength / deltaX *
 				( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) * 
-				lastElecDensMap[vert->EastVertex->GetID()];
+				lastCarrierDensMap[vert->EastVertex->GetID()];
 
 			//related to west vertex
 			mobility = (mobilityMap[vert->WestVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			west = - mobility / vert->WestLength / deltaX *
 				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			west += - mobility / vert->WestLength / deltaX *
 				( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-				lastElecDensMap[vert->WestVertex->GetID()];
+				lastCarrierDensMap[vert->WestVertex->GetID()];
 
 			//related to north vertex
 			mobility = (mobilityMap[vert->NorthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			north = - mobility / vert->NorthLength / deltaY *
 				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			north += - mobility / vert->NorthLength / deltaY *
 				( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-				lastElecDensMap[vert->NorthVertex->GetID()];
+				lastCarrierDensMap[vert->NorthVertex->GetID()];
 
 			//related to south vertex
 			mobility = (mobilityMap[vert->SouthVertex->GetID()] + mobilityMap[vert->GetID()]) / 2;
 			south = - mobility / vert->SouthLength / deltaY *
 				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-				lastElecDensMap[vert->GetID()];
+				lastCarrierDensMap[vert->GetID()];
 
 			south += - mobility / vert->SouthLength / deltaY *
 				( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-				lastElecDensMap[vert->SouthVertex->GetID()];
+				lastCarrierDensMap[vert->SouthVertex->GetID()];
 		}
 		
 		//use Crank-Nicolson method
@@ -900,7 +911,7 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 		{
 			//for Cauchy boundary condition
 			//calculation of the addend related current simulation time step
-			rhsTime= -1.0 * lastElecDensMap[vert->GetID()] / timeStep;
+			rhsTime= -1.0 * lastCarrierDensMap[vert->GetID()] / timeStep;
 
 			bndNorm_alpha = vert->BndCond.GetBndDirection(FDBoundary::eDensity).X();
 			bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
@@ -915,21 +926,21 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 				{
 					west = - mobility / vert->WestLength / deltaX *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->WestVertex->GetID()]) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 
 					west += mobility / vert->WestLength / deltaX *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) *
-						lastElecDensMap[vert->WestVertex->GetID()];
+						lastCarrierDensMap[vert->WestVertex->GetID()];
 				}
 				else
 				{
 					west += - mobility / vert->WestLength / deltaX *
 						( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 - 1 ) *
-						lastElecDensMap[vert->WestVertex->GetID()];
+						lastCarrierDensMap[vert->WestVertex->GetID()];
 
 					west += - mobility / vert->WestLength / deltaX *
 						( (potentialMap[vert->WestVertex->GetID()] - potentialMap[vert->GetID()]) /2 + 1 ) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 				}
 			}
 
@@ -941,21 +952,21 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 				{
 					east = - mobility / vert->EastLength / deltaX *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->EastVertex->GetID()]) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 
 					east += mobility / vert->EastLength / deltaX *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) * 
-						lastElecDensMap[vert->EastVertex->GetID()];
+						lastCarrierDensMap[vert->EastVertex->GetID()];
 				}
 				else
 				{
 					east += - mobility / vert->EastLength / deltaX *
 						( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-						lastElecDensMap[vert->EastVertex->GetID()];
+						lastCarrierDensMap[vert->EastVertex->GetID()];
 
 					east += - mobility / vert->EastLength / deltaX *
 						( (potentialMap[vert->EastVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 				}
 			}
 
@@ -967,21 +978,21 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 				{
 					south = - mobility / vert->SouthLength / deltaY *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->SouthVertex->GetID()]) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 
 					south += mobility / vert->SouthLength / deltaY *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) *
-						lastElecDensMap[vert->SouthVertex->GetID()];
+						lastCarrierDensMap[vert->SouthVertex->GetID()];
 				}
 				else
 				{
 					south += - mobility / vert->SouthLength / deltaY *
 						( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-						lastElecDensMap[vert->SouthVertex->GetID()];
+						lastCarrierDensMap[vert->SouthVertex->GetID()];
 
 					south += - mobility / vert->SouthLength / deltaY *
 						( (potentialMap[vert->SouthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 				}
 			}
 
@@ -993,25 +1004,34 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 				{
 					north = - mobility / vert->NorthLength / deltaY *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->GetID()] - potentialMap[vert->NorthVertex->GetID()]) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 
 					north += mobility / vert->NorthLength / deltaY *
 						SctmMath::Bernoulli_Potential(potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) *
-						lastElecDensMap[vert->NorthVertex->GetID()];
+						lastCarrierDensMap[vert->NorthVertex->GetID()];
 				}
 				else
 				{
 					north += - mobility / vert->NorthLength / deltaY *
 						( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 - 1 ) *
-						lastElecDensMap[vert->NorthVertex->GetID()];
+						lastCarrierDensMap[vert->NorthVertex->GetID()];
 
 					north += - mobility / vert->NorthLength / deltaY *
 						( (potentialMap[vert->NorthVertex->GetID()] - potentialMap[vert->GetID()]) / 2 + 1 ) *
-						lastElecDensMap[vert->GetID()];
+						lastCarrierDensMap[vert->GetID()];
 				}
 			}
 
-			double bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
+			double bcVal = 0;
+			if (this->ddMode == DDMode::ElecDD)
+			{
+				bcVal = vert->BndCond.GetBCValue(FDBoundary::eDensity);
+			}
+			else
+			{
+				bcVal = -vert->BndCond.GetBCValue(FDBoundary::hDensity);
+			}
+
 			double norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 			double norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
 			//p_J / p_x + p_J / p_y = (Je - Jw) / dx + (Jn - Js) / dy
@@ -1048,6 +1068,7 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 			}
 
 			//the sign represents moving the symbol from right to left
+			//it is assumed that p_n / d_t is on the right side of the equation
 			retVal = rhsTime - rhsBoundary - rhsLastStepCurrent - rhsLastBoundary;
 			break;
 		}
@@ -1061,14 +1082,24 @@ double DriftDiffusionSolver::CalculateTotalLineDensity()
 	double ret = 0;
 
 	FDVertex *vert = NULL;
-
 	Normalization norm = Normalization(this->temperature);
+	double density = 0;
 
 	for (size_t iVert = 0; iVert != this->ddVertices.size(); ++iVert)
 	{
 		vert = this->ddVertices.at(iVert);
+
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			density = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		}
+		else
+		{
+			density = vert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+		}
+
 		ret += vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea)
-			* vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+			* density;
 	}
 	return norm.PullLineDensity(ret);
 }
@@ -1120,7 +1151,17 @@ void DriftDiffusionSolver::handleCurrDensBC_in(FDVertex *vert, double currdens)
 	SCTM_ASSERT(vert->IsAtBoundary(FDBoundary::eDensity), 10022);
 	SCTM_ASSERT(vert->BndCond.GetBCType(FDBoundary::eDensity) == FDBoundary::BC_Cauchy, 10022);
 
-	vert->BndCond.RefreshBndCond(FDBoundary::eDensity, currdens);
+	if (this->ddMode == DDMode::ElecDD)
+	{
+		vert->BndCond.RefreshBndCond(FDBoundary::eDensity, currdens);
+	}
+	else
+	{
+		//for boundary condition of hole current density, the original value is used,
+		//because here what is done is the refreshing of boundary condition, not using it.
+		//the sign of the tunneling-in current for holes is reverted when dealing with rhs of boundary vertex
+		vert->BndCond.RefreshBndCond(FDBoundary::hDensity, currdens);
+	}
 	//it should be noticed that for tunneling-in electron current, the current density direction is the 
 	//same with the boundary condition, so currDens should be positive value.
 	//and the method for building Rhs vector will handle the in-tunneling current density
@@ -1137,10 +1178,17 @@ void DriftDiffusionSolver::refreshVertexMap()
 		vertID = it->first;
 		currVert = this->domain->GetVertex(vertID);
 
-		density = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
-		lastElecDensMap[vertID] = density;
-
-		pot = currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			density = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+			pot = currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		}
+		else // DDMode::HoleDD
+		{
+			density = currVert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+			pot = -currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential);
+		}
+		lastCarrierDensMap[vertID] = density;
 		potentialMap[vertID] = pot;
 	}
 }
@@ -1196,7 +1244,14 @@ void DriftDiffusionSolver::handleCurrDensBC_out(FDVertex *vert, double tunCoeff)
 		coeffToAdd += - tunCoeff * norm_beta / deltaY;
 	}
 
-	this->matrixSolver.RefreshMatrixValue(equID, equID, coeffToAdd, SctmSparseMatrixSolver::Add);
+	if (this->ddMode == DDMode::ElecDD)
+	{
+		this->matrixSolver.RefreshMatrixValue(equID, equID, coeffToAdd, SctmSparseMatrixSolver::Add);
+	}
+	else // DDMode::HoleDD
+	{
+		this->matrixSolver.RefreshMatrixValue(equID, equID, -coeffToAdd, SctmSparseMatrixSolver::Add);
+	}
 }
 
 void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2)
@@ -1206,21 +1261,33 @@ void DriftDiffusionSolver::handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexM
 	VertexMapDouble bcMap;
 	bcMap.insert(bc1.begin(), bc1.end());
 	bcMap.insert(bc2.begin(), bc2.end());
+
+	FDBoundary::TunnelTag tunTag = FDBoundary::noTunnel;
 	for (VertexMapDouble::iterator it = bcMap.begin(); it != bcMap.end(); ++it)
 	{
 		vertID = it->first;
 		currVert = domain->GetVertex(vertID);
-		FDBoundary::TunnelTag tunTag = currVert->BndCond.GetBCTunnelTag();
-		SCTM_ASSERT(tunTag!=FDBoundary::noTunnel, 10027);
+
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			tunTag = currVert->BndCond.GetElecTunnelTag();
+			SCTM_ASSERT(tunTag != FDBoundary::noTunnel, 10027);
+		}
+		else
+		{
+			tunTag = currVert->BndCond.GetHoleTunnelTag();
+		}
 
 		switch (tunTag)
 		{
 			case FDBoundary::eTunnelIn:
+			case FDBoundary::hTunnelIn:
 			{
 				handleCurrDensBC_in(currVert, it->second);
 				break;
 			}
 			case FDBoundary::eTunnelOut:
+			case FDBoundary::hTunnelOut:
 			{
 				handleCurrDensBC_out(currVert, it->second);
 				break;
@@ -1352,7 +1419,7 @@ void DriftDiffusionSolver::updateRhsForTrapping_ExplicitMethod()
 		equIndex = equationMap[vertID];
 		SCTM_ASSERT(equIndex == iVert, 10012);
 		
-		eDensLastTime = this->lastElecDensMap[vertID];
+		eDensLastTime = this->lastCarrierDensMap[vertID];
 
 		//notice the negative sign
 		if (captureModel == "J-Model")
@@ -1378,7 +1445,7 @@ void DriftDiffusionSolver::updateRhsForTrapping_ExplicitMethod()
 }
 
 
-DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain)
+DDTest::DDTest(FDDomain *_domain) : DriftDiffusionSolver(_domain, DriftDiffusionSolver::ElecDD)
 {
 	
 }
@@ -1417,7 +1484,7 @@ void DDTest::buildVertexMap()
 		insertPairPrpty = this->potentialMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::ElectrostaticPotential)));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 
-		insertPairPrpty = this->lastElecDensMap.insert(VertexMapDouble::value_type(vertID, lastDensity));
+		insertPairPrpty = this->lastCarrierDensMap.insert(VertexMapDouble::value_type(vertID, lastDensity));
 		SCTM_ASSERT(insertPairPrpty.second==true, 10011);
 	}
 }
@@ -1580,16 +1647,16 @@ void DDTest::SolveDD()
 	SctmTimer::Get().Set();
 	//prepareSolver(); //call method from base, DriftDiffusionSolver
 	refreshCoeffMatrixDueToBC();
-	this->matrixSolver.SolveMatrix(rhsVector, this->elecDensity);
+	this->matrixSolver.SolveMatrix(rhsVector, this->ehDensity);
 	
 	SctmDebug::Get().PrintSparseMatrix(matrixSolver.matrix);
 	//SctmDebug::GetInstance().PrintVector(this->rhsVector, "right hand side vector");
 	//SctmDebug::GetInstance().PrintVector(this->elecDensity, "electron density");
 	
-	UpdateElecDens();
+	UpdateCarrierDens();
 	SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
 
-	SctmData::Get().WriteElecDens(this->ddVertices);
+	SctmData::Get().WriteCarrierDens(this->ddVertices, SctmData::eInfo);
 }
 
 void DDTest::setBndDensity()

@@ -113,7 +113,7 @@ void FDDomain::setBoundary()
 	{
 		currVertex = GetVertex(iVer);//in FDDomain, the index of vertex in the vertices vector in the vertexID.
 		setBndVert_Potential(currVertex);//set the boundary (not boundary condition). This method will check if the vertex is a boundary vertex
-		setBndVert_eDensity(currVertex);
+		setBndVert_Density(currVertex);
 	}
 }
 
@@ -236,7 +236,7 @@ void FDDomain::setBndVert_Potential(FDVertex *vert)
 	}
 }
 
-void FDDomain::setBndVert_eDensity(FDVertex *vert)
+void FDDomain::setBndVert_Density(FDVertex *vert)
 {
 	bool notTrapping_NW = isNotTrappingElem(vert->NorthwestElem);
 	bool notTrapping_NE = isNotTrappingElem(vert->NortheastElem);
@@ -248,7 +248,7 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	bool valid_SE = isValidElem(vert->SoutheastElem);
 	bool valid_SW = isValidElem(vert->SouthwestElem);
 
-	static FDBoundary::BCName bcToSet = FDBoundary::eDensity;
+	//static FDBoundary::BCName bcToSet = FDBoundary::eDensity;
 	static FDBoundary::BCType defaultTCType = FDBoundary::BC_Cauchy;
 
 	//currently the boundary condition direction is the same with boundary direction
@@ -257,7 +257,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		notTrapping_SW && !notTrapping_SE )
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-vert->EastLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(-vert->EastLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(-vert->EastLength, vert->SouthLength));
 		return;
 	}
 
@@ -266,7 +267,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		!notTrapping_SW && notTrapping_SE )
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(vert->WestLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(vert->WestLength, vert->SouthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(vert->WestLength, vert->SouthLength));
 		return;
 	}
 
@@ -275,7 +277,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		notTrapping_SW && notTrapping_SE )
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(vert->WestLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(vert->WestLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(vert->WestLength, -vert->NorthLength));
 		return;
 	}
 
@@ -284,7 +287,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 		notTrapping_SW && notTrapping_SE)
 	{
 		//when the two adjacent neighbors are both valid (other region) or invalid, the boundary direction is considered to be along the diagonal
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-vert->EastLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(-vert->EastLength, -vert->NorthLength));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(-vert->EastLength, -vert->NorthLength));
 		return;
 	}
 
@@ -292,7 +296,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && notTrapping_NE && 
 		!notTrapping_SW && !notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(0, 1));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(0, 1));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(0, 1));
 		return;
 	}
 
@@ -300,7 +305,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( !notTrapping_NW && notTrapping_NE && 
 		!notTrapping_SW && notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(1, 0));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(1, 0));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(1, 0));
 		return;
 	}
 
@@ -308,7 +314,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( !notTrapping_NW && !notTrapping_NE && 
 		notTrapping_SW && notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(0, -1));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(0, -1));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(0, -1));
 		return;
 	}
 
@@ -316,7 +323,8 @@ void FDDomain::setBndVert_eDensity(FDVertex *vert)
 	if ( notTrapping_NW && !notTrapping_NE && 
 		notTrapping_SW && !notTrapping_SE)
 	{
-		vert->BndCond.SetBnd(bcToSet, defaultTCType, VectorValue(-1, 0));
+		vert->BndCond.SetBnd(FDBoundary::eDensity, defaultTCType, VectorValue(-1, 0));
+		vert->BndCond.SetBnd(FDBoundary::hDensity, defaultTCType, VectorValue(-1, 0));
 		return;
 	}
 
@@ -362,11 +370,18 @@ void FDDomain::setVertexPhysProperty()
 	vector<MatProperty::Name> matPrptys;
 	vector<PhysProperty::Name> verPrptys; //vertex-based physical property
 	matPrptys.push_back(MatProperty::Mat_ElectronAffinity); verPrptys.push_back(PhysProperty::ElectronAffinity);
+	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
+	matPrptys.push_back(MatProperty::Mat_DielectricConstant); verPrptys.push_back(PhysProperty::DielectricConstant);
+
+	//for electrons
 	matPrptys.push_back(MatProperty::Mat_ElectronMass); verPrptys.push_back(PhysProperty::eMass);
 	matPrptys.push_back(MatProperty::Mat_ElecDOSMass); verPrptys.push_back(PhysProperty::eDOSMass);
-	matPrptys.push_back(MatProperty::Mat_Bandgap); verPrptys.push_back(PhysProperty::Bandgap);
 	matPrptys.push_back(MatProperty::Mat_ElectronMobility); verPrptys.push_back(PhysProperty::eMobility);
-	matPrptys.push_back(MatProperty::Mat_DielectricConstant); verPrptys.push_back(PhysProperty::DielectricConstant);
+
+	//for holes
+	matPrptys.push_back(MatProperty::Mat_HoleMass); verPrptys.push_back(PhysProperty::hMass);
+	matPrptys.push_back(MatProperty::Mat_HoleDOSMass); verPrptys.push_back(PhysProperty::hDOSMass);
+	matPrptys.push_back(MatProperty::Mat_HoleMobility); verPrptys.push_back(PhysProperty::hMobility);
 
 	//iteration over the vertices
 	for (std::size_t iVer = 0; iVer != this->vertices.size(); ++iVer)
@@ -379,7 +394,9 @@ void FDDomain::setVertexPhysProperty()
 			//The method for filling vertex-based physical value using material-based value is ready
 			//electron mobility is only valid in the trapping region
 			if (matPrptys.at(iPrpty) == MatProperty::Mat_ElectronMobility || 
-				matPrptys.at(iPrpty) == MatProperty::Mat_ElecDOSMass)
+				matPrptys.at(iPrpty) == MatProperty::Mat_ElecDOSMass ||
+				matPrptys.at(iPrpty) == MatProperty::Mat_HoleMobility ||
+				matPrptys.at(iPrpty) == MatProperty::Mat_HoleDOSMass)
 			{
 				currVertex->Phys->FillVertexPhysUsingMatPrpty(verPrptys.at(iPrpty), matPrptys.at(iPrpty), true);
 			}
@@ -439,7 +456,7 @@ void FDDomain::updateBndCond()
 		}
 		if (currVertex->IsAtBoundary(FDBoundary::eDensity))
 		{
-			updateBCVert_eDensity(currVertex);
+			updateBCVert_Density(currVertex);
 		}
 	}
 }
@@ -478,7 +495,7 @@ void FDDomain::updateBCVert_Potential(FDVertex *vert)
 	}
 }
 
-void FDDomain::updateBCVert_eDensity(FDVertex *vert)
+void FDDomain::updateBCVert_Density(FDVertex *vert)
 {
 	//When dealing with the normal direction of the boundary condition in terms eDensity problem, actually, the vector value
 	//of the boundary condition is not the real normal vector of the boundary direction. For, example, to a corner vertex
@@ -502,12 +519,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			!valid_SW )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, 1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, 1));
 			return;
 		}
 		if (              !valid_NE &&
 			valid_SW )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(-1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(-1, 0));
 			return;
 		}
 	}
@@ -520,12 +539,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			!valid_SE)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, 1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, 1));
 			return;
 		}
 		if ( !valid_NW &&
 			valid_SE)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(1, 0));
 			return;
 		}
 	}
@@ -538,12 +559,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			valid_SW)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, -1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, -1));
 			return;
 		}
 		if (			valid_NE &&
 			!valid_SW)
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(1, 0));
 			return;
 		}
 	}
@@ -556,12 +579,14 @@ void FDDomain::updateBCVert_eDensity(FDVertex *vert)
 			!valid_SE )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(-1, 0));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(-1, 0));
 			return;
 		}
 		if ( !valid_NW &&
 			valid_SE )
 		{
 			vert->BndCond.RefreshBndCond(FDBoundary::eDensity, VectorValue(0, -1));
+			vert->BndCond.RefreshBndCond(FDBoundary::hDensity, VectorValue(0, -1));
 			return;
 		}
 	}
@@ -579,10 +604,18 @@ void FDDomain::setVertexTrapProperty()
 		currVert->Trap = new TrapProperty(currVert);
 
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EpsilonTrapping, MatProperty::Mat_DielectricConstant);
+
+		//for electrons
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_T2B, MatProperty::Mat_ElecFrequencyT2B);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_PF, MatProperty::Mat_ElecFrequencyPF);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eCrossSection, MatProperty::Mat_ElecTrapXSection);
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eEnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
+
+		//for holes
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hFrequency_T2B, MatProperty::Mat_HoleFrequencyT2B);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hFrequency_PF, MatProperty::Mat_HoleFrequencyPF);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hCrossSection, MatProperty::Mat_HoleTrapXSection);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hEnergyFromValeBand, MatProperty::Mat_HoleTrapEnergyFromVB);
 	}
 }
 

@@ -456,7 +456,7 @@ namespace SctmUtils
 
 	void SctmDebug::WriteDensity(FDDomain *domain)
 	{
-		SctmData::Get().WriteElecDens(domain->GetDDVerts());
+		SctmData::Get().WriteCarrierDens(domain->GetDDVerts(), SctmData::eInfo);
 	}
 
 	SctmDebug::SctmDebug() : enable(SCTM_DEBUG_ENABLE)
@@ -1158,15 +1158,19 @@ namespace SctmUtils
 	}
 
 
-	void SctmData::WriteElecDens(vector<FDVertex *> &vertices)
+	void SctmData::WriteCarrierDens(vector<FDVertex *> &vertices, ehInfo ehinfo)
 	{
-		fileName = directoryName + pathSep + "Density" + pathSep + "eDensity" + generateFileSuffix();
+		if (ehinfo == ehInfo::eInfo)
+			fileName = directoryName + pathSep + "Density" + pathSep + "eDensity" + generateFileSuffix();
+		else // ehInfo::hInfo
+			fileName = directoryName + pathSep + "Density" + pathSep + "hDensity" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		Normalization norm = Normalization(this->temperature);
 		vector<double> vecX;
 		vector<double> vecY;
 		vector<double> vecDen;
+		double density;
 
 		FDVertex *currVert = NULL;
 		for (size_t iVer = 0; iVer != vertices.size(); ++iVer)
@@ -1174,11 +1178,20 @@ namespace SctmUtils
 			currVert = vertices.at(iVer);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			vecDen.push_back(norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity)));
+
+			if (ehinfo == ehInfo::eInfo)
+				density = norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::eDensity));
+			else
+				density = norm.PullDensity(currVert->Phys->GetPhysPrpty(PhysProperty::hDensity));
+			vecDen.push_back(density);
 		}
 
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "electron density of time [" + numStr + "]"; 
+		string title = "";
+		if (ehinfo == ehInfo::eInfo)
+			title = "electron density of time [" + numStr + "]"; 
+		else
+			title = "hole density of time [" + numStr + "]";
 		file.WriteVector(vecX, vecY, vecDen, title.c_str());
 	}
 
@@ -1260,9 +1273,12 @@ namespace SctmUtils
 		file.WriteVector(vecX, vecY, vecCB, vecVB, title.c_str());
 	}
 
-	void SctmData::WriteTunnelCurrentFromSubs(FDDomain *domain, VertexMapDouble &currDensity)
+	void SctmData::WriteTunnelFromSubs(FDDomain *domain, VertexMapDouble &currDensCoeff, ehInfo ehinfo)
 	{
-		fileName = directoryName + pathSep + "Current" + pathSep + "subsCurrent" + generateFileSuffix();
+		if (ehinfo == ehInfo::eInfo)
+			fileName = directoryName + pathSep + "Current" + pathSep + "eSubsCurrent" + generateFileSuffix();
+		else
+			fileName = directoryName + pathSep + "Current" + pathSep + "hSubsCurrent" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 		
 		int vertID = 0;
@@ -1272,38 +1288,56 @@ namespace SctmUtils
 		vector<string> direction;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
+		FDBoundary::TunnelTag tuntag = FDBoundary::noTunnel;
 
-		for (VertexMapDouble::iterator it = currDensity.begin(); it != currDensity.end(); ++it)
+		for (VertexMapDouble::iterator it = currDensCoeff.begin(); it != currDensCoeff.end(); ++it)
 		{
 			vertID = it->first;
 			currVert = domain->GetVertex(vertID);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
 			currDens.push_back(norm.PullCurrDens(it->second));
-			if (currVert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+
+			if (ehinfo == eInfo)
+				tuntag = currVert->BndCond.GetElecTunnelTag();
+			else
+				tuntag = currVert->BndCond.GetHoleTunnelTag();
+
+			if (tuntag == FDBoundary::eTunnelIn || tuntag == FDBoundary::hTunnelIn)
 			{
 				direction.push_back("in");
 			}
-			else
+			else if (tuntag == FDBoundary::eTunnelOut || tuntag == FDBoundary::hTunnelOut)
 			{
 				direction.push_back("out");
 			}
+			else
+			{
+				direction.push_back("no");
+			}
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "substrate tunneling current density of time [" + numStr + "] (x, y, tunneling current density(in)/tunneling coefficient(out))";
+		string title = "";
+		if (ehinfo == ehInfo::eInfo)
+			title = "substrate electron tunneling of time [" + numStr + "] (x, y, tunneling current density(in)/tunneling coefficient(out))";
+		else
+			title = "substrate hole tunneling of time [" + numStr + "] (x, y, tunneling current density(in)/tunneling coefficient(out))";
 		file.WriteVector(vecX, vecY, currDens, direction, title.c_str());
 	}
 
-	void SctmData::WriteElecCurrDens(vector<FDVertex *> &vertices)
+	void SctmData::WriteCurrDens(vector<FDVertex *> &vertices, ehInfo ehinfo)
 	{
-		fileName = directoryName + pathSep + "Current" + pathSep + "eCurrDens" + generateFileSuffix();
+		if (ehinfo == ehInfo::eInfo)
+			fileName = directoryName + pathSep + "Current" + pathSep + "eCurrDens" + generateFileSuffix();
+		else
+			fileName = directoryName + pathSep + "Current" + pathSep + "hCurrDens" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
 		vector<double> vecY;
-		vector<double> eCurrDens;
-		vector<double> eCurrDens_X;
-		vector<double> eCurrDens_Y;
+		vector<double> currDens;
+		vector<double> currDens_X;
+		vector<double> currDens_Y;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
@@ -1312,13 +1346,28 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eCurrDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
-			eCurrDens_X.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_X)));
-			eCurrDens_Y.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_Y)));
+
+			if (ehinfo == ehInfo::eInfo)
+			{
+				currDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity)));
+				currDens_X.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_X)));
+				currDens_Y.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrentDensity_Y)));
+			}
+			else
+			{
+				currDens.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::hCurrentDensity)));
+				currDens_X.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::hCurrentDensity_X)));
+				currDens_Y.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::hCurrentDensity_Y)));
+			}
+			
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "electron current density of time [" + numStr + "] (x, y, electron current density, eCurret in X, eCurrent in Y)"; 
-		file.WriteVector(vecX, vecY, eCurrDens, eCurrDens_X, eCurrDens_Y, title.c_str());
+		string title = "";
+		if (ehinfo == ehInfo::eInfo)
+			title = "electron current density of time [" + numStr + "] (x, y, electron current density, eCurret in X, eCurrent in Y)"; 
+		else
+			title = "hole current density of time [" + numStr + "] (x, y, hole current density, hCurret in X, hCurrent in Y)";
+		file.WriteVector(vecX, vecY, currDens, currDens_X, currDens_Y, title.c_str());
 	}
 
 	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
@@ -1371,6 +1420,7 @@ namespace SctmUtils
 
 	void SctmData::WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff)
 	{
+		//this method is only used in SimpleONO structure
 		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "tunCoeff.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
@@ -1824,14 +1874,14 @@ namespace SctmUtils
 			vert = domain->GetVertex(vertID);
 			controlLength = (vert->EastLength + vert->WestLength) / 2;
 
-			if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+			if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut)
 			{
 				tunCoeff = -it->second;
 				eDens = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 				lineDens = eDens * tunCoeff * timestep * controlLength; //charge line density
 				lineDens_tunToSubs += lineDens;
 			}
-			else if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			else if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn)
 			{
 				currDens = it->second;
 				lineDens = currDens * controlLength * timestep;
@@ -1859,14 +1909,14 @@ namespace SctmUtils
 			vert = domain->GetVertex(vertID);
 			controlLength = (vert->EastLength + vert->WestLength) / 2;
 
-			if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+			if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut)
 			{
 				tunCoeff = -it->second;
 				eDens = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 				lineDens = eDens * tunCoeff * timestep * controlLength;
 				lineDens_tunToGate += lineDens;
 			}
-			else if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+			else if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn)
 			{
 				currDens = it->second;
 				lineDens = currDens * controlLength * timestep;
@@ -2915,21 +2965,6 @@ namespace SctmUtils
 			}
 			return;
 		}
-		if (name == "hMass")
-		{
-			valDouble = SctmConverter::StringToDouble(valStr);
-			Param<double> *par = NULL;
-			switch (currMat)
-			{
-			case MaterialDB::Mat::Silicon:
-				par = new Param<double>(ParName::Si_hMass, valDouble);
-				mapToSet[ParName::Si_hMass] = par;
-				break;
-			default:
-				break;
-			}
-			return;
-		}
 		if (name == "eMobility")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -3029,6 +3064,159 @@ namespace SctmUtils
 			}
 			return;
 		}
+		if (name == "hDOSMass")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_hDOSMass, valDouble);
+				mapToSet[ParName::Si_hDOSMass] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hDOSMass, valDouble);
+				mapToSet[ParName::Si3N4_hDOSMass] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hDOSMass, valDouble);
+				mapToSet[ParName::HfO2_hDOSMass] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hMass")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_hMass, valDouble);
+				mapToSet[ParName::Si_hMass] = par;
+				break;
+			case MaterialDB::Mat::SiO2:
+				par = new Param<double>(ParName::SiO2_hMass, valDouble);
+				mapToSet[ParName::SiO2_hMass] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hMass, valDouble);
+				mapToSet[ParName::Si3N4_hMass] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hMass, valDouble);
+				mapToSet[ParName::HfO2_hMass] = par;
+				break;
+			case MaterialDB::Mat::Al2O3:
+				par = new Param<double>(ParName::Al2O3_hMass, valDouble);
+				mapToSet[ParName::Al2O3_hMass] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hMobility")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Silicon:
+				par = new Param<double>(ParName::Si_hMobility, valDouble);
+				mapToSet[ParName::Si_hMobility] = par;
+				break;
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hMobility, valDouble);
+				mapToSet[ParName::Si3N4_hMobility] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hMobility, valDouble);
+				mapToSet[ParName::HfO2_hMobility] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hTrapEnergy")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hTrapEnergy, valDouble);
+				mapToSet[ParName::Si3N4_hTrapEnergy] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hTrapEnergy, valDouble);
+				mapToSet[ParName::HfO2_hTrapEnergy] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hXsection")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hXsection, valDouble);
+				mapToSet[ParName::Si3N4_hXsection] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hXsection, valDouble);
+				mapToSet[ParName::HfO2_hXsection] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hFrequencyT2B")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hFrequencyT2B, valDouble);
+				mapToSet[ParName::Si3N4_hFrequencyT2B] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hFrequencyT2B, valDouble);
+				mapToSet[ParName::HfO2_hFrequencyT2B] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+		if (name == "hFrequencyPF")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hFrequencyPF, valDouble);
+				mapToSet[ParName::Si3N4_hFrequencyPF] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hFrequencyPF, valDouble);
+				mapToSet[ParName::HfO2_hFrequencyPF] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
 		//process the parameters used in Pytaurus
 		if (name == "tc.drain.voltage" || name == "tc.drain.voltage.read" || name == "tc.gate.voltage.pass" ||
 			name == "tc.gate.voltage.read")
@@ -3115,9 +3303,8 @@ namespace SctmUtils
 	{
 		if (SCTM_ENV == "Windows")
 		{
-			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\SolverPackTest";
+			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\HoleTunnelTest";
 			DefaultParamPath = "E:\\MyCode\\SimCTM\\SimCTM\\default.param";
-			//DefaultParamPath = "E:\\PhD Study\\SimCTM\\default.param";
 			ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
 			PathSep = "\\";
 		}

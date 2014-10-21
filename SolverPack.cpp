@@ -35,16 +35,22 @@ void SolverPack::initialize()
 {
 	subsSolver = new OneDimSubsSolver(domain);
 	poissonSolver = new TwoDimPoissonSolver(domain);
-	tunnelOxideSolver = new SubsToTrapElecTunnel(domain);
-	blockOxideSolver = new TrapToGateElecTunnel(domain);
-	ddSolver = new DriftDiffusionSolver(domain);
+	eTunnelOxideSolver = new SubsToTrapElecTunnel(domain);
+	hTunnelOxideSolver = new SubsToTrapHoleTunnel(domain);
+	eBlockOxideSolver = new TrapToGateElecTunnel(domain);
+	hBlockOxideSolver = new TrapToGateHoleTunnel(domain);
+	eDDSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::ElecDD);
+	hDDSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::HoleDD);
 	trappingSolver = new TrapSolver(domain);
 
 	mapPotential.clear();
-	mapCurrDensOrCoeff_Tunnel.clear();
 	mapSiFermiAboveCBedge.clear();
-	mapCurrDensOrCoeff_Block.clear();
 	mapChannelPotential.clear();
+
+	mapElecCurrDensOrCoeff_Tunnel.clear();
+	mapElecCurrDensOrCoeff_Block.clear();
+	mapHoleCurrDensOrCoeff_Tunnel.clear();
+	mapHoleCurrDensOrCoeff_Block.clear();
 }
 
 void SolverPack::callIteration()
@@ -101,27 +107,43 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteElecField(domain->GetVertices());
 		
 		//solve tunneling problem in tunneling oxide
-		tunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
+		eTunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		SctmTimer::Get().Set();
-		tunnelOxideSolver->SolveTunnel();
+		eTunnelOxideSolver->SolveTunnel();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+
+		hTunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
+		SctmTimer::Get().Set();
+		hTunnelOxideSolver->SolveTunnel();
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+		
 		fetchTunnelOxideResult();
-		SctmData::Get().WriteTunnelCurrentFromSubs(domain, mapCurrDensOrCoeff_Tunnel);
+		SctmData::Get().WriteTunnelFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel, SctmData::eInfo);
+		SctmData::Get().WriteTunnelFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel, SctmData::hInfo);
 
 		//solve tunneling problem in blocking oxide
 		SctmTimer::Get().Set();
-		blockOxideSolver->SolveTunnel();
+		eBlockOxideSolver->SolveTunnel();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+
+		SctmTimer::Get().Set();
+		hBlockOxideSolver->SolveTunnel();
+		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+
 		fetchBlockOxideResult();
 
 		//solver drift-diffusion equation
 		SctmTimer::Get().Set();
-		ddSolver->SolveDD(mapCurrDensOrCoeff_Tunnel, mapCurrDensOrCoeff_Block);
+		eDDSolver->SolveDD(mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block);
+		hDDSolver->SolveDD(mapHoleCurrDensOrCoeff_Tunnel, mapHoleCurrDensOrCoeff_Block);
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
+		
 		fetchDDResult();
-		SctmData::Get().WriteTunnelCoeff(domain, mapCurrDensOrCoeff_Tunnel, mapCurrDensOrCoeff_Block);
-		SctmData::Get().WriteElecDens(domain->GetDDVerts());
-		SctmData::Get().WriteElecCurrDens(domain->GetDDVerts());
+		SctmData::Get().WriteTunnelCoeff(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block);
+		SctmData::Get().WriteCarrierDens(domain->GetDDVerts(), SctmData::eInfo);
+		SctmData::Get().WriteCarrierDens(domain->GetDDVerts(), SctmData::hInfo);
+		SctmData::Get().WriteCurrDens(domain->GetDDVerts(), SctmData::eInfo);
+		SctmData::Get().WriteCurrDens(domain->GetDDVerts(), SctmData::hInfo);
 
 		//solve trapping
 		SctmTimer::Get().Set();
@@ -131,7 +153,7 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
 		
 		//write the final result
-		SctmData::Get().WriteTunnelOutDensity(domain, mapCurrDensOrCoeff_Tunnel, mapTransCoeffT2B_Tunnel, mapCurrDensOrCoeff_Block, mapTransCoeffT2B_Block);
+		SctmData::Get().WriteTunnelOutDensity(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecTransCoeffT2B_Tunnel, mapElecCurrDensOrCoeff_Block, mapElecTransCoeffT2B_Block);
 		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
 		SctmData::Get().WriteTrappedDensRegionwise(domain);
 		if (simStructure == "Single")
@@ -173,15 +195,15 @@ void SolverPack::fetchTunnelOxideResult()
 
 	//deal with Direct or FN tunneling result
 	//it is critical to clear the map
-	this->mapCurrDensOrCoeff_Tunnel.clear();
-	tunnelOxideSolver->ReturnResult(mapCurrDensOrCoeff_Tunnel);
-	//set the sign of boundary current for dd solver
+	this->mapElecCurrDensOrCoeff_Tunnel.clear();
+	eTunnelOxideSolver->ReturnResult(mapElecCurrDensOrCoeff_Tunnel);
+	//set the sign of boundary current for electron dd solver
 	//the sign of the boundary condition is set according to the boundary direction
-	for (VertexMapDouble::iterator it = mapCurrDensOrCoeff_Tunnel.begin(); it != mapCurrDensOrCoeff_Tunnel.end(); ++it)
+	for (VertexMapDouble::iterator it = mapElecCurrDensOrCoeff_Tunnel.begin(); it != mapElecCurrDensOrCoeff_Tunnel.end(); ++it)
 	{	
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
-		if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelIn)
+		if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelIn)
 		{
 			//does not need to change
 			//it->second = it->second;	
@@ -189,17 +211,34 @@ void SolverPack::fetchTunnelOxideResult()
 		else // eTunnelOut electron tunnel out of the trapping layer
 		{
 			it->second = -it->second;
-			vert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
+			vert->Phys->SetPhysPrpty(PhysProperty::eTunnelCoeff, it->second);
 		}
 	}
 
+	this->mapHoleCurrDensOrCoeff_Tunnel.clear();
+	hTunnelOxideSolver->ReturnResult(mapHoleCurrDensOrCoeff_Tunnel);
+	//set the sign of boundary current for hole dd solver
+	//the sign of the boundary condition is set according to the boundary direction
+	for (VertexMapDouble::iterator it = mapHoleCurrDensOrCoeff_Tunnel.begin(); it != mapHoleCurrDensOrCoeff_Tunnel.end(); ++it)
+	{
+		vertID = it->first;
+		vert = domain->GetVertex(vertID);
+		if (vert->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelIn)
+		{
+			it->second = -it->second;
+		}
+		else // hTunnelOut
+		{
+			vert->Phys->SetPhysPrpty(PhysProperty::hTunnelCoeff, it->second);
+		}
+	}
 
 	//deal with MFN tunneling result
 	//Assign the calculated current density to the specific vertex.
 	double eCurrDens_MFN = 0; // in normalized value, in [A/cm^2]
-	this->mapCurrDensMFN.clear();
-	tunnelOxideSolver->ReturnResult_MFN(mapCurrDensMFN);
-	for (VertexMapDouble::iterator it = mapCurrDensMFN.begin(); it != mapCurrDensMFN.end(); ++it)
+	this->mapElecCurrDensMFN.clear();
+	eTunnelOxideSolver->ReturnResult_MFN(mapElecCurrDensMFN);
+	for (VertexMapDouble::iterator it = mapElecCurrDensMFN.begin(); it != mapElecCurrDensMFN.end(); ++it)
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
@@ -209,9 +248,9 @@ void SolverPack::fetchTunnelOxideResult()
 
 	//deal with Band-to-Trap tunneling result
 	double eSubsCurrDens_B2T = 0; // in normalized value, in [A/cm^2]
-	this->mapCurrDensB2T.clear();
-	tunnelOxideSolver->ReturnResult_B2T(mapCurrDensB2T);
-	for (VertexMapDouble::iterator it = mapCurrDensB2T.begin(); it != mapCurrDensB2T.end(); ++it)
+	this->mapElecCurrDensB2T.clear();
+	eTunnelOxideSolver->ReturnResult_B2T(mapElecCurrDensB2T);
+	for (VertexMapDouble::iterator it = mapElecCurrDensB2T.begin(); it != mapElecCurrDensB2T.end(); ++it)
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
@@ -221,9 +260,9 @@ void SolverPack::fetchTunnelOxideResult()
 
 	//deal with Trap-to-Band tunneling out result
 	double eTransCoeff_T2B = 0;
-	this->mapTransCoeffT2B_Tunnel.clear();
-	tunnelOxideSolver->ReturnResult_T2B(mapTransCoeffT2B_Tunnel);
-	for (VertexMapDouble::iterator it = mapTransCoeffT2B_Tunnel.begin(); it != mapTransCoeffT2B_Tunnel.end(); ++it)
+	this->mapElecTransCoeffT2B_Tunnel.clear();
+	eTunnelOxideSolver->ReturnResult_T2B(mapElecTransCoeffT2B_Tunnel);
+	for (VertexMapDouble::iterator it = mapElecTransCoeffT2B_Tunnel.begin(); it != mapElecTransCoeffT2B_Tunnel.end(); ++it)
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
@@ -235,32 +274,35 @@ void SolverPack::fetchTunnelOxideResult()
 
 void SolverPack::fetchDDResult()
 {
-	ddSolver->UpdateElecDens();
+	eDDSolver->UpdateCarrierDens();
+	hDDSolver->UpdateCarrierDens();
 }
 
 void SolverPack::fetchBlockOxideResult()
 {
-	//it is critical to clear the map
-	this->mapCurrDensOrCoeff_Block.clear();
-	blockOxideSolver->ReturnResult(mapCurrDensOrCoeff_Block);
-	//the current(or tunnCoeff) should be same with the direction of the boundary condition
-	//so, reversed value is used to calculate current density
 	FDVertex *vert = NULL;
 	int vertID = 0;
+
+	//it is critical to clear the map
+	this->mapElecCurrDensOrCoeff_Block.clear();
+	eBlockOxideSolver->ReturnResult(mapElecCurrDensOrCoeff_Block);
 	
-	//set the sign of boundary current for dd solver
+	//the current(or tunnCoeff) should be same with the direction of the boundary condition
+	//so, reversed value is used to calculate current density
+	
+	//set the sign of boundary current for electron dd solver
 	//the sign of the boundary condition is set according to the boundary direction
-	for (VertexMapDouble::iterator it = mapCurrDensOrCoeff_Block.begin(); it != mapCurrDensOrCoeff_Block.end(); ++it)
+	for (VertexMapDouble::iterator it = mapElecCurrDensOrCoeff_Block.begin(); it != mapElecCurrDensOrCoeff_Block.end(); ++it)
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);
-		if (vert->BndCond.GetBCTunnelTag() == FDBoundary::eTunnelOut)
+		if (vert->BndCond.GetElecTunnelTag() == FDBoundary::eTunnelOut)
 		{
 			//set the tunneling coefficient in DT/FN tunneling out of electrons in conduction band
 			//save the tunneling-out coefficient in the physics property, to be used in calculating the tunneling out current
 			//because, in the boundary condition of the vertex, the tunneling coefficient is not stored.
 			it->second = -it->second;
-			vert->Phys->SetPhysPrpty(PhysProperty::TunnelCoeff, it->second);
+			vert->Phys->SetPhysPrpty(PhysProperty::eTunnelCoeff, it->second);
 		}
 		else
 		{
@@ -268,12 +310,27 @@ void SolverPack::fetchBlockOxideResult()
 		}
 	}
 
+	this->mapHoleCurrDensOrCoeff_Block.clear();
+	hBlockOxideSolver->ReturnResult(mapHoleCurrDensOrCoeff_Block);
+	//set the sign of boundary current for hole dd solver
+	//the sign of the boundary condition is set according to the boundary direction
+	for (VertexMapDouble::iterator it = mapHoleCurrDensOrCoeff_Block.begin(); it != mapHoleCurrDensOrCoeff_Block.end(); ++it)
+	{
+		vertID = it->first;
+		vert = domain->GetVertex(vertID);
+		if (vert->BndCond.GetHoleTunnelTag() == FDBoundary::hTunnelOut)
+		{
+			vert->Phys->SetPhysPrpty(PhysProperty::hTunnelCoeff, it->second);
+		}
+		//no hole tunneling in occurs at blocking oxide interface
+	}
+
 	//deal with trap-to-band tunneling out result
 	double eTransCoeff_T2B = 0;
-	this->mapTransCoeffT2B_Block.clear();
-	blockOxideSolver->ReturnResult_T2B(mapTransCoeffT2B_Block);
+	this->mapElecTransCoeffT2B_Block.clear();
+	eBlockOxideSolver->ReturnResult_T2B(mapElecTransCoeffT2B_Block);
 	//set the trap-to-band tunneling out coefficient
-	for (VertexMapDouble::iterator it = mapTransCoeffT2B_Block.begin(); it != mapTransCoeffT2B_Block.end(); ++it)
+	for (VertexMapDouble::iterator it = mapElecTransCoeffT2B_Block.begin(); it != mapElecTransCoeffT2B_Block.end(); ++it)
 	{
 		vertID = it->first;
 		vert = domain->GetVertex(vertID);

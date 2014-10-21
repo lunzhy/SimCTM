@@ -134,11 +134,14 @@ namespace MaterialDB
 		case  MatProperty::Mat_ElectronMass:
 			ret = theMaterial->ElectronMass();
 			break;
+		case MatProperty::Mat_HoleMass:
+			ret = theMaterial->HoleMass();
+			break;
 		case  MatProperty::Mat_ElecDOSMass:
 			ret = theMaterial->ElecDOSMass();
 			break;
-		case MatProperty::Mat_HoleMass:
-			ret = theMaterial->HoleMass();
+		case MatProperty::Mat_HoleDOSMass:
+			ret = theMaterial->HoleDOSMass();
 			break;
 		case MatProperty::Mat_ElectronDiffusion:
 			ret = theMaterial->ElectronDiffusion();
@@ -155,14 +158,26 @@ namespace MaterialDB
 		case MatProperty::Mat_ElecTrapEnergyFromCB:
 			ret = theMaterial->ElecTrapEnergyFromCB();
 			break;
+		case MatProperty::Mat_HoleTrapEnergyFromVB:
+			ret = theMaterial->HoleTrapEnergyFromVB();
+			break;
 		case MatProperty::Mat_ElecTrapXSection:
 			ret = theMaterial->ElecTrapXSection();
+			break;
+		case MatProperty::Mat_HoleTrapXSection:
+			ret = theMaterial->HoleTrapXSection();
 			break;
 		case MatProperty::Mat_ElecFrequencyT2B:
 			ret = theMaterial->ElecFrequencyT2B();
 			break;
+		case MatProperty::Mat_HoleFrequencyT2B:
+			ret = theMaterial->HoleFrequencyT2B();
+			break;
 		case MatProperty::Mat_ElecFrequencyPF:
 			ret = theMaterial->ElecFrequencyPF();
+			break;
+		case MatProperty::Mat_HoleFrequencyPF:
+			ret = theMaterial->HoleFrequencyPF();
 			break;
 		default:
 			// use SCTM_CHECK for non-existed property
@@ -328,6 +343,60 @@ namespace MaterialDB
 		elecDOSMass = val;
 	}
 
+	double Material::HoleTrapEnergyFromVB() const
+	{
+		return holeTrapEnergyFromVB;
+	}
+
+	void Material::HoleTrapEnergyFromVB(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		holeTrapEnergyFromVB = norm.PushEnergy(val);
+	}
+
+	double Material::HoleDOSMass() const
+	{
+		return holeDOSMass;
+	}
+
+	void Material::HoleDOSMass(double val)
+	{
+		holeDOSMass = val;
+	}
+
+	double Material::HoleTrapXSection() const
+	{
+		return holeTrapXSection;
+	}
+
+	void Material::HoleTrapXSection(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		holeTrapXSection = norm.PushArea(val);
+	}
+
+	double Material::HoleFrequencyT2B() const
+	{
+		return holeFrequencyT2B;
+	}
+
+	void Material::HoleFrequencyT2B(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		holeFrequencyT2B = norm.PushFrequency(val);
+	}
+
+	double Material::HoleFrequencyPF() const
+	{
+		return holeFrequencyPF;
+	}
+
+	void Material::HoleFrequencyPF(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		holeFrequencyPF = norm.PushFrequency(val);
+	}
+
 
 	Mat::Name Mat::Parse(const std::string &matStr)
 	{
@@ -374,14 +443,18 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_eDOSMass);
 		GetMaterial(Mat::Silicon)->ElecDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
-
-		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_hMass);
-		GetMaterial(Mat::Silicon)->HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
-		
-		//MaterialMap(Mat::Silicon)->HoleMass(1);
 		
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_eMobility);
 		GetMaterial(Mat::Silicon)->ElectronMobility(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_hMass);
+		GetMaterial(Mat::Silicon)->HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_hDOSMass);
+		GetMaterial(Mat::Silicon)->HoleDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si_hMobility);
+		GetMaterial(Mat::Silicon)->HoleMobility(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//SiO2
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::SiO2_bandgap);
@@ -396,7 +469,8 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::SiO2_eMass);
 		GetMaterial(Mat::SiO2)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
 		
-		//MaterialMap(Mat::SiO2)->HoleMass(1);
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::SiO2_hMass);
+		GetMaterial(Mat::SiO2)->HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//Al2O3
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Al2O3_bandgap);
@@ -410,6 +484,9 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Al2O3_eMass);
 		GetMaterial(Mat::Al2O3)->ElectronMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Al2O3_hMass);
+		GetMaterial(Mat::Al2O3)->HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//Si3N4
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_bandgap);
@@ -427,8 +504,6 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eDOSMass);
 		GetMaterial(Mat::Si3N4)->ElecDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
 
-		//MaterialMap(Mat::Si3N4)->HoleMass(1);
-
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eMobility);
 		GetMaterial(Mat::Si3N4)->ElectronMobility(dynamic_cast<Param<double> *>(parBase)->Value());
 
@@ -443,6 +518,27 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eFrequencyPF);
 		GetMaterial(Mat::Si3N4)->ElecFrequencyPF(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hMass);
+		GetMaterial(Mat::Si3N4)->HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hDOSMass);
+		GetMaterial(Mat::Si3N4)->HoleDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hMobility);
+		GetMaterial(Mat::Si3N4)->HoleMobility(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hTrapEnergy);
+		GetMaterial(Mat::Si3N4)->HoleTrapEnergyFromVB(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hXsection);
+		GetMaterial(Mat::Si3N4)->HoleTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hFrequencyT2B);
+		GetMaterial(Mat::Si3N4)->HoleFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hFrequencyPF);
+		GetMaterial(Mat::Si3N4)->HoleFrequencyPF(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//HfO2
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_bandgap);
@@ -460,8 +556,6 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eDOSMass);
 		GetMaterial(Mat::HfO2)->ElecDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
 		
-		//MaterialMap(Mat::HfO2)->HoleMass(1); // need to be revised
-		
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eMobility);
 		GetMaterial(Mat::HfO2)->ElectronMobility(dynamic_cast<Param<double> *>(parBase)->Value());
 
@@ -476,6 +570,27 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eFrequencyPF);
 		GetMaterial(Mat::HfO2)->ElecFrequencyPF(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hMass);
+		GetMaterial(Mat::HfO2)->HoleMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hDOSMass);
+		GetMaterial(Mat::HfO2)->HoleDOSMass(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hMobility);
+		GetMaterial(Mat::HfO2)->HoleMobility(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hTrapEnergy);
+		GetMaterial(Mat::HfO2)->HoleTrapEnergyFromVB(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hXsection);
+		GetMaterial(Mat::HfO2)->HoleTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hFrequencyT2B);
+		GetMaterial(Mat::HfO2)->HoleFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hFrequencyPF);
+		GetMaterial(Mat::HfO2)->HoleFrequencyPF(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		//MaterialMap[Mat::Silicon] = &MaterialMap(Mat::Silicon);
 		//MaterialMap[Mat::SiO2] = &SiO2_material;
