@@ -992,6 +992,8 @@ namespace SctmPhys
 		e_transCoeffT2B = 0;
 
 		//for holes
+		h_trapDensity = 0;
+		h_trapped = 0;
 		h_crosssection = 0;
 		h_frequencyT2B = 0;
 		h_frequencyPF = 0;
@@ -1079,6 +1081,12 @@ namespace SctmPhys
 			e_frequencyPF = val;
 			break;
 		//for holes
+		case hTrapped:
+			h_trapped = val;
+			break;
+		case hTrapDensity:
+			h_trapDensity = val;
+			break;
 		case hCrossSection:
 			h_crosssection = val;
 			break;
@@ -1253,6 +1261,26 @@ namespace SctmPhys
 				return coeff;
 			}
 			//for holes
+			case hTrapped:
+			{
+				ret = h_trapped;
+				break;
+			}
+			case hTrapDensity:
+			{
+				ret = h_trapDensity;
+				break;
+			}
+			case hOccupation:
+			{
+				ret = h_trapped / h_trapDensity;
+				break;
+			}
+			case hEmptyTrapDens:
+			{
+				ret = h_trapDensity - h_trapped;
+				break;
+			}
 			case hEnergyFromValeBand:
 			{
 				ret = h_energyFromValeBand;
