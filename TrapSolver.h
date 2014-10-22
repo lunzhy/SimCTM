@@ -61,6 +61,7 @@ class HoleConserveTrapSolver
 public:
 	HoleConserveTrapSolver(FDDomain *_domain);
 	void SolveTrap();
+	void UpdateTrapped();
 
 protected:
 	void refreshSolver();

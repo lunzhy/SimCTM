@@ -298,7 +298,7 @@ namespace SctmUtils
 		void WriteTunnelFromSubs(FDDomain *domain, VertexMapDouble &currDensCoeff, ehInfo ehinfo);
 		void WriteTotalElecDens(vector<FDVertex *> &vertices);
 		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
-		void WriteTrappedInfo(vector<FDVertex *> &vertices);
+		void WriteTrappedInfo(vector<FDVertex *> &vertices, ehInfo ehinfo);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 		

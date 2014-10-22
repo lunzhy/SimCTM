@@ -1440,29 +1440,51 @@ namespace SctmUtils
 		file.WriteLine(line);
 	}
 
-	void SctmData::WriteTrappedInfo(vector<FDVertex *> &vertices)
+	void SctmData::WriteTrappedInfo(vector<FDVertex *> &vertices, ehInfo ehinfo)
 	{
-		fileName = directoryName + pathSep + "Trap" + pathSep + "trapOccupation" + generateFileSuffix();
+		if (ehinfo == ehInfo::eInfo)
+			fileName = directoryName + pathSep + "Trap" + pathSep + "eTrapped" + generateFileSuffix();
+		else
+			fileName = directoryName + pathSep + "Trap" + pathSep + "hTrapped" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		vector<double> vecX;
 		vector<double> vecY;
-		vector<double> eTrappedDens;
+		vector<double> trappedDens;
 		vector<double> occupation;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
-		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		if (ehinfo == ehInfo::eInfo)
 		{
-			currVert = vertices.at(iVert);
-			vecX.push_back(norm.PullLength(currVert->X));
-			vecY.push_back(norm.PullLength(currVert->Y));
-			eTrappedDens.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped)));
-			occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
+			for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+			{
+				currVert = vertices.at(iVert);
+				vecX.push_back(norm.PullLength(currVert->X));
+				vecY.push_back(norm.PullLength(currVert->Y));
+				trappedDens.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped)));
+				occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
+			}
 		}
+		else
+		{
+			for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+			{
+				currVert = vertices.at(iVert);
+				vecX.push_back(norm.PullLength(currVert->X));
+				vecY.push_back(norm.PullLength(currVert->Y));
+				trappedDens.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped)));
+				occupation.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::hOccupation));
+			}
+		}
+		
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "occupation of electron trap [" + numStr + "] (x, y, trapped density, trap occupation)";
-		file.WriteVector(vecX, vecY, eTrappedDens, occupation, title.c_str());
+		string title = "";
+		if (ehinfo == ehInfo::eInfo)
+			title = "trapped electron information [" + numStr + "] (x, y, trapped electron density, trap occupation)";
+		else
+			title = "trapped hole information[" + numStr + "] (x, y, trapped hole density, trap occupation)";
+		file.WriteVector(vecX, vecY, trappedDens, occupation, title.c_str());
 	}
 
 	void SctmData::WriteFlatBandVoltageShift(FDDomain *domain)

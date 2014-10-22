@@ -41,7 +41,8 @@ void SolverPack::initialize()
 	hBlockOxideSolver = new TrapToGateHoleTunnel(domain);
 	eDDSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::ElecDD);
 	hDDSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::HoleDD);
-	trappingSolver = new ElecTrapSolver(domain);
+	eTrappingSolver = new ElecTrapSolver(domain);
+	hTrappingSolver = new HoleConserveTrapSolver(domain);
 
 	mapPotential.clear();
 	mapSiFermiAboveCBedge.clear();
@@ -147,10 +148,12 @@ void SolverPack::callIteration()
 
 		//solve trapping
 		SctmTimer::Get().Set();
-		trappingSolver->SolveTrap();
+		eTrappingSolver->SolveTrap();
+		hTrappingSolver->SolveTrap();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchTrappingResult();
-		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts());
+		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts(), SctmData::eInfo);
+		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts(), SctmData::hInfo);
 		
 		//write the final result
 		SctmData::Get().WriteTunnelOutDensity(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecTransCoeffT2B_Tunnel, mapElecCurrDensOrCoeff_Block, mapElecTransCoeffT2B_Block);
@@ -342,7 +345,8 @@ void SolverPack::fetchBlockOxideResult()
 
 void SolverPack::fetchTrappingResult()
 {
-	trappingSolver->UpdateTrapped();
+	eTrappingSolver->UpdateTrapped();
+	hTrappingSolver->UpdateTrapped();
 }
 
 void SolverPack::fetchSubstrateResult()
