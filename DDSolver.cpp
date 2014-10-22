@@ -59,8 +59,17 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//some of these considerations update the matrix coefficient and some update rhs vector
 	//updateRhsForTrapping_ExplicitMethod();
 	updateCoeffMatrixForTrapping();
-	updateRhsForDetrapping();
-	updateRhsForMFNTunneling();
+
+	//dinstinguishing electron and hole is temporarily considered/
+	if (this->ddMode == DDMode::ElecDD)
+	{
+		updateRhsForDetrapping();
+		updateRhsForMFNTunneling();
+	}
+	else // DDMode::HoleDD
+	{
+		//
+	}
 
 	//solve the matrix
 	this->matrixSolver.SolveMatrix(rhsVector, this->ehDensity);
@@ -1316,22 +1325,42 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping()
 		SCTM_ASSERT(indexEqu==iVert, 10012);
 		indexCoeff = indexEqu;
 
-		//notice the negative sign
-		if (captureModel == "J-Model")
+		if (this->ddMode == DDMode::ElecDD)
 		{
-			coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model) *
-				currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+			//notice the negative sign
+			if (captureModel == "J-Model")
+			{
+				coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model) *
+					currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+			}
+			else if (captureModel == "V-Model")
+			{
+				coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model) *
+					currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+			}
+			else
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10036);
+			}
 		}
-		else if (captureModel == "V-Model")
+		else // DDMode::HoleDD
 		{
-			coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model) *
-				currVert->Trap->GetTrapPrpty(TrapProperty::eEmptyTrapDens);
+			if (captureModel == "J-Model")
+			{
+				coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_J_Model) *
+					currVert->Trap->GetTrapPrpty(TrapProperty::hEmptyTrapDens);
+			}
+			else if (captureModel == "V-Model")
+			{
+				coeff_trapping = -currVert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_V_Model) *
+					currVert->Trap->GetTrapPrpty(TrapProperty::hEmptyTrapDens);
+			}
+			else
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10036);
+			}
 		}
-		else
-		{
-			SCTM_ASSERT(SCTM_ERROR, 10036);
-		}
-
+		
 		matrixSolver.RefreshMatrixValue(indexEqu, indexCoeff, coeff_trapping, SctmSparseMatrixSolver::Add);
 	}
 }

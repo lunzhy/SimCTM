@@ -20,13 +20,16 @@ using SctmPhys::TrapProperty;
 using SctmUtils::SctmGlobalControl;
 using SctmUtils::SctmTimeStep;
 
-ElecTrapSolver::ElecTrapSolver(FDDomain *_domain): domain(_domain), vertices(_domain->GetDDVerts())
+TrapSolver::TrapSolver(FDDomain *_domain, TrapType _traptype): 
+	domain(_domain), 
+	vertices(_domain->GetDDVerts()),
+	trapType(_traptype)
 {
 	this->temperature = SctmGlobalControl::Get().Temperature;
 	initializeSolver();
 }
 
-void ElecTrapSolver::initializeSolver()
+void TrapSolver::initializeSolver()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -35,24 +38,29 @@ void ElecTrapSolver::initializeSolver()
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
 
-		eMobilityMap.insert(VertexMapDouble::value_type(vertID, currVert->Phys->GetPhysPrpty(PhysProperty::eMobility)));
-		eTrapDensMap.insert(VertexMapDouble::value_type(vertID, currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
-		eXsectionMap.insert(VertexMapDouble::value_type(vertID, currVert->Trap->GetTrapPrpty(TrapProperty::eCrossSection)));
+		if (this->trapType == TrapType::eTrap)
+		{
+			mapTrapDensity.insert(VertexMapDouble::value_type(vertID, currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
+		}
+		else // TrapType::hTrap
+		{
+			mapTrapDensity.insert(VertexMapDouble::value_type(vertID, currVert->Trap->GetTrapPrpty(TrapProperty::hTrapDensity)));
+		}
 
 		//initialize the maps
 		coeffMap.insert(VertexMapDouble::value_type(vertID, 0));
 		rhsMap.insert(VertexMapDouble::value_type(vertID, 0));
-		eTrappedMap.insert(VertexMapDouble::value_type(vertID, 0));
+		mapTrappedSolved.insert(VertexMapDouble::value_type(vertID, 0));
 	}
 }
 
-void ElecTrapSolver::setSolverTrapping()
+void TrapSolver::setSolverTrapping()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
 	double captureCoeff = 0;
-	double eTrapDens = 0;
-	double eFreeDens = 0; // the electron density in conduction band
+	double trapDens = 0;
+	double freeDens = 0; // the electron density in conduction band
 	
 	double timeStep = 0;
 	double coeff = 0;
@@ -68,35 +76,54 @@ void ElecTrapSolver::setSolverTrapping()
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
 
-
-		if (captureModel == "J-Model")
+		if (this->trapType == TrapType::eTrap)
 		{
-			captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
-		}
-		else if (captureModel == "V-Model")
-		{
-			captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
+			if (captureModel == "J-Model")
+			{
+				captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
+			}
+			else if (captureModel == "V-Model")
+			{
+				captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
+			}
+			else
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10036);
+			}
+			freeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 		}
 		else
 		{
-			SCTM_ASSERT(SCTM_ERROR, 10036);
+			if (captureModel == "J-Model")
+			{
+				captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_J_Model);
+			}
+			else if (captureModel == "V-Model")
+			{
+				captureCoeff = currVert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_V_Model);
+			}
+			else
+			{
+				SCTM_ASSERT(SCTM_ERROR, 10036);
+			}
+			freeDens = currVert->Phys->GetPhysPrpty(PhysProperty::hDensity);
 		}
-		
-		eTrapDens = eTrapDensMap[vertID];
 
-		eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		
+		
+		trapDens = mapTrapDensity[vertID];
 
 		//coeff of nt due this trapping = capture coeff * delta_time * nf
-		coeff = captureCoeff * timeStep * eFreeDens;
+		coeff = captureCoeff * timeStep * freeDens;
 		coeffMap[vertID] += coeff; // += is used here
 
 		//rhs of the equation = capture coeff * delta_time * nf * eTrapDens
-		rhs = captureCoeff * timeStep * eFreeDens * eTrapDens;
+		rhs = captureCoeff * timeStep * freeDens * trapDens;
 		rhsMap[vertID] += rhs;
 	}
 }
 
-void ElecTrapSolver::refreshSolver()
+void TrapSolver::refreshSolver()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -113,58 +140,49 @@ void ElecTrapSolver::refreshSolver()
 	}
 }
 
-void ElecTrapSolver::SolveTrap()
+void TrapSolver::SolveTrap()
 {
-	refreshSolver();
-
-	setSolverTrapping();
-	setSolverDetrapping_BasicSRH();
-	if (SctmGlobalControl::Get().PhysicsB2T)
-	{
-		setSolverBandToTrap();
-	}
-	if (SctmGlobalControl::Get().PhysicsT2B)
-	{
-		setSolverTrapToBand();
-	}
-	if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
-	{
-		setSolverPooleFrenkel_Frequency();
-	}
-	solveEachVertex();
+	if (this->trapType == TrapType::eTrap)
+		eSolveTrap();
+	else // TrapType::hTrap
+		hSolveTrap();
 }
 
-void ElecTrapSolver::UpdateTrapped()
+void TrapSolver::UpdateTrapped()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double eTrapped = 0;
+	double trappedSolved = 0;
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
 
-		eTrapped = eTrappedMap[vertID];
-		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrapped);
+		trappedSolved = mapTrappedSolved[vertID];
+		if (this->trapType == TrapType::eTrap)
+			currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, trappedSolved);
+		else // TrapType::hTrap
+			currVert->Trap->SetTrapPrpty(TrapProperty::hTrapped, trappedSolved);
+		
 	}
 }
 
-void ElecTrapSolver::solveEachVertex()
+void TrapSolver::solveEachVertex()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double eTrapped = 0;
+	double trappedSolved = 0;
 
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
-		eTrapped = rhsMap[vertID] / coeffMap[vertID];
-		eTrappedMap[vertID] = eTrapped;
+		trappedSolved = rhsMap[vertID] / coeffMap[vertID];
+		mapTrappedSolved[vertID] = trappedSolved;
 	}
 }
 
-void ElecTrapSolver::setSolverDetrapping_BasicSRH()
+void TrapSolver::setSolverDetrapping_BasicSRH()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -193,7 +211,7 @@ void ElecTrapSolver::setSolverDetrapping_BasicSRH()
 	}
 }
 
-void ElecTrapSolver::setSolverBandToTrap()
+void TrapSolver::setSolverBandToTrap()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -219,13 +237,13 @@ void ElecTrapSolver::setSolverBandToTrap()
 		coeffMap[vertID] += coeff;
 
 		//rhs of the equation
-		eTrapDens = eTrapDensMap[vertID];
+		eTrapDens = mapTrapDensity[vertID];
 		rhs = coeff_B2T * timeStep * eTrapDens;
 		rhsMap[vertID] += rhs;
 	}
 }
 
-void ElecTrapSolver::setSolverTrapToBand()
+void TrapSolver::setSolverTrapToBand()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -251,7 +269,7 @@ void ElecTrapSolver::setSolverTrapToBand()
 	}
 }
 
-void ElecTrapSolver::setSolverPooleFrenkel_Frequency()
+void TrapSolver::setSolverPooleFrenkel_Frequency()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
@@ -277,6 +295,48 @@ void ElecTrapSolver::setSolverPooleFrenkel_Frequency()
 		rhs = 0;
 		rhsMap[vertID] += rhs;
 	}
+}
+
+void TrapSolver::eSolveTrap()
+{
+	refreshSolver();
+
+	setSolverTrapping();
+	setSolverDetrapping_BasicSRH();
+	if (SctmGlobalControl::Get().PhysicsB2T)
+	{
+		setSolverBandToTrap();
+	}
+	if (SctmGlobalControl::Get().PhysicsT2B)
+	{
+		setSolverTrapToBand();
+	}
+	if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
+	{
+		setSolverPooleFrenkel_Frequency();
+	}
+	solveEachVertex();
+}
+
+void TrapSolver::hSolveTrap()
+{
+	refreshSolver();
+
+	setSolverTrapping();
+// 	setSolverDetrapping_BasicSRH();
+// 	if (SctmGlobalControl::Get().PhysicsB2T)
+// 	{
+// 		setSolverBandToTrap();
+// 	}
+// 	if (SctmGlobalControl::Get().PhysicsT2B)
+// 	{
+// 		setSolverTrapToBand();
+// 	}
+// 	if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
+// 	{
+// 		setSolverPooleFrenkel_Frequency();
+// 	}
+	solveEachVertex();
 }
 
 

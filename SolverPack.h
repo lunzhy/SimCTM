@@ -19,7 +19,7 @@ class FDDomain;
 class TwoDimPoissonSolver;
 class TunnelSolver;
 class DriftDiffusionSolver;
-class ElecTrapSolver;
+class TrapSolver;
 class HoleConserveTrapSolver;
 class OneDimSubsSolver;
 
@@ -42,10 +42,12 @@ protected:
 	TunnelSolver *eBlockOxideSolver;
 	TunnelSolver *hTunnelOxideSolver;
 	TunnelSolver *hBlockOxideSolver;
-	ElecTrapSolver *eTrappingSolver;
-	HoleConserveTrapSolver *hTrappingSolver;
 	DriftDiffusionSolver *eDDSolver;
 	DriftDiffusionSolver *hDDSolver;
+	TrapSolver *eTrappingSolver;
+	TrapSolver *hTrappingSolver;
+
+	HoleConserveTrapSolver *hConsTrapSolver;
 
 protected:
 	void initialize();
