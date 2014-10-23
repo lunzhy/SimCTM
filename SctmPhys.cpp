@@ -159,16 +159,6 @@ namespace SctmPhys
 				ret =  GetPhysPrpty(ConductionBandEnergy, matName) - GetPhysPrpty(Bandgap, matName);
 				break;
 			}
-			case eDOSMass:
-			{
-				ret = e_DOSmass;
-				break;
-			}
-			case eMass:
-			{
-				ret = e_mass;
-				break;
-			}
 			case ElectronAffinity:
 			{
 				if (matName == MaterialDB::Mat::ErrorMaterial)
@@ -195,12 +185,22 @@ namespace SctmPhys
 				//ret = bandgap;
 				break;
 			}
-			case NetCharge:
+			case NetFreeCharge:
 			{
 				//there should be four parts
-				ret = - e_density;
+								  ret = -GetPhysPrpty(eDensity) + GetPhysPrpty(hDensity);
 				break;
-			}	
+			}
+			case eDOSMass:
+			{
+				ret = e_DOSmass;
+				break;
+			}
+			case eMass:
+			{
+				ret = e_mass;
+				break;
+			}
 			case eMobility:
 			{
 				ret = e_mobility;
@@ -579,7 +579,7 @@ namespace SctmPhys
 				ret = h_mobility;
 				break;
 			}
-			case  hDensity:
+			case hDensity:
 			{
 				ret = h_density;
 				break;
@@ -613,7 +613,7 @@ namespace SctmPhys
 					double pp_div_px = (-he*he * pw + (he*he - hw*hw) * pc + hw*hw * pe) / (he*hw*(he + hw));
 					double mobility = GetPhysPrpty(hMobility);
 
-					// J = -u (n * p_phi/p_x + p_n / p_x )
+					// J = -u (p * p_phi/p_x + p_p / p_x )
 					ret = -mobility * (-pc * elecFieldX + pp_div_px);
 				}
 				else
@@ -663,7 +663,7 @@ namespace SctmPhys
 					double pp_div_py = (-hn*hn * ps + (hn*hn - hs*hs) * pc + hs*hs * pn) / (hn*hs*(hn + hs));
 					double mobility = GetPhysPrpty(hMobility);
 
-					// J = -u (n * p_phi/p_x + p_n / p_x )
+					// J = -u (p * p_phi/p_x + p_p / p_x )
 					ret = -mobility * (-pc * elecFieldY + pp_div_py);
 				}
 				else
@@ -691,8 +691,8 @@ namespace SctmPhys
 			}
 			case hCurrentDensity:
 			{
-				double hCurrDensX = GetPhysPrpty(eCurrentDensity_X);
-				double hCurrDensY = GetPhysPrpty(eCurrentDensity_Y);
+				double hCurrDensX = GetPhysPrpty(hCurrentDensity_X);
+				double hCurrDensY = GetPhysPrpty(hCurrentDensity_Y);
 				ret = SctmMath::sqrt(hCurrDensX * hCurrDensX + hCurrDensY * hCurrDensY);
 				break;
 			}
@@ -1019,6 +1019,7 @@ namespace SctmPhys
 		e_crossSection = 0;
 		e_energyFromCondBand = 0;
 		e_frequencyT2B = 0;
+		e_frequencyPF = 0;
 		e_transCoeffT2B = 0;
 
 		//for holes
@@ -1144,6 +1145,12 @@ namespace SctmPhys
 				ret = epsTrapping;
 				break;
 			}
+			case NetTrappedCharge:
+			{
+				// there should be 2 parts here
+				ret = -GetTrapPrpty(eTrapped) + GetTrapPrpty(hTrapped);
+				break;
+			}
 			case eTrapped:
 			{
 				ret = e_trapped;
@@ -1232,12 +1239,6 @@ namespace SctmPhys
 				double eXsecion = GetTrapPrpty(eCrossSection);
  
 				ret =  eCurrDens * eXsecion;
-				break;
-			}
-			case NetCharge:
-			{
-				// there should be 2 parts here
-				ret = - GetTrapPrpty(eTrapped);
 				break;
 			}
 			case eTransCoeffT2B:
@@ -1357,7 +1358,7 @@ namespace SctmPhys
 
 	double CalculateFlatbandShift_domain(FDDomain *domain)
 	{
-		//TODO: this is a temporary method used in one dimensional problems to get the start vertex in the calculation
+		//TODO: this was a temporary method used in one dimensional problems to get the start vertex in the calculation
 		//now the domain flatband voltage shift calculation method is 
 		//to compute the weighted-average flat voltage shift of each slice with respect to its control length.
 		//However, this method is still a structure-dependent method. The pre-knowledge of the structure has to been known.
@@ -1413,9 +1414,17 @@ namespace SctmPhys
 		FDVertex *currVert = NULL;
 		FDVertex *vertForCap = NULL; // the vertex pointer for calculation of capacitance
 		double densCtrlArea = 0;
+
 		double eFreeDens = 0;
 		double eTrappedDens = 0;
 		double eLineDens = 0;
+		double hFreeDens = 0;
+		double hTrappedDens = 0;
+		double hLineDens = 0;
+
+		double freeLineCharge = 0;
+		double trapLineCharge = 0;
+
 		double cap_reciprocal = 0;
 		double epsilon = 0;
 		double wide = 0;
@@ -1430,9 +1439,16 @@ namespace SctmPhys
 			if (currVert->Trap != NULL)
 			{
 				densCtrlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
-				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
-				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
-				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
+
+				freeLineCharge = densCtrlArea * currVert->Phys->GetPhysPrpty(PhysProperty::NetFreeCharge);
+				trapLineCharge = densCtrlArea * currVert->Trap->GetTrapPrpty(TrapProperty::NetTrappedCharge);
+
+// 				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+// 				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+// 				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
+// 				hFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+// 				hTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
+// 				hLineDens = densCtrlArea * (hFreeDens + hTrappedDens);
 
 				vertForCap = currVert;
 				cap_reciprocal = 0; // the reciprocal of capacitance
@@ -1446,7 +1462,7 @@ namespace SctmPhys
 
 					vertForCap = vertForCap->NorthVertex;
 				}
-				VfbShift += eLineDens * cap_reciprocal;
+				VfbShift += -(freeLineCharge + trapLineCharge) * cap_reciprocal;
 			}
 			currVert = currVert->NorthVertex;
 		}

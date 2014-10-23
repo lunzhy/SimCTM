@@ -60,7 +60,7 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//updateRhsForTrapping_ExplicitMethod();
 	updateCoeffMatrixForTrapping();
 
-	//dinstinguishing electron and hole is temporarily considered/
+	//distinguishing electron and hole is temporarily considered/
 	if (this->ddMode == DDMode::ElecDD)
 	{
 		updateRhsForDetrapping();
@@ -75,7 +75,7 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	this->matrixSolver.SolveMatrix(rhsVector, this->ehDensity);
 	
 	//fill back electron density to last time density, this is also done in refreshing vertex map
-	fillBackElecDens();
+	fillBackCarrierDens();
 
 	//SctmDebug::Get().WriteMatrixEquation(this->matrixSolver.matrix, this->rhsVector, this->elecDensity);
 }
@@ -294,7 +294,7 @@ void DriftDiffusionSolver::UpdateCarrierDens()
 	}
 }
 
-void DriftDiffusionSolver::fillBackElecDens()
+void DriftDiffusionSolver::fillBackCarrierDens()
 {
 	FDVertex *currVert = NULL;
 	int equationID = 0;

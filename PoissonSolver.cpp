@@ -199,10 +199,10 @@ void TwoDimPoissonSolver::buildRhsVector()
 		equationID = equationMap[currVert->GetID()];
 		SCTM_ASSERT(equationID==iVert, 10008);
 
-		charge = currVert->Phys->GetPhysPrpty(PhysProperty::NetCharge);
+		charge = currVert->Phys->GetPhysPrpty(PhysProperty::NetFreeCharge);
 		if (currVert->Trap != NULL)
 		{
-			charge += currVert->Trap->GetTrapPrpty(TrapProperty::NetCharge);
+			charge += currVert->Trap->GetTrapPrpty(TrapProperty::NetTrappedCharge);
 		}
 		controlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
 		

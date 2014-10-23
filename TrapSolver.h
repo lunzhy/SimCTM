@@ -57,12 +57,6 @@ protected:
 	VertexMapDouble mapTrappedSolved;
 };
 
-class HoleTrapSolver
-{
-public:
-	HoleTrapSolver(FDDomain *_domain);
-};
-
 class HoleConserveTrapSolver
 {
 public:

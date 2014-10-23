@@ -127,16 +127,24 @@ void TrapSolver::refreshSolver()
 {
 	FDVertex *currVert = NULL;
 	int vertID = 0;
-	double eTrappedLastTime = 0;
+	double trappedLastTime = 0;
 
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
 		currVert = vertices.at(iVert);
 		vertID = currVert->GetID();
-		eTrappedLastTime = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+		if (this->trapType == TrapType::eTrap)
+		{
+			trappedLastTime = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+		}
+		else // TrapType::hTrap
+		{
+			trappedLastTime = currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
+		}
+		
 		//refresh the coefficient map and right-hand side map
 		coeffMap[vertID] = 1;
-		rhsMap[vertID] = eTrappedLastTime;
+		rhsMap[vertID] = trappedLastTime;
 	}
 }
 

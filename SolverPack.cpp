@@ -157,7 +157,7 @@ void SolverPack::callIteration()
 		
 		//write the final result
 		SctmData::Get().WriteTunnelOutDensity(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecTransCoeffT2B_Tunnel, mapElecCurrDensOrCoeff_Block, mapElecTransCoeffT2B_Block);
-		SctmData::Get().WriteTotalElecDens(domain->GetDDVerts());
+		SctmData::Get().WriteTotalCarrierDens(domain->GetDDVerts());
 		SctmData::Get().WriteTrappedDensRegionwise(domain);
 		if (simStructure == "Single")
 		{

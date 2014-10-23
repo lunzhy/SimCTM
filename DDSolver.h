@@ -127,7 +127,7 @@ protected:
 	double getRhsBCVertex_UsingCurrent(FDVertex *vert);
 	double getRhsInnerVertex(FDVertex *vert);
 	void setTimeStep();
-	void fillBackElecDens();
+	void fillBackCarrierDens();
 	virtual void processBndCond();
 	static void getDeltaXYAtVertex(FDVertex *vert, double &dx, double &dy);
 	void handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2);

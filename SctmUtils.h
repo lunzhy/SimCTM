@@ -295,15 +295,18 @@ namespace SctmUtils
 		void WritePotential(vector<FDVertex *> &vertices);
 		void WriteBandInfo(vector<FDVertex *> &vertices);
 		void WriteElecField(vector<FDVertex *> &vertices);
-		void WriteTunnelFromSubs(FDDomain *domain, VertexMapDouble &currDensCoeff, ehInfo ehinfo);
-		void WriteTotalElecDens(vector<FDVertex *> &vertices);
-		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
 		void WriteTrappedInfo(vector<FDVertex *> &vertices, ehInfo ehinfo);
+
+		void WriteTunnelFromSubs(FDDomain *domain, VertexMapDouble &currDensCoeff, ehInfo ehinfo);
+		void WriteTotalCarrierDens(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
-		
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
-		void WriteVertexInfo(vector<FDVertex *> &vertices);
+		void WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo);
+
+		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
+
+		void WriteSubsVertices(vector<FDVertex *> &vertices);
 		void WriteVfbShiftEachInterface(FDDomain *domain);
 		void WriteTimerInfo(SctmTimer &timer);
 		void WritePooleFrenkelDecrease(vector<FDVertex *> &vertices);

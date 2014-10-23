@@ -90,7 +90,7 @@ namespace SctmPhys
 			ValenceBandEnergy, ///< valence band energy
 			ElectronAffinity, ///< electron affinity
 			Bandgap, ///< bandgap
-			NetCharge, ///< the total net charge belongs to the vertex 
+			NetFreeCharge, ///< the total net charge belongs to the vertex 
 			DensityControlArea, ///< density control area of trapping layer
 			ElectricField, ///< the magnitude of electric field
 			ElectricField_X, ///< electric field in X direction
@@ -222,7 +222,7 @@ namespace SctmPhys
 		enum Name
 		{
 			EpsilonTrapping, ///< dielectric constant for trapping layer
-			NetCharge,
+			NetTrappedCharge,
 
 			//for electrons
 			eTrapped,

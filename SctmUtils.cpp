@@ -1379,7 +1379,9 @@ namespace SctmUtils
 
 		vector<double> vecX;
 		vector<double> vecY;
-		vector<double> eElecFiled;
+		vector<double> elecField_X;
+		vector<double> elecField_Y;
+		vector<double> elecField;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *currVert = NULL;
 
@@ -1388,21 +1390,26 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			eElecFiled.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
+			elecField_X.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_X)));
+			elecField_Y.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y)));
+			elecField.push_back(norm.PullElecField(currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField)));
 		}
 		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string title = "electric field of time [" + numStr + "] (x, y, electric field)";
-		file.WriteVector(vecX, vecY, eElecFiled, title.c_str());
+		string title = "electric field of time [" + numStr + "] (x, y, eField in X, eField in Y, electric field)";
+		file.WriteVector(vecX, vecY, elecField_X, elecField_Y, elecField, title.c_str());
 	}
 
-	void SctmData::WriteTotalElecDens(vector<FDVertex *> &vertices)
+	void SctmData::WriteTotalCarrierDens(vector<FDVertex *> &vertices)
 	{
-		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "totalDensity.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "ehDens.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		double area = 0;
 		double freeElecDens = 0; // line density
 		double trapElecDens = 0;
+		double freeHoleDens = 0;
+		double trapHoleDens = 0;
+
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *vert = NULL;
 		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
@@ -1411,12 +1418,29 @@ namespace SctmUtils
 			area = vert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
 			freeElecDens += area * vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 			trapElecDens += area * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+			freeHoleDens += area * vert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+			trapHoleDens += area * vert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
 		}
 		string timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
-		string valStrFree = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens));
-		string valStrTrap = SctmConverter::DoubleToString(norm.PullLineDensity(trapElecDens));
-		string valStrTotal = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens + trapElecDens));
-		string line = timeStr + "\t\t" + valStrFree + "\t\t" + valStrTrap + "\t\t" + valStrTotal;
+
+		string valStrFreeElec = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens));
+		string valStrTrapElec = SctmConverter::DoubleToString(norm.PullLineDensity(trapElecDens));
+		
+		//string valStrTotal = SctmConverter::DoubleToString(norm.PullLineDensity(freeElecDens + trapElecDens));
+		
+		string valStrFreeHole = SctmConverter::DoubleToString(norm.PullLineDensity(freeHoleDens));
+		string valStrTrapHole = SctmConverter::DoubleToString(norm.PullLineDensity(trapHoleDens));
+
+		string line = timeStr + "\t\t" + valStrFreeElec + "\t\t" + valStrTrapElec + "\t\t" + 
+			valStrFreeHole + "\t\t" + valStrTrapHole;
+
+		static string title = "time\t\tfree electrons\t\ttrapped electrons\t\tfree holes\t\ttrapped holes";
+		static bool isFirstCall = true;
+		if (isFirstCall)
+		{
+			file.WriteLine(title);
+			isFirstCall = false;
+		}
 		file.WriteLine(line);
 	}
 
@@ -1644,7 +1668,7 @@ namespace SctmUtils
 		}
 	}
 
-	void SctmData::WriteVertexInfo(vector<FDVertex *> &vertices)
+	void SctmData::WriteSubsVertices(vector<FDVertex *> &vertices)
 	{
 		fileName = directoryName + pathSep + "exchange" + pathSep + "subs_points.in";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
@@ -1970,6 +1994,39 @@ namespace SctmUtils
 			SctmConverter::DoubleToString(norm.PullLineDensity(lineDens_tbToGate)) + "\t\t";
 		file.WriteLine(line);
 	}
+
+	void SctmData::WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo)
+	{
+		if (ehinfo == ehInfo::eInfo)
+			fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "eTunnel.txt";
+		else
+			fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "hTunnel.txt";
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+		int vertID = 0;
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *vert = NULL;
+		FDBoundary::TunnelTag tuntag = FDBoundary::noTunnel;
+		double tunCurrOrCoeff = 0;
+
+		for (VertexMapDouble::iterator it = tnnlOxide.begin(); it != tnnlOxide.end(); ++it)
+		{
+			vertID = it->first;
+			tunCurrOrCoeff = it->second;
+			vert = domain->GetVertex(vertID);
+
+			tuntag = vert->BndCond.GetElecTunnelTag();
+
+			if (tuntag == FDBoundary::eTunnelIn)
+			{
+			}
+			else // FDBoundary::eTunnelOut
+			{
+			}
+		}
+
+	}
+
 
 
 

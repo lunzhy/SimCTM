@@ -682,7 +682,7 @@ void TripleCells::writeChannelPoints()
 	FDContact *channelCont = NULL;
 	channelCont = this->GetContact("Channel");
 
-	SctmData::Get().WriteVertexInfo(channelCont->GetContactVerts());
+	SctmData::Get().WriteSubsVertices(channelCont->GetContactVerts());
 }
 
 void TripleCells::clearTrapExceptMainCell()
