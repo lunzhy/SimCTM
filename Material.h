@@ -52,8 +52,10 @@ namespace MaterialDB
 			Mat_HoleDiffusion, ///< hole diffusion coefficient of the material
 			Mat_ElectronMobility, ///< electron mobility of the material
 			Mat_HoleMobility, ///< hole mobility of the material
-			Mat_ElecTrapXSection, ///< electron trap cross section
-			Mat_HoleTrapXSection, ///< hole trap cross section
+			Mat_ElecXSection, ///< electron trap cross section
+			Mat_HoleXSection, ///< hole trap cross section
+			Mat_ElecTrappedXSection, ///< cross section for trapped electrons
+			Mat_HoleTrappedXSection, ///< cross section for trapped holes
 			Mat_ElecTrapEnergyFromCB, ///< electron trap energy from conduction band
 			Mat_HoleTrapEnergyFromVB, ///< hole trap energy from valence band
 			Mat_ElecFrequencyT2B, ///< electron Trap-to-Band tunneling out frequency
@@ -82,8 +84,10 @@ namespace MaterialDB
 		double holeDiffusion; ///< hole diffusion coefficient, in [D0]
 		double electronMobility; ///< electron mobility, in [cm^2/V/s]
 		double holeMobility; ///< hole mobility, in [cm^2/V/s]
-		double elecTrapXSection; ///< electron trap cross section, in [cm^2]
-		double holeTrapXSection; ///< hole trap cross section, in [cm^2]
+		double elecXSection; ///< electron trap cross section, in [cm^2]
+		double holeXSection; ///< hole trap cross section, in [cm^2]
+		double elecTrappedXSection; ///< cross section for trapped electrons
+		double holeTrappedXSection; ///< cross section for trapped holes
 		double elecTrapEnergyFromCB; ///< electron trap energy from conduction band, in eV
 		double holeTrapEnergyFromVB; ///< hole trap energy from valence band
 		double elecFrequencyT2B; ///< electron Trap-to-Band tunneling out frequency
@@ -131,10 +135,15 @@ namespace MaterialDB
 		double		HoleMobility() const;
 		void		HoleMobility(double val);
 		
-		double		ElecTrapXSection() const;
-		void		ElecTrapXSection(double val);
-		double		HoleTrapXSection() const;
-		void		HoleTrapXSection(double val);
+		double		ElecXSection() const;
+		void		ElecXSection(double val);
+		double		HoleXSection() const;
+		void		HoleXSection(double val);
+
+		double		ElecTrappedXSection() const;
+		void		ElecTrappedXSection(double val);
+		double		HoleTrappedXSection() const;
+		void		HoleTrappedXSection(double val);
 		
 		double		ElecTrapEnergyFromCB() const;
 		void		ElecTrapEnergyFromCB(double val);

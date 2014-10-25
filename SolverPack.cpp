@@ -119,8 +119,6 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		
 		fetchTunnelOxideResult();
-		SctmData::Get().WriteTunnelFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel, SctmData::eInfo);
-		SctmData::Get().WriteTunnelFromSubs(domain, mapElecCurrDensOrCoeff_Tunnel, SctmData::hInfo);
 
 		//solve tunneling problem in blocking oxide
 		SctmTimer::Get().Set();
@@ -132,6 +130,8 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 
 		fetchBlockOxideResult();
+		SctmData::Get().WriteTunnelInfo(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block, SctmData::eInfo);
+		SctmData::Get().WriteTunnelInfo(domain, mapHoleCurrDensOrCoeff_Tunnel, mapHoleCurrDensOrCoeff_Block, SctmData::hInfo);
 
 		//solver drift-diffusion equation
 		SctmTimer::Get().Set();
@@ -140,7 +140,6 @@ void SolverPack::callIteration()
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		
 		fetchDDResult();
-		SctmData::Get().WriteTunnelCoeff(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block);
 		SctmData::Get().WriteCarrierDens(domain->GetDDVerts(), SctmData::eInfo);
 		SctmData::Get().WriteCarrierDens(domain->GetDDVerts(), SctmData::hInfo);
 		SctmData::Get().WriteCurrDens(domain->GetDDVerts(), SctmData::eInfo);

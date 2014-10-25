@@ -608,13 +608,15 @@ void FDDomain::setVertexTrapProperty()
 		//for electrons
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_T2B, MatProperty::Mat_ElecFrequencyT2B);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_PF, MatProperty::Mat_ElecFrequencyPF);
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eCrossSection, MatProperty::Mat_ElecTrapXSection);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eCrossSection, MatProperty::Mat_ElecXSection);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eTrapCrossSection, MatProperty::Mat_ElecTrappedXSection);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eEnergyFromCondBand, MatProperty::Mat_ElecTrapEnergyFromCB);
 
 		//for holes
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hFrequency_T2B, MatProperty::Mat_HoleFrequencyT2B);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hFrequency_PF, MatProperty::Mat_HoleFrequencyPF);
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hCrossSection, MatProperty::Mat_HoleTrapXSection);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hCrossSection, MatProperty::Mat_HoleXSection);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hTrapCrossSection, MatProperty::Mat_HoleTrappedXSection);
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::hEnergyFromValeBand, MatProperty::Mat_HoleTrapEnergyFromVB);
 	}
 }

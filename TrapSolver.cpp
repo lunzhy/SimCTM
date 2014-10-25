@@ -463,3 +463,53 @@ void HoleConserveTrapSolver::UpdateTrapped()
 		currVert->Trap->SetTrapPrpty(TrapProperty::hTrapped, trappedDens);
 	}
 }
+
+CombinedTrapSolver::CombinedTrapSolver(FDDomain *_domain) :
+domain(_domain),
+vertices(_domain->GetDDVerts())
+{
+	this->temperature = SctmGlobalControl::Get().Temperature;
+
+	FDVertex *vert = NULL;
+	int vertID = 0;
+	for (size_t iVert = 0; iVert != vertices.size(); ++ iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		// CUATION ! currently use eTrapDensity for total density
+		mapTrapDensity.insert(VertexMapDouble::value_type(vertID, vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
+		mapTrappedElecLast.insert(VertexMapDouble::value_type(vertID, 0));
+		mapTrappedHoleLast.insert(VertexMapDouble::value_type(vertID, 0));
+		mapSolvedElec.insert(VertexMapDouble::value_type(vertID, 0));
+		mapSolverHole.insert(VertexMapDouble::value_type(vertID, 0));
+		map_A.insert(VertexMapDouble::value_type(vertID, 0));
+		map_B.insert(VertexMapDouble::value_type(vertID, 0));
+		map_C.insert(VertexMapDouble::value_type(vertID, 0));
+		map_D.insert(VertexMapDouble::value_type(vertID, 0));
+		map_m.insert(VertexMapDouble::value_type(vertID, 0));
+		map_n.insert(VertexMapDouble::value_type(vertID, 0));
+	}
+}
+
+void CombinedTrapSolver::refreshSolver()
+{
+	FDVertex* vert = NULL;
+	int vertID = 0;
+	
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		mapTrappedElecLast[vertID] = vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+		mapTrappedHoleLast[vertID] = vert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
+
+		map_A[vertID] = 1;
+		map_B[vertID] = 0;
+		map_C[vertID] = 0;
+		map_D[vertID] = 1;
+		map_m[vertID] = mapTrappedElecLast[vertID];
+		map_n[vertID] = mapTrappedHoleLast[vertID];
+	}
+}

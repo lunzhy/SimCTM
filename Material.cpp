@@ -96,7 +96,7 @@ namespace MaterialDB
 		GetMaterial(Mat::Si3N4)->HoleMass(1);
 		GetMaterial(Mat::Si3N4)->ElectronMobility(0.1);
 		GetMaterial(Mat::Si3N4)->ElecTrapEnergyFromCB(1.2);
-		GetMaterial(Mat::Si3N4)->ElecTrapXSection(1e-14);
+		GetMaterial(Mat::Si3N4)->ElecXSection(1e-14);
 
 		//HfO2
 		GetMaterial(Mat::HfO2)->Bandgap(5.9);
@@ -106,7 +106,7 @@ namespace MaterialDB
 		GetMaterial(Mat::HfO2)->HoleMass(1); // need to be revised
 		GetMaterial(Mat::HfO2)->ElectronMobility(0.01);
 		GetMaterial(Mat::HfO2)->ElecTrapEnergyFromCB(0.7);
-		GetMaterial(Mat::HfO2)->ElecTrapXSection(1e-14);
+		GetMaterial(Mat::HfO2)->ElecXSection(1e-14);
 
 
 		//MaterialMap[Mat::Silicon] = &Silicon_material;
@@ -161,11 +161,17 @@ namespace MaterialDB
 		case MatProperty::Mat_HoleTrapEnergyFromVB:
 			ret = theMaterial->HoleTrapEnergyFromVB();
 			break;
-		case MatProperty::Mat_ElecTrapXSection:
-			ret = theMaterial->ElecTrapXSection();
+		case MatProperty::Mat_ElecXSection:
+			ret = theMaterial->ElecXSection();
 			break;
-		case MatProperty::Mat_HoleTrapXSection:
-			ret = theMaterial->HoleTrapXSection();
+		case MatProperty::Mat_HoleXSection:
+			ret = theMaterial->HoleXSection();
+			break;
+		case MatProperty::Mat_ElecTrappedXSection:
+			ret = theMaterial->ElecTrappedXSection();
+			break;
+		case MatProperty::Mat_HoleTrappedXSection:
+			ret = theMaterial->HoleTrappedXSection();
 			break;
 		case MatProperty::Mat_ElecFrequencyT2B:
 			ret = theMaterial->ElecFrequencyT2B();
@@ -289,15 +295,26 @@ namespace MaterialDB
 		holeMobility = norm.PushMobility(val);
 	}
 
-	double Material::ElecTrapXSection() const
+	double Material::ElecXSection() const
 	{
-		return elecTrapXSection;
+		return elecXSection;
 	}
 
-	void Material::ElecTrapXSection(double val)
+	void Material::ElecXSection(double val)
 	{
 		Normalization norm = Normalization(temperature);
-		elecTrapXSection = norm.PushArea(val);
+		elecXSection = norm.PushArea(val);
+	}
+
+	double Material::ElecTrappedXSection() const
+	{
+		return elecTrappedXSection;
+	}
+
+	void Material::ElecTrappedXSection(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		elecTrappedXSection = norm.PushArea(val);
 	}
 
 	double Material::ElecTrapEnergyFromCB() const
@@ -364,15 +381,26 @@ namespace MaterialDB
 		holeDOSMass = val;
 	}
 
-	double Material::HoleTrapXSection() const
+	double Material::HoleXSection() const
 	{
-		return holeTrapXSection;
+		return holeXSection;
 	}
 
-	void Material::HoleTrapXSection(double val)
+	void Material::HoleXSection(double val)
 	{
 		Normalization norm = Normalization(temperature);
-		holeTrapXSection = norm.PushArea(val);
+		holeXSection = norm.PushArea(val);
+	}
+
+	double Material::HoleTrappedXSection() const
+	{
+		return holeTrappedXSection;
+	}
+
+	void Material::HoleTrappedXSection(double val)
+	{
+		Normalization norm = Normalization(temperature);
+		holeTrappedXSection = norm.PushArea(val);
 	}
 
 	double Material::HoleFrequencyT2B() const
@@ -511,7 +539,10 @@ namespace MaterialDB
 		GetMaterial(Mat::Si3N4)->ElecTrapEnergyFromCB(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eXsection);
-		GetMaterial(Mat::Si3N4)->ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+		GetMaterial(Mat::Si3N4)->ElecXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eTrapXsection);
+		GetMaterial(Mat::Si3N4)->ElecTrappedXSection(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_eFrequencyT2B);
 		GetMaterial(Mat::Si3N4)->ElecFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
@@ -532,7 +563,10 @@ namespace MaterialDB
 		GetMaterial(Mat::Si3N4)->HoleTrapEnergyFromVB(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hXsection);
-		GetMaterial(Mat::Si3N4)->HoleTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+		GetMaterial(Mat::Si3N4)->HoleXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hTrapXsection);
+		GetMaterial(Mat::Si3N4)->HoleTrappedXSection(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_hFrequencyT2B);
 		GetMaterial(Mat::Si3N4)->HoleFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
@@ -563,7 +597,10 @@ namespace MaterialDB
 		GetMaterial(Mat::HfO2)->ElecTrapEnergyFromCB(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eXsection);
-		GetMaterial(Mat::HfO2)->ElecTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+		GetMaterial(Mat::HfO2)->ElecXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eTrapXsection);
+		GetMaterial(Mat::HfO2)->ElecTrappedXSection(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_eFrequencyT2B);
 		GetMaterial(Mat::HfO2)->ElecFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());
@@ -584,7 +621,10 @@ namespace MaterialDB
 		GetMaterial(Mat::HfO2)->HoleTrapEnergyFromVB(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hXsection);
-		GetMaterial(Mat::HfO2)->HoleTrapXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+		GetMaterial(Mat::HfO2)->HoleXSection(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hTrapXsection);
+		GetMaterial(Mat::HfO2)->HoleTrappedXSection(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_hFrequencyT2B);
 		GetMaterial(Mat::HfO2)->HoleFrequencyT2B(dynamic_cast<Param<double> *>(parBase)->Value());

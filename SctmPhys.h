@@ -228,6 +228,7 @@ namespace SctmPhys
 			eTrapped,
 			eTrapDensity,
 			eCrossSection,
+			eTrapCrossSection,
 			eEnergyFromCondBand,
 			eOccupation,
 			eEmptyTrapDens,
@@ -245,6 +246,7 @@ namespace SctmPhys
 
 			//for holes
 			hCrossSection,
+			hTrapCrossSection,
 			hFrequency_T2B,
 			hFrequency_PF,
 			hEnergyFromValeBand,
@@ -275,6 +277,7 @@ namespace SctmPhys
 		double e_trapped;
 		double e_trapDensity;
 		double e_crossSection;
+		double e_trapCrossSection;
 		double e_energyFromCondBand; ///< electron trap energy
 		double e_frequencyT2B; ///< electron Trap-to-Band tunneling-out frequency
 		double e_transCoeffT2B; ///< electron transmission coefficient in trap-to-band tunneling
@@ -282,7 +285,8 @@ namespace SctmPhys
 
 		double h_trapped;
 		double h_trapDensity;
-		double h_crosssection;
+		double h_crossSection;
+		double h_trapCrossSection;
 		double h_frequencyT2B;
 		double h_frequencyPF;
 		double h_energyFromValeBand; ///< hole trap energy

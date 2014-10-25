@@ -57,6 +57,38 @@ protected:
 	VertexMapDouble mapTrappedSolved;
 };
 
+class CombinedTrapSolver
+{
+public:
+	CombinedTrapSolver(FDDomain *_domain);
+	void SolveTrap();
+	void UpdateTrapped();
+
+protected:
+	void refreshSolver();
+	void setSolverTrapping();
+	void solveEachVertex();
+
+protected:
+	double temperature;
+	FDDomain *domain;
+	vector<FDVertex *> &vertices;
+	VertexMapDouble mapTrapDensity;
+	VertexMapDouble mapTrappedElecLast;
+	VertexMapDouble mapTrappedHoleLast;
+	VertexMapDouble mapSolvedElec;
+	VertexMapDouble mapSolverHole;
+
+	// A*nt + B*pt = a
+	// C*nt + D*pt = b
+	VertexMapDouble map_A;
+	VertexMapDouble map_B;
+	VertexMapDouble map_C;
+	VertexMapDouble map_D;
+	VertexMapDouble map_m;
+	VertexMapDouble map_n;
+};
+
 class HoleConserveTrapSolver
 {
 public:

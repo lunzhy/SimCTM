@@ -297,14 +297,11 @@ namespace SctmUtils
 		void WriteElecField(vector<FDVertex *> &vertices);
 		void WriteTrappedInfo(vector<FDVertex *> &vertices, ehInfo ehinfo);
 
-		void WriteTunnelFromSubs(FDDomain *domain, VertexMapDouble &currDensCoeff, ehInfo ehinfo);
 		void WriteTotalCarrierDens(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		void WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo);
-
-		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
 
 		void WriteSubsVertices(vector<FDVertex *> &vertices);
 		void WriteVfbShiftEachInterface(FDDomain *domain);
@@ -314,6 +311,10 @@ namespace SctmUtils
 		void WriteSubstrateFromInput();
 		void WriteTrappedDensRegionwise(FDDomain *domain);
 		void WriteTunnelOutDensity(FDDomain *domain, VertexMapDouble &tunToSubs, VertexMapDouble &tbToSubs, VertexMapDouble &tunToGate, VertexMapDouble &tbToGate);
+		
+		//unused
+		void WriteTunnelFromSubs(FDDomain *domain, VertexMapDouble &currDensCoeff, ehInfo ehinfo);
+		void WriteTunnelCoeff(FDDomain *domain, VertexMapDouble &inCurrDens, VertexMapDouble &outCurrCoeff);
 
 		void ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap);
 		void ReadTimestep(vector<double> &timestep, vector<double> &vg1, vector<double> &vg2, vector<double> &vg3);
@@ -368,7 +369,7 @@ namespace SctmUtils
 		//density parameters
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double ElecUniTrapDens; ///< the uniform electron trap density, in [cm^-3]
-		double HoleUniTrapDens; ///< the unifor hole trap density, in [cm^-3]
+		double HoleUniTrapDens; ///< the uniform hole trap density, in [cm^-3]
 		string TrapDistribution; ///< the distribution 
 
 		//physics models
@@ -537,12 +538,14 @@ namespace SctmUtils
 			Si3N4_eMobility,
 			Si3N4_eTrapEnergy,
 			Si3N4_eXsection,
+			Si3N4_eTrapXsection,
 			Si3N4_eFrequencyT2B,
 			Si3N4_eFrequencyPF,
 			Si3N4_hMass,
 			Si3N4_hDOSMass,
 			Si3N4_hMobility,
 			Si3N4_hXsection,
+			Si3N4_hTrapXsection,
 			Si3N4_hTrapEnergy,
 			Si3N4_hFrequencyT2B,
 			Si3N4_hFrequencyPF,
@@ -555,12 +558,14 @@ namespace SctmUtils
 			HfO2_eMobility,
 			HfO2_eTrapEnergy,
 			HfO2_eXsection,
+			HfO2_eTrapXsection,
 			HfO2_eFrequencyT2B,
 			HfO2_eFrequencyPF,
 			HfO2_hDOSMass,
 			HfO2_hMass,
 			HfO2_hMobility,
 			HfO2_hXsection,
+			HfO2_hTrapXsection,
 			HfO2_hTrapEnergy,
 			HfO2_hFrequencyT2B,
 			HfO2_hFrequencyPF

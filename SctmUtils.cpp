@@ -1888,7 +1888,7 @@ namespace SctmUtils
 	void SctmData::WriteTunnelOutDensity(FDDomain *domain, VertexMapDouble &tunToSubs, VertexMapDouble &tbToSubs, VertexMapDouble &tunToGate, VertexMapDouble &tbToGate)
 	{
 		static bool firstRun = true;
-		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "tunnelOutDensity.txt";
+		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "eTunnelOutDensity.txt";
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
 
 		if (firstRun)
@@ -1998,32 +1998,73 @@ namespace SctmUtils
 	void SctmData::WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo)
 	{
 		if (ehinfo == ehInfo::eInfo)
-			fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "eTunnel.txt";
+			fileName = directoryName + pathSep + "Current" + pathSep + "eTunnel.txt" + generateFileSuffix();
 		else
-			fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "hTunnel.txt";
-		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+			fileName = directoryName + pathSep + "Current" + pathSep + "hTunnel.txt" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		int vertID = 0;
 		Normalization norm = Normalization(this->temperature);
 		FDVertex *vert = NULL;
+
+		VertexMapDouble mapTunInfo;
+		mapTunInfo.insert(tnnlOxide.begin(), tnnlOxide.end());
+		mapTunInfo.insert(blckOxide.begin(), blckOxide.end());
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecTun;
+		vector<string> vecDirection;
+
 		FDBoundary::TunnelTag tuntag = FDBoundary::noTunnel;
 		double tunCurrOrCoeff = 0;
 
-		for (VertexMapDouble::iterator it = tnnlOxide.begin(); it != tnnlOxide.end(); ++it)
+		for (VertexMapDouble::iterator it = mapTunInfo.begin(); it != mapTunInfo.end(); ++it)
 		{
 			vertID = it->first;
 			tunCurrOrCoeff = it->second;
 			vert = domain->GetVertex(vertID);
 
-			tuntag = vert->BndCond.GetElecTunnelTag();
+			vecX.push_back(norm.PullLength(vert->X));
+			vecY.push_back(norm.PullLength(vert->Y));
 
-			if (tuntag == FDBoundary::eTunnelIn)
+			if (ehinfo == ehInfo::eInfo)
 			{
+				tuntag = vert->BndCond.GetElecTunnelTag();
 			}
-			else // FDBoundary::eTunnelOut
+			else
 			{
+				tuntag = vert->BndCond.GetHoleTunnelTag();
 			}
+			tunCurrOrCoeff = it->second;
+
+			if (tuntag == FDBoundary::eTunnelIn || tuntag == FDBoundary::hTunnelIn)
+			{
+				tunCurrOrCoeff = norm.PullCurrDens(tunCurrOrCoeff);
+				vecDirection.push_back("in");
+			}
+			else if (tuntag == FDBoundary::eTunnelOut || tuntag==FDBoundary::hTunnelOut)
+			{
+				tunCurrOrCoeff = norm.PullTunCoeff(tunCurrOrCoeff);
+				vecDirection.push_back("out");
+			}
+			else // FDBoundary::noTunnel
+			{
+				tunCurrOrCoeff = 0;
+				vecDirection.push_back("no");
+			}
+			vecTun.push_back(tunCurrOrCoeff);
+
 		}
+
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "";
+		if (ehinfo == ehInfo::eInfo)
+			title = "electron tunneling of time [" + numStr + "] (x, y, tunneling current density/coefficient, direction to the boundary)";
+		else
+			title = "hole tunneling of time [" + numStr + "] (x, y, tunneling current density/coefficient, direction to the boundary)";
+
+		file.WriteVector(vecX, vecY, vecTun, vecDirection, title.c_str());
 
 	}
 
@@ -3116,6 +3157,25 @@ namespace SctmUtils
 			}
 			return;
 		}
+		if (name == "eTrapXsection")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_eTrapXsection, valDouble);
+				mapToSet[ParName::Si3N4_eTrapXsection] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_eTrapXsection, valDouble);
+				mapToSet[ParName::HfO2_eTrapXsection] = par;
+				break;
+			default:
+				break;
+			}
+			return;
+		}
 		if (name == "eFrequencyT2B")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -3268,6 +3328,25 @@ namespace SctmUtils
 				break;
 			}
 			return;
+		}
+		if (name == "hXsection")
+		{
+		valDouble = SctmConverter::StringToDouble(valStr);
+		Param<double> *par = NULL;
+		switch (currMat)
+		{
+			case MaterialDB::Mat::Si3N4:
+				par = new Param<double>(ParName::Si3N4_hTrapXsection, valDouble);
+				mapToSet[ParName::Si3N4_hTrapXsection] = par;
+				break;
+			case MaterialDB::Mat::HfO2:
+				par = new Param<double>(ParName::HfO2_hTrapXsection, valDouble);
+				mapToSet[ParName::HfO2_hTrapXsection] = par;
+				break;
+			default:
+				break;
+		}
+		return;
 		}
 		if (name == "hFrequencyT2B")
 		{

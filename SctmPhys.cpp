@@ -1017,6 +1017,7 @@ namespace SctmPhys
 		e_trapDensity = 0;
 		e_trapped = 0;
 		e_crossSection = 0;
+		e_trapCrossSection = 0;
 		e_energyFromCondBand = 0;
 		e_frequencyT2B = 0;
 		e_frequencyPF = 0;
@@ -1025,7 +1026,8 @@ namespace SctmPhys
 		//for holes
 		h_trapDensity = 0;
 		h_trapped = 0;
-		h_crosssection = 0;
+		h_crossSection = 0;
+		h_trapCrossSection = 0;
 		h_frequencyT2B = 0;
 		h_frequencyPF = 0;
 		h_energyFromValeBand = 0;
@@ -1093,6 +1095,9 @@ namespace SctmPhys
 		case eCrossSection:
 			e_crossSection = val;
 			break;
+		case eTrapCrossSection:
+			e_trapCrossSection = val;
+			break;
 		case eEnergyFromCondBand:
 			e_energyFromCondBand = val;
 			break;
@@ -1119,7 +1124,10 @@ namespace SctmPhys
 			h_trapDensity = val;
 			break;
 		case hCrossSection:
-			h_crosssection = val;
+			h_crossSection = val;
+			break;
+		case hTrapCrossSection:
+			h_trapCrossSection = val;
 			break;
 		case hEnergyFromValeBand:
 			h_energyFromValeBand = val;
@@ -1174,6 +1182,11 @@ namespace SctmPhys
 			case eCrossSection:
 			{
 				ret = e_crossSection;
+				break;
+			}
+			case eTrapCrossSection:
+			{
+				ret = e_trapCrossSection;
 				break;
 			}
 			case eEmptyTrapDens:
@@ -1319,7 +1332,12 @@ namespace SctmPhys
 			}
 			case hCrossSection:
 			{
-				ret = h_crosssection;
+				ret = h_crossSection;
+				break;
+			}
+			case hTrapCrossSection:
+			{
+				ret = h_trapCrossSection;
 				break;
 			}
 			case hFrequency_T2B:
