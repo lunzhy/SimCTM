@@ -15,10 +15,12 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 class FDDomain;
 class FDVertex;
 using std::vector;
+using std::string;
 typedef std::map<int, double> VertexMapDouble; // <vertID, value>, map with vertex index as the key
 
 class TrapSolver
@@ -71,13 +73,18 @@ protected:
 
 protected:
 	double temperature;
+	double timestep;
 	FDDomain *domain;
 	vector<FDVertex *> &vertices;
+	string captureModel;
+
 	VertexMapDouble mapTrapDensity;
+	VertexMapDouble mapFreeElecLast;
+	VertexMapDouble mapFreeHoleLast;
 	VertexMapDouble mapTrappedElecLast;
 	VertexMapDouble mapTrappedHoleLast;
-	VertexMapDouble mapSolvedElec;
-	VertexMapDouble mapSolverHole;
+	VertexMapDouble mapElecSolved;
+	VertexMapDouble mapHoleSolved;
 
 	// A*nt + B*pt = a
 	// C*nt + D*pt = b

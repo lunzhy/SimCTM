@@ -137,6 +137,17 @@ namespace SctmMath
 		return root;
 	}
 
+	void SolveLinearEquations(double A, double B, double C, double D, double m, double n, double& x, double& y)
+	{
+		double denominator = A * D - B * C;
+		
+		if (denominator == 0)
+			SCTM_ASSERT(SCTM_ERROR, 10058);
+
+		x = 1 / denominator  * (m * D - n * B);
+		y = 1 / denominator  * (-m * C + n * A);
+	}
+
 
 
 }

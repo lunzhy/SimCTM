@@ -1209,6 +1209,22 @@ namespace SctmPhys
 				ret = eVelocity * GetTrapPrpty(eCrossSection);
 				break;
 			}
+			case eTrappedCapCoeff_V_Model:
+			{
+				// this coefficient describes trapped electrons capturing holes
+				double eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::hThermalVelocity);
+				ret = eVelocity * GetTrapPrpty(eTrapCrossSection);
+				break;
+			}
+			case eTrappedCapCoeff_J_Model:
+			{
+				double mobility = 0;
+				double elecField = 0;
+				mobility = vertSelf->Phys->GetPhysPrpty(PhysProperty::hMobility);
+				elecField = vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField);
+				ret = GetTrapPrpty(eTrapCrossSection) * mobility * elecField;
+				break;
+			}
 			case eEmissionCoeff_BasicSRH:
 			{
 				double eVelocity = 0;
@@ -1363,6 +1379,22 @@ namespace SctmPhys
 			{
 				double eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::hThermalVelocity);
 				ret = eVelocity * GetTrapPrpty(hCrossSection);
+				break;
+			}
+			case hTrappedCapCoeff_V_Model:
+			{
+				// this coefficient describes trapped holes capturing free electrons
+				double eVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity);
+				ret = eVelocity * GetTrapPrpty(hTrapCrossSection);
+				break;
+			}
+			case hTrappedCapCoeff_J_Model:
+			{
+				double mobility = 0;
+				double elecField = 0;
+				mobility = vertSelf->Phys->GetPhysPrpty(PhysProperty::eMobility); // Jn * sigma_h
+				elecField = vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricField);
+				ret = GetTrapPrpty(hTrapCrossSection) * mobility * elecField;
 				break;
 			}
 			default:

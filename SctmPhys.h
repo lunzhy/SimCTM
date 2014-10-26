@@ -234,6 +234,8 @@ namespace SctmPhys
 			eEmptyTrapDens,
 			eCaptureCoeff_J_Model,
 			eCaptureCoeff_V_Model,
+			eTrappedCapCoeff_V_Model,
+			eTrappedCapCoeff_J_Model,
 			eEmissionCoeff_BasicSRH, ///< the electron emission rate of basic SRH process
 			eCoeff_B2T, ///< electron coefficient in band-to-trap tunneling, in [1/s]
 			eFrequency_T2B, ///< electron trap-to-band tunneling out frequency
@@ -256,6 +258,8 @@ namespace SctmPhys
 			hEmptyTrapDens,
 			hCaptureCoeff_J_Model,
 			hCaptureCoeff_V_Model,
+			hTrappedCapCoeff_V_Model,
+			hTrappedCapCoeff_J_Model,
 		};
 		TrapProperty(FDVertex *_vert);
 		/// @brief GetTrapPrpty is used to get the specific trap property value.

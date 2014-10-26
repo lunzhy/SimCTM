@@ -466,7 +466,8 @@ void HoleConserveTrapSolver::UpdateTrapped()
 
 CombinedTrapSolver::CombinedTrapSolver(FDDomain *_domain) :
 domain(_domain),
-vertices(_domain->GetDDVerts())
+vertices(_domain->GetDDVerts()),
+captureModel(SctmGlobalControl::Get().TrapCaptureModel)
 {
 	this->temperature = SctmGlobalControl::Get().Temperature;
 
@@ -481,8 +482,8 @@ vertices(_domain->GetDDVerts())
 		mapTrapDensity.insert(VertexMapDouble::value_type(vertID, vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
 		mapTrappedElecLast.insert(VertexMapDouble::value_type(vertID, 0));
 		mapTrappedHoleLast.insert(VertexMapDouble::value_type(vertID, 0));
-		mapSolvedElec.insert(VertexMapDouble::value_type(vertID, 0));
-		mapSolverHole.insert(VertexMapDouble::value_type(vertID, 0));
+		mapElecSolved.insert(VertexMapDouble::value_type(vertID, 0));
+		mapHoleSolved.insert(VertexMapDouble::value_type(vertID, 0));
 		map_A.insert(VertexMapDouble::value_type(vertID, 0));
 		map_B.insert(VertexMapDouble::value_type(vertID, 0));
 		map_C.insert(VertexMapDouble::value_type(vertID, 0));
@@ -497,6 +498,8 @@ void CombinedTrapSolver::refreshSolver()
 	FDVertex* vert = NULL;
 	int vertID = 0;
 	
+	this->timestep = SctmTimeStep::Get().TimeStep();
+
 	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
 	{
 		vert = vertices.at(iVert);
@@ -505,11 +508,95 @@ void CombinedTrapSolver::refreshSolver()
 		mapTrappedElecLast[vertID] = vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 		mapTrappedHoleLast[vertID] = vert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
 
+		mapFreeElecLast[vertID] = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		mapFreeHoleLast[vertID] = vert->Phys->GetPhysPrpty(PhysProperty::hDensity);
+
 		map_A[vertID] = 1;
 		map_B[vertID] = 0;
 		map_C[vertID] = 0;
 		map_D[vertID] = 1;
 		map_m[vertID] = mapTrappedElecLast[vertID];
 		map_n[vertID] = mapTrappedHoleLast[vertID];
+	}
+}
+
+void CombinedTrapSolver::setSolverTrapping()
+{
+	FDVertex* vert = NULL;
+	int vertID = 0;
+	double coeffFree = 0;
+	double coeffTrapped = 0;
+	double density = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		//set coefficient A, B and m
+		if (this->captureModel == "J-Model")
+		{
+			coeffFree = vert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
+			coeffTrapped = vert->Trap->GetTrapPrpty(TrapProperty::eTrappedCapCoeff_J_Model);
+		}
+		else if (this->captureModel == "V-Model")
+		{
+			coeffFree = vert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
+			coeffTrapped = vert->Trap->GetTrapPrpty(TrapProperty::eTrappedCapCoeff_V_Model);
+		}
+		map_A[vertID] += coeffFree * this->timestep * mapFreeElecLast[vertID];
+		map_A[vertID] += coeffTrapped * this->timestep * mapFreeHoleLast[vertID];
+		map_B[vertID] += coeffFree * this->timestep * mapFreeElecLast[vertID];
+
+		map_m[vertID] += coeffFree * this->timestep * mapFreeElecLast[vertID] * mapTrapDensity[vertID];
+
+		//set coefficient C, D and n
+		if (this->captureModel == "J-Model")
+		{
+			coeffFree = vert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_J_Model);
+			coeffTrapped = vert->Trap->GetTrapPrpty(TrapProperty::hTrappedCapCoeff_J_Model);
+		}
+		else if (this->captureModel == "V-Model")
+		{
+			coeffFree = vert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_V_Model);
+			coeffTrapped = vert->Trap->GetTrapPrpty(TrapProperty::hTrappedCapCoeff_V_Model);
+		}
+		map_C[vertID] += coeffFree * this->timestep * mapFreeHoleLast[vertID];
+		map_D[vertID] += coeffFree * this->timestep * mapFreeHoleLast[vertID];
+		map_D[vertID] += coeffTrapped * this->timestep * mapFreeElecLast[vertID];
+
+		map_n[vertID] += coeffFree * this->timestep * mapFreeHoleLast[vertID] * mapTrapDensity[vertID];
+	}
+}
+
+void CombinedTrapSolver::solveEachVertex()
+{
+	FDVertex* vert = NULL;
+	int vertID = 0;
+	double trappedElecSolved = 0;
+	double trappedHoleSolved = 0;
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		SctmMath::SolveLinearEquations(map_A[vertID], map_B[vertID], map_C[vertID], map_D[vertID], map_m[vertID], map_n[vertID], trappedElecSolved, trappedHoleSolved);
+		mapElecSolved[vertID] = trappedElecSolved;
+		mapHoleSolved[vertID] = trappedHoleSolved;
+	}
+}
+
+void CombinedTrapSolver::UpdateTrapped()
+{
+	FDVertex *currVert = NULL;
+	int vertID = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		currVert = vertices.at(iVert);
+		vertID = currVert->GetID();
+
+		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, mapElecSolved[vertID]);
+		currVert->Trap->SetTrapPrpty(TrapProperty::hTrapped, mapHoleSolved[vertID]);
 	}
 }

@@ -272,6 +272,10 @@ namespace SctmUtils
 			break;
 		case  10057:
 			msg = "[SctmMath.cpp] Solving quadratic equation meets non-existed real root.";
+			break;
+		case 10058:
+			msg = "[SctmMath.cpp] Solving linear equations meets 0 denominator.";
+			break;
 		default:
 			msg = "Untracked error";
 		}
