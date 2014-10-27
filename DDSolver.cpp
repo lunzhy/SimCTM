@@ -58,13 +58,15 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//dealing the the trapping/detrapping mechanism
 	//some of these considerations update the matrix coefficient and some update rhs vector
 	//updateRhsForTrapping_ExplicitMethod();
-	updateCoeffMatrixForTrapping();
+	
+	//updateCoeffMatrixForTrapping();
+	updateCoeffMatrixForTrapping_Combined(); // use the new trap solver
+	updateRhsForDetrapping();
 
 	//distinguishing electron and hole is temporarily considered/
 	if (this->ddMode == DDMode::ElecDD)
 	{
-		updateRhsForDetrapping();
-		updateRhsForMFNTunneling();
+		//updateRhsForMFNTunneling();
 	}
 	else // DDMode::HoleDD
 	{
@@ -1371,9 +1373,9 @@ void DriftDiffusionSolver::updateRhsForDetrapping()
 	int vertID = 0;
 	int equID = 0;
 
-	double eEmission_SRH = 0;
-	double eEmission_PF = 0;
-	double eTrappedDens = 0;
+	double emission_SRH = 0;
+	double emission_PF = 0;
+	double trappedDens = 0;
 	
 	double rhs_detrapping = 0;
 
@@ -1383,17 +1385,40 @@ void DriftDiffusionSolver::updateRhsForDetrapping()
 		vertID = currVert->GetID();
 		equID = equationMap[vertID];
 
-		eEmission_SRH = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			emission_SRH = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
+		}
+		else // DDMode::HoleDD
+		{
+			emission_SRH = currVert->Trap->GetTrapPrpty(TrapProperty::hEmissionCoeff_BasicSRH);
+		}
+		
 
 		if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
 		{
 			//consider Poole-Frenkel detrapping
-			eEmission_PF = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_PF);
+			if (this->ddMode == DDMode::ElecDD)
+			{
+				emission_PF = currVert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_PF);
+			}
+			else // DDMode::HoleDD
+			{
+				emission_PF = currVert->Trap->GetTrapPrpty(TrapProperty::hEmissionCoeff_PF);
+			}
 		}
 
-		eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			trappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+		}
+		else // DDMode::HoleDD
+		{
+			trappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
+		}
 
-		rhs_detrapping = (eEmission_SRH + eEmission_PF) * eTrappedDens;
+
+		rhs_detrapping = (emission_SRH + emission_PF) * trappedDens;
 		// the negative sigh symbolizes moving the addend from right to left of the equation.
 		rhsVector.at(equID) += -rhs_detrapping;
 	}
@@ -1470,6 +1495,67 @@ void DriftDiffusionSolver::updateRhsForTrapping_ExplicitMethod()
 		
 		//the negative sign means moving the addend from right to left of the equation
 		rhsVector.at(equIndex) += -rhs_trapping;
+	}
+}
+
+void DriftDiffusionSolver::updateCoeffMatrixForTrapping_Combined()
+{
+	FDVertex *vert = NULL;
+	int vertID = 0;
+	int indexEqu = 0;
+	int indexCoeff = 0;
+	double coeff_free = 0;
+	double coeff_trap = 0;
+	double coeff_update = 0;
+
+	static string captureModel = SctmGlobalControl::Get().TrapCaptureModel;
+
+	for (size_t iVert = 0; iVert != ddVertices.size(); ++iVert)
+	{
+		vert = ddVertices.at(iVert);
+		vertID = vert->GetID();
+
+		indexEqu = equationMap[vertID];
+		SCTM_ASSERT(indexEqu == iVert, 10012);
+		indexCoeff = indexEqu;
+
+		if (this->ddMode == DDMode::ElecDD)
+		{
+			if (captureModel == "J-Model")
+			{
+				coeff_free = vert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_J_Model);
+				coeff_trap = vert->Trap->GetTrapPrpty(TrapProperty::hTrappedCapCoeff_J_Model);
+			}
+			else if (captureModel == "V-Model")
+			{
+				coeff_free = vert->Trap->GetTrapPrpty(TrapProperty::eCaptureCoeff_V_Model);
+				coeff_trap = vert->Trap->GetTrapPrpty(TrapProperty::hTrappedCapCoeff_V_Model);
+			}
+
+			coeff_update = coeff_free * (vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity) - 
+				vert->Trap->GetTrapPrpty(TrapProperty::eTrapped) - vert->Trap->GetTrapPrpty(TrapProperty::hTrapped));
+			coeff_update += coeff_trap * vert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
+		}
+		else // DDMode::HoleDD
+		{
+			if (captureModel == "J-Model")
+			{
+				coeff_free = vert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_J_Model);
+				coeff_trap = vert->Trap->GetTrapPrpty(TrapProperty::eTrappedCapCoeff_J_Model);
+			}
+			else if (captureModel == "V-Model")
+			{
+				coeff_free = vert->Trap->GetTrapPrpty(TrapProperty::hCaptureCoeff_V_Model);
+				coeff_trap = vert->Trap->GetTrapPrpty(TrapProperty::eTrappedCapCoeff_V_Model);
+			}
+
+			coeff_update = coeff_free * (vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity) -
+				vert->Trap->GetTrapPrpty(TrapProperty::eTrapped) - vert->Trap->GetTrapPrpty(TrapProperty::hTrapped));
+			coeff_update += coeff_trap * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
+		}
+
+		// notice the negative sign before the coefficient
+		matrixSolver.RefreshMatrixValue(indexEqu, indexCoeff, -coeff_update, SctmSparseMatrixSolver::Add);
 	}
 }
 

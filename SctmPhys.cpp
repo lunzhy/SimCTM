@@ -1397,6 +1397,70 @@ namespace SctmPhys
 				ret = GetTrapPrpty(hTrapCrossSection) * mobility * elecField;
 				break;
 			}
+			case hEmissionCoeff_BasicSRH:
+			{
+				double hVelocity = 0;
+				double hEffectiveDOS = 0;
+
+				hVelocity = vertSelf->Phys->GetPhysPrpty(PhysProperty::hThermalVelocity);
+				hEffectiveDOS = vertSelf->Phys->GetPhysPrpty(PhysProperty::hEffDOS);
+
+				double trapDepth = GetTrapPrpty(TrapProperty::hEnergyFromValeBand);
+
+				using SctmUtils::SctmGlobalControl;
+				static string pfModel = SctmGlobalControl::Get().PhysicsPFModel;
+
+				if (pfModel == "None" || pfModel == "Frequency") //ordinary temperature-based emission
+				{
+					ret = GetTrapPrpty(hCrossSection) * hVelocity * hEffectiveDOS *
+						SctmMath::exp(-trapDepth); // kT/q will disappear with normalized energy
+				}
+				else if (pfModel == "EtDecrease")
+				{
+					double pfDecrease = GetTrapPrpty(TrapProperty::hTrapEnergyDecreasePF);
+					ret = GetTrapPrpty(hCrossSection) * hVelocity * hEffectiveDOS *
+						SctmMath::exp(-(trapDepth - pfDecrease)); // kT/q will disappear with normalized energy
+					//TODO: warning when pfDecrease > trapEnergy
+					if (pfDecrease > trapDepth)
+					{
+						SctmData::Get().WritePooleFrenkelInfo();
+					}
+				}
+				else
+				{
+					SCTM_ASSERT(SCTM_ERROR, 10045);
+				}
+
+				break;
+			}
+			case hTrapEnergyDecreasePF:
+			{
+				double temperature = vertSelf->Phys->GetPhysPrpty(PhysProperty::Temperature);
+				using SctmUtils::Normalization;
+				Normalization norm = Normalization(temperature);
+				double q = SctmPhys::q;
+
+				double elecField = norm.PullElecField(vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricFieldTrap)); // in [V/cm], real value
+				double eps = GetTrapPrpty(TrapProperty::EpsilonTrapping) *
+					SctmPhys::VacuumDielectricConstant / (1 / SctmPhys::cm_in_m); // in [F/cm]
+
+
+				double deltaEt = SctmMath::sqrt(q * q * q / SctmMath::PI / eps) * SctmMath::sqrt(elecField) / q; // in [eV], real value.
+				return norm.PushEnergy(deltaEt);
+			}
+			case hEmissionCoeff_PF:
+			{
+				double deltaEt = GetTrapPrpty(TrapProperty::hTrapEnergyDecreasePF); // in [eV], normalized value
+				double frequency = GetTrapPrpty(TrapProperty::hFrequency_PF);
+				double trapDepth = GetTrapPrpty(TrapProperty::hEnergyFromValeBand);
+
+				double coeff = frequency * SctmMath::exp(-(trapDepth - deltaEt));
+				if (deltaEt > trapDepth)
+				{
+					SctmData::Get().WritePooleFrenkelInfo();
+				}
+				return coeff;
+			}
 			default:
 			{
 				SCTM_ASSERT(SCTM_ERROR, 10029);

@@ -135,6 +135,8 @@ protected:
 	void handleCurrDensBC_out(FDVertex *vert, double tunCoeff);
 
 	void updateCoeffMatrixForTrapping();
+	void updateCoeffMatrixForTrapping_Combined();
+
 	void updateRhsForDetrapping();
 	void updateRhsForMFNTunneling();
 

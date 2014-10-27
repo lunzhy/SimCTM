@@ -21,6 +21,7 @@ class TunnelSolver;
 class DriftDiffusionSolver;
 class TrapSolver;
 class HoleConserveTrapSolver;
+class CombinedTrapSolver;
 class OneDimSubsSolver;
 
 typedef std::map<int, int> VertexMapInt; // <vertID, int>
@@ -47,6 +48,7 @@ protected:
 	TrapSolver *eTrappingSolver;
 	TrapSolver *hTrappingSolver;
 
+	CombinedTrapSolver *ehTrapSolver;
 	HoleConserveTrapSolver *hConsTrapSolver;
 
 protected:

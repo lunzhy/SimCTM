@@ -69,6 +69,8 @@ public:
 protected:
 	void refreshSolver();
 	void setSolverTrapping();
+	void setSolverDetrapping_SRH();
+	void setSolverDetrapping_PFfrequency();
 	void solveEachVertex();
 
 protected:

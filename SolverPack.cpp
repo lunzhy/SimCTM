@@ -43,6 +43,7 @@ void SolverPack::initialize()
 	hDDSolver = new DriftDiffusionSolver(domain, DriftDiffusionSolver::HoleDD);
 	eTrappingSolver = new TrapSolver(domain, TrapSolver::eTrap);
 	hTrappingSolver = new TrapSolver(domain, TrapSolver::hTrap);
+	ehTrapSolver = new CombinedTrapSolver(domain);
 
 	mapPotential.clear();
 	mapSiFermiAboveCBedge.clear();
@@ -147,8 +148,9 @@ void SolverPack::callIteration()
 
 		//solve trapping
 		SctmTimer::Get().Set();
-		eTrappingSolver->SolveTrap();
-		hTrappingSolver->SolveTrap();
+		ehTrapSolver->SolveTrap();
+		//eTrappingSolver->SolveTrap();
+		//hTrappingSolver->SolveTrap();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchTrappingResult();
 		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts(), SctmData::eInfo);
@@ -344,8 +346,9 @@ void SolverPack::fetchBlockOxideResult()
 
 void SolverPack::fetchTrappingResult()
 {
-	eTrappingSolver->UpdateTrapped();
-	hTrappingSolver->UpdateTrapped();
+	//eTrappingSolver->UpdateTrapped();
+	//hTrappingSolver->UpdateTrapped();
+	ehTrapSolver->UpdateTrapped();
 }
 
 void SolverPack::fetchSubstrateResult()

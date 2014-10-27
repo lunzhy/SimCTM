@@ -600,3 +600,57 @@ void CombinedTrapSolver::UpdateTrapped()
 		currVert->Trap->SetTrapPrpty(TrapProperty::hTrapped, mapHoleSolved[vertID]);
 	}
 }
+
+void CombinedTrapSolver::SolveTrap()
+{
+	refreshSolver();
+	setSolverTrapping();
+	setSolverDetrapping_SRH();
+	if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
+	{
+		setSolverDetrapping_PFfrequency();
+	}
+	solveEachVertex();
+}
+
+void CombinedTrapSolver::setSolverDetrapping_SRH()
+{
+	FDVertex *vert = NULL;
+	int vertID = 0;
+
+	double eEmission = 0;
+	double hEmission = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		eEmission = vert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_BasicSRH);
+		hEmission = vert->Trap->GetTrapPrpty(TrapProperty::hEmissionCoeff_BasicSRH);
+
+		map_A[vertID] += this->timestep * eEmission;
+		map_D[vertID] += this->timestep * hEmission;
+	}
+}
+
+void CombinedTrapSolver::setSolverDetrapping_PFfrequency()
+{
+	FDVertex *vert = NULL;
+	int vertID = 0;
+
+	double eEmission = 0;
+	double hEmission = 0;
+
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		eEmission = vert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_PF);
+		hEmission = vert->Trap->GetTrapPrpty(TrapProperty::hEmissionCoeff_PF);
+
+		map_A[vertID] += this->timestep * eEmission;
+		map_D[vertID] += this->timestep * hEmission;
+	}
+}

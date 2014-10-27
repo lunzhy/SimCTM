@@ -3333,7 +3333,7 @@ namespace SctmUtils
 			}
 			return;
 		}
-		if (name == "hXsection")
+		if (name == "hTrapXsection")
 		{
 		valDouble = SctmConverter::StringToDouble(valStr);
 		Param<double> *par = NULL;

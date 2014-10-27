@@ -260,6 +260,9 @@ namespace SctmPhys
 			hCaptureCoeff_V_Model,
 			hTrappedCapCoeff_V_Model,
 			hTrappedCapCoeff_J_Model,
+			hEmissionCoeff_BasicSRH,
+			hTrapEnergyDecreasePF,
+			hEmissionCoeff_PF,
 		};
 		TrapProperty(FDVertex *_vert);
 		/// @brief GetTrapPrpty is used to get the specific trap property value.
