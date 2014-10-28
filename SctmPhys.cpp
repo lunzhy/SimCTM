@@ -188,7 +188,7 @@ namespace SctmPhys
 			case NetFreeCharge:
 			{
 				//there should be four parts
-								  ret = -GetPhysPrpty(eDensity) + GetPhysPrpty(hDensity);
+				ret = -GetPhysPrpty(eDensity) + GetPhysPrpty(hDensity);
 				break;
 			}
 			case eDOSMass:
@@ -1014,6 +1014,9 @@ namespace SctmPhys
 	TrapProperty::TrapProperty(FDVertex *_vert)
 	{
 		vertSelf = _vert;
+		epsTrapping = 0;
+		trapDensity = 0;
+
 		e_trapDensity = 0;
 		e_trapped = 0;
 		e_crossSection = 0;
@@ -1092,6 +1095,9 @@ namespace SctmPhys
 		case EpsilonTrapping:
 			epsTrapping = val;
 			break;
+		case TrapDensity:
+			trapDensity = val;
+			break;
 		case eCrossSection:
 			e_crossSection = val;
 			break;
@@ -1157,6 +1163,11 @@ namespace SctmPhys
 			{
 				// there should be 2 parts here
 				ret = -GetTrapPrpty(eTrapped) + GetTrapPrpty(hTrapped);
+				break;
+			}
+			case TrapDensity:
+			{
+				ret = trapDensity;
 				break;
 			}
 			case eTrapped:

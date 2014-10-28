@@ -639,9 +639,12 @@ MaterialDB::Mat::Name FDDomain::GetTrapMatName()
 
 void FDDomain::setTrapOccupation()
 {
+	//set trap occupation is revised for the new consideration of trap density, which accounts for electron and hole
+	//trap simultaneously, i.e., amphoteric traps.
 	FDVertex *currVert = NULL;
 	double trapDens = 0;
 	double eTrappedDens = 0;
+	double hTrappedDens = 0;
 	double trapOccupy = SctmGlobalControl::Get().TrapOccupation;
 	string simStructure = SctmGlobalControl::Get().Structure;
 	string trappedRegion = SctmGlobalControl::Get().TrappedCell;
@@ -651,18 +654,22 @@ void FDDomain::setTrapOccupation()
 		for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 		{
 			currVert = ddVerts.at(iVert);
-			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
+			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::TrapDensity);
 
-			if (trapOccupy < 0 || trapOccupy > 1)
+			if (trapOccupy < -1 || trapOccupy > 1)
 			{
 				SCTM_ASSERT(SCTM_ERROR, 10044);
 			}
-			else
+			else if (trapOccupy < 0) // occupied by electrons
 			{
-				eTrappedDens = trapDens * trapOccupy;
+				eTrappedDens = trapDens * SctmMath::abs(trapOccupy);
+				currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
 			}
-
-			currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+			else if (trapOccupy > 0) // occupied by holes
+			{
+				hTrappedDens = trapDens * trapOccupy;
+				currVert->Trap->SetTrapPrpty(TrapProperty::hTrapped, hTrappedDens);
+			}
 		}
 	}
 	else if (simStructure == "Triple" || simStructure == "TripleFull")

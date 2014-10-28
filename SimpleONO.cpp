@@ -551,12 +551,16 @@ void SimpleONO::setTrapDistribution_Uniform()
 	double uniHoleTrapDens = SctmGlobalControl::Get().HoleUniTrapDens;
 	double hTrapDens = norm.PushDensity(uniHoleTrapDens);
 
+	double uniTrapDens = SctmGlobalControl::Get().UniTrapDens;
+	double trapDens = norm.PushDensity(uniTrapDens);
+
 	FDVertex *currVert = NULL;
 	for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 	{
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
 		currVert->Trap->SetTrapPrpty(TrapProperty::hTrapDensity, hTrapDens);
+		currVert->Trap->SetTrapPrpty(TrapProperty::TrapDensity, trapDens);
 	}
 }
 

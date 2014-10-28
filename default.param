@@ -23,6 +23,7 @@ subs.type					: P 					# N | P , substrate type
 subs.doping					: 1e17					# in [cm^-3]
 trap.eDensity				: 6e19					# in [cm^-3]
 trap.hDensity				: 6e19					# in [cm^-3]
+trap.density				: 6e19					# in [cm^-3], trap density for amphoretic trap
 trap.distribution			: Uniform				# Uniform | 2D, trap distribution information
 
 # switches of the physical mechanisms
@@ -33,7 +34,7 @@ physics.t2b					: False					# True | False, Trap-to-Band tunneling out
 physics.pf					: None					# None | EtDecrease | Frequency, model of Poole-Frenkel effect
 
 # for debug
-debug.trap.occupy			: 0						# range [0, 1], trap occupation state
+debug.trap.occupy			: 0						# range [0, 1], trap occupation state, positive value for hole occupation, negative electron
 debug.trap.cell				: Center				# Center | Side | All, occupied cells
 debug.lateral.tunnel		: True					# True | False, the non-orthogonal tunneling near the gate
 debug.call.pytaurus			: Initial				# Never | Initial | EveryStep | Major, the frequency of calling Pytaurus in Linux

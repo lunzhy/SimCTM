@@ -223,6 +223,7 @@ namespace SctmPhys
 		{
 			EpsilonTrapping, ///< dielectric constant for trapping layer
 			NetTrappedCharge,
+			TrapDensity,
 
 			//for electrons
 			eTrapped,
@@ -281,6 +282,8 @@ namespace SctmPhys
 	private:
 		FDVertex *vertSelf;
 		double epsTrapping;
+		double trapDensity; ///< total trap density both for electrons and holes
+
 		double e_trapped;
 		double e_trapDensity;
 		double e_crossSection;

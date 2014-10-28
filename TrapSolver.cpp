@@ -478,8 +478,7 @@ captureModel(SctmGlobalControl::Get().TrapCaptureModel)
 		vert = vertices.at(iVert);
 		vertID = vert->GetID();
 
-		// CUATION ! currently use eTrapDensity for total density
-		mapTrapDensity.insert(VertexMapDouble::value_type(vertID, vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
+		mapTrapDensity.insert(VertexMapDouble::value_type(vertID, vert->Trap->GetTrapPrpty(TrapProperty::TrapDensity)));
 		mapTrappedElecLast.insert(VertexMapDouble::value_type(vertID, 0));
 		mapTrappedHoleLast.insert(VertexMapDouble::value_type(vertID, 0));
 		mapElecSolved.insert(VertexMapDouble::value_type(vertID, 0));

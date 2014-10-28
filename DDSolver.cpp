@@ -1532,7 +1532,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping_Combined()
 				coeff_trap = vert->Trap->GetTrapPrpty(TrapProperty::hTrappedCapCoeff_V_Model);
 			}
 
-			coeff_update = coeff_free * (vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity) - 
+			coeff_update = coeff_free * (vert->Trap->GetTrapPrpty(TrapProperty::TrapDensity) - 
 				vert->Trap->GetTrapPrpty(TrapProperty::eTrapped) - vert->Trap->GetTrapPrpty(TrapProperty::hTrapped));
 			coeff_update += coeff_trap * vert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
 		}
@@ -1549,7 +1549,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForTrapping_Combined()
 				coeff_trap = vert->Trap->GetTrapPrpty(TrapProperty::eTrappedCapCoeff_V_Model);
 			}
 
-			coeff_update = coeff_free * (vert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity) -
+			coeff_update = coeff_free * (vert->Trap->GetTrapPrpty(TrapProperty::TrapDensity) -
 				vert->Trap->GetTrapPrpty(TrapProperty::eTrapped) - vert->Trap->GetTrapPrpty(TrapProperty::hTrapped));
 			coeff_update += coeff_trap * vert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
 		}

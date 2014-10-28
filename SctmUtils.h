@@ -370,6 +370,7 @@ namespace SctmUtils
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double ElecUniTrapDens; ///< the uniform electron trap density, in [cm^-3]
 		double HoleUniTrapDens; ///< the uniform hole trap density, in [cm^-3]
+		double UniTrapDens; ///< the uniform trap density for both carriers
 		string TrapDistribution; ///< the distribution 
 
 		//physics models
@@ -431,6 +432,7 @@ namespace SctmUtils
 			subs_doping,
 			trap_eDensity,
 			trap_hDensity,
+			trap_density,
 			trap_distribution,
 			
 			trap_capture,

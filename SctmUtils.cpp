@@ -1590,7 +1590,7 @@ namespace SctmUtils
 			currVert = vertices.at(iVert);
 			vecX.push_back(norm.PullLength(currVert->X));
 			vecY.push_back(norm.PullLength(currVert->Y));
-			trapDens.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity)));
+			trapDens.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::TrapDensity)));
 		}
 
 		string title = "trap distribution information";
@@ -2217,6 +2217,8 @@ namespace SctmUtils
 		Get().ElecUniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_hDensity);
 		Get().HoleUniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_density);
+		Get().UniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
 		//SubstrateDoping
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_type);
 		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2529,6 +2531,13 @@ namespace SctmUtils
 			valDouble = SctmConverter::StringToDouble(valStr);
 			Param<double> *par = new Param<double>(ParName::trap_hDensity, valDouble);
 			mapToSet[ParName::trap_hDensity] = par;
+			return;
+		}
+		if (name == "trap.density")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::trap_density, valDouble);
+			mapToSet[ParName::trap_density] = par;
 			return;
 		}
 		if (name == "trap.distribution")
