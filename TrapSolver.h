@@ -71,6 +71,7 @@ protected:
 	void setSolverTrapping();
 	void setSolverDetrapping_SRH();
 	void setSolverDetrapping_PFfrequency();
+	void setSolverElecT2B();
 	void solveEachVertex();
 
 protected:

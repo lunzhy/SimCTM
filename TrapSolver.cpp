@@ -609,6 +609,10 @@ void CombinedTrapSolver::SolveTrap()
 	{
 		setSolverDetrapping_PFfrequency();
 	}
+	if (SctmGlobalControl::Get().PhysicsT2B)
+	{
+		setSolverElecT2B();
+	}
 	solveEachVertex();
 }
 
@@ -651,5 +655,23 @@ void CombinedTrapSolver::setSolverDetrapping_PFfrequency()
 
 		map_A[vertID] += this->timestep * eEmission;
 		map_D[vertID] += this->timestep * hEmission;
+	}
+}
+
+void CombinedTrapSolver::setSolverElecT2B()
+{
+	FDVertex *vert = NULL;
+	int vertID = 0;
+	double coeff_T2B = 0;
+	
+	for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+	{
+		vert = vertices.at(iVert);
+		vertID = vert->GetID();
+
+		//Trap-to-Band tunneling out always leads to the decrease of trapped charge
+		coeff_T2B = vert->Trap->GetTrapPrpty(TrapProperty::eEmissionCoeff_T2B);
+		//move this item from right to the left of the equation
+		map_A[vertID] += this->timestep * coeff_T2B;
 	}
 }

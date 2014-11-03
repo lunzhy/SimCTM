@@ -1182,7 +1182,8 @@ namespace SctmPhys
 			}
 			case eOccupation:
 			{
-				ret = e_trapped / e_trapDensity;
+				//ret = e_trapped / e_trapDensity;
+				ret = e_trapped / GetTrapPrpty(TrapProperty::TrapDensity);
 				break;
 			}
 			case eEnergyFromCondBand:
@@ -1344,7 +1345,8 @@ namespace SctmPhys
 			}
 			case hOccupation:
 			{
-				ret = h_trapped / h_trapDensity;
+				//ret = h_trapped / h_trapDensity;
+				ret = h_trapped / GetTrapPrpty(TrapProperty::TrapDensity);
 				break;
 			}
 			case hEmptyTrapDens:
