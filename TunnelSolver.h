@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <algorithm>
 
 class FDDomain;
 class FDVertex;
@@ -28,8 +29,10 @@ typedef std::map<int, double> VertexMapDouble; // <vertID, value>, map of vertex
 /// It should be note that all the variables in TunnelSolver and its derived class are in real value.
 /// They are transformed to real values after being passed into this solver.
 /// And the result after calculation is in U.I.
+class SubsToTrapElecTAT;
 class TunnelSolver
 {
+	friend class SubsToTrapElecTAT;
 	//friend class SctmUtils::SctmDebug;
 public:
 	enum TunnelMode
@@ -164,6 +167,8 @@ protected:
 	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
 	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
 	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
+
+	SubsToTrapElecTAT* solverTAT; 
 };
 
 class SubsToTrapHoleTunnel : public SubsToTrapElecTunnel
@@ -243,6 +248,31 @@ protected:
 	void setBoundaryVerts();
 	void setInterpolatedValues();
 	void findLeftRigthVertex(FDVertex *vert, double xDist, FDVertex* &left, FDVertex* &right);
+};
+
+class SubsToTrapElecTAT
+{
+public:
+	SubsToTrapElecTAT(TunnelSolver* _tunSolver);
+	double SolveTAT(FDVertex* tunStart, FDVertex* tunEnd);
+
+protected:
+	void setOxideTrapParam();
+	void loadOxideVertices();
+	void calcTimeConstant(FDVertex* oxideVert, double& ctime, double& etime);
+	double calcTunnelCoefficient(FDVertex* startVert, FDVertex* endVert);
+	double getDeltaX(FDVertex* vert);
+
+protected:
+	TunnelSolver* tunnelSolver;
+	FDVertex* tunStartVert;
+	FDVertex* tunEndVert;
+	vector<FDVertex*> oxideVertices;
+
+	double oxideTrapCrossSection;
+	double activeEnergyNeutralToNegative; // E12
+	double activeEnergyNegativeToNeutral; // E21
+	double oxideTrapDensity; // in [1/cm^2]
 };
 
 #endif

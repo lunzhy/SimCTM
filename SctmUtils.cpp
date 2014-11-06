@@ -276,6 +276,9 @@ namespace SctmUtils
 		case 10058:
 			msg = "[SctmMath.cpp] Solving linear equations meets 0 denominator.";
 			break;
+		case 10059:
+			msg = "[TunnelSolver.cpp] Error ocurrs in solving TAT tunneling current.";
+			break;
 		default:
 			msg = "Untracked error";
 		}

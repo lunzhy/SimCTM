@@ -44,7 +44,7 @@ namespace SctmPhys
 	// unit conversion
 	const double cm_in_m					= 1e-2;
 	const double nm_in_cm					= 1e-7;
-	const double cm_in_nm = 1e7;
+	const double cm_in_nm					= 1e7;
 	const double per_sqr_m_in_per_sqr_cm	= 1e-4; // per square meter in per square centimeter 1/m^2 = 1e-4 /cm^2
 	const double per_cm3_in_per_m3			= 1e6; // 1 cm^-3 = 1e6 m^-3
 	
