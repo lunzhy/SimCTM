@@ -259,8 +259,8 @@ public:
 protected:
 	void setOxideTrapParam();
 	void loadOxideVertices();
-	void calcTimeConstant(FDVertex* oxideVert, double& ctime, double& etime);
-	double calcTunnelCoefficient(FDVertex* startVert, FDVertex* endVert);
+	bool calcTimeConstant(FDVertex* oxideVert, double& ctime, double& etime);
+	double getTunCoeffTAT(FDVertex* startVert, FDVertex* endVert, std::string inout);
 	double getDeltaX(FDVertex* vert);
 
 protected:
@@ -268,11 +268,17 @@ protected:
 	FDVertex* tunStartVert;
 	FDVertex* tunEndVert;
 	vector<FDVertex*> oxideVertices;
+	VertexMapDouble oxideTrapOccupation;
 
 	double oxideTrapCrossSection;
-	double activeEnergyNeutralToNegative; // E12
-	double activeEnergyNegativeToNeutral; // E21
+	double activeEnergyNeutralToNegative; // E12, in normalized value
+	double activeEnergyNegativeToNeutral; // E21, in normalized value
 	double oxideTrapDensity; // in [1/cm^2]
+	double gammaElectric; // electric dependent factor in the calculation of active energy
+	double activeEnergy;
+	double trapEnergyFromCond;
+	double trapEnergyFromCond_nc;
+	double phononEnergy;
 };
 
 #endif

@@ -56,6 +56,7 @@ namespace SctmMath
 	inline double pow(double val, double arg) { return std::pow(val, arg); }
 	inline double asinh(double val) { return std::asinh(val); }
 	inline double min_val(double val1, double val2) { return val1 < val2 ? val1 : val2; }
+	inline double max_val(double val1, double val2) { return val1 > val2 ? val1 : val2; }
 	inline double log10(double val) { return std::log10(val); }
 	inline double floor(double val) { return std::floor(val); }
 	inline bool logically_equal(double a, double b, double error_factor = 1.0)

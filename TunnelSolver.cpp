@@ -625,10 +625,12 @@ void SubsToTrapElecTunnel::SolveTunnel()
 
 		currdens = calcDTFNtunneling(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, cbedge_max);
 		currdens += calcThermalEmission(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, cbedge_max);
-		eCurrDens_DTFN.at(iVert) = currdens;
 
-		//calculate TAT current density;
+		//calculate TAT current density, which is in [A/m^2]
 		currdens_TAT = this->solverTAT->SolveTAT(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
+		currdens += currdens_TAT;
+
+		eCurrDens_DTFN.at(iVert) = currdens;
 
 		setSolver_Trap();
 
@@ -2010,10 +2012,10 @@ void TrapToGateHoleTunnel::pretendToBeElecTun()
 SubsToTrapElecTAT::SubsToTrapElecTAT(TunnelSolver* _tunSolver):
 tunnelSolver(_tunSolver)
 {
-
+	setOxideTrapParam();
 }
 
-void SubsToTrapElecTAT::calcTimeConstant(FDVertex* oxideVert, double& ctime, double& etime)
+bool SubsToTrapElecTAT::calcTimeConstant(FDVertex* oxideVert, double& ctime, double& etime)
 {
 	using namespace MaterialDB;
 
@@ -2025,6 +2027,7 @@ void SubsToTrapElecTAT::calcTimeConstant(FDVertex* oxideVert, double& ctime, dou
 	double h = SctmPhys::h;
 	double pi = SctmMath::PI;
 	double q = SctmPhys::q;
+	double kT = k0 * tunnelSolver->temperature;
 
 	double crosssection = 0;
 	double tunnelcoeff = 0;
@@ -2032,36 +2035,68 @@ void SubsToTrapElecTAT::calcTimeConstant(FDVertex* oxideVert, double& ctime, dou
 	double activationEnergy = 0;
 	double evth = 0;
 	
+	double trapEnergyLevel = 0;
+	double energy = 0;
+
+	//double cbandEnergy = oxideVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy);
+	//cbandEnergy = norm.PullEnergy(cbandEnergy);
+	//if (this->tunnelSolver->bandEdgeTunnelFrom > cbandEnergy)
+	//{
+	//	return false;
+	//}
+
 	//calculation of the capture time constant, use [m]
-	tunnelcoeff = calcTunnelCoefficient(this->tunStartVert, oxideVert);
+	tunnelcoeff = getTunCoeffTAT(this->tunStartVert, oxideVert, "in");
 	density = 2.0 * 
-		SctmMath::pow((2 * pi * m0 * GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElecDOSMass)), 1.5) 
+		SctmMath::pow((2 * pi * m0 * GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElecDOSMass) * kT), 1.5)
 		/ h / h / h * 
 		SctmMath::exp((tunnelSolver->fermiEnergyTunnelFrom - tunnelSolver->bandEdgeTunnelFrom) / 
-		k0 / tunnelSolver->temperature); //density already in [1/m^3]
+		(kT / q)); //density already in [1/m^3]
 
 	double dosmass = GetMatPrpty(GetMaterial(Mat::Silicon), MatProperty::Mat_ElecDOSMass) * m0;
-	double kT = SctmPhys::k0 * tunnelSolver->temperature;
 	evth = SctmMath::sqrt(3 * kT / dosmass); // in [m/s]
 
 	crosssection = this->oxideTrapCrossSection * cm2_in_m2; // in [m^2]
 	activationEnergy = this->activeEnergyNeutralToNegative;
 
-	ctime = crosssection * tunnelcoeff * evth * density *
-		SctmMath::exp(-activationEnergy);
+	trapEnergyLevel = oxideVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - this->trapEnergyFromCond;
+
+	energy = SctmMath::max_val(0, trapEnergyLevel-this->tunnelSolver->bandEdgeTunnelFrom);
+	/*energy = SctmMath::square(this->phononEnergy +
+		(trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom)) / 4 / this->phononEnergy;
+	energy = (trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom) * ((trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom)/4/this->phononEnergy + 0.5);*/
+
+	ctime = 1 / (crosssection * tunnelcoeff * evth * density *
+		SctmMath::exp(-energy));
+
+	//ctime = SctmMath::exp(-this->activeEnergy) / (crosssection * tunnelcoeff * evth * density);
 
 	//calculation of the emission time constant, use [cm]
-	tunnelcoeff = calcTunnelCoefficient(oxideVert, this->tunEndVert);
-	density = tunnelSolver->verts_Trap.front()->Phys->GetPhysPrpty(PhysProperty::eEffDOS); // density in [1/cm^3]
+	tunnelcoeff = getTunCoeffTAT(oxideVert, this->tunEndVert, "out");
+	double dos = tunnelSolver->verts_Trap.front()->Phys->GetPhysPrpty(PhysProperty::eEffDOS); // in normalized value, in [1/cm^3]
+	dos = norm.PullDensity(density);
 	
 	evth = tunnelSolver->verts_Trap.front()->Phys->GetPhysPrpty(PhysProperty::eThermalVelocity); // in normalized value, in [cm/s]
 	evth = norm.PullVelocity(evth); // in [cm/s]
 
-	crosssection = this->oxideTrapCrossSection;
+	crosssection = this->oxideTrapCrossSection; // in [cm^2]
 	activationEnergy = this->activeEnergyNegativeToNeutral;
 
-	etime = crosssection * tunnelcoeff * evth * density *
-		SctmMath::exp(-activationEnergy);
+	trapEnergyLevel = oxideVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - this->trapEnergyFromCond;
+
+	energy = SctmMath::max_val(0, this->tunnelSolver->bandEdgeTunnelTo - trapEnergyLevel);
+	/*energy = SctmMath::square(this->phononEnergy -
+		(trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom)) / 4 / this->phononEnergy;
+	energy = (trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom) * ((trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom) / 4 / this->phononEnergy - 0.5);*/
+
+	etime = 1 / (crosssection * tunnelcoeff * evth * dos * SctmMath::exp(-energy));
+
+ 	/*double trapEnergy = oxideVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) -
+ 		this->trapEnergyFromCond;
+ 	etime = SctmMath::exp(this->activeEnergy) / (crosssection * tunnelcoeff * evth * density) *
+ 		SctmMath::exp(-(this->tunnelSolver->fermiEnergyTunnelTo));*/
+
+	return true;
 }
 
 double SubsToTrapElecTAT::SolveTAT(FDVertex* tunStart, FDVertex* tunEnd)
@@ -2078,14 +2113,22 @@ double SubsToTrapElecTAT::SolveTAT(FDVertex* tunStart, FDVertex* tunEnd)
 	double currDens = 0;
 	double dx = 0;
 	double q = SctmPhys::q;
+	double cm_in_m = SctmPhys::cm_in_m;
+	bool tat_enable = false;
+	double occupation = 0;
+
 	for (size_t iVert = 0; iVert != this->oxideVertices.size(); ++iVert)
 	{
 		oxidevert = oxideVertices.at(iVert);
 		vertID = oxidevert->GetID();
 
+		//tat_enable = calcTimeConstant(oxidevert, ctime, etime);
+		//if (!tat_enable)
+		//	continue;
 		calcTimeConstant(oxidevert, ctime, etime);
 		dx = getDeltaX(oxidevert); // get the real value in [cm]
-		currDens += q * this->oxideTrapDensity / (ctime + etime) * dx;
+		currDens += q * this->oxideTrapDensity / (ctime + etime) * (dx * cm_in_m);
+		occupation = etime / (ctime + etime);
 	}
 
 	return currDens;
@@ -2111,23 +2154,24 @@ void SubsToTrapElecTAT::loadOxideVertices()
 	}
 }
 
-double SubsToTrapElecTAT::calcTunnelCoefficient(FDVertex* startVert, FDVertex* endVert)
+double SubsToTrapElecTAT::getTunCoeffTAT(FDVertex* startVert, FDVertex* endVert, string inout)
 {
 	int size = 0;
 	int startindex = 0;
 	double retTunCoeff = 0;
 	double energy = 0;
-	if (startVert == this->tunStartVert) //for tunneling from substrate into the trap
+
+	if (inout == "in") //for tunneling from substrate into the trap
 	{
 		startindex = 0;
 		size = std::find(oxideVertices.begin(), oxideVertices.end(), endVert) - oxideVertices.begin() + 1;
-		if (startindex > oxideVertices.size())
+		if ((size_t)startindex > oxideVertices.size())
 		{
 			SCTM_ASSERT(SCTM_ERROR, 10059);
 		}
 		energy = this->tunnelSolver->bandEdgeTunnelFrom;
 	}
-	else //for tunneling from the trap into trapping layer
+	else // inout == "out", for tunneling from the trap into trapping layer
 	{
 		startindex = std::find(oxideVertices.begin(), oxideVertices.end(), startVert) - oxideVertices.begin();
 		size = oxideVertices.size();
@@ -2143,10 +2187,7 @@ double SubsToTrapElecTAT::getDeltaX(FDVertex* vert)
 {
 	int pos = std::find(oxideVertices.begin(), oxideVertices.end(), vert) - oxideVertices.begin();
 	double deltax =  tunnelSolver->deltaX_Tunnel.at(pos);
-
-	Normalization norm = Normalization(tunnelSolver->temperature);
-	deltax = norm.PullLength(deltax);
-
+	// deltax is already in real value, but in cm
 	return deltax;
 }
 
@@ -2155,9 +2196,12 @@ void SubsToTrapElecTAT::setOxideTrapParam()
 	Normalization norm = Normalization(this->tunnelSolver->temperature);
 	//the calculation of TAT current is in real value,
 	//so, all the parameters are in real values.
-	this->oxideTrapCrossSection = 1e-13;
-	this->activeEnergyNeutralToNegative = norm.PushEnergy(1.2); // E12
-	this->activeEnergyNegativeToNeutral = norm.PushEnergy(1.0); // E21
-	this->oxideTrapDensity = 1e18; //in [1/cm^3]
-
+	this->oxideTrapCrossSection = 1e-13; // in  [1/cm^2]
+	this->activeEnergyNeutralToNegative = norm.PushEnergy(0.2); // E12
+	this->activeEnergyNegativeToNeutral = norm.PushEnergy(0.2); // E21
+	this->oxideTrapDensity = 1e24; // in [1/m^3], because the unit of current density in tunneling solver is [A/m^2]
+	this->activeEnergy = norm.PushEnergy(0);
+	this->trapEnergyFromCond = norm.PushEnergy(1.0);
+	this->trapEnergyFromCond_nc = norm.PushEnergy(1.0);
+	this->phononEnergy = norm.PushEnergy(0.12);
 }
