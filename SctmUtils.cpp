@@ -2075,6 +2075,35 @@ namespace SctmUtils
 
 	}
 
+	void SctmData::WriteTimeConstantTAT(vector<FDVertex *> &vertices)
+	{
+		fileName = directoryName + pathSep + "Trap" + pathSep + "timeTAT" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> captureTime;
+		vector<double> emissionTime;
+		vector<double> occupation;
+
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			captureTime.push_back(norm.PullTime(currVert->Phys->GetPhysPrpty(PhysProperty::eCaptureTime)));
+			emissionTime.push_back(norm.PullTime(currVert->Phys->GetPhysPrpty(PhysProperty::eEmissionTime)));
+			occupation.push_back(currVert->Phys->GetPhysPrpty(PhysProperty::eOccupationTAT));
+		}
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "time constant in TAT of time [" + numStr + "] (x, y, capture time, emission time, occupation)";
+		file.WriteVector(vecX, vecY, captureTime, emissionTime, occupation, title.c_str());
+	}
+
+
 
 
 

@@ -2062,6 +2062,7 @@ bool SubsToTrapElecTAT::calcTimeConstant(FDVertex* oxideVert, double& ctime, dou
 	trapEnergyLevel = oxideVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - this->trapEnergyFromCond;
 
 	energy = SctmMath::max_val(0, trapEnergyLevel-this->tunnelSolver->bandEdgeTunnelFrom);
+	
 	/*energy = SctmMath::square(this->phononEnergy +
 		(trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom)) / 4 / this->phononEnergy;
 	energy = (trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom) * ((trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom)/4/this->phononEnergy + 0.5);*/
@@ -2085,6 +2086,7 @@ bool SubsToTrapElecTAT::calcTimeConstant(FDVertex* oxideVert, double& ctime, dou
 	trapEnergyLevel = oxideVert->Phys->GetPhysPrpty(PhysProperty::ConductionBandEnergy) - this->trapEnergyFromCond;
 
 	energy = SctmMath::max_val(0, this->tunnelSolver->bandEdgeTunnelTo - trapEnergyLevel);
+	
 	/*energy = SctmMath::square(this->phononEnergy -
 		(trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom)) / 4 / this->phononEnergy;
 	energy = (trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom) * ((trapEnergyLevel - this->tunnelSolver->bandEdgeTunnelFrom) / 4 / this->phononEnergy - 0.5);*/
@@ -2101,6 +2103,7 @@ bool SubsToTrapElecTAT::calcTimeConstant(FDVertex* oxideVert, double& ctime, dou
 
 double SubsToTrapElecTAT::SolveTAT(FDVertex* tunStart, FDVertex* tunEnd)
 {
+	Normalization norm = Normalization(this->tunnelSolver->temperature);
 	this->tunStartVert = tunStart;
 	this->tunEndVert = tunEnd;
 	loadOxideVertices();
@@ -2114,21 +2117,18 @@ double SubsToTrapElecTAT::SolveTAT(FDVertex* tunStart, FDVertex* tunEnd)
 	double dx = 0;
 	double q = SctmPhys::q;
 	double cm_in_m = SctmPhys::cm_in_m;
-	bool tat_enable = false;
-	double occupation = 0;
 
 	for (size_t iVert = 0; iVert != this->oxideVertices.size(); ++iVert)
 	{
 		oxidevert = oxideVertices.at(iVert);
 		vertID = oxidevert->GetID();
 
-		//tat_enable = calcTimeConstant(oxidevert, ctime, etime);
-		//if (!tat_enable)
-		//	continue;
 		calcTimeConstant(oxidevert, ctime, etime);
+		oxidevert->Phys->SetPhysPrpty(PhysProperty::eCaptureTime, norm.PushTime(ctime));
+		oxidevert->Phys->SetPhysPrpty(PhysProperty::eEmissionTime, norm.PushTime(etime));
+
 		dx = getDeltaX(oxidevert); // get the real value in [cm]
 		currDens += q * this->oxideTrapDensity / (ctime + etime) * (dx * cm_in_m);
-		occupation = etime / (ctime + etime);
 	}
 
 	return currDens;

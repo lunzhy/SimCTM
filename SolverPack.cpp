@@ -133,6 +133,7 @@ void SolverPack::callIteration()
 		fetchBlockOxideResult();
 		SctmData::Get().WriteTunnelInfo(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block, SctmData::eInfo);
 		SctmData::Get().WriteTunnelInfo(domain, mapHoleCurrDensOrCoeff_Tunnel, mapHoleCurrDensOrCoeff_Block, SctmData::hInfo);
+		SctmData::Get().WriteTimeConstantTAT(domain->GetVertsOfRegion("Tunnel"));
 
 		//solver drift-diffusion equation
 		SctmTimer::Get().Set();

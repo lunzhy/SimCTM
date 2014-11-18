@@ -302,6 +302,7 @@ namespace SctmUtils
 		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		void WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo);
+		void WriteTimeConstantTAT(vector<FDVertex *> &vertices);
 
 		void WriteSubsVertices(vector<FDVertex *> &vertices);
 		void WriteVfbShiftEachInterface(FDDomain *domain);

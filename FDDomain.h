@@ -81,6 +81,7 @@ public:
 	/// @return std::vector<FDVertex *> &
 	/// @note
 	std::vector<FDVertex *>& GetDDVerts();
+	std::vector<FDVertex *> GetVertsOfRegion(std::string name);
 	/// @brief GetVertex can get the vertex object with given id
 	/// 
 	/// This method returns the pointer of specified vertex object. In practice, a pointer with same type is

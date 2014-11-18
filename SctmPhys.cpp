@@ -56,6 +56,9 @@ namespace SctmPhys
 		e_currdensMFN_Y = 0;
 		e_subsCurrDensB2T = 0;
 
+		e_emissionTime = 0;
+		e_captureTime = 0;
+
 		h_mass = 0;
 		h_DOSmass = 0;
 		h_mobility = 0;
@@ -104,6 +107,12 @@ namespace SctmPhys
 			break;
 		case eSubsCurrDensB2T:
 			e_subsCurrDensB2T = prptyValue;
+			break;
+		case eEmissionTime:
+			e_emissionTime = prptyValue;
+			break;
+		case eCaptureTime:
+			e_captureTime = prptyValue;
 			break;
 		//for holes
 		case hMass:
@@ -561,6 +570,21 @@ namespace SctmPhys
 			case eSubsCurrDensB2T:
 			{
 				ret = e_subsCurrDensB2T;
+				break;
+			}
+			case eEmissionTime:
+			{
+				ret = e_emissionTime;
+				break;
+			}
+			case eCaptureTime:
+			{
+				ret = e_captureTime;
+				break;
+			}
+			case eOccupationTAT:
+			{
+				ret = GetPhysPrpty(eEmissionTime) / (GetPhysPrpty(eEmissionTime) + GetPhysPrpty(eCaptureTime));
 				break;
 			}
 			//for holes

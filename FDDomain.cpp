@@ -826,4 +826,20 @@ bool FDDomain::isBelongToRegion(FDVertex *vert, string regName)
 	return isBelong;
 }
 
+std::vector<FDVertex *> FDDomain::GetVertsOfRegion(std::string name)
+{
+	std::vector<FDVertex *> regVerts;
+	FDVertex* vert = NULL;
+
+	for (size_t vertID = 0; vertID != this->vertices.size(); ++vertID)
+	{
+		vert = vertices.at(vertID);
+		if (FDDomain::isBelongToRegion(vert, name))
+		{
+			regVerts.push_back(vert);
+		}
+	}
+	return regVerts;
+}
+
 
