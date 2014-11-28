@@ -265,6 +265,7 @@ protected:
 
 protected:
 	TunnelSolver* tunnelSolver;
+	TunnelSolver::TunnelDirection tunnelDirection;
 	FDVertex* tunStartVert;
 	FDVertex* tunEndVert;
 	vector<FDVertex*> oxideVertices;
