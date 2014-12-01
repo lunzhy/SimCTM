@@ -272,14 +272,8 @@ protected:
 	VertexMapDouble oxideTrapOccupation;
 
 	double oxideTrapCrossSection;
-	double activeEnergyNeutralToNegative; // E12, in normalized value
-	double activeEnergyNegativeToNeutral; // E21, in normalized value
 	double oxideTrapDensity; // in [1/cm^2]
-	double gammaElectric; // electric dependent factor in the calculation of active energy
-	double activeEnergy;
 	double trapEnergyFromCond;
-	double trapEnergyFromCond_nc;
-	double phononEnergy;
 };
 
 #endif
