@@ -32,7 +32,6 @@ typedef std::map<int, double> VertexMapDouble; // <vertID, value>, map of vertex
 class SubsToTrapElecTAT;
 class TunnelSolver
 {
-	friend class SubsToTrapElecTAT;
 	//friend class SctmUtils::SctmDebug;
 public:
 	enum TunnelMode
@@ -130,6 +129,7 @@ protected:
 
 class SubsToTrapElecTunnel : public TunnelSolver
 {
+	friend class SubsToTrapElecTAT;
 public:
 	SubsToTrapElecTunnel(FDDomain *_domain);
 	virtual void SolveTunnel();
@@ -166,7 +166,8 @@ protected:
 	vector<double> eCurrDens_DTFN; // the sequence is the same with the vertex in verticsTunnelStart
 	VertexMapDouble eCurrDensMap_MFN; ///< map for MFN tunneling current, in [A/cm^2]
 	VertexMapDouble eCurrDensMap_B2T; ///< map for the electron current density from substrate in calculation of band-to-trap tunneling, in [A/cm^2]
-	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site substrate, especially in Retention.
+	VertexMapDouble eTransCoeffMap_T2B; ///< map for Trap-to-Band tunneling out from trap site to substrate, especially in Retention.
+	VertexMapDouble eCoeffMap_TAT2B; ///< map for Trap-Assisted Trap-to-Band tunneling out from trap site to substrate
 
 	SubsToTrapElecTAT* solverTAT; 
 };
@@ -253,8 +254,9 @@ protected:
 class SubsToTrapElecTAT
 {
 public:
-	SubsToTrapElecTAT(TunnelSolver* _tunSolver);
+	SubsToTrapElecTAT(SubsToTrapElecTunnel* _tunSolver);
 	double SolveTAT(FDVertex* tunStart, FDVertex* tunEnd);
+	double CalcCoeff_TrapAssistedT2B(FDVertex* trapvert);
 
 protected:
 	void setOxideTrapParam();
@@ -263,8 +265,12 @@ protected:
 	double getTunCoeffTAT(FDVertex* startVert, FDVertex* endVert, std::string inout);
 	double getDeltaX(FDVertex* vert);
 
+	//for trap-assisted trap-to-band tunneling
+	void calcTimeConstant_TrapAssistedT2B(FDVertex* oxideVert, FDVertex* trapVert, double& ctime, double& etime);
+	double getTunCoeff_TrapAssistedT2B(FDVertex* oxideVert, FDVertex* trapVert);
+
 protected:
-	TunnelSolver* tunnelSolver;
+	SubsToTrapElecTunnel* tunnelSolver;
 	TunnelSolver::TunnelDirection tunnelDirection;
 	FDVertex* tunStartVert;
 	FDVertex* tunEndVert;
@@ -273,7 +279,8 @@ protected:
 
 	double oxideTrapCrossSection;
 	double oxideTrapDensity; // in [1/cm^2]
-	double trapEnergyFromCond;
+	double oxideTrapEnergyFromCond;
+	double trapAssistedT2BTunnelFrequency;
 };
 
 #endif

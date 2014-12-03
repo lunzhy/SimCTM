@@ -31,6 +31,7 @@ class DriftDiffusionSolver
 {
 	friend class TunnelSolver;
 	friend class SubsToTrapElecTunnel;
+	friend class SubsToTrapElecTAT;
 	//friend class SctmUtils::SctmDebug;
 public:
 	enum BCMethod
