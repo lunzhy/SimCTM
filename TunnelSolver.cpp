@@ -2291,10 +2291,10 @@ void SubsToTrapElecTAT::setOxideTrapParam()
 	Normalization norm = Normalization(this->tunnelSolver->temperature);
 	//the calculation of TAT current is in real value,
 	//so, all the parameters are in real values.
-	this->oxideTrapCrossSection = 1e-14; // in  [1/cm^2]
-	this->oxideTrapDensity = 5e19; // in [1/cm^3]
-	this->oxideTrapEnergyFromCond = 1.6; // in real value, in [eV]
-	this->trapAssistedT2BTunnelFrequency = 1e8; // in real value, in [1/s]
+	this->oxideTrapCrossSection = 1e-13; // in  [1/cm^2]
+	this->oxideTrapDensity = 0; // in [1/cm^3]
+	this->oxideTrapEnergyFromCond = 2.5; // in real value, in [eV]
+	this->trapAssistedT2BTunnelFrequency = 1e6; // in real value, in [1/s]
 }
 
 double SubsToTrapElecTAT::CalcCoeff_TrapAssistedT2B(FDVertex* trapvert)
@@ -2334,7 +2334,7 @@ double SubsToTrapElecTAT::CalcCoeff_TrapAssistedT2B(FDVertex* trapvert)
 
 	//obtain the equivalent tunneling coefficient for trap-assisted trap-to-band tunneling current under the same
 	//frequency of trap-to-band tunneling
-	tunCoeff_TAT2B = currdens / q / dx / eTrappedDensity / frequency_T2B; //in real value, in [1/s]
+	tunCoeff_TAT2B = currdens / q / dx / eTrappedDensity / frequency_T2B; //equivalent tunneling coefficient
 
 	return tunCoeff_TAT2B;
 }
