@@ -135,6 +135,7 @@ protected:
 	void handleCurrDensBC_in(FDVertex *vert, double currdens);
 	void handleCurrDensBC_out(FDVertex *vert, double tunCoeff);
 
+	void updateCoeffMatrixForCylindrical();
 	void updateCoeffMatrixForTrapping();
 	void updateCoeffMatrixForTrapping_Combined();
 
