@@ -357,6 +357,7 @@ namespace SctmUtils
 
 		//simulation parameters
 		string Structure; ///< the simulation structure
+		string Coordinate; ///< the coordinate system in the simulation
 		string Solver; ///< the matrix solver
 
 		double Temperature; ///< temperature of the simulation, in [K]
@@ -368,6 +369,7 @@ namespace SctmUtils
 		double SimTimeStepMax; ///< minimum of simulation time step
 
 		//density parameters
+		double ChannelRadius; ///< the radius of the channel when using cylindrical coordinate
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double ElecUniTrapDens; ///< the uniform electron trap density, in [cm^-3]
 		double HoleUniTrapDens; ///< the uniform hole trap density, in [cm^-3]
@@ -420,6 +422,7 @@ namespace SctmUtils
 		enum ParName
 		{
 			structure,
+			coordinate,
 			solver,
 			temperature,
 			time_start,
@@ -429,6 +432,7 @@ namespace SctmUtils
 			time_stepScale,
 			time_stepMax,
 
+			subs_radius,
 			subs_type,
 			subs_doping,
 			trap_eDensity,
@@ -587,6 +591,7 @@ namespace SctmUtils
 		string userParFile;
 
 		void parseParValue(std::map<ParName, ParamBase*> &mapToSet, string &name, string &valStr);
+		void checkParValue();
 
 		bool isCommentOrSpaceLine(string &line);
 		bool isValid(string &line);
@@ -594,6 +599,7 @@ namespace SctmUtils
 		string getParValStr(string &line);
 		string trimSpace(string &line);
 		string trimComment(string &line);
+		bool isStringValidChoice(string& val, vector<string>& choices);
 	};
 
 

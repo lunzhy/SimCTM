@@ -7,6 +7,7 @@
 ###################### paramters for simulation #################################
 # parameters for the solver
 structure					: Triple				# Single | Triple | TripleFull, cell structure, Triple for simple triple
+coordinate					: Cartesian				# Cylindrical | Cartesian, the coordinate system in the simulation
 solver						: SparseLU				# SparseLU | BiCGSTAB | Pardiso, the solver for linear matrix solver
 
 # global control of the simulation
@@ -19,6 +20,7 @@ time.stepPerDecade			: 10					# steps per decade in log scale
 time.stepMax				: 0						# in [s], the maximal time step
 
 # substrate, traps information
+subs.radius					: 0						# in [nm], the radius of the channel
 subs.type					: P 					# N | P , substrate type
 subs.doping					: 1e17					# in [cm^-3]
 trap.eDensity				: 6e19					# in [cm^-3]

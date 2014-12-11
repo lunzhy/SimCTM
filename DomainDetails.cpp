@@ -31,6 +31,7 @@ FDVertex::FDVertex(unsigned _id, double _x, double _y) : X(_x), Y(_y), id(_id)
 {
 	//These pointers will be set to NULL outside when the setting of adjacency of a vertex 
 	//and initializing the contact.
+	R = 0;
 	EastVertex = NULL;
 	WestVertex = NULL;
 	NorthVertex = NULL;

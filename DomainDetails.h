@@ -186,6 +186,7 @@ public:
 	FDVertex(unsigned _id, double _x, double _y);
 	double X; ///< coordinate of x direction
 	double Y; ///< coordinate of y direction
+	double R; ///< the radius of at this vertex
 	double EastLength; ///< the edge length to the east of the current vertex
 	double WestLength; ///< the edge length to the west of the current vertex
 	double NorthLength; ///< the edge length to the north of the current vertex

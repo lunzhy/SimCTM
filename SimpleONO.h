@@ -41,7 +41,6 @@ protected:
 	double gatePotential; ///< the gate potential, related to FDContact Gate
 	double channelPotential; ///< the channel potential 
 
-	double temperature;
 private:
 	/// @brief buildStructure is used to prepare the domain structure for the following process.
 	/// 

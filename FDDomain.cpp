@@ -341,6 +341,7 @@ void FDDomain::BuildDomain()
 
 	//build the data and mesh structure of simulated region, this is a pure virtual method
 	buildStructure();
+	setVertexRadius();
 	//fill the vertices belonging to drift-diffusion process
 	fillDDVerts();
 	//set the physics value related to vertex, when the vertex is related to trapping layer
@@ -840,6 +841,21 @@ std::vector<FDVertex *> FDDomain::GetVertsOfRegion(std::string name)
 		}
 	}
 	return regVerts;
+}
+
+void FDDomain::setVertexRadius()
+{
+	Normalization norm = Normalization(this->temperature);
+	double nm_in_cm = SctmPhys::nm_in_cm;
+	double channel_radius = SctmGlobalControl::Get().ChannelRadius; // in [nm]
+	channel_radius = norm.PushLength(channel_radius * nm_in_cm);
+
+	FDVertex* vert = NULL;
+	for (size_t iv = 0; iv != this->vertices.size(); ++iv)
+	{
+		vert = this->vertices.at(iv);
+		vert->R = vert->Y + channel_radius; // r = r0 + y
+	}
 }
 
 

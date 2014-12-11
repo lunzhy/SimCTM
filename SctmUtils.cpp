@@ -21,6 +21,7 @@
 #include "SubstrateSolver.h"
 #include "Material.h"
 #include <sstream>
+#include <algorithm>
 
 using std::cout;
 using std::endl;
@@ -277,7 +278,10 @@ namespace SctmUtils
 			msg = "[SctmMath.cpp] Solving linear equations meets 0 denominator.";
 			break;
 		case 10059:
-			msg = "[TunnelSolver.cpp] Error ocurrs in solving TAT tunneling current.";
+			msg = "[TunnelSolver.cpp] Error occurs in solving TAT tunneling current.";
+			break;
+		case 10060:
+			msg = "[param.user] Please check the values of parameters listed above.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -2218,6 +2222,10 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::structure);
 		Get().Structure = dynamic_cast<Param<string> *>(parBase)->Value();
 
+		//Coordinate
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::coordinate);
+		Get().Coordinate = dynamic_cast<Param<string> *>(parBase)->Value();
+
 		//Solver
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::solver);
 		Get().Solver = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2251,6 +2259,9 @@ namespace SctmUtils
 		Get().HoleUniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_density);
 		Get().UniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		//ChannelRadius
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_radius);
+		Get().ChannelRadius = dynamic_cast<Param<double> *>(parBase)->Value();
 		//SubstrateDoping
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_type);
 		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2382,6 +2393,7 @@ namespace SctmUtils
 		{
 			SctmMessaging::Get().PrintFileError(userParFile.c_str(), "The user parameter file is missing, use default.");
 		}
+		checkParValue();
 	}
 
 	bool SctmParameterParser::isCommentOrSpaceLine(string &line)
@@ -2470,6 +2482,13 @@ namespace SctmUtils
 			mapToSet[pName] = par;
 			return;
 		}
+		if (name == "coordinate")
+		{
+			ParName pName = ParName::coordinate;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
+		}
 		if (name == "solver")
 		{
 			ParName pName = ParName::solver;
@@ -2536,6 +2555,13 @@ namespace SctmUtils
 			valDouble = SctmConverter::StringToDouble(valStr);
 			Param<double> *par = new Param<double>(ParName::sc_gate_workfunction, valDouble);
 			mapToSet[ParName::sc_gate_workfunction] = par;
+			return;
+		}
+		if (name == "subs.radius")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::subs_radius, valDouble);
+			mapToSet[ParName::subs_radius] = par;
 			return;
 		}
 		if (name == "subs.type")
@@ -3502,6 +3528,55 @@ namespace SctmUtils
 		}
 		return NULL;
 	}
+
+	void SctmParameterParser::checkParValue()
+	{
+		ParamBase *parBase = NULL;
+		string stringVal = "";
+		double doubleVal = 0;
+		
+		bool errorOccurred = false;
+
+		//for cylindrical coordinate and channel radius
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::coordinate);
+		stringVal = dynamic_cast<Param<string> *>(parBase)->Value();
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_radius);
+		doubleVal = dynamic_cast<Param<double> *>(parBase)->Value();
+		string keywords[] = {"Cylindrical", "Cartesian"};
+		vector<string> choices(std::begin(keywords), std::end(keywords));
+		if (!isStringValidChoice(stringVal, choices))
+		{
+			SctmMessaging::Get().PrintMessageLine("The parameter of coordinate is illegal.");
+			errorOccurred = true;
+		}
+		if (stringVal == "Cylindrical" && doubleVal == 0.0)
+		{
+			SctmMessaging::Get().PrintMessageLine("Channel radius must not be 0 when using cylindrical coordinate.");
+			errorOccurred = true;
+		}
+
+
+		if (errorOccurred)
+			SCTM_ASSERT(SCTM_ERROR, 10060);
+	}
+
+	bool SctmParameterParser::isStringValidChoice(string& val, vector<string>& choices)
+	{
+		bool valid = false;
+		
+		for (vector<string>::iterator it = choices.begin(); it != choices.end(); ++it)
+		{
+			if (val == *it)
+			{
+				valid = true;
+				break;
+			}
+		}
+		return valid;
+	}
+
+
+
 
 
 

@@ -58,6 +58,7 @@ public:
 	void RefreshGateVoltage();
 	void ClearCarrier();
 protected:
+	double temperature;
 	std::vector<FDVertex *> vertices; ///< the vertices contained in the domain
 	std::vector<FDVertex *> ddVerts; ///< the vertices related to trapping layers in the domain
 	std::vector<FDElement *> elements; ///< the elements contained in the domain
@@ -146,6 +147,7 @@ protected:
 	void updateBCVert_Density(FDVertex *vert);
 	void fillDDVerts();
 	void setTrapOccupation();
+	void setVertexRadius();
 
 private:
 	static bool isValidElem(FDElement *elem);

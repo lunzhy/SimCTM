@@ -58,8 +58,6 @@ protected:
 	int gridThickTrap;
 	int gridThickTunnel;
 
-	double temperature;
-
 protected:
 	void buildStructure();
 	void setParametersFromParamParser();
