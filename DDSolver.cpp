@@ -1579,7 +1579,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 		currVert = this->ddVertices.at(iVert);
 		indexEquation = equationMap[currVert->GetID()];
 
-		mobility = currVert->Phys->GetPhysPrpty(PhysProperty::eMobility);
+		mobility = mobilityMap[currVert->GetID()];
 		radius = currVert->R;
 
 		//diffusion part
@@ -1596,8 +1596,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 		else // boundary vertex
 		{
 			bndNorm_beta = currVert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
-			//only has north vertex, south boundary
-			if (bndNorm_beta <= 0)
+			if (bndNorm_beta < 0) // south boundary
 			{
 				val = mobility / radius / currVert->NorthLength;
 
@@ -1607,8 +1606,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 				indexCoefficient = indexEquation;
 				matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, -val, SctmSparseMatrixSolver::Add);
 			}
-			//only has south vertex, north boundary
-			if (bndNorm_beta >= 0)
+			else if (bndNorm_beta > 0) // north boundary
 			{
 				val = mobility / radius / currVert->SouthLength;
 
@@ -1618,13 +1616,51 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 				indexCoefficient = indexEquation;
 				matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, val, SctmSparseMatrixSolver::Add);
 			}
+			else // other (east or west) boundary, inner vertex along r (y) direction
+			{
+				// same as inner vertex
+				val = mobility / radius / (currVert->NorthLength + currVert->SouthLength);
+
+				indexCoefficient = equationMap[currVert->NorthVertex->GetID()];
+				matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, val, SctmSparseMatrixSolver::Add);
+
+				indexCoefficient = equationMap[currVert->SouthVertex->GetID()];
+				matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, -val, SctmSparseMatrixSolver::Add);
+			}
 		}
 
 		//drift part
-		efieldY = currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y);
-		indexCoefficient = indexEquation;
-		val = -mobility / radius * efieldY;
-		matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, val, SctmSparseMatrixSolver::Add);
+		if (this->ddMode == DDMode::ElecDD || this->ddMode == DDMode::HoleDD)
+		{
+			indexCoefficient = indexEquation;
+			if (!currVert->IsAtBoundary(FDBoundary::eDensity)) // inner vertex
+			{
+				val = -mobility / radius * (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->SouthVertex->GetID()]) /
+					(currVert->NorthLength + currVert->SouthLength);
+			}
+			else // boundary vertex
+			{
+				bndNorm_beta = currVert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
+				if (bndNorm_beta < 0) // south boundary
+				{
+					val = -mobility / radius * (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->GetID()]) /
+						currVert->NorthLength;
+
+				}
+				else if (bndNorm_beta > 0) // north boundary
+				{
+					val = -mobility / radius * (potentialMap[currVert->GetID()] - potentialMap[currVert->SouthVertex->GetID()]) /
+						currVert->SouthLength;
+				}
+				else // other (east or west) boundary, inner vertex along r (y) direction
+				{
+					val = -mobility / radius * (potentialMap[currVert->NorthVertex->GetID()] - potentialMap[currVert->SouthVertex->GetID()]) /
+						(currVert->NorthLength + currVert->SouthLength);
+				}
+			}
+			matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, val, SctmSparseMatrixSolver::Add);
+		}
+
 	}
 }
 

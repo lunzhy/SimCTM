@@ -123,7 +123,6 @@ protected:
 	/// @return void
 	/// @note
 	void buildRhsVector();
-	void buildRhsVector_UsingCurrent();
 	double getRhsBCVertex_DirectDiscretiztion(FDVertex *vert);
 	double getRhsBCVertex_UsingCurrent(FDVertex *vert);
 	double getRhsInnerVertex(FDVertex *vert);
