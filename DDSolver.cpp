@@ -43,7 +43,10 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	
 	//build and refresh the coefficient matrix
 	buildCoefficientMatrix();
-	updateCoeffMatrixForCylindrical();
+	if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+	{
+		updateCoeffMatrixForCylindrical();
+	}
 	setCoeffMatrixForTimestep();
 	
 	//handle the tunneling current. Update the coefficient matrix or refreshing BndCond value for building Rhs vector
@@ -1567,6 +1570,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 	int indexCoefficient = 0;
 	double bndNorm_beta = 0;
 	double mobility = 0;
+	double efieldY = 0;
 	double radius = 0;
 	double val = 0;
 
@@ -1574,11 +1578,11 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 	{
 		currVert = this->ddVertices.at(iVert);
 		indexEquation = equationMap[currVert->GetID()];
-		bndNorm_beta = currVert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
 
 		mobility = currVert->Phys->GetPhysPrpty(PhysProperty::eMobility);
 		radius = currVert->R;
 
+		//diffusion part
 		if (!currVert->IsAtBoundary(FDBoundary::eDensity)) // inner vertex
 		{
 			val = mobility / radius / (currVert->NorthLength + currVert->SouthLength);
@@ -1591,6 +1595,7 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 		}
 		else // boundary vertex
 		{
+			bndNorm_beta = currVert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
 			//only has north vertex, south boundary
 			if (bndNorm_beta <= 0)
 			{
@@ -1615,6 +1620,11 @@ void DriftDiffusionSolver::updateCoeffMatrixForCylindrical()
 			}
 		}
 
+		//drift part
+		efieldY = currVert->Phys->GetPhysPrpty(PhysProperty::ElectricField_Y);
+		indexCoefficient = indexEquation;
+		val = -mobility / radius * efieldY;
+		matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, val, SctmSparseMatrixSolver::Add);
 	}
 }
 
