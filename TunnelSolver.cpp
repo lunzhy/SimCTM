@@ -1102,7 +1102,7 @@ double SubsToTrapElecTunnel::updateTunCurrForCylindrical(double currdens, FDVert
 	double radiusTunTo = 0;
 	double updatedCurrDens = 0;
 
-	if (this->tunDirection = TunnelSolver::North) // electron/hole tunneling in
+	if (this->tunDirection == TunnelSolver::North) // electron/hole tunneling in
 	{
 		radiusTunFrom = inVert->R;
 		radiusTunTo = outVert->R;
@@ -1484,7 +1484,7 @@ double TrapToGateElecTunnel::updateTunCurrForCylindrical(double currdens, FDVert
 	double radiusTunTo = 0;
 	double updatedCurrDens = 0;
 
-	if (this->tunDirection = TunnelSolver::South) // electron/hole tunneling in
+	if (this->tunDirection == TunnelSolver::South) // electron/hole tunneling in
 	{
 		radiusTunFrom = inVert->R;
 		radiusTunTo = outVert->R;
@@ -2060,12 +2060,6 @@ void TrapToGateHoleTunnel::SolveTunnel()
 			vbedge_max = bandEdge_Block.front();
 			currdens = calcDTFNtunneling(deltaX_Block, ehMass_Block, bandEdge_Block, vbedge_max);
 			currdens += calcThermalEmission(deltaX_Block, ehMass_Block, bandEdge_Block, vbedge_max);
-
-			if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
-			{
-				currdens = updateTunCurrForCylindrical(currdens, vertsBlockOxideEnd.at(iVert), vertsBlockOxideStart.at(iVert));
-			}
-
 			hCurrDens_DTFN.at(iVert) = currdens;
 		}
 		else if (tunDirection == TunnelDirection::NoTunnel) // tunneling in
