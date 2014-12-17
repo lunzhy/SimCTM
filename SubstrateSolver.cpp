@@ -216,7 +216,7 @@ void OneDimSubsSolver::ReturnResult(VertexMapDouble &_fermiAboveMap, VertexMapDo
 
 double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
 {
-
+	using SctmUtils::SctmGlobalControl;
 	//////////calculate the gate capacitance in the slice
 	FDVertex *currVert = channelVert;
 
@@ -227,7 +227,17 @@ double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
 	while (currVert != NULL)
 	{
 		epsilon = currVert->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
-		delta_d = (currVert->NorthLength + currVert->SouthLength) / 2;
+
+		if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+		{
+			delta_d = currVert->R * SctmMath::ln((currVert->R + currVert->NorthLength / 2) /
+				(currVert->R - currVert->SouthLength / 2));
+		}
+		else // SctmGlobalControl::Get().Coordinate == "Cartesian"
+		{
+			delta_d = (currVert->SouthLength + currVert->NorthLength) / 2;
+		}
+
 		cap_reciprocal += delta_d / epsilon;
 
 		currVert = currVert->NorthVertex;
