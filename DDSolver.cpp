@@ -43,10 +43,6 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	
 	//build and refresh the coefficient matrix
 	buildCoefficientMatrix();
-	if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
-	{
-		updateCoeffMatrixForCylindrical();
-	}
 	setCoeffMatrixForTimestep();
 	
 	//handle the tunneling current. Update the coefficient matrix or refreshing BndCond value for building Rhs vector
@@ -438,6 +434,12 @@ void DriftDiffusionSolver::setCoeffInnerVertex(FDVertex *vert)
 	// in the boundary cases, the length of one or two direction may be zero 
 	deltaX = (vert->EastLength + vert->WestLength) / 2;
 	deltaY = (vert->NorthLength + vert->SouthLength) / 2;
+
+	if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+	{
+		deltaY = 1 / (1 / deltaY + 1 / vert->R);
+	}
+
 	SCTM_ASSERT(deltaX!=0 && deltaY!=0, 10015);
 
 	//"coeff / 2" for Crank-Nicolson discretization method
@@ -614,6 +616,10 @@ void DriftDiffusionSolver::setCoeffBCVertex_UsingCurrent(FDVertex *vert)
 			bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
 
 			getDeltaXYAtVertex(vert, deltaX, deltaY);
+			if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+			{
+				deltaY = 1 / (1 / deltaY + 1 / vert->R);
+			}
 
 			//has west vertex
 			if ( bndNorm_alpha >= 0 )
@@ -793,6 +799,12 @@ double DriftDiffusionSolver::getRhsInnerVertex(FDVertex *vert)
  
 	getDeltaXYAtVertex(vert, deltaX, deltaY);
 
+	if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+	{
+		deltaY = 1 / (1 / deltaY + 1 / vert->R);
+	}
+
+	//Crank-Nicolson method is discarded currently.
 	if (useCrankNicolsonMethod)
 	{
 		//for Crank-Nicolson discretization method
@@ -932,6 +944,11 @@ double DriftDiffusionSolver::getRhsBCVertex_UsingCurrent(FDVertex *vert)
 			bndNorm_beta = vert->BndCond.GetBndDirection(FDBoundary::eDensity).Y();
 
 			getDeltaXYAtVertex(vert, deltaX, deltaY);
+
+			if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+			{
+				deltaY = 1 / (1 / deltaY + 1 / vert->R);
+			}
 
 			//has west vertex
 			if ( bndNorm_alpha >= 0 )
@@ -1231,6 +1248,11 @@ void DriftDiffusionSolver::handleCurrDensBC_out(FDVertex *vert, double tunCoeff)
 	equID = equationMap[vertID];
 	getDeltaXYAtVertex(vert, deltaX, deltaY);
 
+	if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+	{
+		deltaY = 1 / (1 / deltaY + 1 / vert->R);
+	}
+
 	//use the boundary condition direction, not the boundary direction
 	norm_alpha =  vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormX();
 	norm_beta = vert->BndCond.GetBCNormVector(FDBoundary::eDensity).NormY();
@@ -1447,6 +1469,12 @@ void DriftDiffusionSolver::updateRhsForMFNTunneling()
 		equID = equationMap[vertID];
 
 		getDeltaXYAtVertex(currVert, deltaX, deltaY);
+
+		if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+		{
+			deltaY = 1 / (1 / deltaY + 1 / currVert->R);
+		}
+
 		eCurrDens_MFN_X = currVert->Phys->GetPhysPrpty(PhysProperty::eCurrDensMFN_X);
 		eCurrDens_MFN_Y = currVert->Phys->GetPhysPrpty(PhysProperty::eCurrDensMFN_Y);
 
