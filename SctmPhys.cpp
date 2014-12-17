@@ -1607,7 +1607,17 @@ namespace SctmPhys
 				while (vertForCap != NULL)
 				{
 					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
-					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
+
+					if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+					{
+						delta_d = vertForCap->R * SctmMath::ln((vertForCap->R + vertForCap->NorthLength / 2) / 
+							(vertForCap->R - vertForCap->SouthLength / 2));
+					}
+					else // SctmGlobalControl::Get().Coordinate == "Cartesian"
+					{
+						delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
+					}
+
 					epsilon = vertForCap->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
 					cap_reciprocal += delta_d / epsilon / wide;
 
