@@ -377,6 +377,7 @@ namespace SctmUtils
 		string TrapDistribution; ///< the distribution 
 
 		//physics models
+		string Carriers; ///< carrier type solved in the simulation
 		string TrapCaptureModel;
 		bool PhysicsMFN; ///< Modified Fowler-Nordheim tunneling
 		bool PhysicsB2T; ///< Band-to-Trap tunneling in
@@ -440,6 +441,7 @@ namespace SctmUtils
 			trap_density,
 			trap_distribution,
 			
+			carriers,
 			trap_capture,
 			physics_mfn,
 			physics_b2t,

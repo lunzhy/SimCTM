@@ -2272,6 +2272,9 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_distribution);
 		Get().TrapDistribution = dynamic_cast<Param<string> *>(parBase)->Value();
 
+		//Carriers
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::carriers);
+		Get().Carriers = dynamic_cast<Param<string> *>(parBase)->Value();
 		//TrapCaptureModel
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_capture);
 		Get().TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2602,6 +2605,12 @@ namespace SctmUtils
 		{
 			Param<string> *par = new Param<string>(ParName::trap_distribution, valStr);
 			mapToSet[ParName::trap_distribution] = par;
+			return;
+		}
+		if (name == "carriers")
+		{
+			Param<string> *par = new Param<string>(ParName::carriers, valStr);
+			mapToSet[ParName::carriers] = par;
 			return;
 		}
 		if (name == "trap.capture")
@@ -3542,8 +3551,8 @@ namespace SctmUtils
 		stringVal = dynamic_cast<Param<string> *>(parBase)->Value();
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_radius);
 		doubleVal = dynamic_cast<Param<double> *>(parBase)->Value();
-		string keywords[] = {"Cylindrical", "Cartesian"};
-		vector<string> choices(std::begin(keywords), std::end(keywords));
+		string keywords_coord[] = {"Cylindrical", "Cartesian"};
+		vector<string> choices(std::begin(keywords_coord), std::end(keywords_coord));
 		if (!isStringValidChoice(stringVal, choices))
 		{
 			SctmMessaging::Get().PrintMessageLine("The parameter of coordinate is illegal.");
@@ -3555,6 +3564,16 @@ namespace SctmUtils
 			errorOccurred = true;
 		}
 
+		//for carriers type
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::carriers);
+		stringVal = dynamic_cast<Param<string> *>(parBase)->Value();
+		string keywords_carriers[] = { "Both", "Electron" };
+		choices.assign(std::begin(keywords_carriers), std::end(keywords_carriers));
+		if (!isStringValidChoice(stringVal, choices))
+		{
+			SctmMessaging::Get().PrintMessageLine("The parameter of carriers is illegal.");
+			errorOccurred = true;
+		}
 
 		if (errorOccurred)
 			SCTM_ASSERT(SCTM_ERROR, 10060);
@@ -3594,7 +3613,7 @@ namespace SctmUtils
 		{
 			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\HoleTunnelTest";
 			DefaultParamPath = "E:\\MyCode\\SimCTM\\SimCTM\\default.param";
-			ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
+			ClearPrjPyPath = "E:\\PhD Study\\SimCTM\\SctmPy\\DeleteData.py";
 			PathSep = "\\";
 		}
 		else if (SCTM_ENV == "Linux")
@@ -3622,8 +3641,17 @@ namespace SctmUtils
 
 	void SctmPyCaller::PyClean(string folderPath)
 	{
-		string command = SctmEnv::Get().PytaurusPath + " clean " + folderPath;
-		std::system(command.c_str());
+		if (SctmEnv::IsLinux())
+		{
+			string command = SctmEnv::Get().PytaurusPath + " clean " + folderPath;
+			std::system(command.c_str());
+		}
+		if (SctmEnv::IsWindows())
+		{
+			string command = "python \"" + SctmEnv::Get().ClearPrjPyPath + "\" \"" + folderPath + "\"";
+			std::system(command.c_str());
+		}
+		
 	}
 
 	void SctmPyCaller::PySolve()

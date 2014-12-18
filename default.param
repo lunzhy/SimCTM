@@ -29,6 +29,7 @@ trap.density				: 6e19					# in [cm^-3], trap density for amphoretic trap
 trap.distribution			: Uniform				# Uniform | 2D, trap distribution information
 
 # switches of the physical mechanisms
+carriers					: Both					# Electron | Both
 trap.capture				: J-Model				# J-Model | V-Model
 physics.mfn					: True					# True | False (not true, false)
 physics.b2t					: False					# True | False, Band-to-Trap tunneling in

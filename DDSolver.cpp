@@ -66,7 +66,7 @@ void DriftDiffusionSolver::SolveDD(VertexMapDouble &bc1, VertexMapDouble &bc2)
 	//distinguishing electron and hole is temporarily considered/
 	if (this->ddMode == DDMode::ElecDD)
 	{
-		//updateRhsForMFNTunneling();
+		updateRhsForMFNTunneling();
 	}
 	else // DDMode::HoleDD
 	{
