@@ -88,7 +88,8 @@ void SolverPack::callIteration()
 			{
 				SctmPyCaller::PySolve();
 			}
-			//if SimCTM is in running on Windows, read the same file, temporarily.
+			//when running in Linux, the substrate file is refreshed according to the parameter for calling Pytaurus
+			//if SimCTM is in running on Windows (debugging), the substrate file should be prepared and is read in each simulation step.
 			readSubstrateFromFile();
 
 			if (SctmGlobalControl::Get().UpdateSubstrate)

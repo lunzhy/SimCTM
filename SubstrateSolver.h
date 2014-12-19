@@ -66,7 +66,7 @@ protected:
 	void setFermiAboveCB(FDVertex *channelVert);
 	void setChannelPotential(FDVertex *channelVert);
 
-	bool isSubsUnderGate(FDVertex* vert);
+	std::string findRelatedContact(FDVertex* vert);
 };
 
 #endif

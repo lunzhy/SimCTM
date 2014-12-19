@@ -1514,7 +1514,6 @@ namespace SctmPhys
 
 	double CalculateFlatbandShift_domain(FDDomain *domain)
 	{
-		//TODO: this was a temporary method used in one dimensional problems to get the start vertex in the calculation
 		//now the domain flatband voltage shift calculation method is 
 		//to compute the weighted-average flat voltage shift of each slice with respect to its control length.
 		//However, this method is still a structure-dependent method. The pre-knowledge of the structure has to been known.
@@ -1599,13 +1598,6 @@ namespace SctmPhys
 				freeLineCharge = densCtrlArea * currVert->Phys->GetPhysPrpty(PhysProperty::NetFreeCharge);
 				trapLineCharge = densCtrlArea * currVert->Trap->GetTrapPrpty(TrapProperty::NetTrappedCharge);
 
-// 				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
-// 				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
-// 				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
-// 				hFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::hDensity);
-// 				hTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
-// 				hLineDens = densCtrlArea * (hFreeDens + hTrappedDens);
-
 				vertForCap = currVert;
 				cap_reciprocal = 0; // the reciprocal of capacitance
 
@@ -1650,6 +1642,10 @@ namespace SctmPhys
 		double eFreeDens = 0;
 		double eTrappedDens = 0;
 		double eLineDens = 0;
+
+		double freeLineCharge = 0;
+		double trapLineCharge = 0;
+
 		double cap_reciprocal = 0;
 		double epsilon = 0;
 		double wide = 0;
@@ -1664,9 +1660,9 @@ namespace SctmPhys
 			if (currVert->Trap != NULL)
 			{
 				densCtrlArea = currVert->Phys->GetPhysPrpty(PhysProperty::DensityControlArea);
-				eFreeDens = currVert->Phys->GetPhysPrpty(PhysProperty::eDensity);
-				eTrappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped);
-				eLineDens = densCtrlArea * (eFreeDens + eTrappedDens);
+
+				freeLineCharge = densCtrlArea * currVert->Phys->GetPhysPrpty(PhysProperty::NetFreeCharge);
+				trapLineCharge = densCtrlArea * currVert->Trap->GetTrapPrpty(TrapProperty::NetTrappedCharge);
 
 				vertForCap = currVert;
 				cap_reciprocal = 0; // the reciprocal of capacitance
@@ -1688,13 +1684,23 @@ namespace SctmPhys
 						}
 					}
 					wide = (vertForCap->EastLength + vertForCap->WestLength) / 2;
-					delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
+
+					if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+					{
+						delta_d = vertForCap->R * SctmMath::ln((vertForCap->R + vertForCap->NorthLength / 2) /
+							(vertForCap->R - vertForCap->SouthLength / 2));
+					}
+					else // SctmGlobalControl::Get().Coordinate == "Cartesian"
+					{
+						delta_d = (vertForCap->SouthLength + vertForCap->NorthLength) / 2;
+					}
+
 					epsilon = vertForCap->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
 					cap_reciprocal += delta_d / epsilon / wide;
 
 					vertForCap = vertForCap->NorthVertex;
 				}
-				VfbShift += eLineDens * cap_reciprocal;
+				VfbShift += -(freeLineCharge + trapLineCharge) * cap_reciprocal;
 			}
 			currVert = currVert->NorthVertex;
 		}

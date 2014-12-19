@@ -129,25 +129,26 @@ void OneDimSubsSolver::SolveSurfacePot()
 	//clear previous result
 	fermiAboveMap.clear();
 	channelPotMap.clear();
-	
-	//CAUTION! TODO: this should be revised according to the change of gate voltage during the simulation 
-	gateVoltage = domain->GetContact("Gate")->Voltage;
 
 	static FDContact *subsContact = domain->GetContact("Channel");
 	static vector<FDVertex *> &channelVerts = subsContact->GetContactVerts();
 
 	FDVertex *vert = NULL;
-	bool toSolve = false;
+	string contactName = "";
 
 	for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
 	{
 		vert = channelVerts.at(iVert);
 
-		toSolve = this->isSubsUnderGate(vert);
-		if (!toSolve)
+		//gate voltage is refreshed for each time step in the simulation
+		contactName = this->findRelatedContact(vert);
+
+		if (contactName.empty())
 		{
 			continue;
 		}
+
+		this->gateVoltage = domain->GetContact(contactName)->Voltage;
 
 		this->gateCapacitance = calcGateCapacitance(vert);
 		this->flatbandVoltage = calcFlatbandVoltage(vert);
@@ -204,7 +205,16 @@ double OneDimSubsSolver::calcFlatbandVoltage(FDVertex *channelVert)
 	double gateWorkFunction = norm.PushPotential(SctmGlobalControl::Get().GateWorkFunction);
 	double workFuncDifference = gateWorkFunction - SctmPhys::ReferencePotential;
 
-	double vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for1D(channelVert);
+	double vfbShift_charge = 0;
+
+	if (SctmGlobalControl::Get().Structure == "Single")
+	{
+		vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for1D(channelVert);
+	}
+	else // SctmGlobalControl::Get().Structure == "Triple" || TripleFull
+	{
+		vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for2D(channelVert);
+	}
 
 	return vfbShift_charge + workFuncDifference;
 	//this->flatbandVoltage = vfbShift_charge + workFuncDifference;
@@ -258,23 +268,24 @@ double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
 	//double gateCap = norm.PullCapacitancePerArea(gateCapacitance);
 }
 
-bool OneDimSubsSolver::isSubsUnderGate(FDVertex* vert)
+string OneDimSubsSolver::findRelatedContact(FDVertex* vert)
 {
 	//this is temporarily related to the specific structure of the cell.
 	string contactName = "";
-	size_t found = 0;
+	size_t pos = 0;
+
 	while (vert != NULL)
 	{
 		if (vert->IsAtContact())
 		{
 			contactName = vert->Contact->ContactName;
-			found = contactName.find("Gate");
-			if (found != std::string::npos)
+			pos = contactName.find("Gate");
+			if (pos != std::string::npos)
 			{
-				return true;
+				break;
 			}
 		}
 		vert = vert->NorthVertex;
 	}
-	return false;
+	return contactName;
 }
