@@ -57,10 +57,12 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	if (SctmEnv::Get().IsLinux())
+	//building the structure using Pytaurus
+	if (SctmEnv::Get().IsLinux() && (simStructure == "Triple" || simStructure == "TripleFull"))
 	{
 		SctmPyCaller::PyBuildStructure();
 	}
+
 	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
 
