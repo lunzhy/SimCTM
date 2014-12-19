@@ -3091,6 +3091,25 @@ namespace SctmUtils
 			}
 			return;
 		}
+		if (name == "highFrequencyDielConst")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+				case MaterialDB::Mat::Si3N4:
+					par = new Param<double>(ParName::Si3N4_highFrequencyDielConst, valDouble);
+					mapToSet[ParName::Si3N4_highFrequencyDielConst] = par;
+					break;
+				case MaterialDB::Mat::HfO2:
+					par = new Param<double>(ParName::HfO2_highFrequencyDielConst, valDouble);
+					mapToSet[ParName::HfO2_highFrequencyDielConst] = par;
+					break;
+				default:
+					break;
+			}
+			return;
+		}
 		if (name == "electronAffinity")
 		{
 			Param<double> *par = NULL;

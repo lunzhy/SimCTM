@@ -131,6 +131,9 @@ namespace MaterialDB
 		case  MatProperty::Mat_DielectricConstant:
 			ret = theMaterial->DielectricConstant();
 			break;
+		case MatProperty::Mat_HighFrqDielConst:
+			ret = theMaterial->HighFrqDielConst();
+			break;
 		case  MatProperty::Mat_ElectronMass:
 			ret = theMaterial->ElectronMass();
 			break;
@@ -207,6 +210,16 @@ namespace MaterialDB
 	void Material::DielectricConstant(double val)
 	{
 		dielectricConstant = val;
+	}
+
+	double Material::HighFrqDielConst() const
+	{
+		return highFrqDC;
+	}
+
+	void Material::HighFrqDielConst(double val)
+	{
+		highFrqDC = val;
 	}
 
 	double Material::Bandgap() const
@@ -523,6 +536,9 @@ namespace MaterialDB
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_dielectricConstant);
 		GetMaterial(Mat::Si3N4)->DielectricConstant(dynamic_cast<Param<double> *>(parBase)->Value());
 
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_highFrequencyDielConst);
+		GetMaterial(Mat::Si3N4)->HighFrqDielConst(dynamic_cast<Param<double> *>(parBase)->Value());
+
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::Si3N4_electronAffinity);
 		GetMaterial(Mat::Si3N4)->ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());
 
@@ -580,6 +596,9 @@ namespace MaterialDB
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_dielectricConstant);
 		GetMaterial(Mat::HfO2)->DielectricConstant(dynamic_cast<Param<double> *>(parBase)->Value());
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_highFrequencyDielConst);
+		GetMaterial(Mat::HfO2)->HighFrqDielConst(dynamic_cast<Param<double> *>(parBase)->Value());
 
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::HfO2_electronAffinity);
 		GetMaterial(Mat::HfO2)->ElectronAffinity(dynamic_cast<Param<double> *>(parBase)->Value());

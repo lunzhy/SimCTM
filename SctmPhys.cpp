@@ -1038,7 +1038,7 @@ namespace SctmPhys
 	TrapProperty::TrapProperty(FDVertex *_vert)
 	{
 		vertSelf = _vert;
-		epsTrapping = 0;
+		highFrqEpsilon = 0;
 		trapDensity = 0;
 
 		e_trapDensity = 0;
@@ -1116,8 +1116,8 @@ namespace SctmPhys
 	{
 		switch (trapPrpty)
 		{
-		case EpsilonTrapping:
-			epsTrapping = val;
+		case HighFrqEpsilon:
+			highFrqEpsilon = val;
 			break;
 		case TrapDensity:
 			trapDensity = val;
@@ -1178,9 +1178,9 @@ namespace SctmPhys
 		double ret = 0;
 		switch (trapPrpty)
 		{
-			case EpsilonTrapping:
+			case HighFrqEpsilon:
 			{
-				ret = epsTrapping;
+				ret = highFrqEpsilon;
 				break;
 			}
 			case NetTrappedCharge:
@@ -1282,6 +1282,11 @@ namespace SctmPhys
 				else if (pfModel == "EtDecrease")
 				{
 					double pfDecrease = GetTrapPrpty(TrapProperty::eTrapEnergyDecreasePF);
+
+					using SctmUtils::Normalization;
+					Normalization norm = Normalization(SctmGlobalControl::Get().Temperature);
+					double freq = norm.PullFrequency(GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS);
+					
 					ret = GetTrapPrpty(eCrossSection) * eVelocity * eEffectiveDOS *
 						SctmMath::exp(-(trapDepth - pfDecrease)); // kT/q will disappear with normalized energy
 					//TODO: warning when pfDecrease > trapEnergy
@@ -1336,7 +1341,7 @@ namespace SctmPhys
 				double q = SctmPhys::q;
 
 				double elecField = norm.PullElecField(vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricFieldTrap)); // in [V/cm], real value
-				double eps = GetTrapPrpty(TrapProperty::EpsilonTrapping) *
+				double eps = GetTrapPrpty(TrapProperty::HighFrqEpsilon) *
 					SctmPhys::VacuumDielectricConstant / (1 / SctmPhys::cm_in_m); // in [F/cm]
 
 
@@ -1478,7 +1483,7 @@ namespace SctmPhys
 				double q = SctmPhys::q;
 
 				double elecField = norm.PullElecField(vertSelf->Phys->GetPhysPrpty(PhysProperty::ElectricFieldTrap)); // in [V/cm], real value
-				double eps = GetTrapPrpty(TrapProperty::EpsilonTrapping) *
+				double eps = GetTrapPrpty(TrapProperty::HighFrqEpsilon) *
 					SctmPhys::VacuumDielectricConstant / (1 / SctmPhys::cm_in_m); // in [F/cm]
 
 

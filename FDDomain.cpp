@@ -604,7 +604,7 @@ void FDDomain::setVertexTrapProperty()
 		currVert = ddVerts.at(iVert);
 		currVert->Trap = new TrapProperty(currVert);
 
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EpsilonTrapping, MatProperty::Mat_DielectricConstant);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::HighFrqEpsilon, MatProperty::Mat_HighFrqDielConst);
 
 		//for electrons
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_T2B, MatProperty::Mat_ElecFrequencyT2B);

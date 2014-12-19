@@ -1443,8 +1443,16 @@ void DriftDiffusionSolver::updateRhsForDetrapping()
 			trappedDens = currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped);
 		}
 
+		//PF frequency contains basic SRH mechanism
+		if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
+		{
+			rhs_detrapping = emission_PF * trappedDens;
+		}
+		else
+		{
+			rhs_detrapping = emission_SRH * trappedDens;
+		}
 
-		rhs_detrapping = (emission_SRH + emission_PF) * trappedDens;
 		// the negative sigh symbolizes moving the addend from right to left of the equation.
 		rhsVector.at(equID) += -rhs_detrapping;
 	}

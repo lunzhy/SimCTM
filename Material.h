@@ -42,6 +42,7 @@ namespace MaterialDB
 		enum Name
 		{
 			Mat_DielectricConstant, ///< dielectric constant of the material
+			Mat_HighFrqDielConst, ///< high-frequency dielectric constant
 			Mat_Bandgap, ///< bandgap of the material
 			Mat_ElectronAffinity, ///< electron affinity of the material
 			Mat_ElectronMass, ///< electron effective mass of the material
@@ -74,6 +75,7 @@ namespace MaterialDB
 		double temperature;
 		Mat::Name name; ///< material name
 		double dielectricConstant; ///< dielectric constant
+		double highFrqDC; /// high-frequency dielectric constant
 		double bandgap; ///< bandgap, in [eV]
 		double electronAffinity; ///< electron affinity energy, in [eV]
 		double elecMass; ///< electron effective tunneling mass, in [m0]
@@ -110,6 +112,8 @@ namespace MaterialDB
 		//The methods below are used to encapsulate the private members of this class.
 		double		DielectricConstant() const;
 		void		DielectricConstant(double val);
+		double		HighFrqDielConst() const;
+		void		HighFrqDielConst(double val);
 		double		Bandgap() const;
 		void		Bandgap(double val);
 		double		ElectronAffinity() const;

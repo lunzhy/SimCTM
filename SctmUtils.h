@@ -541,6 +541,7 @@ namespace SctmUtils
 
 			Si3N4_bandgap,
 			Si3N4_dielectricConstant,
+			Si3N4_highFrequencyDielConst,
 			Si3N4_electronAffinity,
 			Si3N4_eMass,
 			Si3N4_eDOSMass,
@@ -561,6 +562,7 @@ namespace SctmUtils
 
 			HfO2_bandgap,
 			HfO2_dielectricConstant,
+			HfO2_highFrequencyDielConst,
 			HfO2_electronAffinity,
 			HfO2_eMass,
 			HfO2_eDOSMass,

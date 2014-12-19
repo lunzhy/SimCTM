@@ -156,6 +156,7 @@ hMass						: 0.2					# in [m0]
 material					: Si3N4
 bandgap						: 5.0					# in [eV]
 dielectricConstant			: 7.5
+highFrequencyDielConst		: 4.0					# high-frequency/dynamic relative dielectric constant
 electronAffinity			: 1.9					# in [eV]
 eDOSMass					: 0.42					# in [m0]
 eMass						: 0.42					# in [m0]
@@ -178,6 +179,7 @@ hFrequencyPF				: 1e9					# in [1/s]
 material					: HfO2
 bandgap						: 5.9					# in [eV]
 dielectricConstant			: 20.0
+highFrequencyDielConst		: 4.0					# not-known
 electronAffinity			: 2.05					# in [eV]
 eDOSMass					: 0.2					# in [m0]
 eMass						: 0.2					# in [m0]
