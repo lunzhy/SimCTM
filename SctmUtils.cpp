@@ -2079,7 +2079,7 @@ namespace SctmUtils
 
 	}
 
-	void SctmData::WriteTimeConstantTAT(vector<FDVertex *> &vertices)
+	void SctmData::WriteTimeConstantTAT(vector<FDVertex *> vertices)
 	{
 		fileName = directoryName + pathSep + "Trap" + pathSep + "timeTAT" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
