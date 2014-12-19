@@ -2396,7 +2396,6 @@ namespace SctmUtils
 		{
 			SctmMessaging::Get().PrintFileError(userParFile.c_str(), "The user parameter file is missing, use default.");
 		}
-		checkParValue();
 	}
 
 	bool SctmParameterParser::isCommentOrSpaceLine(string &line)
@@ -3536,6 +3535,14 @@ namespace SctmUtils
 	SctmParameterParser& SctmParameterParser::Get()
 	{
 		static SctmParameterParser parser;
+		static bool checked = false;
+
+		if (!checked)
+		{
+			checked = true;
+			checkParValue();
+		}
+		
 		return parser;
 	}
 
@@ -3568,6 +3575,7 @@ namespace SctmUtils
 		//for cylindrical coordinate and channel radius
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::coordinate);
 		stringVal = dynamic_cast<Param<string> *>(parBase)->Value();
+
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_radius);
 		doubleVal = dynamic_cast<Param<double> *>(parBase)->Value();
 		string keywords_coord[] = {"Cylindrical", "Cartesian"};

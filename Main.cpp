@@ -32,6 +32,7 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 	{
 		if (SctmEnv::IsWindows())
 		{
+			//clean the project in Windows
 			SctmPyCaller::PyClean(prj);
 		}
 		if (SctmEnv::IsLinux())
@@ -43,7 +44,6 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 
 	if (defaultParam.empty())
 	{
-		//run from visual studio
 		defaultParam = SctmEnv::Get().DefaultParamPath;
 	}
 

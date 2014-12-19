@@ -595,7 +595,7 @@ namespace SctmUtils
 		string userParFile;
 
 		void parseParValue(std::map<ParName, ParamBase*> &mapToSet, string &name, string &valStr);
-		void checkParValue();
+		static void checkParValue();
 
 		bool isCommentOrSpaceLine(string &line);
 		bool isValid(string &line);
@@ -603,7 +603,7 @@ namespace SctmUtils
 		string getParValStr(string &line);
 		string trimSpace(string &line);
 		string trimComment(string &line);
-		bool isStringValidChoice(string& val, vector<string>& choices);
+		static bool isStringValidChoice(string& val, vector<string>& choices);
 	};
 
 
