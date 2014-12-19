@@ -24,11 +24,17 @@ class HoleConserveTrapSolver;
 class CombinedTrapSolver;
 class OneDimSubsSolver;
 
+namespace SctmUtils
+{
+	class SctmData;
+}
+
 typedef std::map<int, int> VertexMapInt; // <vertID, int>
 typedef std::map<int, double> VertexMapDouble; // <vertID, double>
 
 class SolverPack
 {
+	friend class SctmUtils::SctmData;
 public:
 	SolverPack(FDDomain *_domain);
 	void Run();

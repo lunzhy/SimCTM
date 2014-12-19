@@ -278,10 +278,10 @@ string OneDimSubsSolver::findRelatedContact(FDVertex* vert)
 	{
 		if (vert->IsAtContact())
 		{
-			contactName = vert->Contact->ContactName;
-			pos = contactName.find("Gate");
+			pos = vert->Contact->ContactName.find("Gate");
 			if (pos != std::string::npos)
 			{
+				contactName = vert->Contact->ContactName;
 				break;
 			}
 		}

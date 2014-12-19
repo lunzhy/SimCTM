@@ -22,6 +22,7 @@
 #include "Material.h"
 #include <sstream>
 #include <algorithm>
+#include "SolverPack.h"
 
 using std::cout;
 using std::endl;
@@ -1538,7 +1539,7 @@ namespace SctmUtils
 		file.WriteLine(line);
 	}
 
-	void SctmData::WriteSubstrateResult(OneDimSubsSolver *subsSolver, bool singlefile /* = false*/)
+	void SctmData::WriteSubstrateResult(OneDimSubsSolver *subsSolver, SolverPack *solverPack, bool singlefile /* = false*/)
 	{
 		Normalization norm = Normalization(this->temperature);
 		VertexMapDouble fermi_above_map;
@@ -1557,10 +1558,11 @@ namespace SctmUtils
 		vector<double> vecPot;
 		vector<double> vecFermi;
 
-		subsSolver->ReturnResult(fermi_above_map, channel_potential_map);
 		if (singlefile)
 		{
 			static bool firstRun = true;
+
+			subsSolver->ReturnResult(fermi_above_map, channel_potential_map);
 
 			fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "substrate.txt";
 			SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
@@ -1588,6 +1590,9 @@ namespace SctmUtils
 		{
 			fileName = directoryName + pathSep + "Substrate" + pathSep + "substrate" + generateFileSuffix();
 			SctmFileStream subs_file = SctmFileStream(fileName, SctmFileStream::Write);
+
+			fermi_above_map = solverPack->mapSiFermiAboveCBedge;
+			channel_potential_map = solverPack->mapChannelPotential;
 
 			for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
 			{

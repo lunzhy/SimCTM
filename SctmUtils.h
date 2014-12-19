@@ -53,6 +53,7 @@ using MaterialDB::Mat;
 
 class FDDomain;
 class OneDimSubsSolver;
+class SolverPack;
 
 typedef std::map<int, double> VertexMapDouble; // <vertID, phyValue>
 typedef std::map<string, double> KeywordsTimerMap; // keywords timer
@@ -299,7 +300,7 @@ namespace SctmUtils
 
 		void WriteTotalCarrierDens(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
-		void WriteSubstrateResult(OneDimSubsSolver *subsSolver, bool singlefile = false);
+		void WriteSubstrateResult(OneDimSubsSolver *subsSolver, SolverPack *solverPack, bool singlefile = false);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		void WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo);
 		void WriteTimeConstantTAT(vector<FDVertex *> vertices);

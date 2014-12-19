@@ -78,7 +78,7 @@ void SolverPack::callIteration()
 			//solve substrate, no matter under Windows or Linux environment
 			subsSolver->SolveSurfacePot();
 			fetchSubstrateResult();
-			SctmData::Get().WriteSubstrateResult(subsSolver, true);
+			SctmData::Get().WriteSubstrateResult(subsSolver, this, true);
 		}
 		else if (simStructure == "Triple" || simStructure == "TripleFull")
 		{
@@ -96,7 +96,7 @@ void SolverPack::callIteration()
 			{
 				subsSolver->SolveSurfacePot();
 				fetchSubstrateResult();
-				SctmData::Get().WriteSubstrateResult(subsSolver);
+				SctmData::Get().WriteSubstrateResult(subsSolver, this);
 			}
 			else
 			{
