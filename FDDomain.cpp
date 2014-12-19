@@ -698,24 +698,38 @@ void FDDomain::setTrapOccupation()
 			currVert = ddVerts.at(iVert);
 			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
 
-			if (trapOccupy < 0 || trapOccupy > 1)
+			if (trapOccupy < -1 || trapOccupy > 1)
 			{
 				SCTM_ASSERT(SCTM_ERROR, 10044);
 			}
-			else
+			else if (trapOccupy < 0) // occupied by electrons
 			{
-				eTrappedDens = trapDens * trapOccupy;
-			}
-
-			for (std::vector<string>::iterator it = regions.begin(); it != regions.end(); ++it)
-			{
-				if (isBelongToRegion(currVert, *it))
+				eTrappedDens = trapDens * SctmMath::abs(trapOccupy);
+				for (std::vector<string>::iterator it = regions.begin(); it != regions.end(); ++it)
 				{
-					//one vertex can only belong to one region under the gate
-					currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
-					break;
+					if (isBelongToRegion(currVert, *it))
+					{
+						//one vertex can only belong to one region under the gate
+						currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+						break;
+					}
 				}
 			}
+			else if (trapOccupy > 0) // occupied by holes
+			{
+				hTrappedDens = trapDens * trapOccupy;
+				for (std::vector<string>::iterator it = regions.begin(); it != regions.end(); ++it)
+				{
+					if (isBelongToRegion(currVert, *it))
+					{
+						//one vertex can only belong to one region under the gate
+						currVert->Trap->SetTrapPrpty(TrapProperty::hTrapped, hTrappedDens);
+						break;
+					}
+				}
+			}
+
+			
 		}
 	}
 
