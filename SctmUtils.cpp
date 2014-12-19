@@ -1538,40 +1538,73 @@ namespace SctmUtils
 		file.WriteLine(line);
 	}
 
-	void SctmData::WriteSubstrateResult(OneDimSubsSolver *subsSolver)
+	void SctmData::WriteSubstrateResult(OneDimSubsSolver *subsSolver, bool singlefile /* = false*/)
 	{
-		static bool firstRun = true;
 		Normalization norm = Normalization(this->temperature);
-
-		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "substrate.txt";
-		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
-
 		VertexMapDouble fermi_above_map;
 		VertexMapDouble channel_potential_map;
 		double fermi_above = 0;
 		double channel_potential = 0;
-
-		subsSolver->ReturnResult(fermi_above_map, channel_potential_map);
-
-		if (firstRun)
-		{
-			string headline = "Time [s]\t\tChannel potential\t\tFermi energy above conduction band";
-			file.WriteLine(headline);
-			firstRun = false;
-		}
-
-		string time = "time = [" + SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime()) + "s]";
-		file.WriteLine(time);
+		
 		int vertID = 0;
 		string line = "";
-		for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
+		string timeStr = "";
+		string title = "";
+		FDVertex *vert = NULL;
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecPot;
+		vector<double> vecFermi;
+
+		subsSolver->ReturnResult(fermi_above_map, channel_potential_map);
+		if (singlefile)
 		{
-			vertID = it->first;
-			fermi_above = it->second;
-			channel_potential = channel_potential_map[vertID];
-			line = SctmConverter::DoubleToString(norm.PullPotential(channel_potential)) +
-				"\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermi_above));
-			file.WriteLine(line);
+			static bool firstRun = true;
+
+			fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "substrate.txt";
+			SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+			if (firstRun)
+			{
+				title = "Time [s]\t\tChannel potential\t\tFermi energy above conduction band";
+				file.WriteLine(title);
+				firstRun = false;
+			}
+
+			timeStr = "time = [" + SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime()) + "s]";
+			file.WriteLine(timeStr);
+			for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
+			{
+				vertID = it->first;
+				fermi_above = it->second;
+				channel_potential = channel_potential_map[vertID];
+				line = SctmConverter::DoubleToString(norm.PullPotential(channel_potential)) +
+					"\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermi_above));
+				file.WriteLine(line);
+			}
+		}
+		else
+		{
+			fileName = directoryName + pathSep + "Substrate" + pathSep + "substrate" + generateFileSuffix();
+			SctmFileStream subs_file = SctmFileStream(fileName, SctmFileStream::Write);
+
+			for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
+			{
+				vertID = it->first;
+				vert = subsSolver->domain->GetVertex(vertID);
+				fermi_above = it->second;
+				channel_potential = channel_potential_map[vertID];
+
+				vecX.push_back(norm.PullLength(vert->X));
+				vecY.push_back(norm.PullLength(vert->Y));
+
+				vecPot.push_back(norm.PullPotential(channel_potential));
+				vecFermi.push_back(norm.PullPotential(fermi_above));
+			}
+			timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+			title = "substrate result at time=[" + timeStr + "] (x, y, potential[V], fermi energy above cb edge [eV])";
+			subs_file.WriteVector(vecX, vecY, vecPot, vecFermi, title.c_str());
 		}
 	}
 
@@ -2307,6 +2340,9 @@ namespace SctmUtils
 		//CallPytaurus
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_call_pytaurus);
 		Get().CallPytaurus = dynamic_cast<Param<string> *>(parBase)->Value();
+		//UpdateSubstrate
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_update_substrate);
+		Get().UpdateSubstrate = dynamic_cast<Param<bool> *>(parBase)->Value();
 		//ClearCarrier
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_clear_carrier);
 		Get().ClearCarrier = dynamic_cast<Param<bool> *>(parBase)->Value();
@@ -2669,6 +2705,13 @@ namespace SctmUtils
 		{
 			Param<string> *par = new Param<string>(ParName::debug_call_pytaurus, valStr);
 			mapToSet[ParName::debug_call_pytaurus] = par;
+			return;
+		}
+		if (name == "debug.update.substrate")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::debug_update_substrate, valBool);
+			mapToSet[ParName::debug_update_substrate] = par;
 			return;
 		}
 		if (name == "debug.clear.carrier")

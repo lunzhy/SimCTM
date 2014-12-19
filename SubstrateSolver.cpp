@@ -137,9 +137,18 @@ void OneDimSubsSolver::SolveSurfacePot()
 	static vector<FDVertex *> &channelVerts = subsContact->GetContactVerts();
 
 	FDVertex *vert = NULL;
+	bool toSolve = false;
+
 	for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
 	{
 		vert = channelVerts.at(iVert);
+
+		toSolve = this->isSubsUnderGate(vert);
+		if (!toSolve)
+		{
+			continue;
+		}
+
 		this->gateCapacitance = calcGateCapacitance(vert);
 		this->flatbandVoltage = calcFlatbandVoltage(vert);
 		this->surfacePotBend = solve_NewtonMethod();
@@ -247,4 +256,25 @@ double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
 
 	//this->gateCapacitance = 1 / cap_reciprocal;
 	//double gateCap = norm.PullCapacitancePerArea(gateCapacitance);
+}
+
+bool OneDimSubsSolver::isSubsUnderGate(FDVertex* vert)
+{
+	//this is temporarily related to the specific structure of the cell.
+	string contactName = "";
+	size_t found = 0;
+	while (vert != NULL)
+	{
+		if (vert->IsAtContact())
+		{
+			contactName = vert->Contact->ContactName;
+			found = contactName.find("Gate");
+			if (found != std::string::npos)
+			{
+				return true;
+			}
+		}
+		vert = vert->NorthVertex;
+	}
+	return false;
 }

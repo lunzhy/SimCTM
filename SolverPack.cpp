@@ -78,12 +78,10 @@ void SolverPack::callIteration()
 			//solve substrate, no matter under Windows or Linux environment
 			subsSolver->SolveSurfacePot();
 			fetchSubstrateResult();
-			SctmData::Get().WriteSubstrateResult(subsSolver);
+			SctmData::Get().WriteSubstrateResult(subsSolver, true);
 		}
 		else if (simStructure == "Triple" || simStructure == "TripleFull")
 		{
-			//write the flatband voltage shift of each slice
-			SctmData::Get().WriteVfbShiftEachInterface(domain);
 			//call Pytaurus to run Sentaurus to write substrate.in
 			//Pytaurus will read the charge.in file
 			if (SctmEnv::IsLinux())
@@ -92,7 +90,17 @@ void SolverPack::callIteration()
 			}
 			//if SimCTM is in running on Windows, read the same file, temporarily.
 			readSubstrateFromFile();
-			SctmData::Get().WriteSubstrateFromInput();
+
+			if (SctmGlobalControl::Get().UpdateSubstrate)
+			{
+				subsSolver->SolveSurfacePot();
+				fetchSubstrateResult();
+				SctmData::Get().WriteSubstrateResult(subsSolver);
+			}
+			else
+			{
+				SctmData::Get().WriteSubstrateFromInput();
+			}
 		}
 
 		if (SctmTimeStep::Get().IsGateVoltageChanged() && SctmGlobalControl::Get().ClearCarrier)
@@ -169,6 +177,11 @@ void SolverPack::callIteration()
 		if (simStructure == "Single")
 		{
 			SctmData::Get().WriteFlatBandVoltageShift(domain);
+		}
+		else
+		{
+			//write the flatband voltage shift of each slice, these files are parsed after the simulation is finished
+			SctmData::Get().WriteVfbShiftEachInterface(domain);
 		}
 
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());

@@ -299,7 +299,7 @@ namespace SctmUtils
 
 		void WriteTotalCarrierDens(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
-		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
+		void WriteSubstrateResult(OneDimSubsSolver *subsSolver, bool singlefile = false);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		void WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo);
 		void WriteTimeConstantTAT(vector<FDVertex *> vertices);
@@ -389,6 +389,7 @@ namespace SctmUtils
 		string TrappedCell;
 		bool LateralTunneling; ///< lateral tunneling (non-orthogonal) around the gate
 		string CallPytaurus; ///< the mode for calling Pytaurus in Linux
+		bool UpdateSubstrate; ///< solve and update substrate potential when calling Pytaurus
 		bool ClearCarrier;
 		bool RetentionAfterPrgrm; ///< Retention after program
 		double RetentionEndTime; ///< Retention end time after program
@@ -453,6 +454,7 @@ namespace SctmUtils
 			debug_trap_cell,
 			debug_lateral_tunnel,
 			debug_call_pytaurus,
+			debug_update_substrate,
 			debug_clear_carrier,
 			debug_rAfterP,
 			debug_rEndTime,

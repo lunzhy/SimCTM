@@ -54,6 +54,9 @@ protected:
 	double funcDeriv_SurfPot;
 	double surfacePotBend;
 
+	VertexMapDouble fermiAboveMap;
+	VertexMapDouble channelPotMap;
+
 	void initializeSolver(); 
 	void calcFuncAndItsDeriv(double surfpot);
 	double calcFlatbandVoltage(FDVertex *channelVert);
@@ -63,8 +66,7 @@ protected:
 	void setFermiAboveCB(FDVertex *channelVert);
 	void setChannelPotential(FDVertex *channelVert);
 
-	VertexMapDouble fermiAboveMap;
-	VertexMapDouble channelPotMap;
+	bool isSubsUnderGate(FDVertex* vert);
 };
 
 #endif
