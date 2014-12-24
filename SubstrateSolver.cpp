@@ -186,7 +186,7 @@ void OneDimSubsSolver::setChannelPotential(FDVertex *channelVert)
 {
 	double subsPot = 0; // the potential at the substrate contact
 	double channel_pot = 0;
-	if (subsType = PType)
+	if (subsType == PType)
 	{
 		subsPot = SctmMath::asinh(-subsDopConc / 2.0);
 	}
