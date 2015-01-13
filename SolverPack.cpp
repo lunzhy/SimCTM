@@ -73,6 +73,11 @@ void SolverPack::callIteration()
 
 		domain->RefreshGateVoltage();
 
+		if (SctmTimeStep::Get().IsGateVoltageChanged() && SctmGlobalControl::Get().ClearCarrier)
+		{
+			domain->ClearCarrier();
+		}
+
 		if (simStructure == "Single")
 		{
 			//solve substrate, no matter under Windows or Linux environment
@@ -102,11 +107,6 @@ void SolverPack::callIteration()
 			{
 				SctmData::Get().WriteSubstrateFromInput();
 			}
-		}
-
-		if (SctmTimeStep::Get().IsGateVoltageChanged() && SctmGlobalControl::Get().ClearCarrier)
-		{
-			domain->ClearCarrier();
 		}
 
 		//solver Poisson equation
