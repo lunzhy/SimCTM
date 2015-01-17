@@ -805,6 +805,7 @@ void FDDomain::ClearCarrier()
 	{
 		vert = this->ddVerts.at(iv);
 		vert->Phys->SetPhysPrpty(PhysProperty::eDensity, 0);
+		vert->Phys->SetPhysPrpty(PhysProperty::hDensity, 0);
 	}
 }
 
