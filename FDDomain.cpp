@@ -341,6 +341,7 @@ void FDDomain::BuildDomain()
 
 	//build the data and mesh structure of simulated region, this is a pure virtual method
 	buildStructure();
+	setVertexRadius();
 	//fill the vertices belonging to drift-diffusion process
 	fillDDVerts();
 	//set the physics value related to vertex, when the vertex is related to trapping layer
@@ -603,7 +604,7 @@ void FDDomain::setVertexTrapProperty()
 		currVert = ddVerts.at(iVert);
 		currVert->Trap = new TrapProperty(currVert);
 
-		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::EpsilonTrapping, MatProperty::Mat_DielectricConstant);
+		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::HighFrqEpsilon, MatProperty::Mat_HighFrqDielConst);
 
 		//for electrons
 		currVert->Trap->FillTrapPrptyUsingMatPrpty(TrapProperty::eFrequency_T2B, MatProperty::Mat_ElecFrequencyT2B);
@@ -697,24 +698,38 @@ void FDDomain::setTrapOccupation()
 			currVert = ddVerts.at(iVert);
 			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
 
-			if (trapOccupy < 0 || trapOccupy > 1)
+			if (trapOccupy < -1 || trapOccupy > 1)
 			{
 				SCTM_ASSERT(SCTM_ERROR, 10044);
 			}
-			else
+			else if (trapOccupy < 0) // occupied by electrons
 			{
-				eTrappedDens = trapDens * trapOccupy;
-			}
-
-			for (std::vector<string>::iterator it = regions.begin(); it != regions.end(); ++it)
-			{
-				if (isBelongToRegion(currVert, *it))
+				eTrappedDens = trapDens * SctmMath::abs(trapOccupy);
+				for (std::vector<string>::iterator it = regions.begin(); it != regions.end(); ++it)
 				{
-					//one vertex can only belong to one region under the gate
-					currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
-					break;
+					if (isBelongToRegion(currVert, *it))
+					{
+						//one vertex can only belong to one region under the gate
+						currVert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+						break;
+					}
 				}
 			}
+			else if (trapOccupy > 0) // occupied by holes
+			{
+				hTrappedDens = trapDens * trapOccupy;
+				for (std::vector<string>::iterator it = regions.begin(); it != regions.end(); ++it)
+				{
+					if (isBelongToRegion(currVert, *it))
+					{
+						//one vertex can only belong to one region under the gate
+						currVert->Trap->SetTrapPrpty(TrapProperty::hTrapped, hTrappedDens);
+						break;
+					}
+				}
+			}
+
+			
 		}
 	}
 
@@ -790,6 +805,7 @@ void FDDomain::ClearCarrier()
 	{
 		vert = this->ddVerts.at(iv);
 		vert->Phys->SetPhysPrpty(PhysProperty::eDensity, 0);
+		vert->Phys->SetPhysPrpty(PhysProperty::hDensity, 0);
 	}
 }
 
@@ -840,6 +856,21 @@ std::vector<FDVertex *> FDDomain::GetVertsOfRegion(std::string name)
 		}
 	}
 	return regVerts;
+}
+
+void FDDomain::setVertexRadius()
+{
+	Normalization norm = Normalization(this->temperature);
+	double nm_in_cm = SctmPhys::nm_in_cm;
+	double channel_radius = SctmGlobalControl::Get().ChannelRadius; // in [nm]
+	channel_radius = norm.PushLength(channel_radius * nm_in_cm);
+
+	FDVertex* vert = NULL;
+	for (size_t iv = 0; iv != this->vertices.size(); ++iv)
+	{
+		vert = this->vertices.at(iv);
+		vert->R = vert->Y + channel_radius; // r = r0 + y
+	}
 }
 
 

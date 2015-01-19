@@ -619,7 +619,7 @@ void TripleCells::setTrapDistribution()
 		currVert = ddVerts.at(iVert);
 		currVert->Trap->SetTrapPrpty(TrapProperty::eTrapDensity, eTrapDens);
 		currVert->Trap->SetTrapPrpty(TrapProperty::hTrapDensity, hTrapDens);
-		currVert->Trap->SetTrapPrpty(TrapProperty::TrapDensity, uniTrapDens);
+		currVert->Trap->SetTrapPrpty(TrapProperty::TrapDensity, trapDens);
 	}
 }
 

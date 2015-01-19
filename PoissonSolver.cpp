@@ -22,6 +22,7 @@ using MaterialDB::GetMatPrpty;
 using MaterialDB::MatProperty;
 using SctmUtils::SctmFileStream;
 using SctmUtils::SctmDebug;
+using SctmUtils::SctmGlobalControl;
 
 TwoDimPoissonSolver::TwoDimPoissonSolver(FDDomain *_domain) :domain(_domain), vertices(_domain->GetVertices())
 {
@@ -38,7 +39,11 @@ void TwoDimPoissonSolver::initializeSolver()
 	buildCoefficientMatrix();
 	//buildRhsVector();
 	//the structure does not change, so the final coefficient matrix after refreshing does not change either
-	refreshCoefficientMatrix();
+	if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+	{
+		refreshCoeffMatrixForCylindrical();
+	}
+	refreshCoefficientMatrixForBC();
 }
 
 void TwoDimPoissonSolver::buildCoefficientMatrix()
@@ -210,7 +215,7 @@ void TwoDimPoissonSolver::buildRhsVector()
 	}
 }
 
-void TwoDimPoissonSolver::refreshCoefficientMatrix()
+void TwoDimPoissonSolver::refreshCoefficientMatrixForBC()
 {
 	FDVertex *currVert = NULL;
 	int equationID= 0;
@@ -365,5 +370,68 @@ void TwoDimPoissonSolver::ReadChannelPotential(VertexMapDouble &channelPot)
 			SCTM_ASSERT(SCTM_ERROR, 10033);
 		}
 		vert->BndCond.RefreshBndCond(FDBoundary::Potential, potential);
+	}
+}
+
+void TwoDimPoissonSolver::refreshCoeffMatrixForCylindrical()
+{
+	FDVertex *currVert = NULL;
+	double epsilon = 0;
+	double valNeighbor = 0;
+	double valCenter = 0;
+	double radius = 0;
+
+	int indexCoefficient = 0;//the column index of the matrix,  the index of the coefficient of each equation
+	int indexEquation = 0;//the row index of the matrix, the index of the equation
+
+	for (std::size_t iVert = 0; iVert != this->vertices.size(); ++iVert)
+	{
+		currVert = this->vertices.at(iVert);
+		indexEquation = equationMap[currVert->GetID()];
+		SCTM_ASSERT(indexEquation == iVert, 10008);
+
+		valCenter = 0;
+		radius = currVert->R;
+		if (currVert->NorthVertex != NULL)
+		{
+			valNeighbor = 0;
+			indexCoefficient = equationMap[currVert->NorthVertex->GetID()];
+			if (currVert->NorthwestElem != NULL)
+			{
+				epsilon = GetMatPrpty(currVert->NorthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+				valNeighbor += 0.25 / radius * epsilon * currVert->WestLength;
+				valCenter += -0.25 / radius * epsilon * currVert->WestLength;
+			}
+			if (currVert->NortheastElem != NULL)
+			{
+				epsilon = GetMatPrpty(currVert->NortheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+				valNeighbor += 0.25 / radius * epsilon * currVert->EastLength;
+				valCenter += -0.25 / radius * epsilon * currVert->EastLength;
+			}
+			matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, valNeighbor, SctmSparseMatrixSolver::Add);
+		}
+		if (currVert->SouthVertex != NULL)
+		{
+			valNeighbor = 0;
+			indexCoefficient = equationMap[currVert->SouthVertex->GetID()];
+			if (currVert->SouthwestElem != NULL)
+			{
+				epsilon = GetMatPrpty(currVert->SouthwestElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+				valNeighbor += -0.25 / radius * epsilon * currVert->WestLength;
+				valCenter += 0.25 / radius * epsilon * currVert->WestLength;
+			}
+			if (currVert->SoutheastElem != NULL)
+			{
+				epsilon = GetMatPrpty(currVert->SoutheastElem->Region->Mat, MatProperty::Mat_DielectricConstant);
+				valNeighbor += -0.25 / radius * epsilon * currVert->EastLength;
+				valCenter += 0.25 / radius * epsilon * currVert->EastLength;
+			}
+			matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, valNeighbor, SctmSparseMatrixSolver::Add);
+		}
+		if (currVert != NULL)
+		{
+			indexCoefficient = indexEquation; //indexCoefficient = indexEquation = vertMap[currVert->GetInternalID]
+			matrixSolver.RefreshMatrixValue(indexEquation, indexCoefficient, valCenter, SctmSparseMatrixSolver::Add);
+		}
 	}
 }

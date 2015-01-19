@@ -123,7 +123,6 @@ protected:
 	/// @return void
 	/// @note
 	void buildRhsVector();
-	void buildRhsVector_UsingCurrent();
 	double getRhsBCVertex_DirectDiscretiztion(FDVertex *vert);
 	double getRhsBCVertex_UsingCurrent(FDVertex *vert);
 	double getRhsInnerVertex(FDVertex *vert);
@@ -134,6 +133,8 @@ protected:
 	void handleBndTunnelCurrDens(VertexMapDouble &bc1, VertexMapDouble &bc2);
 	void handleCurrDensBC_in(FDVertex *vert, double currdens);
 	void handleCurrDensBC_out(FDVertex *vert, double tunCoeff);
+
+	void updateCoeffMatrixForCylindrical(); //this method is obsolete
 
 	void updateCoeffMatrixForTrapping();
 	void updateCoeffMatrixForTrapping_Combined();

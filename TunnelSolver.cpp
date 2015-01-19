@@ -649,6 +649,10 @@ void SubsToTrapElecTunnel::SolveTunnel()
 			currdens += currdens_TAT / edensity; // [A/m^2] / [/m^3] = [A.m]
 		}
 		
+		if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+		{
+			currdens = updateTunCurrForCylindrical(currdens, vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
+		}
 
 		eCurrDens_DTFN.at(iVert) = currdens;
 
@@ -1092,6 +1096,21 @@ void SubsToTrapElecTunnel::ReturnResult_T2B(VertexMapDouble &ret)
 	}
 }
 
+double SubsToTrapElecTunnel::updateTunCurrForCylindrical(double currdens, FDVertex* inVert, FDVertex* outVert)
+{
+	double radiusTunFrom = 0;
+	double radiusTunTo = 0;
+	double updatedCurrDens = 0;
+
+	if (this->tunDirection == TunnelSolver::North) // electron/hole tunneling in
+	{
+		radiusTunFrom = inVert->R;
+		radiusTunTo = outVert->R;
+		updatedCurrDens = currdens * radiusTunFrom / radiusTunTo;
+	}
+	return updatedCurrDens;
+}
+
 
 TrapToGateElecTunnel::TrapToGateElecTunnel(FDDomain *_domain): TunnelSolver(_domain)
 {
@@ -1195,6 +1214,12 @@ void TrapToGateElecTunnel::SolveTunnel()
 
 		currdens = calcDTFNtunneling(deltaX_Block, ehMass_Block, bandEdge_Block, cbedge_max);
 		currdens += calcThermalEmission(deltaX_Block, ehMass_Block, bandEdge_Block, cbedge_max);
+
+		if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+		{
+			currdens = updateTunCurrForCylindrical(currdens, vertsBlockOxideEnd.at(iVert), vertsBlockOxideStart.at(iVert));
+		}
+
 		eCurrDens_DTFN.at(iVert) = currdens;
 
 		if (SctmGlobalControl::Get().PhysicsT2B)
@@ -1451,6 +1476,21 @@ void TrapToGateElecTunnel::ReturnResult_T2B(VertexMapDouble &ret)
 	{
 		ret[it->first] = it->second;
 	}
+}
+
+double TrapToGateElecTunnel::updateTunCurrForCylindrical(double currdens, FDVertex* inVert, FDVertex* outVert)
+{
+	double radiusTunFrom = 0;
+	double radiusTunTo = 0;
+	double updatedCurrDens = 0;
+
+	if (this->tunDirection == TunnelSolver::South) // electron/hole tunneling in
+	{
+		radiusTunFrom = inVert->R;
+		radiusTunTo = outVert->R;
+		updatedCurrDens = currdens * radiusTunFrom / radiusTunTo;
+	}
+	return updatedCurrDens;
 }
 
 
@@ -1884,6 +1924,12 @@ void SubsToTrapHoleTunnel::SolveTunnel()
 
 		currdens = calcDTFNtunneling(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, bandedge_max);
 		currdens += calcThermalEmission(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, bandedge_max);
+
+		if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+		{
+			currdens = updateTunCurrForCylindrical(currdens, vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
+		}
+
 		hCurrDens_DTFN.at(iVert) = currdens;
 
 	}

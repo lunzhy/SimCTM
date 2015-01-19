@@ -153,6 +153,7 @@ protected:
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
 	void calcTransCoeff_T2B();
+	double updateTunCurrForCylindrical(double currdens, FDVertex* inVert, FDVertex* outVert);
 
 	FDVertex *findTrapVertex_MFN(double energy, int &size);
 	FDVertex *findTrapVertex_B2T(double energy, int &size);
@@ -200,6 +201,7 @@ protected:
 	virtual void setTunnelTag();
 	void setSolver_Trap();
 	void calcTransCoeff_T2B();
+	double updateTunCurrForCylindrical(double currdens, FDVertex* inVert, FDVertex* outVert);
 
 	vector<double> cbEdge_TrapBlock;
 	vector<double> eMass_TrapBlock;

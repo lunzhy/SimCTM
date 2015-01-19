@@ -53,6 +53,7 @@ using MaterialDB::Mat;
 
 class FDDomain;
 class OneDimSubsSolver;
+class SolverPack;
 
 typedef std::map<int, double> VertexMapDouble; // <vertID, phyValue>
 typedef std::map<string, double> KeywordsTimerMap; // keywords timer
@@ -299,10 +300,10 @@ namespace SctmUtils
 
 		void WriteTotalCarrierDens(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
-		void WriteSubstrateResult(OneDimSubsSolver *subsSolver);
+		void WriteSubstrateResult(OneDimSubsSolver *subsSolver, SolverPack *solverPack, bool singlefile = false);
 		void WriteTrapDensity(vector<FDVertex *> &vertices);
 		void WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo);
-		void WriteTimeConstantTAT(vector<FDVertex *> &vertices);
+		void WriteTimeConstantTAT(vector<FDVertex *> vertices);
 
 		void WriteSubsVertices(vector<FDVertex *> &vertices);
 		void WriteVfbShiftEachInterface(FDDomain *domain);
@@ -357,6 +358,7 @@ namespace SctmUtils
 
 		//simulation parameters
 		string Structure; ///< the simulation structure
+		string Coordinate; ///< the coordinate system in the simulation
 		string Solver; ///< the matrix solver
 
 		double Temperature; ///< temperature of the simulation, in [K]
@@ -368,6 +370,7 @@ namespace SctmUtils
 		double SimTimeStepMax; ///< minimum of simulation time step
 
 		//density parameters
+		double ChannelRadius; ///< the radius of the channel when using cylindrical coordinate
 		double SubstrateDoping; ///< substrate doping, positive for N-type, negative for P-type
 		double ElecUniTrapDens; ///< the uniform electron trap density, in [cm^-3]
 		double HoleUniTrapDens; ///< the uniform hole trap density, in [cm^-3]
@@ -375,6 +378,7 @@ namespace SctmUtils
 		string TrapDistribution; ///< the distribution 
 
 		//physics models
+		string Carriers; ///< carrier type solved in the simulation
 		string TrapCaptureModel;
 		bool PhysicsMFN; ///< Modified Fowler-Nordheim tunneling
 		bool PhysicsB2T; ///< Band-to-Trap tunneling in
@@ -386,6 +390,7 @@ namespace SctmUtils
 		string TrappedCell;
 		bool LateralTunneling; ///< lateral tunneling (non-orthogonal) around the gate
 		string CallPytaurus; ///< the mode for calling Pytaurus in Linux
+		bool UpdateSubstrate; ///< solve and update substrate potential when calling Pytaurus
 		bool ClearCarrier;
 		bool RetentionAfterPrgrm; ///< Retention after program
 		double RetentionEndTime; ///< Retention end time after program
@@ -420,6 +425,7 @@ namespace SctmUtils
 		enum ParName
 		{
 			structure,
+			coordinate,
 			solver,
 			temperature,
 			time_start,
@@ -429,6 +435,7 @@ namespace SctmUtils
 			time_stepScale,
 			time_stepMax,
 
+			subs_radius,
 			subs_type,
 			subs_doping,
 			trap_eDensity,
@@ -436,6 +443,7 @@ namespace SctmUtils
 			trap_density,
 			trap_distribution,
 			
+			carriers,
 			trap_capture,
 			physics_mfn,
 			physics_b2t,
@@ -447,6 +455,7 @@ namespace SctmUtils
 			debug_trap_cell,
 			debug_lateral_tunnel,
 			debug_call_pytaurus,
+			debug_update_substrate,
 			debug_clear_carrier,
 			debug_rAfterP,
 			debug_rEndTime,
@@ -535,6 +544,7 @@ namespace SctmUtils
 
 			Si3N4_bandgap,
 			Si3N4_dielectricConstant,
+			Si3N4_highFrequencyDielConst,
 			Si3N4_electronAffinity,
 			Si3N4_eMass,
 			Si3N4_eDOSMass,
@@ -555,6 +565,7 @@ namespace SctmUtils
 
 			HfO2_bandgap,
 			HfO2_dielectricConstant,
+			HfO2_highFrequencyDielConst,
 			HfO2_electronAffinity,
 			HfO2_eMass,
 			HfO2_eDOSMass,
@@ -587,6 +598,7 @@ namespace SctmUtils
 		string userParFile;
 
 		void parseParValue(std::map<ParName, ParamBase*> &mapToSet, string &name, string &valStr);
+		static void checkParValue();
 
 		bool isCommentOrSpaceLine(string &line);
 		bool isValid(string &line);
@@ -594,6 +606,7 @@ namespace SctmUtils
 		string getParValStr(string &line);
 		string trimSpace(string &line);
 		string trimComment(string &line);
+		static bool isStringValidChoice(string& val, vector<string>& choices);
 	};
 
 

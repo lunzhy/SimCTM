@@ -604,11 +604,17 @@ void CombinedTrapSolver::SolveTrap()
 {
 	refreshSolver();
 	setSolverTrapping();
-	setSolverDetrapping_SRH();
+	
+	//PF frequency contains basic SRH mechanism
 	if (SctmGlobalControl::Get().PhysicsPFModel == "Frequency")
 	{
 		setSolverDetrapping_PFfrequency();
 	}
+	else
+	{
+		setSolverDetrapping_SRH();
+	}
+
 	if (SctmGlobalControl::Get().PhysicsT2B)
 	{
 		setSolverElecT2B();

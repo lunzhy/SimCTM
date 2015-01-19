@@ -129,17 +129,27 @@ void OneDimSubsSolver::SolveSurfacePot()
 	//clear previous result
 	fermiAboveMap.clear();
 	channelPotMap.clear();
-	
-	//CAUTION! TODO: this should be revised according to the change of gate voltage during the simulation 
-	gateVoltage = domain->GetContact("Gate")->Voltage;
 
 	static FDContact *subsContact = domain->GetContact("Channel");
 	static vector<FDVertex *> &channelVerts = subsContact->GetContactVerts();
 
 	FDVertex *vert = NULL;
+	string contactName = "";
+
 	for (size_t iVert = 0; iVert != channelVerts.size(); ++iVert)
 	{
 		vert = channelVerts.at(iVert);
+
+		//gate voltage is refreshed for each time step in the simulation
+		contactName = this->findRelatedContact(vert);
+
+		if (contactName.empty())
+		{
+			continue;
+		}
+
+		this->gateVoltage = domain->GetContact(contactName)->Voltage;
+
 		this->gateCapacitance = calcGateCapacitance(vert);
 		this->flatbandVoltage = calcFlatbandVoltage(vert);
 		this->surfacePotBend = solve_NewtonMethod();
@@ -176,7 +186,7 @@ void OneDimSubsSolver::setChannelPotential(FDVertex *channelVert)
 {
 	double subsPot = 0; // the potential at the substrate contact
 	double channel_pot = 0;
-	if (subsType = PType)
+	if (subsType == PType)
 	{
 		subsPot = SctmMath::asinh(-subsDopConc / 2.0);
 	}
@@ -195,7 +205,16 @@ double OneDimSubsSolver::calcFlatbandVoltage(FDVertex *channelVert)
 	double gateWorkFunction = norm.PushPotential(SctmGlobalControl::Get().GateWorkFunction);
 	double workFuncDifference = gateWorkFunction - SctmPhys::ReferencePotential;
 
-	double vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for1D(channelVert);
+	double vfbShift_charge = 0;
+
+	if (SctmGlobalControl::Get().Structure == "Single")
+	{
+		vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for1D(channelVert);
+	}
+	else // SctmGlobalControl::Get().Structure == "Triple" || TripleFull
+	{
+		vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for2D(channelVert);
+	}
 
 	return vfbShift_charge + workFuncDifference;
 	//this->flatbandVoltage = vfbShift_charge + workFuncDifference;
@@ -216,7 +235,7 @@ void OneDimSubsSolver::ReturnResult(VertexMapDouble &_fermiAboveMap, VertexMapDo
 
 double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
 {
-
+	using SctmUtils::SctmGlobalControl;
 	//////////calculate the gate capacitance in the slice
 	FDVertex *currVert = channelVert;
 
@@ -227,7 +246,17 @@ double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
 	while (currVert != NULL)
 	{
 		epsilon = currVert->Phys->GetPhysPrpty(PhysProperty::DielectricConstant);
-		delta_d = (currVert->NorthLength + currVert->SouthLength) / 2;
+
+		if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+		{
+			delta_d = currVert->R * SctmMath::ln((currVert->R + currVert->NorthLength / 2) /
+				(currVert->R - currVert->SouthLength / 2));
+		}
+		else // SctmGlobalControl::Get().Coordinate == "Cartesian"
+		{
+			delta_d = (currVert->SouthLength + currVert->NorthLength) / 2;
+		}
+
 		cap_reciprocal += delta_d / epsilon;
 
 		currVert = currVert->NorthVertex;
@@ -237,4 +266,26 @@ double OneDimSubsSolver::calcGateCapacitance(FDVertex *channelVert)
 
 	//this->gateCapacitance = 1 / cap_reciprocal;
 	//double gateCap = norm.PullCapacitancePerArea(gateCapacitance);
+}
+
+string OneDimSubsSolver::findRelatedContact(FDVertex* vert)
+{
+	//this is temporarily related to the specific structure of the cell.
+	string contactName = "";
+	size_t pos = 0;
+
+	while (vert != NULL)
+	{
+		if (vert->IsAtContact())
+		{
+			pos = vert->Contact->ContactName.find("Gate");
+			if (pos != std::string::npos)
+			{
+				contactName = vert->Contact->ContactName;
+				break;
+			}
+		}
+		vert = vert->NorthVertex;
+	}
+	return contactName;
 }

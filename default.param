@@ -7,6 +7,7 @@
 ###################### paramters for simulation #################################
 # parameters for the solver
 structure					: Triple				# Single | Triple | TripleFull, cell structure, Triple for simple triple
+coordinate					: Cartesian				# Cylindrical | Cartesian, the coordinate system in the simulation
 solver						: SparseLU				# SparseLU | BiCGSTAB | Pardiso, the solver for linear matrix solver
 
 # global control of the simulation
@@ -19,6 +20,7 @@ time.stepPerDecade			: 10					# steps per decade in log scale
 time.stepMax				: 0						# in [s], the maximal time step
 
 # substrate, traps information
+subs.radius					: 0						# in [nm], the radius of the channel
 subs.type					: P 					# N | P , substrate type
 subs.doping					: 1e17					# in [cm^-3]
 trap.eDensity				: 6e19					# in [cm^-3]
@@ -27,6 +29,7 @@ trap.density				: 6e19					# in [cm^-3], trap density for amphoretic trap
 trap.distribution			: Uniform				# Uniform | 2D, trap distribution information
 
 # switches of the physical mechanisms
+carriers					: Both					# Electron | Both
 trap.capture				: J-Model				# J-Model | V-Model
 physics.mfn					: True					# True | False (not true, false)
 physics.b2t					: False					# True | False, Band-to-Trap tunneling in
@@ -34,11 +37,13 @@ physics.t2b					: False					# True | False, Trap-to-Band tunneling out
 physics.pf					: None					# None | EtDecrease | Frequency, model of Poole-Frenkel effect
 
 # for debug
-debug.trap.occupy			: 0						# range [0, 1], trap occupation state, positive value for hole occupation, negative electron
+debug.trap.occupy			: 0						# range [-1, 1], trap occupation state, positive value for hole occupation, negative electron
 debug.trap.cell				: Center				# Center | Side | All, occupied cells
 debug.lateral.tunnel		: True					# True | False, the non-orthogonal tunneling near the gate
 debug.call.pytaurus			: Initial				# Never | Initial | EveryStep | Major, the frequency of calling Pytaurus in Linux
+debug.update.substrate		: False					# True | False, solve and update substrate potential, especially when calling Pytaurus
 debug.clear.carrier			: True					# True | False, clear free carriers when changing gate voltage
+
 # TODO: the simulation of retention after programming has not been implemented yet.
 debug.rAfterP				: False					# True | False, rentention after program
 debug.rEndTime				: 1e6					# retention end time after program
@@ -153,6 +158,7 @@ hMass						: 0.2					# in [m0]
 material					: Si3N4
 bandgap						: 5.0					# in [eV]
 dielectricConstant			: 7.5
+highFrequencyDielConst		: 4.0					# high-frequency/dynamic relative dielectric constant
 electronAffinity			: 1.9					# in [eV]
 eDOSMass					: 0.42					# in [m0]
 eMass						: 0.42					# in [m0]
@@ -175,6 +181,7 @@ hFrequencyPF				: 1e9					# in [1/s]
 material					: HfO2
 bandgap						: 5.9					# in [eV]
 dielectricConstant			: 20.0
+highFrequencyDielConst		: 4.0					# not-known
 electronAffinity			: 2.05					# in [eV]
 eDOSMass					: 0.2					# in [m0]
 eMass						: 0.2					# in [m0]

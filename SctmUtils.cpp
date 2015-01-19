@@ -21,6 +21,8 @@
 #include "SubstrateSolver.h"
 #include "Material.h"
 #include <sstream>
+#include <algorithm>
+#include "SolverPack.h"
 
 using std::cout;
 using std::endl;
@@ -277,7 +279,10 @@ namespace SctmUtils
 			msg = "[SctmMath.cpp] Solving linear equations meets 0 denominator.";
 			break;
 		case 10059:
-			msg = "[TunnelSolver.cpp] Error ocurrs in solving TAT tunneling current.";
+			msg = "[TunnelSolver.cpp] Error occurs in solving TAT tunneling current.";
+			break;
+		case 10060:
+			msg = "[param.user] Please check the values of parameters listed above.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -1534,40 +1539,77 @@ namespace SctmUtils
 		file.WriteLine(line);
 	}
 
-	void SctmData::WriteSubstrateResult(OneDimSubsSolver *subsSolver)
+	void SctmData::WriteSubstrateResult(OneDimSubsSolver *subsSolver, SolverPack *solverPack, bool singlefile /* = false*/)
 	{
-		static bool firstRun = true;
 		Normalization norm = Normalization(this->temperature);
-
-		fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "substrate.txt";
-		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
-
 		VertexMapDouble fermi_above_map;
 		VertexMapDouble channel_potential_map;
 		double fermi_above = 0;
 		double channel_potential = 0;
-
-		subsSolver->ReturnResult(fermi_above_map, channel_potential_map);
-
-		if (firstRun)
-		{
-			string headline = "Time [s]\t\tChannel potential\t\tFermi energy above conduction band";
-			file.WriteLine(headline);
-			firstRun = false;
-		}
-
-		string time = "time = [" + SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime()) + "s]";
-		file.WriteLine(time);
+		
 		int vertID = 0;
 		string line = "";
-		for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
+		string timeStr = "";
+		string title = "";
+		FDVertex *vert = NULL;
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecPot;
+		vector<double> vecFermi;
+
+		if (singlefile)
 		{
-			vertID = it->first;
-			fermi_above = it->second;
-			channel_potential = channel_potential_map[vertID];
-			line = SctmConverter::DoubleToString(norm.PullPotential(channel_potential)) +
-				"\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermi_above));
-			file.WriteLine(line);
+			static bool firstRun = true;
+
+			subsSolver->ReturnResult(fermi_above_map, channel_potential_map);
+
+			fileName = directoryName + pathSep + "Miscellaneous" + pathSep + "substrate.txt";
+			SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Append);
+
+			if (firstRun)
+			{
+				title = "Time [s]\t\tChannel potential\t\tFermi energy above conduction band";
+				file.WriteLine(title);
+				firstRun = false;
+			}
+
+			timeStr = "time = [" + SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime()) + "s]";
+			file.WriteLine(timeStr);
+			for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
+			{
+				vertID = it->first;
+				fermi_above = it->second;
+				channel_potential = channel_potential_map[vertID];
+				line = SctmConverter::DoubleToString(norm.PullPotential(channel_potential)) +
+					"\t\t" + SctmConverter::DoubleToString(norm.PullPotential(fermi_above));
+				file.WriteLine(line);
+			}
+		}
+		else
+		{
+			fileName = directoryName + pathSep + "Substrate" + pathSep + "substrate" + generateFileSuffix();
+			SctmFileStream subs_file = SctmFileStream(fileName, SctmFileStream::Write);
+
+			fermi_above_map = solverPack->mapSiFermiAboveCBedge;
+			channel_potential_map = solverPack->mapChannelPotential;
+
+			for (VertexMapDouble::iterator it = fermi_above_map.begin(); it != fermi_above_map.end(); ++it)
+			{
+				vertID = it->first;
+				vert = subsSolver->domain->GetVertex(vertID);
+				fermi_above = it->second;
+				channel_potential = channel_potential_map[vertID];
+
+				vecX.push_back(norm.PullLength(vert->X));
+				vecY.push_back(norm.PullLength(vert->Y));
+
+				vecPot.push_back(norm.PullPotential(channel_potential));
+				vecFermi.push_back(norm.PullPotential(fermi_above));
+			}
+			timeStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+			title = "substrate result at time=[" + timeStr + "] (x, y, potential[V], fermi energy above cb edge [eV])";
+			subs_file.WriteVector(vecX, vecY, vecPot, vecFermi, title.c_str());
 		}
 	}
 
@@ -2075,7 +2117,7 @@ namespace SctmUtils
 
 	}
 
-	void SctmData::WriteTimeConstantTAT(vector<FDVertex *> &vertices)
+	void SctmData::WriteTimeConstantTAT(vector<FDVertex *> vertices)
 	{
 		fileName = directoryName + pathSep + "Trap" + pathSep + "timeTAT" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
@@ -2218,6 +2260,10 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::structure);
 		Get().Structure = dynamic_cast<Param<string> *>(parBase)->Value();
 
+		//Coordinate
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::coordinate);
+		Get().Coordinate = dynamic_cast<Param<string> *>(parBase)->Value();
+
 		//Solver
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::solver);
 		Get().Solver = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2251,6 +2297,9 @@ namespace SctmUtils
 		Get().HoleUniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_density);
 		Get().UniTrapDens = dynamic_cast<Param<double> *>(parBase)->Value();
+		//ChannelRadius
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_radius);
+		Get().ChannelRadius = dynamic_cast<Param<double> *>(parBase)->Value();
 		//SubstrateDoping
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_type);
 		string subsType = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2261,6 +2310,9 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_distribution);
 		Get().TrapDistribution = dynamic_cast<Param<string> *>(parBase)->Value();
 
+		//Carriers
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::carriers);
+		Get().Carriers = dynamic_cast<Param<string> *>(parBase)->Value();
 		//TrapCaptureModel
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_capture);
 		Get().TrapCaptureModel = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2293,6 +2345,9 @@ namespace SctmUtils
 		//CallPytaurus
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_call_pytaurus);
 		Get().CallPytaurus = dynamic_cast<Param<string> *>(parBase)->Value();
+		//UpdateSubstrate
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_update_substrate);
+		Get().UpdateSubstrate = dynamic_cast<Param<bool> *>(parBase)->Value();
 		//ClearCarrier
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_clear_carrier);
 		Get().ClearCarrier = dynamic_cast<Param<bool> *>(parBase)->Value();
@@ -2470,6 +2525,13 @@ namespace SctmUtils
 			mapToSet[pName] = par;
 			return;
 		}
+		if (name == "coordinate")
+		{
+			ParName pName = ParName::coordinate;
+			Param<string> *par = new Param<string>(pName, valStr);
+			mapToSet[pName] = par;
+			return;
+		}
 		if (name == "solver")
 		{
 			ParName pName = ParName::solver;
@@ -2538,6 +2600,13 @@ namespace SctmUtils
 			mapToSet[ParName::sc_gate_workfunction] = par;
 			return;
 		}
+		if (name == "subs.radius")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::subs_radius, valDouble);
+			mapToSet[ParName::subs_radius] = par;
+			return;
+		}
 		if (name == "subs.type")
 		{
 			Param<string> *par = new Param<string>(ParName::subs_type, valStr);
@@ -2576,6 +2645,12 @@ namespace SctmUtils
 		{
 			Param<string> *par = new Param<string>(ParName::trap_distribution, valStr);
 			mapToSet[ParName::trap_distribution] = par;
+			return;
+		}
+		if (name == "carriers")
+		{
+			Param<string> *par = new Param<string>(ParName::carriers, valStr);
+			mapToSet[ParName::carriers] = par;
 			return;
 		}
 		if (name == "trap.capture")
@@ -2635,6 +2710,13 @@ namespace SctmUtils
 		{
 			Param<string> *par = new Param<string>(ParName::debug_call_pytaurus, valStr);
 			mapToSet[ParName::debug_call_pytaurus] = par;
+			return;
+		}
+		if (name == "debug.update.substrate")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::debug_update_substrate, valBool);
+			mapToSet[ParName::debug_update_substrate] = par;
 			return;
 		}
 		if (name == "debug.clear.carrier")
@@ -3053,6 +3135,25 @@ namespace SctmUtils
 				break;
 			default:
 				break;
+			}
+			return;
+		}
+		if (name == "highFrequencyDielConst")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = NULL;
+			switch (currMat)
+			{
+				case MaterialDB::Mat::Si3N4:
+					par = new Param<double>(ParName::Si3N4_highFrequencyDielConst, valDouble);
+					mapToSet[ParName::Si3N4_highFrequencyDielConst] = par;
+					break;
+				case MaterialDB::Mat::HfO2:
+					par = new Param<double>(ParName::HfO2_highFrequencyDielConst, valDouble);
+					mapToSet[ParName::HfO2_highFrequencyDielConst] = par;
+					break;
+				default:
+					break;
 			}
 			return;
 		}
@@ -3482,6 +3583,14 @@ namespace SctmUtils
 	SctmParameterParser& SctmParameterParser::Get()
 	{
 		static SctmParameterParser parser;
+		static bool checked = false;
+
+		if (!checked)
+		{
+			checked = true;
+			checkParValue();
+		}
+		
 		return parser;
 	}
 
@@ -3503,6 +3612,66 @@ namespace SctmUtils
 		return NULL;
 	}
 
+	void SctmParameterParser::checkParValue()
+	{
+		ParamBase *parBase = NULL;
+		string stringVal = "";
+		double doubleVal = 0;
+		
+		bool errorOccurred = false;
+
+		//for cylindrical coordinate and channel radius
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::coordinate);
+		stringVal = dynamic_cast<Param<string> *>(parBase)->Value();
+
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::subs_radius);
+		doubleVal = dynamic_cast<Param<double> *>(parBase)->Value();
+		string keywords_coord[] = {"Cylindrical", "Cartesian"};
+		vector<string> choices(std::begin(keywords_coord), std::end(keywords_coord));
+		if (!isStringValidChoice(stringVal, choices))
+		{
+			SctmMessaging::Get().PrintMessageLine("The parameter of coordinate is illegal.");
+			errorOccurred = true;
+		}
+		if (stringVal == "Cylindrical" && doubleVal == 0.0)
+		{
+			SctmMessaging::Get().PrintMessageLine("Channel radius must not be 0 when using cylindrical coordinate.");
+			errorOccurred = true;
+		}
+
+		//for carriers type
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::carriers);
+		stringVal = dynamic_cast<Param<string> *>(parBase)->Value();
+		string keywords_carriers[] = { "Both", "Electron" };
+		choices.assign(std::begin(keywords_carriers), std::end(keywords_carriers));
+		if (!isStringValidChoice(stringVal, choices))
+		{
+			SctmMessaging::Get().PrintMessageLine("The parameter of carriers is illegal.");
+			errorOccurred = true;
+		}
+
+		if (errorOccurred)
+			SCTM_ASSERT(SCTM_ERROR, 10060);
+	}
+
+	bool SctmParameterParser::isStringValidChoice(string& val, vector<string>& choices)
+	{
+		bool valid = false;
+		
+		for (vector<string>::iterator it = choices.begin(); it != choices.end(); ++it)
+		{
+			if (val == *it)
+			{
+				valid = true;
+				break;
+			}
+		}
+		return valid;
+	}
+
+
+
+
 
 
 
@@ -3519,7 +3688,7 @@ namespace SctmUtils
 		{
 			DebugPrjPath = "E:\\PhD Study\\SimCTM\\SctmTest\\HoleTunnelTest";
 			DefaultParamPath = "E:\\MyCode\\SimCTM\\SimCTM\\default.param";
-			ClearPrjPyPath = "E:\\\"PhD Study\"\\SimCTM\\SctmPy\\DeleteData.py";
+			ClearPrjPyPath = "E:\\PhD Study\\SimCTM\\SctmPy\\DeleteData.py";
 			PathSep = "\\";
 		}
 		else if (SCTM_ENV == "Linux")
@@ -3547,8 +3716,17 @@ namespace SctmUtils
 
 	void SctmPyCaller::PyClean(string folderPath)
 	{
-		string command = SctmEnv::Get().PytaurusPath + " clean " + folderPath;
-		std::system(command.c_str());
+		if (SctmEnv::IsLinux())
+		{
+			string command = SctmEnv::Get().PytaurusPath + " clean " + folderPath;
+			std::system(command.c_str());
+		}
+		if (SctmEnv::IsWindows())
+		{
+			string command = "python \"" + SctmEnv::Get().ClearPrjPyPath + "\" \"" + folderPath + "\"";
+			std::system(command.c_str());
+		}
+		
 	}
 
 	void SctmPyCaller::PySolve()

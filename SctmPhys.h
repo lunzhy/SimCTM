@@ -228,7 +228,7 @@ namespace SctmPhys
 	public:
 		enum Name
 		{
-			EpsilonTrapping, ///< dielectric constant for trapping layer
+			HighFrqEpsilon, ///< high-frequency or dynamic dielectric constant for trapping layer
 			NetTrappedCharge,
 			TrapDensity,
 
@@ -288,7 +288,7 @@ namespace SctmPhys
 
 	private:
 		FDVertex *vertSelf;
-		double epsTrapping;
+		double highFrqEpsilon;
 		double trapDensity; ///< total trap density both for electrons and holes
 
 		double e_trapped;

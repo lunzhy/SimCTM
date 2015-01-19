@@ -104,7 +104,7 @@ protected:
 	/// @return void
 	/// @note
 	void buildRhsVector();
-	/// @brief refreshCoefficientMatrix is used to refresh the coefficient matrix with the boundary conditions.
+	/// @brief refreshCoefficientMatrixForBC is used to refresh the coefficient matrix with the boundary conditions.
 	/// 
 	/// Only equation of the vertex with Dirichlet BC (first type BC) is revised. In terms of the other types of BC, only
 	/// right-hand side is revised.
@@ -112,7 +112,7 @@ protected:
 	/// @pre
 	/// @return void
 	/// @note
-	void refreshCoefficientMatrix();
+	void refreshCoefficientMatrixForBC();
 	/// @brief refreshRhs is used to refresh the right-hand side vector of the matrix equation due to boundary condition
 	/// 
 	/// The method to refresh right-hand side of the equation with BC_Neumann and BC_Artificial is a little complicated.
@@ -132,6 +132,7 @@ protected:
 	/// @return void
 	/// @note
 	void fillBackPotential();
+	void refreshCoeffMatrixForCylindrical();
 };
 
 #endif

@@ -26,17 +26,15 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 	{
 		SctmMessaging::Get().PrintHeader("Cleaning debug folder.");
 		prj = SctmEnv::Get().DebugPrjPath;
-		if (SctmEnv::IsWindows())
-		{
-			std::system(SctmEnv::Get().ClearPrjPyPath.c_str());
-		}
-		if (SctmEnv::IsLinux())
-		{
-			SctmPyCaller::PyClean(prj);
-		}
+		SctmPyCaller::PyClean(prj);
 	}
 	else
 	{
+		if (SctmEnv::IsWindows())
+		{
+			//clean the project in Windows
+			SctmPyCaller::PyClean(prj);
+		}
 		if (SctmEnv::IsLinux())
 		{
 			SctmMessaging::Get().PrintHeader("Preparing project folder.");
@@ -46,7 +44,6 @@ void initialize(const char *prjdir ="", const char *defaulParFile = "")
 
 	if (defaultParam.empty())
 	{
-		//run from visual studio
 		defaultParam = SctmEnv::Get().DefaultParamPath;
 	}
 

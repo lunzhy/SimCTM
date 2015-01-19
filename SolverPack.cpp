@@ -57,10 +57,12 @@ void SolverPack::initialize()
 
 void SolverPack::callIteration()
 {
-	if (SctmEnv::Get().IsLinux())
+	//building the structure using Pytaurus
+	if (SctmEnv::Get().IsLinux() && (simStructure == "Triple" || simStructure == "TripleFull"))
 	{
 		SctmPyCaller::PyBuildStructure();
 	}
+
 	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
 
@@ -71,31 +73,40 @@ void SolverPack::callIteration()
 
 		domain->RefreshGateVoltage();
 
+		if (SctmTimeStep::Get().IsGateVoltageChanged() && SctmGlobalControl::Get().ClearCarrier)
+		{
+			domain->ClearCarrier();
+		}
+
 		if (simStructure == "Single")
 		{
 			//solve substrate, no matter under Windows or Linux environment
 			subsSolver->SolveSurfacePot();
 			fetchSubstrateResult();
-			SctmData::Get().WriteSubstrateResult(subsSolver);
+			SctmData::Get().WriteSubstrateResult(subsSolver, this, true);
 		}
 		else if (simStructure == "Triple" || simStructure == "TripleFull")
 		{
-			//write the flatband voltage shift of each slice
-			SctmData::Get().WriteVfbShiftEachInterface(domain);
 			//call Pytaurus to run Sentaurus to write substrate.in
 			//Pytaurus will read the charge.in file
 			if (SctmEnv::IsLinux())
 			{
 				SctmPyCaller::PySolve();
 			}
-			//if SimCTM is in running on Windows, read the same file, temporarily.
+			//when running in Linux, the substrate file is refreshed according to the parameter for calling Pytaurus
+			//if SimCTM is in running on Windows (debugging), the substrate file should be prepared and is read in each simulation step.
 			readSubstrateFromFile();
-			SctmData::Get().WriteSubstrateFromInput();
-		}
 
-		if (SctmTimeStep::Get().IsGateVoltageChanged() && SctmGlobalControl::Get().ClearCarrier)
-		{
-			domain->ClearCarrier();
+			if (SctmGlobalControl::Get().UpdateSubstrate)
+			{
+				subsSolver->SolveSurfacePot();
+				fetchSubstrateResult();
+				SctmData::Get().WriteSubstrateResult(subsSolver, this);
+			}
+			else
+			{
+				SctmData::Get().WriteSubstrateFromInput();
+			}
 		}
 
 		//solver Poisson equation
@@ -112,25 +123,25 @@ void SolverPack::callIteration()
 		eTunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
 		SctmTimer::Get().Set();
 		eTunnelOxideSolver->SolveTunnel();
+		if (SctmGlobalControl::Get().Carriers == "Both")
+		{
+			hTunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
+			hTunnelOxideSolver->SolveTunnel();
+			
+		}
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
-
-		hTunnelOxideSolver->ReadInput(mapSiFermiAboveCBedge);
-		SctmTimer::Get().Set();
-		hTunnelOxideSolver->SolveTunnel();
-		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
-		
 		fetchTunnelOxideResult();
 
 		//solve tunneling problem in blocking oxide
 		SctmTimer::Get().Set();
 		eBlockOxideSolver->SolveTunnel();
+		if (SctmGlobalControl::Get().Carriers == "Both")
+		{
+			hBlockOxideSolver->SolveTunnel();
+		}
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
-
-		SctmTimer::Get().Set();
-		hBlockOxideSolver->SolveTunnel();
-		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
-
 		fetchBlockOxideResult();
+
 		SctmData::Get().WriteTunnelInfo(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block, SctmData::eInfo);
 		SctmData::Get().WriteTunnelInfo(domain, mapHoleCurrDensOrCoeff_Tunnel, mapHoleCurrDensOrCoeff_Block, SctmData::hInfo);
 		SctmData::Get().WriteTimeConstantTAT(domain->GetVertsOfRegion("Tunnel"));
@@ -138,7 +149,10 @@ void SolverPack::callIteration()
 		//solver drift-diffusion equation
 		SctmTimer::Get().Set();
 		eDDSolver->SolveDD(mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block);
-		hDDSolver->SolveDD(mapHoleCurrDensOrCoeff_Tunnel, mapHoleCurrDensOrCoeff_Block);
+		if (SctmGlobalControl::Get().Carriers == "Both")
+		{
+			hDDSolver->SolveDD(mapHoleCurrDensOrCoeff_Tunnel, mapHoleCurrDensOrCoeff_Block);
+		}
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		
 		fetchDDResult();
@@ -164,6 +178,11 @@ void SolverPack::callIteration()
 		if (simStructure == "Single")
 		{
 			SctmData::Get().WriteFlatBandVoltageShift(domain);
+		}
+		else
+		{
+			//write the flatband voltage shift of each slice, these files are parsed after the simulation is finished
+			SctmData::Get().WriteVfbShiftEachInterface(domain);
 		}
 
 		SctmMessaging::Get().PrintTimeElapsed(SctmTimer::Get().PopLastSet());
