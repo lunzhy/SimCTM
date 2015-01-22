@@ -143,6 +143,7 @@ namespace SctmUtils
 		bool End() const;
 		bool IsMajorTime();
 		bool IsGateVoltageChanged();
+		bool IsStepWriteData();
 
 		double TimeStep() const;
 		double VoltageCellA() const;
@@ -263,6 +264,7 @@ namespace SctmUtils
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, vector<double> vec5, const char *title = "title not assigned");
+		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, vector<double> vec5, vector<double> vec6, const char *title = "title not assigned");
 		void WriteVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<int> &vec1, vector<int> &vec2, vector<double> &vec3, const char *title = "title not assigned");
 		void WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<string> vec4, const char *title = "title not assigned");
@@ -270,6 +272,7 @@ namespace SctmUtils
 
 		void ReadVector(vector<int> &vec1, vector<double> &vec2, vector<double> &vec3);
 		void ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> &vec4);
+		void ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> &vec4, vector<double> &vec5, vector<double> &vec6);
 
 		static bool FileExisted(string _filename);
 
@@ -297,6 +300,7 @@ namespace SctmUtils
 		void WriteBandInfo(vector<FDVertex *> &vertices);
 		void WriteElecField(vector<FDVertex *> &vertices);
 		void WriteTrappedInfo(vector<FDVertex *> &vertices, ehInfo ehinfo);
+		void WriteTrapped(vector<FDVertex *> &vertices);
 
 		void WriteTotalCarrierDens(vector<FDVertex *> &vertices);
 		void WriteFlatBandVoltageShift(FDDomain *domain);
@@ -320,6 +324,7 @@ namespace SctmUtils
 
 		void ReadSubsInfoFromFile(VertexMapDouble &fermiAboveMap, VertexMapDouble &channelPotMap);
 		void ReadTimestep(vector<double> &timestep, vector<double> &vg1, vector<double> &vg2, vector<double> &vg3);
+		void ReadTrappedOcc(vector<double>& eOcc, vector<double>& hOcc);
 	protected:
 		double temperature;
 		string fileName;
@@ -368,6 +373,7 @@ namespace SctmUtils
 		string SimTimeStepMode; ///< simulation time step mode
 		string SimTimeStepScale; ///< simulation time step scale
 		double SimTimeStepMax; ///< minimum of simulation time step
+		int SimStepWriteData; ///< interval steps for writing data
 
 		//density parameters
 		double ChannelRadius; ///< the radius of the channel when using cylindrical coordinate
@@ -394,6 +400,7 @@ namespace SctmUtils
 		bool ClearCarrier;
 		bool RetentionAfterPrgrm; ///< Retention after program
 		double RetentionEndTime; ///< Retention end time after program
+		bool ReadTrappedDist; ///< Read trapped electron/hole distribution from input
 
 
 		//device structure
@@ -434,6 +441,7 @@ namespace SctmUtils
 			time_stepMode,
 			time_stepScale,
 			time_stepMax,
+			step_write_data,
 
 			subs_radius,
 			subs_type,
@@ -459,6 +467,7 @@ namespace SctmUtils
 			debug_clear_carrier,
 			debug_rAfterP,
 			debug_rEndTime,
+			debug_read_trapped,
 
 			//single cell structure
 			sc_gate_voltage,

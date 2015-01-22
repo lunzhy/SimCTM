@@ -125,6 +125,7 @@ public:
 	FDContact* GetContact(std::string contactName);
 
 	MaterialDB::Mat::Name GetTrapMatName();
+	void ReadTrappedOccupation();
 protected:
 	void virtual buildStructure() = 0;
 	void virtual postProcessOfDomain() {}

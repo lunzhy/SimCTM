@@ -18,6 +18,7 @@ time.start					: 1e-15					# in [s]
 time.end					: 1						# in [s]
 time.stepPerDecade			: 10					# steps per decade in log scale
 time.stepMax				: 0						# in [s], the maximal time step
+step.write.data				: 0						# interval steps for writing data
 
 # substrate, traps information
 subs.radius					: 0						# in [nm], the radius of the channel
@@ -43,6 +44,7 @@ debug.lateral.tunnel		: True					# True | False, the non-orthogonal tunneling ne
 debug.call.pytaurus			: Initial				# Never | Initial | EveryStep | Major, the frequency of calling Pytaurus in Linux
 debug.update.substrate		: False					# True | False, solve and update substrate potential, especially when calling Pytaurus
 debug.clear.carrier			: True					# True | False, clear free carriers when changing gate voltage
+debug.read.trapped			: False					# True | False, read trapped electron/hole distribution at the start of the simulation
 
 # TODO: the simulation of retention after programming has not been implemented yet.
 debug.rAfterP				: False					# True | False, rentention after program

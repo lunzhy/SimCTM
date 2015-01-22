@@ -873,4 +873,30 @@ void FDDomain::setVertexRadius()
 	}
 }
 
+void FDDomain::ReadTrappedOccupation()
+{
+	FDVertex* vert = NULL;
+	double trapDens = 0;
+	double eTrappedDens = 0;
+	double hTrappedDens = 0;
+	double eOcc = 0;
+	double hOcc = 0;
+	vector<double> vecElecOcc;
+	vector<double> vecHoleOcc;
+
+	SctmData::Get().ReadTrappedOcc(vecElecOcc, vecHoleOcc);
+
+	for (size_t iVert = 0; iVert != this->ddVerts.size(); ++iVert)
+	{
+		vert = ddVerts.at(iVert);
+		trapDens = vert->Trap->GetTrapPrpty(TrapProperty::TrapDensity);
+		eOcc = vecElecOcc.at(iVert);
+		hOcc = vecHoleOcc.at(iVert);
+		eTrappedDens = trapDens * eOcc;
+		hTrappedDens = trapDens * hOcc;
+		vert->Trap->SetTrapPrpty(TrapProperty::eTrapped, eTrappedDens);
+		vert->Trap->SetTrapPrpty(TrapProperty::hTrapped, hTrappedDens);
+	}
+}
+
 

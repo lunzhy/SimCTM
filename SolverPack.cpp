@@ -66,6 +66,11 @@ void SolverPack::callIteration()
 	SctmMessaging::Get().PrintHeader("Start to solve iterations.");
 	SctmTimer::Get().Set();
 
+	if (SctmGlobalControl::Get().ReadTrappedDist)
+	{
+		domain->ReadTrappedOccupation();
+	}
+
 	while (!SctmTimeStep::Get().End())
 	{
 		SctmTimeStep::Get().GenerateNext(); //the simulation starts with step 1
@@ -168,8 +173,9 @@ void SolverPack::callIteration()
 		//hTrappingSolver->SolveTrap();
 		SctmTimer::Get().Timeit("Transport", SctmTimer::Get().PopLastSet());
 		fetchTrappingResult();
-		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts(), SctmData::eInfo);
-		SctmData::Get().WriteTrappedInfo(domain->GetDDVerts(), SctmData::hInfo);
+		//SctmData::Get().WriteTrappedInfo(domain->GetDDVerts(), SctmData::eInfo);
+		//SctmData::Get().WriteTrappedInfo(domain->GetDDVerts(), SctmData::hInfo);
+		SctmData::Get().WriteTrapped(domain->GetDDVerts());
 		
 		//write the final result
 		SctmData::Get().WriteTunnelOutDensity(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecTransCoeffT2B_Tunnel, mapElecCurrDensOrCoeff_Block, mapElecTransCoeffT2B_Block);

@@ -272,7 +272,7 @@ namespace SctmUtils
 		case 10056:
 			msg = "[TunnelSolver.cpp] Invalid tunneling tag in electron tunneling solver.";
 			break;
-		case  10057:
+		case 10057:
 			msg = "[SctmMath.cpp] Solving quadratic equation meets non-existed real root.";
 			break;
 		case 10058:
@@ -283,6 +283,9 @@ namespace SctmUtils
 			break;
 		case 10060:
 			msg = "[param.user] Please check the values of parameters listed above.";
+			break;
+		case 10061:
+			msg = "[SctmUtils.cpp] The required trapped carrier occupation file (trapped.in) does not exist.";
 			break;
 		default:
 			msg = "Untracked error";
@@ -767,6 +770,18 @@ namespace SctmUtils
 		tofile.close();
 	}
 
+	void SctmFileStream::WriteVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> vec4, vector<double> vec5, vector<double> vec6, const char *title /*= "title not assigned"*/)
+	{
+		std::ofstream tofile(this->fileName.c_str(), std::ios::app);
+		tofile << title << endl;
+		for (size_t iv = 0; iv != vec1.size(); ++iv)
+		{
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << '\t' << vec4.at(iv) << '\t' << vec5.at(iv) << '\t' << vec6.at(iv) << endl;
+		}
+		tofile.close();
+	}
+
+
 
 
 
@@ -837,6 +852,33 @@ namespace SctmUtils
 		infile.close();
 		return;
 	}
+
+	void SctmFileStream::ReadVector(vector<double> &vec1, vector<double> &vec2, vector<double> &vec3, vector<double> &vec4, vector<double> &vec5, vector<double> &vec6)
+	{
+		std::ifstream infile(this->fileName.c_str(), std::ios::in);
+		double val1 = 0;
+		double val2 = 0;
+		double val3 = 0;
+		double val4 = 0;
+		double val5 = 0;
+		double val6 = 0;
+		string title = "";
+		std::getline(infile, title);
+
+		vec1.clear(); vec2.clear(); vec3.clear(); vec4.clear(); vec5.clear(); vec6.clear();
+		while (infile >> val1 >> val2 >> val3 >> val4 >> val5 >> val6)
+		{
+			vec1.push_back(val1);
+			vec2.push_back(val2);
+			vec3.push_back(val3);
+			vec4.push_back(val4);
+			vec5.push_back(val5);
+			vec6.push_back(val6);
+		}
+		infile.close();
+		return;
+	}
+
 
 
 
@@ -1155,6 +1197,21 @@ namespace SctmUtils
 		SctmData::Get().ReadTimestep(timeSequence, VgSequenceCellA, VgSequenceCellB, VgSequenceCellC);
 	}
 
+	bool SctmTimeStep::IsStepWriteData()
+	{
+		static int interval = SctmGlobalControl::Get().SimStepWriteData;
+		bool ret = false;
+
+		if (interval == 0)
+			return true;
+		
+		if (this->currStepNumber % interval == 1)
+			ret = true;
+
+		return ret;
+	}
+
+
 
 
 
@@ -1174,6 +1231,9 @@ namespace SctmUtils
 
 	void SctmData::WriteCarrierDens(vector<FDVertex *> &vertices, ehInfo ehinfo)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		if (ehinfo == ehInfo::eInfo)
 			fileName = directoryName + pathSep + "Density" + pathSep + "eDensity" + generateFileSuffix();
 		else // ehInfo::hInfo
@@ -1211,6 +1271,9 @@ namespace SctmUtils
 
 	void SctmData::WritePotential(vector<FDVertex *> &vertices)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		fileName = directoryName + pathSep + "Potential" + pathSep + "potential" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
@@ -1244,6 +1307,9 @@ namespace SctmUtils
 
 	void SctmData::WriteBandInfo(vector<FDVertex *> &vertices)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		fileName = directoryName + pathSep + "Band" + pathSep + "band" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
@@ -1341,6 +1407,9 @@ namespace SctmUtils
 
 	void SctmData::WriteCurrDens(vector<FDVertex *> &vertices, ehInfo ehinfo)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		if (ehinfo == ehInfo::eInfo)
 			fileName = directoryName + pathSep + "Current" + pathSep + "eCurrDens" + generateFileSuffix();
 		else
@@ -1386,6 +1455,9 @@ namespace SctmUtils
 
 	void SctmData::WriteElecField(vector<FDVertex *> &vertices)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		fileName = directoryName + pathSep + "ElecField" + pathSep + "elecField" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
@@ -1478,6 +1550,9 @@ namespace SctmUtils
 
 	void SctmData::WriteTrappedInfo(vector<FDVertex *> &vertices, ehInfo ehinfo)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		if (ehinfo == ehInfo::eInfo)
 			fileName = directoryName + pathSep + "Trap" + pathSep + "eTrapped" + generateFileSuffix();
 		else
@@ -2046,6 +2121,9 @@ namespace SctmUtils
 
 	void SctmData::WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		if (ehinfo == ehInfo::eInfo)
 			fileName = directoryName + pathSep + "Current" + pathSep + "eTunnel.txt" + generateFileSuffix();
 		else
@@ -2144,6 +2222,60 @@ namespace SctmUtils
 		string title = "time constant in TAT of time [" + numStr + "] (x, y, capture time, emission time, occupation)";
 		file.WriteVector(vecX, vecY, captureTime, emissionTime, occupation, title.c_str());
 	}
+
+	void SctmData::WriteTrapped(vector<FDVertex *> &vertices)
+	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
+		fileName = directoryName + pathSep + "Trap" + pathSep + "trapped" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> trappedElec;
+		vector<double> trappedHole;
+		vector<double> occElec;
+		vector<double> occHole;
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *currVert = NULL;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			trappedElec.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::eTrapped)));
+			occElec.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::eOccupation));
+			trappedHole.push_back(norm.PullDensity(currVert->Trap->GetTrapPrpty(TrapProperty::hTrapped)));
+			occHole.push_back(currVert->Trap->GetTrapPrpty(TrapProperty::hOccupation));
+		}
+
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "";
+		title = "trapped hole information[" + numStr + "] (x, y, trapped electron density, electron occupation, trapped hole density, hole occupation)";
+		file.WriteVector(vecX, vecY, trappedElec, occElec, trappedHole, occHole, title.c_str());
+	}
+
+	void SctmData::ReadTrappedOcc(vector<double>& eOcc, vector<double>& hOcc)
+	{
+		fileName = directoryName + pathSep + "trapped.in";
+		SctmFileStream trapped_file = SctmFileStream(fileName, SctmFileStream::Read);
+
+		if (!SctmFileStream::FileExisted(fileName))
+		{
+			SCTM_ASSERT(SCTM_ERROR, 10061);
+		}
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecElecTrapped;
+		vector<double> vecHoleTrapped;
+
+		trapped_file.ReadVector(vecX, vecY, vecElecTrapped, eOcc, vecHoleTrapped, hOcc);
+	}
+
+
 
 
 
@@ -2289,6 +2421,9 @@ namespace SctmUtils
 		//SimTimeStepMax
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::time_stepMax);
 		Get().SimTimeStepMax = dynamic_cast<Param<double> *>(parBase)->Value();
+		//SimStepWriteData
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::step_write_data);
+		Get().SimStepWriteData = dynamic_cast<Param<int> *>(parBase)->Value();
 
 		//UniformTrapDens
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::trap_eDensity);
@@ -2351,6 +2486,9 @@ namespace SctmUtils
 		//ClearCarrier
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_clear_carrier);
 		Get().ClearCarrier = dynamic_cast<Param<bool> *>(parBase)->Value();
+		//ReadTrappedDist
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_read_trapped);
+		Get().ReadTrappedDist = dynamic_cast<Param<bool> *>(parBase)->Value();
 
 		//RetentionAfterPrgrm
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
@@ -2586,6 +2724,13 @@ namespace SctmUtils
 			mapToSet[ParName::time_stepMax] = par;
 			return;
 		}
+		if (name == "step.write.data")
+		{
+			valInt = SctmConverter::StringToInt(valStr);
+			Param<int> *par = new Param<int>(ParName::step_write_data, valInt);
+			mapToSet[ParName::step_write_data] = par;
+			return;
+		}
 		if (name == "sc.gate.voltage")
 		{
 			valDouble = SctmConverter::StringToDouble(valStr);
@@ -2738,6 +2883,13 @@ namespace SctmUtils
 			valDouble = SctmConverter::StringToDouble(valStr);
 			Param<double> *par = new Param<double>(ParName::debug_rEndTime, valDouble);
 			mapToSet[ParName::debug_rEndTime] = par;
+			return;
+		}
+		if (name == "debug.read.trapped")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::debug_read_trapped, valBool);
+			mapToSet[ParName::debug_read_trapped] = par;
 			return;
 		}
 		//parameters for simulation structure
