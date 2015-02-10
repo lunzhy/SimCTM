@@ -6,7 +6,7 @@
 
 ###################### paramters for simulation #################################
 # parameters for the solver
-structure					: Triple				# Single | Triple | TripleFull, cell structure, Triple for simple triple
+structure					: Single				# Single | TripleFull, cell structure
 coordinate					: Cartesian				# Cylindrical | Cartesian, the coordinate system in the simulation
 solver						: SparseLU				# SparseLU | BiCGSTAB | Pardiso, the solver for linear matrix solver
 
@@ -76,6 +76,9 @@ sc.block.material			: Al2O3					# a material in the material set
 
 ################### paramters for triple cell (tc) structure #################
 # parameters for sentaurus solving
+tc.structure				: Planar				# DoubleGate | Planar, the structure in triple cells
+tc.junction					: False					# True | False, junction between adjacent cells
+tc.substrate.thick			: 100					# in [nm], substrate thickness of planar structure
 tc.drain.voltage			: 1.5					# the drain voltage in solving potential
 tc.drain.voltage.read		: 1.5					# the drain voltage for read vth
 tc.gate.voltage.pass		: 5						# the gate pass voltage for read vth

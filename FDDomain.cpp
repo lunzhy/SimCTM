@@ -631,7 +631,7 @@ MaterialDB::Mat::Name FDDomain::GetTrapMatName()
 	{
 		matname = GetRegion("Trap")->Mat->MatName();
 	}
-	else if (simStructure == "Triple" || simStructure == "TripleFull")
+	else if (simStructure == "TripleFull")
 	{
 		matname = GetRegion("Trap.Gate2")->Mat->MatName();
 	}
@@ -673,7 +673,7 @@ void FDDomain::setTrapOccupation()
 			}
 		}
 	}
-	else if (simStructure == "Triple" || simStructure == "TripleFull")
+	else if (simStructure == "TripleFull")
 	{
 		std::vector<string> regions;
 
@@ -758,7 +758,7 @@ void FDDomain::RefreshGateVoltage()
 		gateNames.push_back("Gate");
 		isLoad = true;
 	}
-	else if (!isLoad && (simStructure == "Triple" || simStructure == "TripleFull"))
+	else if (!isLoad && (simStructure == "TripleFull"))
 	{
 		gateNames.push_back("Gate1");
 		gateNames.push_back("Gate2");

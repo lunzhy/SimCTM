@@ -954,7 +954,7 @@ namespace SctmUtils
 		double vgCellB = 0;
 		double vgCellC = 0;
 		string simStructure = SctmGlobalControl::Get().Structure;
-		if (simStructure == "Triple" || simStructure == "TripleFull")
+		if (simStructure == "TripleFull")
 		{
 			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_voltage);
 			vgCellA = dynamic_cast<Param<double> *>(parBase)->Value();
@@ -1173,7 +1173,7 @@ namespace SctmUtils
 		double vgCellB = 0;
 		double vgCellC = 0;
 		string simStructure = SctmGlobalControl::Get().Structure;
-		if (simStructure == "Triple" || simStructure == "TripleFull")
+		if (simStructure == "TripleFull")
 		{
 			parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tc_gate1_voltage);
 			vgCellA = dynamic_cast<Param<double> *>(parBase)->Value();
@@ -1951,15 +1951,7 @@ namespace SctmUtils
 		string simStructure = SctmGlobalControl::Get().Structure;
 		static vector<string> outRegionsName;
 
-		if (!isLoad && simStructure == "Triple")
-		{
-			outRegionsName.push_back("Trap.Gate1");
-			outRegionsName.push_back("Trap.Iso2");
-			outRegionsName.push_back("Trap.Iso3");
-			outRegionsName.push_back("Trap.Gate3");
-			isLoad = true;
-		}
-		else if (!isLoad && simStructure == "TripleFull")
+		if (!isLoad && simStructure == "TripleFull")
 		{
 			outRegionsName.push_back("Trap.Iso1");
 			outRegionsName.push_back("Trap.Gate1");
@@ -3686,7 +3678,7 @@ namespace SctmUtils
 		}
 		//process the parameters used in Pytaurus
 		if (name == "tc.drain.voltage" || name == "tc.drain.voltage.read" || name == "tc.gate.voltage.pass" ||
-			name == "tc.gate.voltage.read")
+			name == "tc.gate.voltage.read" || name == "tc.structure" || name == "tc.junction" || name == "tc.substrate.thick")
 		{
 			return;
 		}

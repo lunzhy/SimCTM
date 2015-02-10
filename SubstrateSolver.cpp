@@ -211,7 +211,7 @@ double OneDimSubsSolver::calcFlatbandVoltage(FDVertex *channelVert)
 	{
 		vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for1D(channelVert);
 	}
-	else // SctmGlobalControl::Get().Structure == "Triple" || TripleFull
+	else // SctmGlobalControl::Get().Structure == TripleFull
 	{
 		vfbShift_charge = SctmPhys::CalculateFlatbandShift_slice_for2D(channelVert);
 	}

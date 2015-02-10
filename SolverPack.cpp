@@ -58,7 +58,7 @@ void SolverPack::initialize()
 void SolverPack::callIteration()
 {
 	//building the structure using Pytaurus
-	if (SctmEnv::Get().IsLinux() && (simStructure == "Triple" || simStructure == "TripleFull"))
+	if (SctmEnv::Get().IsLinux() && simStructure == "TripleFull")
 	{
 		SctmPyCaller::PyBuildStructure();
 	}
@@ -69,6 +69,12 @@ void SolverPack::callIteration()
 	if (SctmGlobalControl::Get().ReadTrappedDist)
 	{
 		domain->ReadTrappedOccupation();
+	}
+
+	//prepare the initial charge.in file for calling pytaurus
+	if (simStructure == "TripleFull")
+	{
+		SctmData::Get().WriteVfbShiftEachInterface(domain);
 	}
 
 	while (!SctmTimeStep::Get().End())
@@ -90,7 +96,7 @@ void SolverPack::callIteration()
 			fetchSubstrateResult();
 			SctmData::Get().WriteSubstrateResult(subsSolver, this, true);
 		}
-		else if (simStructure == "Triple" || simStructure == "TripleFull")
+		else if (simStructure == "TripleFull")
 		{
 			//call Pytaurus to run Sentaurus to write substrate.in
 			//Pytaurus will read the charge.in file
@@ -197,7 +203,7 @@ void SolverPack::callIteration()
 	SctmTimer::Get().Timeit("Total", SctmTimer::Get().PopLastSet());
 	SctmData::Get().WriteTimerInfo(SctmTimer::Get());
 
-	if (simStructure == "Triple" || simStructure == "TripleFull")
+	if (simStructure == "TripleFull")
 	{
 		SctmPyCaller::PyParseAvgVfb();
 	}

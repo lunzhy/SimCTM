@@ -115,11 +115,6 @@ void DDSolverTest()
 void RunSolverPack()
 {
 	FDDomain *aDomain = NULL;
-	if (SctmGlobalControl::Get().Structure == "Triple")
-	{
-		SctmMessaging::Get().PrintHeader("Building previous triple-cell domain.");
-		aDomain = new TripleCells();
-	}
 	if (SctmGlobalControl::Get().Structure == "TripleFull")
 	{
 		SctmMessaging::Get().PrintHeader("Building full triple-cell domain.");
