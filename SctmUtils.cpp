@@ -1205,7 +1205,7 @@ namespace SctmUtils
 		if (interval == 0)
 			return true;
 		
-		if (SctmTimeStep::Get().StepNumber % interval == 1)
+		if (SctmTimeStep::Get().StepNumber() % interval == 1)
 			ret = true;
 
 		if (SctmTimeStep::Get().IsMajorTime())
