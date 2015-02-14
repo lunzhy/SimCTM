@@ -1205,7 +1205,10 @@ namespace SctmUtils
 		if (interval == 0)
 			return true;
 		
-		if (this->currStepNumber % interval == 1)
+		if (SctmTimeStep::Get().StepNumber % interval == 1)
+			ret = true;
+
+		if (SctmTimeStep::Get().IsMajorTime())
 			ret = true;
 
 		return ret;
@@ -2189,6 +2192,9 @@ namespace SctmUtils
 
 	void SctmData::WriteTimeConstantTAT(vector<FDVertex *> vertices)
 	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
 		fileName = directoryName + pathSep + "Trap" + pathSep + "timeTAT" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
