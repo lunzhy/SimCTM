@@ -1666,6 +1666,9 @@ namespace SctmUtils
 		}
 		else
 		{
+			if (!SctmTimeStep::Get().IsStepWriteData())
+				return;
+
 			fileName = directoryName + pathSep + "Substrate" + pathSep + "substrate" + generateFileSuffix();
 			SctmFileStream subs_file = SctmFileStream(fileName, SctmFileStream::Write);
 
