@@ -2123,9 +2123,9 @@ namespace SctmUtils
 			return;
 
 		if (ehinfo == ehInfo::eInfo)
-			fileName = directoryName + pathSep + "Current" + pathSep + "eTunnel.txt" + generateFileSuffix();
+			fileName = directoryName + pathSep + "Current" + pathSep + "eTunnel" + generateFileSuffix();
 		else
-			fileName = directoryName + pathSep + "Current" + pathSep + "hTunnel.txt" + generateFileSuffix();
+			fileName = directoryName + pathSep + "Current" + pathSep + "hTunnel" + generateFileSuffix();
 		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
 
 		int vertID = 0;
