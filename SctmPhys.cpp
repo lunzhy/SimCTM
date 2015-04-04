@@ -1607,7 +1607,7 @@ namespace SctmPhys
 
 					if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
 					{
-						delta_d = vertForCap->R * SctmMath::ln((vertForCap->R + vertForCap->NorthLength / 2) / 
+						delta_d = SctmMath::ln((vertForCap->R + vertForCap->NorthLength / 2) / 
 							(vertForCap->R - vertForCap->SouthLength / 2));
 					}
 					else // SctmGlobalControl::Get().Coordinate == "Cartesian"
@@ -1620,7 +1620,14 @@ namespace SctmPhys
 
 					vertForCap = vertForCap->NorthVertex;
 				}
-				VfbShift += -(freeLineCharge + trapLineCharge) * cap_reciprocal;
+				if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+				{
+					VfbShift += -(freeLineCharge + trapLineCharge) * currVert->R * cap_reciprocal;
+				}
+				else
+				{
+					VfbShift += -(freeLineCharge + trapLineCharge) * cap_reciprocal;
+				}
 			}
 			currVert = currVert->NorthVertex;
 		}
@@ -1680,7 +1687,7 @@ namespace SctmPhys
 
 					if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
 					{
-						delta_d = vertForCap->R * SctmMath::ln((vertForCap->R + vertForCap->NorthLength / 2) /
+						delta_d = SctmMath::ln((vertForCap->R + vertForCap->NorthLength / 2) /
 							(vertForCap->R - vertForCap->SouthLength / 2));
 					}
 					else // SctmGlobalControl::Get().Coordinate == "Cartesian"
@@ -1693,7 +1700,14 @@ namespace SctmPhys
 
 					vertForCap = vertForCap->NorthVertex;
 				}
-				VfbShift += -(freeLineCharge + trapLineCharge) * cap_reciprocal;
+				if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
+				{
+					VfbShift += -(freeLineCharge + trapLineCharge) * currVert->R * cap_reciprocal;
+				}
+				else
+				{
+					VfbShift += -(freeLineCharge + trapLineCharge) * cap_reciprocal;
+				}
 			}
 			currVert = currVert->NorthVertex;
 		}
