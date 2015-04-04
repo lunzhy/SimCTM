@@ -198,7 +198,14 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteTrappedDensRegionwise(domain);
 		if (simStructure == "Single")
 		{
-			SctmData::Get().WriteFlatBandVoltageShift(domain);
+			if (SctmGlobalControl::Get().SubstrateMethod == "Solve")
+			{
+				SctmData::Get().WriteFlatBandVoltageShift(domain);
+			}
+			else  // Read
+			{
+				SctmData::Get().WriteVfbShiftEachInterface(domain);
+			}
 		}
 		else
 		{
@@ -212,7 +219,7 @@ void SolverPack::callIteration()
 	SctmTimer::Get().Timeit("Total", SctmTimer::Get().PopLastSet());
 	SctmData::Get().WriteTimerInfo(SctmTimer::Get());
 
-	if (simStructure == "TripleFull")
+	if (simStructure == "TripleFull" || SctmGlobalControl::Get().SubstrateMethod == "Read")
 	{
 		SctmPyCaller::PyParseAvgVfb();
 	}
