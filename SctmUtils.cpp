@@ -2490,6 +2490,9 @@ namespace SctmUtils
 		//ReadTrappedDist
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_read_trapped);
 		Get().ReadTrappedDist = dynamic_cast<Param<bool> *>(parBase)->Value();
+		//SubstrateMethod
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_substrate_method);
+		Get().SubstrateMethod = dynamic_cast<Param<string> *>(parBase)->Value();
 
 		//RetentionAfterPrgrm
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_rAfterP);
@@ -2893,6 +2896,13 @@ namespace SctmUtils
 			mapToSet[ParName::debug_read_trapped] = par;
 			return;
 		}
+		if (name == "debug.substrate.method")
+		{
+			Param<string> *par = new Param<string>(ParName::debug_substrate_method, valStr);
+			mapToSet[ParName::debug_substrate_method] = par;
+			return;
+		}
+
 		//parameters for simulation structure
 		//single cell
 		if (name == "sc.width.value")
@@ -3800,6 +3810,17 @@ namespace SctmUtils
 		if (!isStringValidChoice(stringVal, choices))
 		{
 			SctmMessaging::Get().PrintMessageLine("The parameter of carriers is illegal.");
+			errorOccurred = true;
+		}
+
+		//for substrate method
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::debug_substrate_method);
+		stringVal = dynamic_cast<Param<string> *>(parBase)->Value();
+		string keywords_subs_method[] = { "Solve", "Read" };
+		choices.assign(std::begin(keywords_subs_method), std::end(keywords_subs_method));
+		if (!isStringValidChoice(stringVal, choices))
+		{
+			SctmMessaging::Get().PrintMessageLine("The parameter of substrate method is illegal.");
 			errorOccurred = true;
 		}
 

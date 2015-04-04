@@ -401,6 +401,7 @@ namespace SctmUtils
 		bool RetentionAfterPrgrm; ///< Retention after program
 		double RetentionEndTime; ///< Retention end time after program
 		bool ReadTrappedDist; ///< Read trapped electron/hole distribution from input
+		string SubstrateMethod; ///< Read or solve the substrate potential and fermi energy
 
 
 		//device structure
@@ -468,6 +469,7 @@ namespace SctmUtils
 			debug_rAfterP,
 			debug_rEndTime,
 			debug_read_trapped,
+			debug_substrate_method,
 
 			//single cell structure
 			sc_gate_voltage,

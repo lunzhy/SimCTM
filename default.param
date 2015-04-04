@@ -45,6 +45,7 @@ debug.call.pytaurus			: Initial				# Never | Initial | EveryStep | Major, the fr
 debug.update.substrate		: False					# True | False, solve and update substrate potential, especially when calling Pytaurus
 debug.clear.carrier			: True					# True | False, clear free carriers when changing gate voltage
 debug.read.trapped			: False					# True | False, read trapped electron/hole distribution at the start of the simulation
+debug.substrate.method		: Solve					# Solve | Read, solve or read the substrate potential and fermi energy, especially for single cell
 
 # TODO: the simulation of retention after programming has not been implemented yet.
 debug.rAfterP				: False					# True | False, rentention after program
