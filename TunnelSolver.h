@@ -266,6 +266,7 @@ protected:
 	bool calcTimeConstant(FDVertex* oxideVert, double& ctime, double& etime);
 	double getTunCoeffTAT(FDVertex* startVert, FDVertex* endVert, std::string inout);
 	double getDeltaX(FDVertex* vert);
+	double getOxideTrapDensity(FDVertex* vert);
 
 	//for trap-assisted trap-to-band tunneling
 	void calcTimeConstant_TrapAssistedT2B(FDVertex* oxideVert, FDVertex* trapVert, double& ctime, double& etime);
@@ -280,9 +281,11 @@ protected:
 	VertexMapDouble oxideTrapOccupation;
 
 	double oxideTrapCrossSection;
-	double oxideTrapDensity; // in [1/cm^2]
+	double oxideTrapMaxDensity; // in [1/cm^2]
 	double oxideTrapEnergyFromCond;
 	double trapAssistedT2BTunnelFrequency;
+	double oxideTrapPosition;
+	double oxideTrapSigma;
 };
 
 #endif

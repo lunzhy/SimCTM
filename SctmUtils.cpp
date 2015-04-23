@@ -2902,7 +2902,48 @@ namespace SctmUtils
 			mapToSet[ParName::debug_substrate_method] = par;
 			return;
 		}
-
+		if (name == "tat.trap.maxdens")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::tat_trap_maxdens, valDouble);
+			mapToSet[ParName::tat_trap_maxdens] = par;
+			return;
+		}
+		if (name == "tat.trap.pos")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::tat_trap_pos, valDouble);
+			mapToSet[ParName::tat_trap_pos] = par;
+			return;
+		}
+		if (name == "tat.trap.sig")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::tat_trap_sig, valDouble);
+			mapToSet[ParName::tat_trap_sig] = par;
+			return;
+		}
+		if (name == "tat.trap.xsection")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::tat_trap_xsection, valDouble);
+			mapToSet[ParName::tat_trap_xsection] = par;
+			return;
+		}
+		if (name == "tat.trap.energy")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::tat_trap_energy, valDouble);
+			mapToSet[ParName::tat_trap_energy] = par;
+			return;
+		}
+		if (name == "tat.t2b.frequency")
+		{
+			valDouble = SctmConverter::StringToDouble(valStr);
+			Param<double> *par = new Param<double>(ParName::tat_t2b_frequency, valDouble);
+			mapToSet[ParName::tat_t2b_frequency] = par;
+			return;
+		}
 		//parameters for simulation structure
 		//single cell
 		if (name == "sc.width.value")

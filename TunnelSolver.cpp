@@ -631,6 +631,7 @@ void SubsToTrapElecTunnel::SolveTunnel()
 		currdens = calcDTFNtunneling(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, cbedge_max);
 		currdens += calcThermalEmission(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, cbedge_max);
 
+		//for TAT current
 		if (tunDirection == TunnelDirection::North) // tunnel from subs to trap layer
 		{
 			//calculate TAT current density, which is in [A/m^2]
@@ -2244,7 +2245,7 @@ double SubsToTrapElecTAT::SolveTAT(FDVertex* tunStart, FDVertex* tunEnd)
 		oxidevert->Phys->SetPhysPrpty(PhysProperty::eEmissionTime, norm.PushTime(etime));
 
 		dx = getDeltaX(oxidevert) * cm_in_m; // get the real value in [m]
-		oxideTrapDensity = this->oxideTrapDensity * per_cm3_in_per_m3;
+		oxideTrapDensity = this->getOxideTrapDensity(oxidevert) * per_cm3_in_per_m3;; //in real value, in [cm^-3]
 		currDens += q * oxideTrapDensity / (ctime + etime) * dx; //in real value, in [A/m^2]
 	}
 
@@ -2334,13 +2335,38 @@ double SubsToTrapElecTAT::getDeltaX(FDVertex* vert)
 
 void SubsToTrapElecTAT::setOxideTrapParam()
 {
+	using SctmUtils::ParamBase;
+	using SctmUtils::SctmParameterParser;
+	using SctmUtils::Param;
+
 	Normalization norm = Normalization(this->tunnelSolver->temperature);
+	ParamBase *parBase = NULL;
+
 	//the calculation of TAT current is in real value,
 	//so, all the parameters are in real values.
-	this->oxideTrapCrossSection = 1e-13; // in  [1/cm^2]
-	this->oxideTrapDensity = 0; // in [1/cm^3]
-	this->oxideTrapEnergyFromCond = 2.5; // in real value, in [eV]
-	this->trapAssistedT2BTunnelFrequency = 1e6; // in real value, in [1/s]
+
+	//this->oxideTrapMaxDensity = 0; // in [1/cm^3]
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tat_trap_maxdens);
+	this->oxideTrapMaxDensity = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tat_trap_pos);
+	this->oxideTrapPosition = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tat_trap_sig);
+	this->oxideTrapSigma = dynamic_cast<Param<double> *>(parBase)->Value();
+
+	//this->oxideTrapCrossSection = 1e-13; // in  [1/cm^2]
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tat_trap_xsection);
+	this->oxideTrapCrossSection = dynamic_cast<Param<double> *>(parBase)->Value();
+	
+	//this->oxideTrapEnergyFromCond = 1.6; // in real value, in [eV]
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tat_trap_energy);
+	this->oxideTrapEnergyFromCond = dynamic_cast<Param<double> *>(parBase)->Value();
+	
+	//this->trapAssistedT2BTunnelFrequency = 1e6; // in real value, in [1/s]
+	parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::tat_t2b_frequency);
+	this->trapAssistedT2BTunnelFrequency = dynamic_cast<Param<double> *>(parBase)->Value();
+	
 }
 
 double SubsToTrapElecTAT::CalcCoeff_TrapAssistedT2B(FDVertex* trapvert)
@@ -2366,7 +2392,7 @@ double SubsToTrapElecTAT::CalcCoeff_TrapAssistedT2B(FDVertex* trapvert)
 
 		calcTimeConstant_TrapAssistedT2B(oxidevert, trapvert, ctime, etime);
 		dx = this->getDeltaX(oxidevert); //in real value, in [cm]
-		oxideTrapDensity = this->oxideTrapDensity; //in real value, in [cm^-3]
+		oxideTrapDensity = this->getOxideTrapDensity(oxidevert); //in real value, in [cm^-3]
 
 		currdens += q * oxideTrapDensity / (ctime + etime) * dx; //in real value, in [A/cm^2]
 	}
@@ -2463,4 +2489,18 @@ double SubsToTrapElecTAT::getTunCoeff_TrapAssistedT2B(FDVertex* oxideVert, FDVer
 		this->tunnelSolver->eMass_TunnelTrap, this->tunnelSolver->cbEdge_TunnelTrap,
 		size, startindex);
 	return tunCoeff;
+}
+
+double SubsToTrapElecTAT::getOxideTrapDensity(FDVertex* vert)
+{
+	Normalization norm = Normalization(this->tunnelSolver->temperature);
+	double trapDens = 0;
+	double yCoord = 0;
+	double cm_in_nm = SctmPhys::cm_in_nm;
+
+	yCoord = norm.PullLength(vert->Y) * cm_in_nm;
+	trapDens = this->oxideTrapMaxDensity *
+		SctmMath::exp(-SctmMath::square(yCoord - this->oxideTrapPosition) / SctmMath::square(this->oxideTrapSigma) / 2);
+
+	return trapDens;
 }

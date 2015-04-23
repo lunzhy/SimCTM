@@ -471,6 +471,14 @@ namespace SctmUtils
 			debug_read_trapped,
 			debug_substrate_method,
 
+			//for trap-assisted tunneling
+			tat_trap_maxdens,
+			tat_trap_pos,
+			tat_trap_sig,
+			tat_trap_xsection,
+			tat_trap_energy,
+			tat_t2b_frequency,
+
 			//single cell structure
 			sc_gate_voltage,
 			sc_gate_workfunction,

@@ -51,6 +51,14 @@ debug.substrate.method		: Solve					# Solve | Read, solve or read the substrate 
 debug.rAfterP				: False					# True | False, rentention after program
 debug.rEndTime				: 1e6					# retention end time after program
 
+# for trap-assisted tunnling (TAT) and trap-assited trap-to-band (TATB) tunneling
+tat.trap.maxdens			: 5e16					# in [cm^-3], maximum trap volume density in the Gaussian distribution
+tat.trap.pos				: 1						# in [nm], position for the maximum trap density
+tat.trap.sig				: 0.5					# in [nm], sigma for the Gaussion trap density distribution
+tat.trap.xsection			: 1e-14					# in [cm^-2], trap crosssection
+tat.trap.energy				: 1.8					# in [eV], trap energy from conducion band
+tat.t2b.frequency			: 1e6					# in [Hz], attemp-to-escape frequency for the trap-assisted trap-to-band tunneling
+
 ################### parameters for single cell (sc) structure #################
 # gate
 sc.gate.voltage				: 18					# in [V]
