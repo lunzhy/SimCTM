@@ -2276,6 +2276,37 @@ namespace SctmUtils
 		trapped_file.ReadVector(vecX, vecY, vecElecTrapped, eOcc, vecHoleTrapped, hOcc);
 	}
 
+	void SctmData::WriteCurrDensTAT(vector<FDVertex *> vertices)
+	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
+		fileName = directoryName + pathSep + "Current" + pathSep + "eTAT" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *currVert = NULL;
+		FDBoundary::TunnelTag tunnelTag = FDBoundary::noTunnel;
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecCurrdensTAT;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			vecCurrdensTAT.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrDensityTAT)));
+		}
+
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "";
+		title = "trap-assisted tunneling current density of [" + numStr + "] (x, y, TAT current density)";
+		file.WriteVector(vecX, vecY, vecCurrdensTAT, title.c_str());
+	}
+
+
 
 
 

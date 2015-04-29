@@ -58,6 +58,7 @@ namespace SctmPhys
 
 		e_emissionTime = 0;
 		e_captureTime = 0;
+		e_currDensTAT = 0;
 
 		h_mass = 0;
 		h_DOSmass = 0;
@@ -113,6 +114,9 @@ namespace SctmPhys
 			break;
 		case eCaptureTime:
 			e_captureTime = prptyValue;
+			break;
+		case eCurrDensityTAT:
+			e_currDensTAT = prptyValue;
 			break;
 		//for holes
 		case hMass:
@@ -585,6 +589,11 @@ namespace SctmPhys
 			case eOccupationTAT:
 			{
 				ret = GetPhysPrpty(eEmissionTime) / (GetPhysPrpty(eEmissionTime) + GetPhysPrpty(eCaptureTime));
+				break;
+			}
+			case eCurrDensityTAT:
+			{
+				ret = e_currDensTAT;
 				break;
 			}
 			//for holes

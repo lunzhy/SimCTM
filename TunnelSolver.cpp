@@ -609,6 +609,8 @@ void SubsToTrapElecTunnel::SolveTunnel()
 	double edensity = 0;
 	double currdens_TAT = 0;
 
+	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
+
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
 	{
 		loadBandStructure(vertsTunnelOxideStart.at(iVert));
@@ -636,12 +638,22 @@ void SubsToTrapElecTunnel::SolveTunnel()
 		{
 			//calculate TAT current density, which is in [A/m^2]
 			currdens_TAT = this->solverTAT->SolveTAT(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
+
+			//use real value
+			vertsTunnelOxideStart.at(iVert)->Phys->SetPhysPrpty(PhysProperty::eCurrDensityTAT, 
+				norm.PushCurrDens(currdens_TAT * per_m2_in_per_cm2));
+
 			currdens += currdens_TAT;
 		}
 		else // tunnel from trap layer to subs
 		{
 			//calculate TAT current density, which is in [A/m^2]
 			currdens_TAT = this->solverTAT->SolveTAT(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
+
+			//use real value
+			vertsTunnelOxideStart.at(iVert)->Phys->SetPhysPrpty(PhysProperty::eCurrDensityTAT, 
+				norm.PushCurrDens(currdens_TAT * per_m2_in_per_cm2));
+
 			vert = this->vertsTunnelOxideEnd.at(iVert);
 			edensity = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
 			edensity = norm.PullDensity(edensity) * per_cm3_in_per_m3;

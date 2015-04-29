@@ -117,10 +117,11 @@ namespace SctmPhys
 			eCurrDensMFN_X, ///< the x-direction value of MFN tunneling current density of inner vertex 
 			eCurrDensMFN_Y, ///< the y-direction value of MFN tunneling current density of inner vertex
 			eSubsCurrDensB2T, ///< electron current density from substrate in calculation of band-to-trap tunneling 
-			//time constant related to TAT tunneling,
+			//physical properties related to TAT tunneling,
 			eEmissionTime,
 			eCaptureTime,
 			eOccupationTAT,
+			eCurrDensityTAT,
 
 			//for holes
 			hMass,
@@ -202,9 +203,10 @@ namespace SctmPhys
 		double e_currdensMFN_X; ///< the x-direction value of MFN tunneling current density of inner vertex
 		double e_currdensMFN_Y; ///< the y-direction value of MFN tunneling current density of inner vertex
 		double e_subsCurrDensB2T; ///< band-to-trap electron current density from substrate in the calculation of band-to-trap tunneling 
-		//time constant related to TAT tunneling
+		//physical properties related to TAT tunneling
 		double e_emissionTime;
 		double e_captureTime;
+		double e_currDensTAT; ///< TAT current density
 
 		//for holes
 		double h_mass;
