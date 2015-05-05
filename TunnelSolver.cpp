@@ -2396,6 +2396,8 @@ double SubsToTrapElecTAT::CalcCoeff_TrapAssistedT2B(FDVertex* trapvert)
 	double eTrappedDensity = 0;
 	double frequency_T2B = 0;
 	double tunCoeff_TAT2B = 0;
+	double currdens_TAT2B = 0;
+	double accCurrdens_TAT2B = 0;
 
 	for (size_t iVert = 0; iVert != this->oxideVertices.size(); ++iVert)
 	{
@@ -2406,7 +2408,13 @@ double SubsToTrapElecTAT::CalcCoeff_TrapAssistedT2B(FDVertex* trapvert)
 		dx = this->getDeltaX(oxidevert); //in real value, in [cm]
 		oxideTrapDensity = this->getOxideTrapDensity(oxidevert); //in real value, in [cm^-3]
 
-		currdens += q * oxideTrapDensity / (ctime + etime) * dx; //in real value, in [A/cm^2]
+		currdens_TAT2B = q * oxideTrapDensity / (ctime + etime) * dx; //in real value, in [A/cm^2]
+		
+		accCurrdens_TAT2B = oxidevert->Phys->GetPhysPrpty(PhysProperty::eCurrDensityTAT2B);
+		accCurrdens_TAT2B += norm.PushCurrDens(currdens_TAT2B);
+		oxidevert->Phys->SetPhysPrpty(PhysProperty::eCurrDensityTAT2B, accCurrdens_TAT2B);
+
+		currdens += currdens_TAT2B; //in real value, in [A/cm^2]
 	}
 
 	DriftDiffusionSolver::getDeltaXYAtVertex(trapvert, dummy, dx); //dx is the length in y direction

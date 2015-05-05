@@ -309,6 +309,7 @@ namespace SctmUtils
 		void WriteTunnelInfo(FDDomain *domain, VertexMapDouble &tnnlOxide, VertexMapDouble &blckOxide, ehInfo ehinfo);
 		void WriteTimeConstantTAT(vector<FDVertex *> vertices);
 		void WriteCurrDensTAT(vector<FDVertex *> vertices);
+		void WriteCurrDensTAT2B(vector<FDVertex *> vertices);
 
 		void WriteSubsVertices(vector<FDVertex *> &vertices);
 		void WriteVfbShiftEachInterface(FDDomain *domain);

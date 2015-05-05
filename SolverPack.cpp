@@ -165,6 +165,7 @@ void SolverPack::callIteration()
 		SctmData::Get().WriteTunnelInfo(domain, mapElecCurrDensOrCoeff_Tunnel, mapElecCurrDensOrCoeff_Block, SctmData::eInfo);
 		SctmData::Get().WriteTunnelInfo(domain, mapHoleCurrDensOrCoeff_Tunnel, mapHoleCurrDensOrCoeff_Block, SctmData::hInfo);
 		SctmData::Get().WriteTimeConstantTAT(domain->GetVertsOfRegion("Tunnel"));
+		SctmData::Get().WriteCurrDensTAT2B(domain->GetVertsOfRegion("Tunnel"));
 		SctmData::Get().WriteCurrDensTAT(domain->GetContact("Channel")->GetContactVerts());
 
 		//solver drift-diffusion equation

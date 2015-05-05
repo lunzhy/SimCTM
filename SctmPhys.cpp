@@ -59,6 +59,7 @@ namespace SctmPhys
 		e_emissionTime = 0;
 		e_captureTime = 0;
 		e_currDensTAT = 0;
+		e_currDensTAT2B = 0;
 
 		h_mass = 0;
 		h_DOSmass = 0;
@@ -117,6 +118,9 @@ namespace SctmPhys
 			break;
 		case eCurrDensityTAT:
 			e_currDensTAT = prptyValue;
+			break;
+		case eCurrDensityTAT2B:
+			e_currDensTAT2B = prptyValue;
 			break;
 		//for holes
 		case hMass:
@@ -594,6 +598,11 @@ namespace SctmPhys
 			case eCurrDensityTAT:
 			{
 				ret = e_currDensTAT;
+				break;
+			}
+			case eCurrDensityTAT2B:
+			{
+				ret = e_currDensTAT2B;
 				break;
 			}
 			//for holes

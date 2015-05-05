@@ -2306,6 +2306,36 @@ namespace SctmUtils
 		file.WriteVector(vecX, vecY, vecCurrdensTAT, title.c_str());
 	}
 
+	void SctmData::WriteCurrDensTAT2B(vector<FDVertex *> vertices)
+	{
+		if (!SctmTimeStep::Get().IsStepWriteData())
+			return;
+
+		fileName = directoryName + pathSep + "Current" + pathSep + "eTAT2B" + generateFileSuffix();
+		SctmFileStream file = SctmFileStream(fileName, SctmFileStream::Write);
+
+		Normalization norm = Normalization(this->temperature);
+		FDVertex *currVert = NULL;
+
+		vector<double> vecX;
+		vector<double> vecY;
+		vector<double> vecCurrdensTAT2B;
+
+		for (size_t iVert = 0; iVert != vertices.size(); ++iVert)
+		{
+			currVert = vertices.at(iVert);
+			vecX.push_back(norm.PullLength(currVert->X));
+			vecY.push_back(norm.PullLength(currVert->Y));
+			vecCurrdensTAT2B.push_back(norm.PullCurrDens(currVert->Phys->GetPhysPrpty(PhysProperty::eCurrDensityTAT2B)));
+		}
+
+		string numStr = SctmConverter::DoubleToString(SctmTimeStep::Get().ElapsedTime());
+		string title = "";
+		title = "trap-assisted trap-to-band tunneling current density of [" + numStr + "] (x, y, TAT2B current density)";
+		file.WriteVector(vecX, vecY, vecCurrdensTAT2B, title.c_str());
+	}
+
+
 
 
 
