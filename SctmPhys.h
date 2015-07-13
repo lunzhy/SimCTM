@@ -123,6 +123,7 @@ namespace SctmPhys
 			eOccupationTAT,
 			eCurrDensityTAT,
 			eCurrDensityTAT2B,
+			eRatioTAT,
 
 			//for holes
 			hMass,
@@ -209,6 +210,7 @@ namespace SctmPhys
 		double e_captureTime;
 		double e_currDensTAT; ///< TAT current density
 		double e_currDensTAT2B; ///< Trap-Assisted Trap-to-Band tunneling current density
+		double e_ratioTAT; ///< ratio of TAT current density to total current density
 
 		//for holes
 		double h_mass;
