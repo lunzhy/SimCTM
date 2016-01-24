@@ -696,7 +696,7 @@ void FDDomain::setTrapOccupation()
 		for (size_t iVert = 0; iVert != ddVerts.size(); ++iVert)
 		{
 			currVert = ddVerts.at(iVert);
-			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::eTrapDensity);
+			trapDens = currVert->Trap->GetTrapPrpty(TrapProperty::TrapDensity);
 
 			if (trapOccupy < -1 || trapOccupy > 1)
 			{
