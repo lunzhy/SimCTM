@@ -2195,6 +2195,9 @@ namespace SctmUtils
 
 	void SctmData::WriteTimeConstantTAT(vector<FDVertex *> vertices)
 	{
+		if (!SctmGlobalControl::Get().PhysicsTAT)
+			return;
+
 		if (!SctmTimeStep::Get().IsStepWriteData())
 			return;
 
@@ -2278,6 +2281,9 @@ namespace SctmUtils
 
 	void SctmData::WriteCurrDensTAT(vector<FDVertex *> vertices)
 	{
+		if (!SctmGlobalControl::Get().PhysicsTAT)
+			return;
+
 		if (!SctmTimeStep::Get().IsStepWriteData())
 			return;
 
@@ -2308,6 +2314,9 @@ namespace SctmUtils
 
 	void SctmData::WriteCurrDensTAT2B(vector<FDVertex *> vertices)
 	{
+		if (!SctmGlobalControl::Get().PhysicsTAT)
+			return;
+
 		if (!SctmTimeStep::Get().IsStepWriteData())
 			return;
 
@@ -2525,6 +2534,9 @@ namespace SctmUtils
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_t2b);
 		bool t2b = dynamic_cast<Param<bool> *>(parBase)->Value();
 		Get().PhysicsT2B = t2b;
+		//PhysicsTATModel
+		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_tat);
+		Get().PhysicsTAT = dynamic_cast<Param<bool> *>(parBase)->Value();
 		//PhysicsPFModel
 		parBase = SctmParameterParser::Get().GetPar(SctmParameterParser::physics_pf);
 		Get().PhysicsPFModel = dynamic_cast<Param<string> *>(parBase)->Value();
@@ -2881,6 +2893,13 @@ namespace SctmUtils
 			valBool = SctmConverter::StringToBool(valStr);
 			Param<bool> *par = new Param<bool>(ParName::physics_b2t, valBool);
 			mapToSet[ParName::physics_b2t] = par;
+			return;
+		}
+		if (name == "physics.tat")
+		{
+			valBool = SctmConverter::StringToBool(valStr);
+			Param<bool> *par = new Param<bool>(ParName::physics_tat, valBool);
+			mapToSet[ParName::physics_tat] = par;
 			return;
 		}
 		if (name == "physics.t2b")

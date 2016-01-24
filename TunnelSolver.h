@@ -153,6 +153,7 @@ protected:
 	void calcCurrDens_MFN();
 	void calcCurrDens_B2T();
 	void calcTransCoeff_T2B();
+	double calcTATCurrDens(size_t iVert, vector<FDVertex *> &vertsTunnelOxideStart, vector<FDVertex *> &vertsTunnelOxideEnd);
 	double updateTunCurrForCylindrical(double currdens, FDVertex* inVert, FDVertex* outVert);
 
 	FDVertex *findTrapVertex_MFN(double energy, int &size);

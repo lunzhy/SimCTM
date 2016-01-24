@@ -391,6 +391,7 @@ namespace SctmUtils
 		bool PhysicsMFN; ///< Modified Fowler-Nordheim tunneling
 		bool PhysicsB2T; ///< Band-to-Trap tunneling in
 		bool PhysicsT2B; ///< Trap-to-Band tunneling out
+		bool PhysicsTAT; ///< TAT and TATB tunneling
 		string PhysicsPFModel; ///< Poole-Frenkel model
 
 		//for debug
@@ -460,6 +461,7 @@ namespace SctmUtils
 			physics_b2t,
 			physics_t2b,
 			physics_pf,
+			physics_tat,
 
 			//for debugging
 			debug_trap_occupy,

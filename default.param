@@ -36,6 +36,7 @@ physics.mfn					: True					# True | False (not true, false)
 physics.b2t					: False					# True | False, Band-to-Trap tunneling in
 physics.t2b					: False					# True | False, Trap-to-Band tunneling out
 physics.pf					: None					# None | EtDecrease | Frequency, model of Poole-Frenkel effect
+physics.tat					: False					# True | False, TAT and TATB tunneling current
 
 # for debug
 debug.trap.occupy			: 0						# range [-1, 1], trap occupation state, positive value for hole occupation, negative electron

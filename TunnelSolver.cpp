@@ -609,7 +609,6 @@ void SubsToTrapElecTunnel::SolveTunnel()
 	double m_in_cm = 1.0 / SctmPhys::cm_in_m;
 	double edensity = 0;
 	double currdens_TAT = 0;
-
 	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
 
 	for (size_t iVert = 0; iVert != vertsTunnelOxideStart.size(); ++iVert)
@@ -634,34 +633,9 @@ void SubsToTrapElecTunnel::SolveTunnel()
 		currdens = calcDTFNtunneling(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, cbedge_max);
 		currdens += calcThermalEmission(deltaX_Tunnel, ehmass_Tunnel, bandEdge_Tunnel, cbedge_max);
 
-		//for TAT current
-		if (tunDirection == TunnelDirection::North) // tunnel from subs to trap layer
+		if (SctmGlobalControl::Get().PhysicsTAT)
 		{
-			//calculate TAT current density, which is in [A/m^2]
-			currdens_TAT = this->solverTAT->SolveTAT(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
-
-			//use real value
-			vertsTunnelOxideStart.at(iVert)->Phys->SetPhysPrpty(PhysProperty::eCurrDensityTAT, 
-				norm.PushCurrDens(currdens_TAT * per_m2_in_per_cm2));
-
-			currdens += currdens_TAT;
-		}
-		else // tunnel from trap layer to subs
-		{
-			//calculate TAT current density, which is in [A/m^2]
-			currdens_TAT = this->solverTAT->SolveTAT(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
-
-			vert = this->vertsTunnelOxideEnd.at(iVert);
-			edensity = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
-			edensity = norm.PullDensity(edensity) * per_cm3_in_per_m3;
-			//current density is the tunneling coefficient of the vertex. currdens_TAT is the TAT current density,
-			//so the equivalent tunneling coefficient is needed.
-
-			//use read value
-			vertsTunnelOxideStart.at(iVert)->Phys->SetPhysPrpty(PhysProperty::eCurrDensityTAT,
-				norm.PushTunCoeff(currdens_TAT / edensity * m_in_cm));
-
-			currdens += currdens_TAT / edensity; // [A/m^2] / [/m^3] = [A.m]
+			currdens += calcTATCurrDens(iVert, vertsTunnelOxideStart, vertsTunnelOxideEnd);
 		}
 		
 		if (SctmGlobalControl::Get().Coordinate == "Cylindrical")
@@ -1095,9 +1069,11 @@ void SubsToTrapElecTunnel::calcTransCoeff_T2B()
 			vertID = currVert->GetID();
 			eTransCoeffMap_T2B[vertID] = tunnelCoeff;
 
-			coeff_TAT2B = this->solverTAT->CalcCoeff_TrapAssistedT2B(currVert);
-			eCoeffMap_TAT2B[vertID] = coeff_TAT2B;
-
+			if (SctmGlobalControl::Get().PhysicsTAT)
+			{
+				coeff_TAT2B = this->solverTAT->CalcCoeff_TrapAssistedT2B(currVert);
+				eCoeffMap_TAT2B[vertID] = coeff_TAT2B;
+			}
 			eTransCoeffMap_T2B[vertID] += coeff_TAT2B;
 		}
 	}
@@ -1124,6 +1100,49 @@ double SubsToTrapElecTunnel::updateTunCurrForCylindrical(double currdens, FDVert
 		updatedCurrDens = currdens * radiusTunFrom / radiusTunTo;
 	}
 	return updatedCurrDens;
+}
+
+double SubsToTrapElecTunnel::calcTATCurrDens(size_t iVert, vector<FDVertex *> &vertsTunnelOxideStart, vector<FDVertex *> &vertsTunnelOxideEnd)
+{
+	Normalization norm = Normalization(this->temperature);
+	FDVertex* vert = NULL;
+	double per_cm3_in_per_m3 = SctmPhys::per_cm3_in_per_m3;
+	double m_in_cm = 1.0 / SctmPhys::cm_in_m;
+	double per_m2_in_per_cm2 = SctmPhys::per_sqr_m_in_per_sqr_cm;
+	double edensity = 0;
+	double currdens_TAT = 0;
+	double currdens = 0;
+
+	//for TAT current
+	if (tunDirection == TunnelDirection::North) // tunnel from subs to trap layer
+	{
+		//calculate TAT current density, which is in [A/m^2]
+		currdens_TAT = this->solverTAT->SolveTAT(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
+
+		//use real value
+		vertsTunnelOxideStart.at(iVert)->Phys->SetPhysPrpty(PhysProperty::eCurrDensityTAT,
+			norm.PushCurrDens(currdens_TAT * per_m2_in_per_cm2));
+
+		currdens += currdens_TAT;
+	}
+	else // tunnel from trap layer to subs
+	{
+		//calculate TAT current density, which is in [A/m^2]
+		currdens_TAT = this->solverTAT->SolveTAT(vertsTunnelOxideStart.at(iVert), vertsTunnelOxideEnd.at(iVert));
+
+		vert = this->vertsTunnelOxideEnd.at(iVert);
+		edensity = vert->Phys->GetPhysPrpty(PhysProperty::eDensity);
+		edensity = norm.PullDensity(edensity) * per_cm3_in_per_m3;
+		//current density is the tunneling coefficient of the vertex. currdens_TAT is the TAT current density,
+		//so the equivalent tunneling coefficient is needed.
+
+		//use read value
+		vertsTunnelOxideStart.at(iVert)->Phys->SetPhysPrpty(PhysProperty::eCurrDensityTAT,
+			norm.PushTunCoeff(currdens_TAT / edensity * m_in_cm));
+
+		currdens += currdens_TAT / edensity; // [A/m^2] / [/m^3] = [A.m]
+	}
+	return currdens;
 }
 
 
