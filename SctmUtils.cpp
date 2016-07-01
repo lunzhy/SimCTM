@@ -776,7 +776,7 @@ namespace SctmUtils
 		tofile << title << endl;
 		for (size_t iv = 0; iv != vec1.size(); ++iv)
 		{
-			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << vec3.at(iv) << '\t' << vec4.at(iv) << '\t' << vec5.at(iv) << '\t' << vec6.at(iv) << endl;
+			tofile << vec1.at(iv) << '\t' << vec2.at(iv) << '\t' << std::setprecision(16) <<  vec3.at(iv) << '\t' << vec4.at(iv) << '\t' << vec5.at(iv) << '\t' << vec6.at(iv) << endl;
 		}
 		tofile.close();
 	}
